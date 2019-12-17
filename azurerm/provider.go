@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -722,13 +723,13 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		}
 
 		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
-		clientBuilder := armClientBuilder{
-			authConfig:                  config,
-			skipProviderRegistration:    skipProviderRegistration,
-			terraformVersion:            terraformVersion,
-			partnerId:                   d.Get("partner_id").(string),
-			disableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
-			disableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
+		clientBuilder := clients.ClientBuilder{
+			AuthConfig:                  config,
+			SkipProviderRegistration:    skipProviderRegistration,
+			TerraformVersion:            terraformVersion,
+			PartnerId:                   d.Get("partner_id").(string),
+			DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
+			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
 		}
 		client, err := getArmClient(p.StopContext(), clientBuilder)
 		if err != nil {
@@ -737,7 +738,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		// TODO: clean this up when ArmClient is removed
 		client.StopContext = p.StopContext()
-		client.Client.StopContext = p.StopContext()
 
 		// replaces the context between tests
 		p.MetaReset = func() error {
