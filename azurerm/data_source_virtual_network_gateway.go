@@ -57,6 +57,11 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 				Computed: true,
 			},
 
+			"generation": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"ip_configuration": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -222,6 +227,10 @@ func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interfa
 
 		if string(gw.VpnType) != "" {
 			d.Set("vpn_type", string(gw.VpnType))
+		}
+
+		if string(gw.VpnGatewayGeneration) != "" {
+			d.Set("generation", string(gw.VpnGatewayGeneration))
 		}
 
 		if gw.GatewayDefaultSite != nil {
