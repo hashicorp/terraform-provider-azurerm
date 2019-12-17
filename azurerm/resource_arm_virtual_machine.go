@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -20,7 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -476,7 +476,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validate.VirtualMachineTimeZone(),
+							ValidateFunc:     validate.VirtualMachineTimeZoneCaseInsensitive(),
 						},
 						"winrm": {
 							Type:     schema.TypeList,
@@ -1027,15 +1027,19 @@ func resourceArmVirtualMachineDeleteVhd(ctx context.Context, storageClient *intS
 		return fmt.Errorf("Error parsing %q: %s", uri, err)
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
 	}
-	if resourceGroup == nil {
-		return fmt.Errorf("Unable to locate Resource Group for Storage Account %q (Disk %q)!", id.AccountName, uri)
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q (Disk %q)!", id.AccountName, uri)
 	}
 
-	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, id.AccountName)
+	if err != nil {
+		return fmt.Errorf("Error building Blobs Client: %s", err)
+	}
+
+	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
@@ -1044,7 +1048,7 @@ func resourceArmVirtualMachineDeleteVhd(ctx context.Context, storageClient *intS
 		DeleteSnapshots: false,
 	}
 	if _, err := blobsClient.Delete(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-		return fmt.Errorf("Error deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", id.BlobName, id.ContainerName, id.AccountName, *resourceGroup, err)
+		return fmt.Errorf("Error deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", id.BlobName, id.ContainerName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil
@@ -1406,6 +1410,9 @@ func flattenAzureRmVirtualMachineReviseDiskInfo(result map[string]interface{}, d
 
 func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, error) {
 	planConfigs := d.Get("plan").([]interface{})
+	if len(planConfigs) == 0 {
+		return nil, nil
+	}
 
 	planConfig := planConfigs[0].(map[string]interface{})
 

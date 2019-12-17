@@ -1,4 +1,5 @@
 ---
+subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_network_mapping"
 sidebar_current: "docs-azurerm-recovery-network-mapping"
@@ -31,32 +32,32 @@ resource "azurerm_recovery_services_vault" "vault" {
 }
 
 resource "azurerm_recovery_services_fabric" "primary" {
-  name                         = "primary-fabric"
-  resource_group_name          = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.vault.name}"
-  location                     = "${azurerm_resource_group.primary.location}"
+  name                = "primary-fabric"
+  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
+  location            = "${azurerm_resource_group.primary.location}"
 }
 
 resource "azurerm_recovery_services_fabric" "secondary" {
-  name                         = "secondary-fabric"
-  resource_group_name          = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.vault.name}"
-  location                     = "${azurerm_resource_group.secondary.location}"
-  depends_on                   = ["azurerm_recovery_services_fabric.primary"] # Avoids issues with crearing fabrics simultainusly
+  name                = "secondary-fabric"
+  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
+  location            = "${azurerm_resource_group.secondary.location}"
+  depends_on          = ["azurerm_recovery_services_fabric.primary"] # Avoids issues with crearing fabrics simultainusly
 }
 
 resource "azurerm_virtual_network" "primary" {
-  name = "network1"
+  name                = "network1"
   resource_group_name = "${azurerm_resource_group.primary.name}"
-  address_space = [ "192.168.1.0/24" ]
-  location = "${azurerm_resource_group.primary.location}"
+  address_space       = ["192.168.1.0/24"]
+  location            = "${azurerm_resource_group.primary.location}"
 }
 
 resource "azurerm_virtual_network" "secondary" {
-  name = "network2"
+  name                = "network2"
   resource_group_name = "${azurerm_resource_group.secondary.name}"
-  address_space = [ "192.168.2.0/24" ]
-  location = "${azurerm_resource_group.secondary.location}"
+  address_space       = ["192.168.2.0/24"]
+  location            = "${azurerm_resource_group.secondary.location}"
 }
 
 resource "azurerm_recovery_network_mapping" "recovery-mapping" {

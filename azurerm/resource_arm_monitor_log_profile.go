@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -144,12 +144,21 @@ func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error Creating/Updating Log Profile %q: %+v", name, err)
 	}
 
+	duration := 600 * time.Second
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			duration = d.Timeout(schema.TimeoutCreate)
+		} else {
+			duration = d.Timeout(schema.TimeoutUpdate)
+		}
+	}
+
 	log.Printf("[DEBUG] Waiting for Log Profile %q to be provisioned", name)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"NotFound"},
 		Target:                    []string{"Available"},
 		Refresh:                   logProfilesCreateUpdateRefreshFunc(ctx, client, name),
-		Timeout:                   5 * time.Minute,
+		Timeout:                   duration,
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 5,
 	}
@@ -288,11 +297,8 @@ func flattenAzureRmLogProfileRetentionPolicy(input *insights.RetentionPolicy) []
 	return []interface{}{result}
 }
 
-func retryLogProfilesClientGet(name string, meta interface{}) func() *resource.RetryError {
+func retryLogProfilesClientGet(ctx context.Context, client *insights.LogProfilesClient, name string, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		client := meta.(*ArmClient).Monitor.LogProfilesClient
-		ctx := meta.(*ArmClient).StopContext
-
 		if _, err := client.Get(ctx, name); err != nil {
 			return resource.RetryableError(err)
 		}

@@ -1,4 +1,5 @@
 ---
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_log_profile"
 sidebar_current: "docs-azurerm-resource-monitor-log-profile"
@@ -15,28 +16,28 @@ Manages a [Log Profile](https://docs.microsoft.com/en-us/azure/monitoring-and-di
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "logprofiletest-rg"
   location = "eastus"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "afscsdfytw"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
 
-resource "azurerm_eventhub_namespace" "test" {
+resource "azurerm_eventhub_namespace" "example" {
   name                = "logprofileeventhub"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "Standard"
   capacity            = 2
 }
 
-resource "azurerm_monitor_log_profile" "test" {
+resource "azurerm_monitor_log_profile" "example" {
   name = "default"
 
   categories = [
@@ -51,8 +52,8 @@ resource "azurerm_monitor_log_profile" "test" {
   ]
 
   # RootManageSharedAccessKey is created by default with listen, send, manage permissions
-  servicebus_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationrules/RootManageSharedAccessKey"
-  storage_account_id = "${azurerm_storage_account.test.id}"
+  servicebus_rule_id = "${azurerm_eventhub_namespace.example.id}/authorizationrules/RootManageSharedAccessKey"
+  storage_account_id = "${azurerm_storage_account.example.id}"
 
   retention_policy {
     enabled = true
@@ -97,5 +98,5 @@ The following attributes are exported:
 A Log Profile can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_log_profile.test /subscriptions/00000000-0000-0000-0000-000000000000/providers/microsoft.insights/logprofiles/test
+terraform import azurerm_monitor_log_profile.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/microsoft.insights/logprofiles/test
 ```

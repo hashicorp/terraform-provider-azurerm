@@ -1,4 +1,5 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_source_control_token"
 sidebar_current: "docs-azurerm-resource-app-service-source-control-token"
@@ -11,12 +12,12 @@ description: |-
 
 Manages an App Service source control token.
 
-~> **NOTE:** Source Control Token's are configured at the subscription level, not on each App Service - as such this can only be configured Subscription-wide
+~> **NOTE:** Source Control Tokens are configured at the subscription level, not on each App Service - as such this can only be configured Subscription-wide
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_app_service_source_control_token" "test" {
+resource "azurerm_app_service_source_control_token" "example" {
   type  = "GitHub"
   token = "7e57735e77e577e57"
 }
@@ -37,5 +38,5 @@ The following arguments are supported:
 App Service source control tokens can be imported using the `type`, e.g.
 
 ```shell
-terraform import azurerm_app_service_source_control_token.test GitHub
+terraform import azurerm_app_service_source_control_token.example GitHub
 ```

@@ -1,4 +1,5 @@
 ---
+subcategory: "Scheduler"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_scheduler_job"
 sidebar_current: "docs-azurerm-resource-scheduler-job-x"
@@ -225,8 +226,8 @@ The following arguments are supported:
 
 `action_storage_queue` & `error_action_storage_queue` block supports the following:
 
-* `storage_account_name` - (Required) Specifies the the storage account name.
-* `storage_queue_name` - (Required) Specifies the the storage account queue.
+* `storage_account_name` - (Required) Specifies the storage account name.
+* `storage_queue_name` - (Required) Specifies the storage account queue.
 * `sas_token` - (Required) Specifies a SAS token/key to authenticate with.
 * `message` - (Required) The message to send into the queue.
 

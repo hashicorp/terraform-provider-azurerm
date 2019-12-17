@@ -1,4 +1,5 @@
 ---
+subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_key"
 sidebar_current: "docs-azurerm-resource-key-vault-key"
@@ -16,7 +17,7 @@ Manages a Key Vault Key.
 ```hcl
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "my-resource-group"
   location = "West US"
 }
@@ -29,10 +30,10 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_key_vault" "test" {
+resource "azurerm_key_vault" "example" {
   name                = "keyvaultkeyexample"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
   sku_name = "premium"
@@ -58,7 +59,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_key" "generated" {
   name         = "generated-certificate"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = "${azurerm_key_vault.example.id}"
   key_type     = "RSA"
   key_size     = 2048
 
@@ -108,5 +109,5 @@ The following attributes are exported:
 Key Vault Key which is Enabled can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_key.test https://example-keyvault.vault.azure.net/keys/example/fdf067c93bbb4b22bff4d8b7a9a56217
+terraform import azurerm_key_vault_key.examplehttps://example-keyvault.vault.azure.net/keys/example/fdf067c93bbb4b22bff4d8b7a9a56217
 ```

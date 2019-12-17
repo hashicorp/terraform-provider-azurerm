@@ -152,6 +152,27 @@ func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta inte
 		Properties: &properties,
 	}
 
+	deploymentValidateResponse, err := client.Validate(ctx, resourceGroup, name, deployment)
+
+	if !d.IsNewResource() {
+		d.Partial(true)
+	}
+
+	if err != nil {
+		return fmt.Errorf("Error requesting Validation for Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if deploymentValidateResponse.Error != nil {
+		if deploymentValidateResponse.Error.Message != nil {
+			return fmt.Errorf("Error validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *deploymentValidateResponse.Error.Message)
+		}
+		return fmt.Errorf("Error validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *deploymentValidateResponse.Error)
+	}
+
+	if !d.IsNewResource() {
+		d.Partial(false)
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, deployment)
 	if err != nil {
 		return fmt.Errorf("Error creating deployment: %+v", err)
@@ -260,7 +281,7 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, name)
+	return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, name, d)
 }
 
 // TODO: move this out into the new `helpers` structure
@@ -293,15 +314,21 @@ func normalizeJson(jsonString interface{}) string {
 	return string(b[:])
 }
 
-func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string) error {
+func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string, d *schema.ResourceData) error {
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200"},
 		Target:  []string{"404"},
 		Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: 40 * time.Minute,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		stateConf.Timeout = 40 * time.Minute
+	}
+
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}

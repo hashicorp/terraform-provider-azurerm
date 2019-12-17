@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
@@ -328,17 +329,16 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				"java_version": {
 					Type:     schema.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"1.7",
-						"1.8",
-						"11",
-					}, false),
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^(1\.7|1\.8|11)`),
+						`Invalid Java version provided`),
 				},
 
 				"java_container": {
 					Type:     schema.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
+						"JAVA",
 						"JETTY",
 						"TOMCAT",
 					}, true),
@@ -376,6 +376,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						"7.0",
 						"7.1",
 						"7.2",
+						"7.3",
 					}, false),
 				},
 
@@ -483,6 +484,11 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				},
 
 				"cors": SchemaWebCorsSettings(),
+
+				"auto_swap_slot_name": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
 			},
 		},
 	}
@@ -1314,12 +1320,11 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 	return logs
 }
 
-func ExpandAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentity {
-	identities := d.Get("identity").([]interface{})
-	if len(identities) == 0 {
+func ExpandAppServiceIdentity(input []interface{}) *web.ManagedServiceIdentity {
+	if len(input) == 0 {
 		return nil
 	}
-	identity := identities[0].(map[string]interface{})
+	identity := input[0].(map[string]interface{})
 	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
 
 	identityIds := make(map[string]*web.ManagedServiceIdentityUserAssignedIdentitiesValue)
@@ -1520,6 +1525,10 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.Cors = &expand
 	}
 
+	if v, ok := config["auto_swap_slot_name"]; ok {
+		siteConfig.AutoSwapSlotName = utils.String(v.(string))
+	}
+
 	return siteConfig, nil
 }
 
@@ -1640,11 +1649,14 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	result["cors"] = FlattenWebCorsSettings(input.Cors)
 
+	if input.AutoSwapSlotName != nil {
+		result["auto_swap_slot_name"] = *input.AutoSwapSlotName
+	}
+
 	return append(results, result)
 }
 
-func ExpandAppServiceStorageAccounts(d *schema.ResourceData) map[string]*web.AzureStorageInfoValue {
-	input := d.Get("storage_account").(*schema.Set).List()
+func ExpandAppServiceStorageAccounts(input []interface{}) map[string]*web.AzureStorageInfoValue {
 	output := make(map[string]*web.AzureStorageInfoValue, len(input))
 
 	for _, v := range input {

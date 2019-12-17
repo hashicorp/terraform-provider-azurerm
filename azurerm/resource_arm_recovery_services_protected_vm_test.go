@@ -386,7 +386,7 @@ func testAccAzureRMRecoveryServicesProtectedVm_basePolicyTest(rInt int, location
 	rstr := strconv.Itoa(rInt)
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-recovery1-%[1]d"
   location = "%[2]s"
 }
 
@@ -508,12 +508,12 @@ func testAccAzureRMRecoveryServicesProtectedVm_withVM(rInt int, location string)
 %[1]s
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctestvm-%[2]d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  vm_size               = "Standard_A0"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  delete_os_disk_on_termination    = true
+  name                          = "acctestvm-%[2]d"
+  location                      = "${azurerm_resource_group.test.location}"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  vm_size                       = "Standard_A0"
+  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -602,7 +602,7 @@ func testAccAzureRMRecoveryServicesProtectedVm_additionalVault(rInt int, locatio
 %[1]s
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%[2]d"
+  name     = "acctestRG-recovery2-%[2]d"
   location = "%[3]s"
 }
 

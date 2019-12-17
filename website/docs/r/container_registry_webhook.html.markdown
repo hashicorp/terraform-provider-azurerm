@@ -1,4 +1,5 @@
 ---
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_registry_webhook"
 sidebar_current: "docs-azurerm-resource-container-registry-webhook"
@@ -20,11 +21,11 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "containerRegistry1"
-  resource_group_name      = "${azurerm_resource_group.rg.name}"
-  location                 = "${azurerm_resource_group.rg.location}"
-  sku                      = "Standard"
-  admin_enabled            = false
+  name                = "containerRegistry1"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${azurerm_resource_group.rg.location}"
+  sku                 = "Standard"
+  admin_enabled       = false
 }
 
 resource "azurerm_container_registry_webhook" "webhook" {
@@ -32,7 +33,7 @@ resource "azurerm_container_registry_webhook" "webhook" {
   resource_group_name = "${azurerm_resource_group.rg.name}"
   registry_name       = "${azurerm_container_registry.acr.name}"
   location            = "${azurerm_resource_group.rg.location}"
-  
+
   service_uri    = "https://mywebhookreceiver.example/mytag"
   status         = "enabled"
   scope          = "mytag:*"
@@ -75,5 +76,5 @@ The following attributes are exported:
 Container Registry Webhooks can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_container_registry_webhook.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1/webhooks/mywebhook1
+terraform import azurerm_container_registry_webhook.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1/webhooks/mywebhook1
 ```

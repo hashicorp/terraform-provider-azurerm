@@ -1,4 +1,5 @@
 ---
+subcategory: "Front Door"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor_firewall_policy"
 sidebar_current: "docs-azurerm-resource-front-door-firewall-policy"
@@ -86,8 +87,8 @@ resource "azurerm_frontdoor_firewall_policy" "example" {
   }
 
   managed_rule {
-    type      = "BotProtection"
-    version   = "preview-0.1"
+    type    = "BotProtection"
+    version = "preview-0.1"
   }
 }
 ```
@@ -128,7 +129,7 @@ The `custom_rule` block supports the following:
 
 * `priority` - (Required) The priority of the rule. Rules with a lower value will be evaluated before rules with a higher value. Defaults to `1`.
 
-* `type` - (Required) The the type of rule. Possible values are `MatchRule` or `RateLimitRule`.
+* `type` - (Required) The type of rule. Possible values are `MatchRule` or `RateLimitRule`.
 
 * `match_condition` - (Required) One or more `match_condition` block defined below.
 

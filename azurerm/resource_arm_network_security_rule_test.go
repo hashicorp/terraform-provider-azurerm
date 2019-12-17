@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -351,7 +351,7 @@ resource "azurerm_network_security_rule" "test2" {
   priority                    = 101
   direction                   = "Inbound"
   access                      = "Deny"
-  protocol                    = "Tcp"
+  protocol                    = "Icmp"
   source_port_range           = "*"
   destination_port_range      = "*"
   source_address_prefix       = "*"

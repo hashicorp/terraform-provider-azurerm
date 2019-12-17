@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_gateway_connection"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-connection"
@@ -18,44 +19,44 @@ The following example shows a connection between an Azure virtual network
 and an on-premises VPN device and network.
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "test"
   location = "West US"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "test"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "GatewaySubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_local_network_gateway" "onpremise" {
   name                = "onpremise"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   gateway_address     = "168.62.225.23"
   address_space       = ["10.1.1.0/24"]
 }
 
-resource "azurerm_public_ip" "test" {
+resource "azurerm_public_ip" "example" {
   name                = "test"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   allocation_method   = "Dynamic"
 }
 
-resource "azurerm_virtual_network_gateway" "test" {
+resource "azurerm_virtual_network_gateway" "example" {
   name                = "test"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   type     = "Vpn"
   vpn_type = "RouteBased"
@@ -65,19 +66,19 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku           = "Basic"
 
   ip_configuration {
-    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    public_ip_address_id          = "${azurerm_public_ip.example.id}"
     private_ip_address_allocation = "Dynamic"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = "${azurerm_subnet.example.id}"
   }
 }
 
 resource "azurerm_virtual_network_gateway_connection" "onpremise" {
   name                = "onpremise"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   type                       = "IPsec"
-  virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test.id}"
+  virtual_network_gateway_id = "${azurerm_virtual_network_gateway.example.id}"
   local_network_gateway_id   = "${azurerm_local_network_gateway.onpremise.id}"
 
   shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
@@ -298,5 +299,5 @@ The following attributes are exported:
 Virtual Network Gateway Connections can be imported using their `resource id`, e.g.
 
 ```
-terraform import azurerm_virtual_network_gateway_connection.testConnection /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Network/connections/myConnection1
+terraform import azurerm_virtual_network_gateway_connection.exampleConnection /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Network/connections/myConnection1
 ```
