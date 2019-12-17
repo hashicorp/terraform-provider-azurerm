@@ -157,7 +157,7 @@ func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{})
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"NotFound"},
 		Target:                    []string{"Available"},
-		Refresh:                   logProfilesCreateUpdateRefreshFunc(ctx, client, name),
+		Refresh:                   logProfilesCreateRefreshFunc(ctx, client, name),
 		Timeout:                   duration,
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 5,
@@ -321,14 +321,14 @@ func parseLogProfileNameFromID(id string) (string, error) {
 	return components[6], nil
 }
 
-func logProfilesCreateUpdateRefreshFunc(ctx context.Context, client *insights.LogProfilesClient, name string) resource.StateRefreshFunc {
+func logProfilesCreateRefreshFunc(ctx context.Context, client *insights.LogProfilesClient, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		logProfile, err := client.Get(ctx, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(logProfile.Response) {
 				return nil, "NotFound", nil
 			}
-			return nil, "", fmt.Errorf("Error issuing read request in logProfilesCreateUpdateRefreshFunc for Log profile %q: %s", name, err)
+			return nil, "", fmt.Errorf("Error issuing read request in logProfilesCreateRefreshFunc for Log profile %q: %s", name, err)
 		}
 		return "Available", "Available", nil
 	}
