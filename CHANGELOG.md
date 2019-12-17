@@ -10,6 +10,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_api_management_api` - working around a behavioural change in the API detecting deleted resources [GH-5054]
+* `azurerm_monitor_log_profile` - polling until the log profile is repeatedly available [GH-5194]
 
 ## 1.39.0 (December 16, 2019)
 
