@@ -105,7 +105,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 
 			"generation": {
 				Type:     schema.TypeString,
-				Default:  network.VpnGatewayGenerationGeneration1,
+				Default:  string(network.VpnGatewayGenerationGeneration1),
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -113,7 +113,6 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 					string(network.VpnGatewayGenerationGeneration2),
 					string(network.VpnGatewayGenerationNone),
 				}, false),
-				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"ip_configuration": {
@@ -378,13 +377,10 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 		d.Set("type", string(gw.GatewayType))
 		d.Set("enable_bgp", gw.EnableBgp)
 		d.Set("active_active", gw.ActiveActive)
+		d.Set("generation", string(gw.VpnGatewayGeneration))
 
 		if string(gw.VpnType) != "" {
 			d.Set("vpn_type", string(gw.VpnType))
-		}
-
-		if string(gw.VpnGatewayGeneration) != "" {
-			d.Set("generation", string(gw.VpnGatewayGeneration))
 		}
 
 		if gw.GatewayDefaultSite != nil {

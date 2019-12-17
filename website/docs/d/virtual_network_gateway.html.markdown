@@ -51,7 +51,7 @@ output "virtual_network_gateway_id" {
 
 * `sku` - Configuration of the size and capacity of the Virtual Network Gateway.
 
-* `generation` - Generation of the Virtual Network Gateway.
+* `generation` - The Generation of the Virtual Network Gateway.
 
 * `ip_configuration` - One or two `ip_configuration` blocks documented below.
 

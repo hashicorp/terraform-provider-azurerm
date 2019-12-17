@@ -224,13 +224,10 @@ func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interfa
 		d.Set("type", string(gw.GatewayType))
 		d.Set("enable_bgp", gw.EnableBgp)
 		d.Set("active_active", gw.ActiveActive)
+		d.Set("generation", string(gw.VpnGatewayGeneration))
 
 		if string(gw.VpnType) != "" {
 			d.Set("vpn_type", string(gw.VpnType))
-		}
-
-		if string(gw.VpnGatewayGeneration) != "" {
-			d.Set("generation", string(gw.VpnGatewayGeneration))
 		}
 
 		if gw.GatewayDefaultSite != nil {
