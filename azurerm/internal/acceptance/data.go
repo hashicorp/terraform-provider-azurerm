@@ -11,8 +11,8 @@ import (
 )
 
 type TestData struct {
-	// Location is a set of Azure Regions which should be used for this Test
-	Location Regions
+	// Locations is a set of Azure Regions which should be used for this Test
+	Locations Regions
 
 	// RandomString is a random integer which is unique to this test case
 	RandomInteger int
@@ -58,9 +58,9 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 	}
 
 	if features.UseDynamicTestLocations() {
-		testData.Location = SupportedLocations()
+		testData.Locations = availableLocations()
 	} else {
-		testData.Location = Regions{
+		testData.Locations = Regions{
 			Primary:   Location(),
 			Secondary: AltLocation(),
 			Ternary:   AltLocation2(),

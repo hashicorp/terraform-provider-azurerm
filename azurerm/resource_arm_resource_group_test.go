@@ -187,7 +187,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
-`, testData.RandomInteger, testData.Location.Primary)
+`, testData.RandomInteger, testData.Locations.Primary)
 }
 
 func testAccAzureRMResourceGroup_requiresImport(testData acceptance.TestData) string {
@@ -213,7 +213,7 @@ resource "azurerm_resource_group" "test" {
     cost_center = "MSFT"
   }
 }
-`, testData.RandomInteger, testData.Location.Primary)
+`, testData.RandomInteger, testData.Locations.Primary)
 }
 
 func testAccAzureRMResourceGroup_withTagsUpdated(testData acceptance.TestData) string {
@@ -226,5 +226,5 @@ resource "azurerm_resource_group" "test" {
     environment = "staging"
   }
 }
-`, testData.RandomInteger, testData.Location.Primary)
+`, testData.RandomInteger, testData.Locations.Primary)
 }

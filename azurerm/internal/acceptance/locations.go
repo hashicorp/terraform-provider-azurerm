@@ -18,10 +18,10 @@ type Regions struct {
 	Ternary string
 }
 
-// SupportedLocations returns a struct containing a random set of regions
+// availableLocations returns a struct containing a random set of regions
 // this will return a randomly ordered set of locations - and as such must be cached
 // this allows us to distribute the test suite across Azure to provide more stable tests
-func SupportedLocations() Regions {
+func availableLocations() Regions {
 	locations := []string{
 		os.Getenv("ARM_TEST_LOCATION"),
 		os.Getenv("ARM_TEST_LOCATION_ALT"),
