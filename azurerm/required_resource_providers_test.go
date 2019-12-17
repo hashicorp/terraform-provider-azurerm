@@ -6,12 +6,16 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-azure-helpers/resourceproviders"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
+// NOTE: this file has to remain in the root until all resources have been migrated into
+// packages & out of the root, since it requires an empty initializer for the AzureProvider
+
 func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
-	config := testGetAzureConfig(t)
+	config := acceptance.GetAuthConfig(t)
 	if config == nil {
 		return
 	}
@@ -31,7 +35,7 @@ func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	}
 
 	client := armClient.Resource.ProvidersClient
-	ctx := testAccProvider.StopContext()
+	ctx := acceptance.AzureProvider.StopContext()
 	providerList, err := client.List(ctx, nil, "")
 	if err != nil {
 		t.Fatalf("Unable to list provider registration status, it is possible that this is due to invalid "+

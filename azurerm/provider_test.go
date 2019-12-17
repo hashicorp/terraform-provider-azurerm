@@ -11,6 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+// NOTE: this file has to remain in the root until all resources have been migrated into
+// packages & out of the root, since it requires an empty initializer for the AzureProvider
+
 var testAccProviders map[string]terraform.ResourceProvider
 var testAccProvider *schema.Provider
 
