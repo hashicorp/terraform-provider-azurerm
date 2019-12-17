@@ -112,6 +112,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below.
 
+* `blob_properties` - (Optional) A `blob_properties` block as defined below.
+
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
 ~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
@@ -119,6 +121,12 @@ The following arguments are supported:
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `blob_properties` block supports the following:
+
+* `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
 ---
 
@@ -141,6 +149,12 @@ A `custom_domain` block supports the following:
 
 * `name` - (Optional) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
+
+---
+
+A `delete_retention_policy` block supports the following:
+
+* `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days. Defaults to `7`.
 
 --- 
 

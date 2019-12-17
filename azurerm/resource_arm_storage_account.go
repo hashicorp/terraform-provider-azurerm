@@ -268,6 +268,32 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
+			"blob_properties": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"delete_retention_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      7,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"queue_properties": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -754,6 +780,21 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if val, ok := d.GetOk("blob_properties"); ok {
+		// FileStorage does not support blob settings
+		if accountKind != string(storage.FileStorage) {
+			blobClient := meta.(*ArmClient).Storage.BlobServicesClient
+
+			blobProperties := expandBlobProperties(val.([]interface{}))
+
+			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
+				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
+			}
+		} else {
+			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts.")
+		}
+	}
+
 	if val, ok := d.GetOk("queue_properties"); ok {
 		storageClient := meta.(*ArmClient).Storage
 		account, err := storageClient.FindAccount(ctx, storageAccountName)
@@ -960,6 +1001,22 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("enable_advanced_threat_protection")
 	}
 
+	if d.HasChange("blob_properties") {
+		// FileStorage does not support blob settings
+		if accountKind != string(storage.FileStorage) {
+			blobClient := meta.(*ArmClient).Storage.BlobServicesClient
+			blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+
+			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
+				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
+			}
+
+			d.SetPartial("blob_properties")
+		} else {
+			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts.")
+		}
+	}
+
 	if d.HasChange("queue_properties") {
 		storageClient := meta.(*ArmClient).Storage
 		account, err := storageClient.FindAccount(ctx, storageAccountName)
@@ -1162,6 +1219,22 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Unable to locate Storage Account %q!", name)
 	}
 
+	blobClient := storageClient.BlobServicesClient
+
+	// FileStorage does not support blob settings
+	if resp.Kind != storage.FileStorage {
+		blobProps, err := blobClient.GetServiceProperties(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(blobProps.Response) {
+				return fmt.Errorf("Error reading blob properties for AzureRM Storage Account %q: %+v", name, err)
+			}
+		}
+
+		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
+			return fmt.Errorf("Error setting `blob_properties `for AzureRM Storage Account %q: %+v", name, err)
+		}
+	}
+
 	queueClient, err := storageClient.QueuesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Queues Client: %s", err)
@@ -1341,6 +1414,30 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
+func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
+	properties := storage.BlobServiceProperties{
+		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
+			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
+				Enabled: utils.Bool(false),
+			},
+		},
+	}
+	if len(input) == 0 || input[0] == nil {
+		return properties
+	}
+
+	blobAttr := input[0].(map[string]interface{})
+	deletePolicy := blobAttr["delete_retention_policy"].([]interface{})
+	if len(deletePolicy) > 0 {
+		policy := deletePolicy[0].(map[string]interface{})
+		days := policy["days"].(int)
+		properties.BlobServicePropertiesProperties.DeleteRetentionPolicy.Enabled = utils.Bool(true)
+		properties.BlobServicePropertiesProperties.DeleteRetentionPolicy.Days = utils.Int32(int32(days))
+	}
+
+	return properties
+}
+
 func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
 	var err error
 	properties := queues.StorageServiceProperties{}
@@ -1482,6 +1579,33 @@ func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) [
 	}
 
 	return virtualNetworks
+}
+
+func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
+	if input.BlobServicePropertiesProperties == nil {
+		return []interface{}{}
+	}
+
+	deleteRetentionPolicies := make([]interface{}, 0)
+
+	if deletePolicy := input.BlobServicePropertiesProperties.DeleteRetentionPolicy; deletePolicy != nil {
+		if enabled := deletePolicy.Enabled; enabled != nil && *enabled {
+			days := 0
+			if deletePolicy.Days != nil {
+				days = int(*deletePolicy.Days)
+			}
+
+			deleteRetentionPolicies = append(deleteRetentionPolicies, map[string]interface{}{
+				"days": days,
+			})
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"delete_retention_policy": deleteRetentionPolicies,
+		},
+	}
 }
 
 func flattenQueueProperties(input queues.StorageServicePropertiesResponse) []interface{} {
