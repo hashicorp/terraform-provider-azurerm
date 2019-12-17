@@ -38,7 +38,7 @@ resource "azurerm_storage_container" "example" {
   container_access_type = "private"
 }
 
-resource "azurerm_stream_analytics_stream_input_blob" "test" {
+resource "azurerm_stream_analytics_stream_input_blob" "example" {
   name                         = "blob-stream-input"
   stream_analytics_job_name    = "${data.azurerm_stream_analytics_job.example.name}"
   resource_group_name          = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
