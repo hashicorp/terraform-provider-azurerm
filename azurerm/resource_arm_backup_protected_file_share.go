@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -67,7 +66,6 @@ func resourceArmBackupProtectedFileShare() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"tags": tags.Schema(),
 		},
 	}
 }
@@ -79,7 +77,6 @@ func resourceArmBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, met
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	vaultName := d.Get("recovery_vault_name").(string)
 	storageAccountID := d.Get("source_storage_account_id").(string)
@@ -115,7 +112,6 @@ func resourceArmBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, met
 	}
 
 	item := backup.ProtectedItemResource{
-		Tags: tags.Expand(t),
 		Properties: &backup.AzureFileshareProtectedItem{
 			PolicyID:          &policyID,
 			ProtectedItemType: backup.ProtectedItemTypeAzureFileShareProtectedItem,
@@ -132,7 +128,7 @@ func resourceArmBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, met
 
 	locationURL, err := resp.Response.Location()
 	if err != nil || locationURL == nil {
-		return fmt.Errorf("Error creating/udpating Azure File Share backup item %q (Vault %q): Location header missing or empty", containerName, vaultName)
+		return fmt.Errorf("Error creating/updating Azure File Share backup item %q (Vault %q): Location header missing or empty", containerName, vaultName)
 	}
 
 	opResourceID := azure.HandleAzureSdkForGoBug2824(locationURL.Path)
@@ -201,7 +197,7 @@ func resourceArmBackupProtectedFileShareRead(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmBackupProtectedFileShareDelete(d *schema.ResourceData, meta interface{}) error {
