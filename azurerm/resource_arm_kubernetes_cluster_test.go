@@ -80,7 +80,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"tags":                  testAccAzureRMKubernetesCluster_tags,
 			"windowsProfile":        testAccAzureRMKubernetesCluster_windowsProfile,
 			"privateLinkOn":         testAccAzureRMKubernetesCluster_privateLinkOn,
-			"updatePublicRangesOff": TestAccAzureRMKubernetesCluster_privateLinkOff,
+			"updatePublicRangesOff": testAccAzureRMKubernetesCluster_privateLinkOff,
 		},
 		"scaling": {
 			"addAgent":                         testAccAzureRMKubernetesCluster_addAgent,

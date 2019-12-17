@@ -766,8 +766,10 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("api_server_authorized_ip_ranges") {
 		updateCluster = true
 		apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
+		enablePrivateCluster := d.Get("private_link_enabled").(bool)
 		existing.ManagedClusterProperties.APIServerAccessProfile = &containerservice.ManagedClusterAPIServerAccessProfile{
-			AuthorizedIPRanges: utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw),
+			AuthorizedIPRanges:   utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw),
+			EnablePrivateCluster: &enablePrivateCluster,
 		}
 	}
 

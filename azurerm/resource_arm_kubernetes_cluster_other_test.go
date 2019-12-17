@@ -115,8 +115,7 @@ func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
 				),
 			},
 			{
-				Config:             testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, modifiedPrivateIpAddressCdir, true),
-				ExpectNonEmptyPlan: true,
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, modifiedPrivateIpAddressCdir, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "private_fqdn"),
@@ -134,7 +133,7 @@ func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
+func testAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -158,8 +157,7 @@ func TestAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
 				),
 			},
 			{
-				Config:             testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, modifiedPrivateIpAddressCdir, false),
-				ExpectNonEmptyPlan: true,
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, modifiedPrivateIpAddressCdir, false),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "private_link_enabled", "false"),
