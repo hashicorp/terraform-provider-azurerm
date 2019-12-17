@@ -56,7 +56,7 @@ func testAccDataSourceAzureRMKubernetesCluster_privateLink(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, privateIpAddressCdir),
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, privateIpAddressCdir, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "private_fqdn"),
