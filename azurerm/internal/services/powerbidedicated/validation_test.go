@@ -92,7 +92,7 @@ func TestValidateCapacityAdministratorName(t *testing.T) {
 		},
 		{
 			// invalid email address
-			input:    "hello@microsoft",
+			input:    "#@%^%#$@#$@#.com",
 			expected: false,
 		},
 		{

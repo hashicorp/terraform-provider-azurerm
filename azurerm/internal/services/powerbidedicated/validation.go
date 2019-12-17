@@ -2,9 +2,8 @@ package powerbidedicated
 
 import (
 	"fmt"
-	"regexp"
-
 	"github.com/hashicorp/go-uuid"
+	"regexp"
 )
 
 func ValidateCapacityName(v interface{}, k string) (warnings []string, errors []error) {
@@ -21,16 +20,11 @@ func ValidateCapacityAdministratorName(v interface{}, k string) (warnings []stri
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q isn't a valid email address.", k))
+		if _, err := uuid.ParseUUID(value); err != nil {
+			errors = append(errors, fmt.Errorf("%q isn't a valid email address.", k))
+			errors = append(errors, fmt.Errorf("%q isn't a valid UUID (%q): %+v", k, v, err))
+		}
 	}
 
-	if _, err := uuid.ParseUUID(value); err != nil {
-		errors = append(errors, fmt.Errorf("%q isn't a valid UUID (%q): %+v", k, v, err))
-	}
-
-	if len(errors) == 2 {
-		return warnings, errors
-	} else {
-		return nil, nil
-	}
+	return warnings, errors
 }

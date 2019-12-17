@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccAzureRMPowerBIDedicatedCapacity_basic(t *testing.T) {
-	resourceName := "azurerm_powerbidedicated_capacity.test"
+	resourceName := "azurerm_powerbi_dedicated_capacity.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -42,8 +42,9 @@ func TestAccAzureRMPowerBIDedicatedCapacity_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_powerbidedicated_capacity.test"
+	resourceName := "azurerm_powerbi_dedicated_capacity.test"
 	ri := tf.AccRandTimeInt()
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -51,21 +52,21 @@ func TestAccAzureRMPowerBIDedicatedCapacity_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPowerBIDedicatedCapacityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIDedicatedCapacity_basic(ri, testLocation()),
+				Config: testAccAzureRMPowerBIDedicatedCapacity_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPowerBIDedicatedCapacityExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMPowerBIDedicatedCapacity_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_powerbidedicated_capacity"),
+				Config:      testAccAzureRMPowerBIDedicatedCapacity_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_powerbi_dedicated_capacity"),
 			},
 		},
 	})
 }
 
 func TestAccAzureRMPowerBIDedicatedCapacity_complete(t *testing.T) {
-	resourceName := "azurerm_powerbidedicated_capacity.test"
+	resourceName := "azurerm_powerbi_dedicated_capacity.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -78,7 +79,7 @@ func TestAccAzureRMPowerBIDedicatedCapacity_complete(t *testing.T) {
 				Config: testAccAzureRMPowerBIDedicatedCapacity_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPowerBIDedicatedCapacityExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku", "A2"),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "A2"),
 					resource.TestCheckResourceAttr(resourceName, "administrators.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.ENV", "Test"),
 				),
@@ -93,7 +94,7 @@ func TestAccAzureRMPowerBIDedicatedCapacity_complete(t *testing.T) {
 }
 
 func TestAccAzureRMPowerBIDedicatedCapacity_update(t *testing.T) {
-	resourceName := "azurerm_powerbidedicated_capacity.test"
+	resourceName := "azurerm_powerbi_dedicated_capacity.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -106,7 +107,7 @@ func TestAccAzureRMPowerBIDedicatedCapacity_update(t *testing.T) {
 				Config: testAccAzureRMPowerBIDedicatedCapacity_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPowerBIDedicatedCapacityExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku", "A1"),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "A1"),
 					resource.TestCheckResourceAttr(resourceName, "administrators.#", "1"),
 				),
 			},
@@ -119,7 +120,7 @@ func TestAccAzureRMPowerBIDedicatedCapacity_update(t *testing.T) {
 				Config: testAccAzureRMPowerBIDedicatedCapacity_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPowerBIDedicatedCapacityExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku", "A2"),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "A2"),
 					resource.TestCheckResourceAttr(resourceName, "administrators.#", "2"),
 				),
 			},
@@ -149,7 +150,7 @@ func testCheckAzureRMPowerBIDedicatedCapacityExists(resourceName string) resourc
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Capacity (Capacity Name %q / Resource Group %q) does not exist", name, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on PowerBIDedicated.CapacityClient: %+v", err)
+			return fmt.Errorf("Bad: Get on PowerBI Dedicated.CapacityClient: %+v", err)
 		}
 
 		return nil
@@ -161,7 +162,7 @@ func testCheckAzureRMPowerBIDedicatedCapacityDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_powerbidedicated_capacity" {
+		if rs.Type != "azurerm_powerbi_dedicated_capacity" {
 			continue
 		}
 
@@ -185,11 +186,11 @@ func testAccAzureRMPowerBIDedicatedCapacity_basic(rInt int, location string) str
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_powerbidedicated_capacity" "test" {
+resource "azurerm_powerbi_dedicated_capacity" "test" {
   name                = "acctestpowerbidedicatedcapacity%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "A1"
+  sku_name            = "A1"
   administrators      = ["test2@microsoft.onmicrosoft.com"]
 }
 `, template, rInt)
@@ -199,10 +200,10 @@ func testAccAzureRMPowerBIDedicatedCapacity_requiresImport(rInt int, location st
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_powerbidedicated_capacity" "import" {
-  name                = "${azurerm_powerbidedicated_capacity.test.name}"
-  location            = "${azurerm_powerbidedicated_capacity.test.location}"
-  resource_group_name = "${azurerm_powerbidedicated_capacity.test.name}"
+resource "azurerm_powerbi_dedicated_capacity" "import" {
+  name                = "${azurerm_powerbi_dedicated_capacity.test.name}"
+  location            = "${azurerm_powerbi_dedicated_capacity.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, testAccAzureRMPowerBIDedicatedCapacity_basic(rInt, location))
 }
@@ -212,11 +213,11 @@ func testAccAzureRMPowerBIDedicatedCapacity_complete(rInt int, location string) 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_powerbidedicated_capacity" "test" {
+resource "azurerm_powerbi_dedicated_capacity" "test" {
   name                = "acctestpowerbidedicatedcapacity%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "A2"
+  sku_name            = "A2"
   administrators      = ["test2@microsoft.onmicrosoft.com", "b1b1f3bc-050d-401c-857a-b872ce501819"]
 
   tags = {

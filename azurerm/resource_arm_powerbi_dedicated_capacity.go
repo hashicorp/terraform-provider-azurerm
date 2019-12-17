@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2017-10-01/powerbidedicated"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -29,13 +28,6 @@ func resourceArmPowerBIDedicatedCapacity() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -48,7 +40,7 @@ func resourceArmPowerBIDedicatedCapacity() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"sku": {
+			"sku_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -83,7 +75,7 @@ func resourceArmPowerBIDedicatedCapacityCreate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetDetails(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -91,13 +83,13 @@ func resourceArmPowerBIDedicatedCapacityCreate(d *schema.ResourceData, meta inte
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_powerbidedicated_capacity", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_powerbi_dedicated_capacity", *existing.ID)
 		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	administrators := d.Get("administrators").(*schema.Set).List()
-	sku := d.Get("sku").(string)
+	skuName := d.Get("sku_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := powerbidedicated.DedicatedCapacity{
@@ -108,7 +100,7 @@ func resourceArmPowerBIDedicatedCapacityCreate(d *schema.ResourceData, meta inte
 			},
 		},
 		Sku: &powerbidedicated.ResourceSku{
-			Name: utils.String(sku),
+			Name: utils.String(skuName),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -165,9 +157,12 @@ func resourceArmPowerBIDedicatedCapacityRead(d *schema.ResourceData, meta interf
 			return fmt.Errorf("Error setting `administration`: %+v", err)
 		}
 	}
-	if err := d.Set("sku", resp.Sku.Name); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+
+	skuName := ""
+	if resp.Sku != nil && resp.Sku.Name != nil {
+		skuName = *resp.Sku.Name
 	}
+	d.Set("sku_name", skuName)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -180,7 +175,7 @@ func resourceArmPowerBIDedicatedCapacityUpdate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	administrators := d.Get("administrators").(*schema.Set).List()
-	sku := d.Get("sku").(string)
+	skuName := d.Get("sku_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := powerbidedicated.DedicatedCapacityUpdateParameters{
@@ -190,7 +185,7 @@ func resourceArmPowerBIDedicatedCapacityUpdate(d *schema.ResourceData, meta inte
 			},
 		},
 		Sku: &powerbidedicated.ResourceSku{
-			Name: utils.String(sku),
+			Name: utils.String(skuName),
 		},
 		Tags: tags.Expand(t),
 	}
