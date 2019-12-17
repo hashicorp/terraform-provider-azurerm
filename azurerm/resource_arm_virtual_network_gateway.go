@@ -97,7 +97,8 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 				// and validateArmVirtualNetworkGatewayExpressRouteSku.
 				ValidateFunc: validation.Any(
 					validateArmVirtualNetworkGatewayPolicyBasedVpnSku(),
-					validateArmVirtualNetworkGatewayRouteBasedVpnSku(),
+					validateArmVirtualNetworkGatewayRouteBasedVpnSkuGeneration1(),
+					validateArmVirtualNetworkGatewayRouteBasedVpnSkuGeneration2(),
 					validateArmVirtualNetworkGatewayExpressRouteSku(),
 				),
 			},
@@ -470,9 +471,16 @@ func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Vir
 		}
 	}
 
-	// Sku validation for route-based VPN gateways
-	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.RouteBased {
-		if ok, err := evaluateSchemaValidateFunc(string(props.Sku.Name), "sku", validateArmVirtualNetworkGatewayRouteBasedVpnSku()); !ok {
+	// Sku validation for route-based VPN gateways of first geneneration
+	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.RouteBased && props.VpnGatewayGeneration == network.VpnGatewayGenerationGeneration1 {
+		if ok, err := evaluateSchemaValidateFunc(string(props.Sku.Name), "sku", validateArmVirtualNetworkGatewayRouteBasedVpnSkuGeneration1()); !ok {
+			return nil, err
+		}
+	}
+
+	// Sku validation for route-based VPN gateways of second geneneration
+	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.RouteBased && props.VpnGatewayGeneration == network.VpnGatewayGenerationGeneration2 {
+		if ok, err := evaluateSchemaValidateFunc(string(props.Sku.Name), "sku", validateArmVirtualNetworkGatewayRouteBasedVpnSkuGeneration2()); !ok {
 			return nil, err
 		}
 	}
@@ -783,7 +791,7 @@ func validateArmVirtualNetworkGatewayPolicyBasedVpnSku() schema.SchemaValidateFu
 	}, true)
 }
 
-func validateArmVirtualNetworkGatewayRouteBasedVpnSku() schema.SchemaValidateFunc {
+func validateArmVirtualNetworkGatewayRouteBasedVpnSkuGeneration1() schema.SchemaValidateFunc {
 	return validation.StringInSlice([]string{
 		string(network.VirtualNetworkGatewaySkuTierBasic),
 		string(network.VirtualNetworkGatewaySkuTierStandard),
@@ -794,6 +802,19 @@ func validateArmVirtualNetworkGatewayRouteBasedVpnSku() schema.SchemaValidateFun
 		string(network.VirtualNetworkGatewaySkuNameVpnGw1AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw2AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
+	}, true)
+}
+
+func validateArmVirtualNetworkGatewayRouteBasedVpnSkuGeneration2() schema.SchemaValidateFunc {
+	return validation.StringInSlice([]string{
+		string(network.VirtualNetworkGatewaySkuNameVpnGw2),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw3),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw4),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw5),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw2AZ),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw4AZ),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw5AZ),
 	}, true)
 }
 
