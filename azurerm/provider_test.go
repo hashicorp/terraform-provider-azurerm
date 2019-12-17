@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
@@ -17,11 +15,9 @@ import (
 func init() {
 	azureProvider := Provider().(*schema.Provider)
 
-	acceptance.AzureProvider = azureProvider
-	acceptance.SupportedProviders = map[string]terraform.ResourceProvider{
-		"azurerm": acceptance.AzureProvider,
-		"azuread": azuread.Provider().(*schema.Provider),
-	}
+	// HACK: remove this as soon as we can (when everything's moved out of the root,
+	//       so ultimately when the AzureProvider function takes no args)
+	acceptance.CustomInit(azureProvider)
 }
 
 func TestProvider(t *testing.T) {
