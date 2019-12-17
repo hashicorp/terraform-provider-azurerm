@@ -1,6 +1,7 @@
 ## 1.40.0 (Unreleased)
 
 * **New Resource:** `azurerm_stream_analytics_reference_input_blob` [GH-3633]
+* **New Resource:** `azurerm_storage_account_blob_settings` [GH-3807]
 
 
 IMPROVEMENTS:
