@@ -14,20 +14,10 @@ import (
 // NOTE: this file has to remain in the root until all resources have been migrated into
 // packages & out of the root, since it requires an empty initializer for the AzureProvider
 
-var testAccProviders map[string]terraform.ResourceProvider
-var testAccProvider *schema.Provider
-
 func init() {
 	azureProvider := Provider().(*schema.Provider)
 
-	testAccProvider = azureProvider
 	acceptance.AzureProvider = azureProvider
-
-	// NOTE: these /cannot/ be simplified into a single shared variable (tried, it causes a nil-slice)
-	testAccProviders = map[string]terraform.ResourceProvider{
-		"azurerm": testAccProvider,
-		"azuread": azuread.Provider().(*schema.Provider),
-	}
 	acceptance.SupportedProviders = map[string]terraform.ResourceProvider{
 		"azurerm": acceptance.AzureProvider,
 		"azuread": azuread.Provider().(*schema.Provider),
