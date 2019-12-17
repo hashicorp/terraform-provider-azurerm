@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -261,8 +262,8 @@ func testCheckAzureRMDnsNsRecordExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for DNS NS record: %s", nsName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, nsName, dns.NS)
 		if err != nil {
 			return fmt.Errorf("Bad: Get DNS NS Record: %+v", err)
@@ -277,8 +278,8 @@ func testCheckAzureRMDnsNsRecordExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMDnsNsRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_ns_record" {

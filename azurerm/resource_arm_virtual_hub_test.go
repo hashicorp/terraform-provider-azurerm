@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -171,8 +172,8 @@ func testCheckAzureRMVirtualHubExists(resourceName string) resource.TestCheckFun
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.VirtualHubClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.VirtualHubClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -186,8 +187,8 @@ func testCheckAzureRMVirtualHubExists(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMVirtualHubDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.VirtualHubClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Network.VirtualHubClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_hub" {

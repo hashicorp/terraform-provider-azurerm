@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -156,8 +157,8 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := testAccProvider.Meta().(*clients.Client).Storage
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -194,8 +195,8 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := testAccProvider.Meta().(*clients.Client).Storage
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

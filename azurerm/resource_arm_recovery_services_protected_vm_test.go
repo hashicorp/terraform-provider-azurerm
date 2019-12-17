@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -175,8 +176,8 @@ func testCheckAzureRMRecoveryServicesProtectedVmDestroy(s *terraform.State) erro
 		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectedItemsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {
@@ -222,8 +223,8 @@ func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) reso
 		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectedItemsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {

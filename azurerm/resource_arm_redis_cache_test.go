@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -578,8 +579,8 @@ func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for Redis Instance: %s", redisName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Redis.Client
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Redis.Client
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, redisName)
 		if err != nil {
@@ -595,8 +596,8 @@ func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Redis.Client
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).Redis.Client
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_redis_cache" {

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -197,8 +198,8 @@ func TestAccAzureRMIotHub_fallbackRoute(t *testing.T) {
 }
 
 func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).IoTHub.ResourceClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothub" {
@@ -223,7 +224,7 @@ func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -235,7 +236,7 @@ func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for IotHub: %s", iothubName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
+		client := testAccProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		resp, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

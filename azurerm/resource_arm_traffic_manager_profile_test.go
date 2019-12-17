@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -380,8 +381,8 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).TrafficManager.ProfilesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).TrafficManager.ProfilesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerProfilesClient: %+v", err)
@@ -396,7 +397,7 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).TrafficManager.ProfilesClient
+	conn := testAccProvider.Meta().(*clients.Client).TrafficManager.ProfilesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_profile" {
@@ -407,7 +408,7 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return nil

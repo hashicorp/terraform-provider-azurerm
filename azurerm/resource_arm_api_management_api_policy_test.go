@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -136,8 +137,8 @@ func testCheckAzureRMApiManagementAPIPolicyExists(resourceName string) resource.
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiPoliciesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).ApiManagement.ApiPoliciesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -152,7 +153,7 @@ func testCheckAzureRMApiManagementAPIPolicyExists(resourceName string) resource.
 }
 
 func testCheckAzureRMApiManagementAPIPolicyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiPoliciesClient
+	conn := testAccProvider.Meta().(*clients.Client).ApiManagement.ApiPoliciesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api_policy" {
@@ -162,7 +163,7 @@ func testCheckAzureRMApiManagementAPIPolicyDestroy(s *terraform.State) error {
 		apiName := rs.Primary.Attributes["api_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

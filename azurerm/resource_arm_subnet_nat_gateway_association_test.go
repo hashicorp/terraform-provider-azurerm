@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -108,8 +109,8 @@ func testCheckAzureRMSubnetNatGatewayAssociationExists(resourceName string) reso
 		resourceGroupName := parsedSubnetId.ResourceGroup
 		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 		subnetName := parsedSubnetId.Path["subnets"]
-		client := testAccProvider.Meta().(*ArmClient).Network.SubnetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		subnet, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -147,8 +148,8 @@ func testCheckAzureRMSubnetNatGatewayAssociationDisappears(resourceName string) 
 		resourceGroup := parsedSubnetId.ResourceGroup
 		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 		subnetName := parsedSubnetId.Path["subnets"]
-		client := testAccProvider.Meta().(*ArmClient).Network.SubnetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -190,8 +191,8 @@ func testCheckAzureRMSubnetHasNoNatGateways(resourceName string) resource.TestCh
 		resourceGroupName := parsedSubnetId.ResourceGroup
 		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 		subnetName := parsedSubnetId.Path["subnets"]
-		client := testAccProvider.Meta().(*ArmClient).Network.SubnetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		subnet, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {

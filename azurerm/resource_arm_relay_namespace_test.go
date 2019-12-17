@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -164,8 +165,8 @@ func testCheckAzureRMRelayNamespaceExists(resourceName string) resource.TestChec
 		name := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*ArmClient).Relay.NamespacesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Relay.NamespacesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -181,8 +182,8 @@ func testCheckAzureRMRelayNamespaceExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMRelayNamespaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Relay.NamespacesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Relay.NamespacesClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_relay_namespace" {

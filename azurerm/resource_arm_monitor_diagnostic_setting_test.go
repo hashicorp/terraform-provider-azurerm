@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -173,8 +174,8 @@ func testCheckAzureRMMonitorDiagnosticSettingExists(resourceName string) resourc
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Monitor.DiagnosticSettingsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Monitor.DiagnosticSettingsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		name := rs.Primary.Attributes["name"]
 		actualResourceId := rs.Primary.Attributes["target_resource_id"]
 		targetResourceId := strings.TrimPrefix(actualResourceId, "/")
@@ -193,8 +194,8 @@ func testCheckAzureRMMonitorDiagnosticSettingExists(resourceName string) resourc
 }
 
 func testCheckAzureRMMonitorDiagnosticSettingDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Monitor.DiagnosticSettingsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Monitor.DiagnosticSettingsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_monitor_diagnostic_setting" {

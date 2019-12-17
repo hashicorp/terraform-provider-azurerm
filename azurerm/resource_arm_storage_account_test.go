@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -840,8 +841,8 @@ func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestChec
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		// Ensure resource group exists in API
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).Storage.AccountsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Storage.AccountsClient
 
 		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount, "")
 		if err != nil {
@@ -868,8 +869,8 @@ func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.Test
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		// Ensure resource group exists in API
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).Storage.AccountsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Storage.AccountsClient
 
 		if _, err := conn.Delete(ctx, resourceGroup, storageAccount); err != nil {
 			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
@@ -880,8 +881,8 @@ func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.Test
 }
 
 func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
-	conn := testAccProvider.Meta().(*ArmClient).Storage.AccountsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).Storage.AccountsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_account" {

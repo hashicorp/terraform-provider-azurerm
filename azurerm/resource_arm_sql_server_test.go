@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -197,8 +198,8 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s", sqlServerName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Sql.ServersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Sql.ServersClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -212,8 +213,8 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Sql.ServersClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).Sql.ServersClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_server" {
@@ -250,8 +251,8 @@ func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Sql.ServersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Sql.ServersClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName)
 		if err != nil {

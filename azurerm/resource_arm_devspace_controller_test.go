@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -82,8 +83,8 @@ func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for DevSpace Controller: %s", ctrlName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).DevSpace.ControllersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).DevSpace.ControllersClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		result, err := client.Get(ctx, resGroupName, ctrlName)
 
 		if err == nil {
@@ -99,8 +100,8 @@ func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMDevSpaceControllerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).DevSpace.ControllersClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).DevSpace.ControllersClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_devspace_controller" {

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -136,8 +137,8 @@ func testCheckAzureRMPointToSiteVPNGatewayExists(resourceName string) resource.T
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.PointToSiteVpnGatewaysClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.PointToSiteVpnGatewaysClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -157,8 +158,8 @@ func testCheckAzureRMPointToSiteVPNGatewayDestroy(s *terraform.State) error {
 			continue
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.PointToSiteVpnGatewaysClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.PointToSiteVpnGatewaysClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 

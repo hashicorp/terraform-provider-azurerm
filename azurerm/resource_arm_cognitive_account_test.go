@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -165,8 +166,8 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 }
 
 func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Cognitive.AccountsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Cognitive.AccountsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cognitive_account" {
@@ -200,8 +201,8 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).Cognitive.AccountsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Cognitive.AccountsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.GetProperties(ctx, resourceGroup, name)
 		if err != nil {

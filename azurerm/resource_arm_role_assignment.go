@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -87,9 +88,9 @@ func resourceArmRoleAssignment() *schema.Resource {
 }
 
 func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
-	roleAssignmentsClient := meta.(*ArmClient).Authorization.RoleAssignmentsClient
-	roleDefinitionsClient := meta.(*ArmClient).Authorization.RoleDefinitionsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
+	roleDefinitionsClient := meta.(*clients.Client).Authorization.RoleDefinitionsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -167,9 +168,9 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Authorization.RoleAssignmentsClient
-	roleDefinitionsClient := meta.(*ArmClient).Authorization.RoleDefinitionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Authorization.RoleAssignmentsClient
+	roleDefinitionsClient := meta.(*clients.Client).Authorization.RoleDefinitionsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resp, err := client.GetByID(ctx, d.Id())
@@ -208,8 +209,8 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Authorization.RoleAssignmentsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Authorization.RoleAssignmentsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parseRoleAssignmentId(d.Id())
@@ -241,8 +242,8 @@ func validateRoleDefinitionName(i interface{}, k string) ([]string, []error) {
 
 func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		roleAssignmentsClient := meta.(*ArmClient).Authorization.RoleAssignmentsClient
-		ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+		roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
+		ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
 		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)

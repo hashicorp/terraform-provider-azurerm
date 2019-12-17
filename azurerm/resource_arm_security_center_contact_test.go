@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -158,8 +159,8 @@ func testAccAzureRMSecurityCenterContact_phoneOptional(t *testing.T) {
 
 func testCheckAzureRMSecurityCenterContactExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).SecurityCenter.ContactsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).SecurityCenter.ContactsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -182,8 +183,8 @@ func testCheckAzureRMSecurityCenterContactExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMSecurityCenterContactDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).SecurityCenter.ContactsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).SecurityCenter.ContactsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 	for _, res := range s.RootModule().Resources {
 		if res.Type != "azurerm_security_center_contact" {
 			continue

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -75,8 +76,8 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 }
 
 func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Media.ServicesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Media.ServicesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	accountName := d.Get("name").(string)
@@ -110,8 +111,8 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Media.ServicesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Media.ServicesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -153,8 +154,8 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Media.ServicesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Media.ServicesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

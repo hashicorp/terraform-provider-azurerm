@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -424,8 +425,8 @@ func testCheckAzureRMNetworkInterfaceExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
@@ -454,8 +455,8 @@ func testCheckAzureRMNetworkInterfaceDisappears(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -471,8 +472,8 @@ func testCheckAzureRMNetworkInterfaceDisappears(resourceName string) resource.Te
 }
 
 func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Network.InterfacesClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_network_interface" {

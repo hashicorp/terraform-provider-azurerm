@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -2197,7 +2198,7 @@ func TestAccAzureRMAppService_basicWindowsContainer(t *testing.T) {
 }
 
 func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
+	client := testAccProvider.Meta().(*clients.Client).Web.AppServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service" {
@@ -2207,7 +2208,7 @@ func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -2237,8 +2238,8 @@ func testCheckAzureRMAppServiceExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for App Service: %s", appServiceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Web.AppServicesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, appServiceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

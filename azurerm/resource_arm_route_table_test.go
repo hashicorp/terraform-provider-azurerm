@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -341,8 +342,8 @@ func testCheckAzureRMRouteTableExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for route table: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.RouteTablesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.RouteTablesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
@@ -370,8 +371,8 @@ func testCheckAzureRMRouteTableDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for route table: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.RouteTablesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.RouteTablesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -389,8 +390,8 @@ func testCheckAzureRMRouteTableDisappears(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMRouteTableDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.RouteTablesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Network.RouteTablesClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_route_table" {

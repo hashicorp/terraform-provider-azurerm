@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -88,8 +89,8 @@ func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 }
 
 func testCheckAzureRMLogAnalyticsSolutionDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).LogAnalytics.SolutionsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).LogAnalytics.SolutionsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_log_analytics_solution" {
@@ -127,8 +128,8 @@ func testCheckAzureRMLogAnalyticsSolutionExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Workspace: %q", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).LogAnalytics.SolutionsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).LogAnalytics.SolutionsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {

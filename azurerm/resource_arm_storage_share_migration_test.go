@@ -27,11 +27,9 @@ func TestAzureRMStorageShareMigrateStateV0ToV1(t *testing.T) {
 			"storage_account_name": "account1",
 			"quota":                5120,
 		}
-		meta := &ArmClient{
-			Client: clients.Client{
-				Account: &clients.ResourceManagerAccount{
-					Environment: cloud,
-				},
+		meta := &clients.Client{
+			Account: &clients.ResourceManagerAccount{
+				Environment: cloud,
 			},
 		}
 		expected := map[string]interface{}{
@@ -73,11 +71,9 @@ func TestAzureRMStorageShareMigrateStateV1ToV2(t *testing.T) {
 			"storage_account_name": "account1",
 			"quota":                5120,
 		}
-		meta := &ArmClient{
-			Client: clients.Client{
-				Account: &clients.ResourceManagerAccount{
-					Environment: cloud,
-				},
+		meta := &clients.Client{
+			Account: &clients.ResourceManagerAccount{
+				Environment: cloud,
 			},
 		}
 		expected := map[string]interface{}{

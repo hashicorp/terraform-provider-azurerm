@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMRecoveryNetworkMapping_basic(t *testing.T) {
@@ -110,8 +111,8 @@ func testCheckAzureRMRecoveryNetworkMappingExists(resourceName string) resource.
 		}
 		networkName := id.Path["virtualNetworks"]
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		// TODO Fix Bad: networkMapping error
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
@@ -145,8 +146,8 @@ func testCheckAzureRMRecoveryNetworkMappingDestroy(s *terraform.State) error {
 		}
 		networkName := id.Path["virtualNetworks"]
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
 		if err != nil {

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -87,8 +88,8 @@ func validateArmStorageQueueName(v interface{}, k string) (warnings []string, er
 }
 
 func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).Storage
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	storageClient := meta.(*clients.Client).Storage
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	queueName := d.Get("name").(string)
@@ -134,8 +135,8 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmStorageQueueUpdate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).Storage
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	storageClient := meta.(*clients.Client).Storage
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := queues.ParseResourceID(d.Id())
@@ -167,8 +168,8 @@ func resourceArmStorageQueueUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).Storage
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	storageClient := meta.(*clients.Client).Storage
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := queues.ParseResourceID(d.Id())
@@ -214,8 +215,8 @@ func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmStorageQueueDelete(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).Storage
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	storageClient := meta.(*clients.Client).Storage
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := queues.ParseResourceID(d.Id())

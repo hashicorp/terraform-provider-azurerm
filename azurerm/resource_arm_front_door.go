@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	afd "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -445,13 +446,13 @@ func resourceArmFrontDoor() *schema.Resource {
 }
 
 func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Frontdoor.FrontDoorsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	subscriptionId := meta.(*ArmClient).Account.SubscriptionId
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -517,8 +518,8 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		frontendEndpointName := frontendEndpoint["name"].(string)
 
 		// Get current state of endpoint from Azure
-		client := meta.(*ArmClient).Frontdoor.FrontDoorsFrontendClient
-		ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+		client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
+		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
 		resp, err := client.Get(ctx, resourceGroup, name, frontendEndpointName)
@@ -564,8 +565,8 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(d *schema.ResourceData, enableCustomHttpsProvisioning bool, frontDoorName string, frontendEndpointName string, resourceGroup string, customHTTPSConfiguration frontdoor.CustomHTTPSConfiguration, meta interface{}) error {
-	client := meta.(*ArmClient).Frontdoor.FrontDoorsFrontendClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if enableCustomHttpsProvisioning {
@@ -592,8 +593,8 @@ func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(d *schema.Resou
 }
 
 func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Frontdoor.FrontDoorsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -664,8 +665,8 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Frontdoor.FrontDoorsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -1186,8 +1187,8 @@ func flattenArmFrontDoorFrontendEndpoint(d *schema.ResourceData, input *[]frontd
 
 			// Need to call frontEndEndpointClient here to get customConfiguration information from that client
 			// because the information is hidden from the main frontDoorClient "by design"...
-			client := meta.(*ArmClient).Frontdoor.FrontDoorsFrontendClient
-			ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+			client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
+			ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 			defer cancel()
 
 			resp, err := client.Get(ctx, resourceGroup, frontDoorName, *name)

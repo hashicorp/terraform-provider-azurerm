@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -333,8 +334,8 @@ func testCheckAzureRMMonitorAutoScaleSettingExists(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for Monitor AutoScale Setting: %s", autoscaleSettingName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Monitor.AutoscaleSettingsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, autoscaleSettingName)
 		if err != nil {
@@ -350,8 +351,8 @@ func testCheckAzureRMMonitorAutoScaleSettingExists(resourceName string) resource
 }
 
 func testCheckAzureRMMonitorAutoScaleSettingDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Monitor.AutoscaleSettingsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_monitor_autoscale_setting" {

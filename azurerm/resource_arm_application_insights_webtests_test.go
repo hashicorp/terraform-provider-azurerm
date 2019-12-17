@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -132,8 +133,8 @@ func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).AppInsights.WebTestsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).AppInsights.WebTestsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_application_insights_web_test" {
@@ -167,8 +168,8 @@ func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resou
 
 		name := rs.Primary.Attributes["name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
-		conn := testAccProvider.Meta().(*ArmClient).AppInsights.WebTestsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).AppInsights.WebTestsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, name)
 		if err != nil {

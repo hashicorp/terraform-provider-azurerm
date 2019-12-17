@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -181,8 +182,8 @@ func testCheckAzureRMStreamAnalyticsStreamInputBlobExists(resourceName string) r
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.InputsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).StreamAnalytics.InputsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on streamAnalyticsInputsClient: %+v", err)
@@ -197,7 +198,7 @@ func testCheckAzureRMStreamAnalyticsStreamInputBlobExists(resourceName string) r
 }
 
 func testCheckAzureRMStreamAnalyticsStreamInputBlobDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.InputsClient
+	conn := testAccProvider.Meta().(*clients.Client).StreamAnalytics.InputsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_stream_input_eventhub" {
@@ -207,7 +208,7 @@ func testCheckAzureRMStreamAnalyticsStreamInputBlobDestroy(s *terraform.State) e
 		name := rs.Primary.Attributes["name"]
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return nil

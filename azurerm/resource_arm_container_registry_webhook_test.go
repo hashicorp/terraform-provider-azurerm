@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -623,7 +624,7 @@ resource "azurerm_container_registry_webhook" "test" {
 }
 
 func testCheckAzureRMContainerRegistryWebhookDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Containers.WebhooksClient
+	client := testAccProvider.Meta().(*clients.Client).Containers.WebhooksClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_registry_webhook" {
@@ -634,7 +635,7 @@ func testCheckAzureRMContainerRegistryWebhookDestroy(s *terraform.State) error {
 		registryName := rs.Primary.Attributes["registry_name"]
 		name := rs.Primary.Attributes["name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, registryName, name)
 
 		if err != nil {
@@ -669,8 +670,8 @@ func testCheckAzureRMContainerRegistryWebhookExists(resourceName string) resourc
 			return fmt.Errorf("Bad: no registry name found in state for Container Registry Webhook: %s", webhookName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Containers.WebhooksClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Containers.WebhooksClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, registryName, webhookName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

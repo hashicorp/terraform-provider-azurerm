@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccResourceArmDashboard_basic(t *testing.T) {
@@ -49,8 +50,8 @@ func testCheckAzureRMDashboardExists(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for Dashboard: %s", dashboardName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Portal.DashboardsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Portal.DashboardsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dashboardName)
 		if err != nil {
@@ -66,8 +67,8 @@ func testCheckAzureRMDashboardExists(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMDashboardDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Portal.DashboardsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Portal.DashboardsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dashboard" {

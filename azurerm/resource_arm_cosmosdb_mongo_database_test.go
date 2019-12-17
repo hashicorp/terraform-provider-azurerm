@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -60,8 +61,8 @@ func TestAccAzureRMCosmosDbMongoDatabase_complete(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDbMongoDatabaseDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cosmosdb_mongo_database" {
@@ -89,8 +90,8 @@ func testCheckAzureRMCosmosDbMongoDatabaseDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

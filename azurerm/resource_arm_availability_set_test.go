@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -228,8 +229,8 @@ func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.AvailabilitySetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		vmss, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -258,8 +259,8 @@ func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", availSetName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.AvailabilitySetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Delete(ctx, resourceGroup, availSetName)
 		if err != nil {
 			if !response.WasNotFound(resp.Response) {
@@ -280,8 +281,8 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.AvailabilitySetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {

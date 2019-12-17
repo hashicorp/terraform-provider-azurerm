@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -74,7 +75,7 @@ func TestAccAzureRMApiManagementProduct_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductsClient
+	conn := testAccProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product" {
@@ -84,7 +85,7 @@ func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
 		productId := rs.Primary.Attributes["product_id"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -255,8 +256,8 @@ func testCheckAzureRMApiManagementProductExists(resourceName string) resource.Te
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

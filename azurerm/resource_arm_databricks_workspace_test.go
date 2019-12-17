@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -175,8 +176,8 @@ func testCheckAzureRMDatabricksWorkspaceExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: No resource group found in state for Databricks Workspace: %s", workspaceName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).DataBricks.WorkspacesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).DataBricks.WorkspacesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, workspaceName)
 		if err != nil {
 			return fmt.Errorf("Bad: Getting Workspace: %+v", err)
@@ -191,8 +192,8 @@ func testCheckAzureRMDatabricksWorkspaceExists(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).DataBricks.WorkspacesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).DataBricks.WorkspacesClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_databricks_workspace" {

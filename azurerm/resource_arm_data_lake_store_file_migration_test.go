@@ -26,7 +26,7 @@ func TestAccAzureRMDataLakeStoreFileMigrateState(t *testing.T) {
 		DisableTerraformPartnerID:   false,
 		SkipProviderRegistration:    false,
 	}
-	client, err := getArmClient(context.Background(), builder)
+	client, err := clients.Build(context.Background(), builder)
 	if err != nil {
 		t.Fatal(fmt.Errorf("Error building ARM Client: %+v", err))
 		return

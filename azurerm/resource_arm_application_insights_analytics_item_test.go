@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
@@ -184,8 +185,8 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terrafor
 		return false, fmt.Errorf("Failed to parse ID (id: %s): %+v", id, err)
 	}
 
-	conn := testAccProvider.Meta().(*ArmClient).AppInsights.AnalyticsItemsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).AppInsights.AnalyticsItemsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	response, err := conn.Get(ctx, resGroup, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 )
@@ -627,8 +628,8 @@ func testCheckAzureRMKubernetesClusterNodePoolDestroy(s *terraform.State) error 
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Containers.AgentPoolsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
 
 		if err != nil {
@@ -658,8 +659,8 @@ func testCheckAzureRMKubernetesNodePoolExists(resourceName string) resource.Test
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Containers.AgentPoolsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		agent_pool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
 		if err != nil {

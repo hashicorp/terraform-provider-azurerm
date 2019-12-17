@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -328,8 +329,8 @@ func testCheckAzureRMConnectionMonitorExists(resourceName string) resource.TestC
 		watcherName := rs.Primary.Attributes["network_watcher_name"]
 		connectionMonitorName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.ConnectionMonitorsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.ConnectionMonitorsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, watcherName, connectionMonitorName)
 		if err != nil {
@@ -345,8 +346,8 @@ func testCheckAzureRMConnectionMonitorExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMConnectionMonitorDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.ConnectionMonitorsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Network.ConnectionMonitorsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_connection_monitor" {

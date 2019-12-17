@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -226,8 +227,8 @@ func TestAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t 
 }
 
 func testCheckAzureRMServiceBusSubscriptionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).ServiceBus.SubscriptionsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).ServiceBus.SubscriptionsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_subscription" {
@@ -271,8 +272,8 @@ func testCheckAzureRMServiceBusSubscriptionExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for Subscription: %q", topicName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).ServiceBus.SubscriptionsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).ServiceBus.SubscriptionsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName)
 		if err != nil {

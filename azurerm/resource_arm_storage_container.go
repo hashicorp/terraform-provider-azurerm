@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -91,8 +92,8 @@ func resourceArmStorageContainer() *schema.Resource {
 }
 
 func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).Storage
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	storageClient := meta.(*clients.Client).Storage
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	containerName := d.Get("name").(string)
@@ -144,8 +145,8 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).Storage
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	storageClient := meta.(*clients.Client).Storage
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := containers.ParseResourceID(d.Id())
@@ -192,8 +193,8 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).Storage
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	storageClient := meta.(*clients.Client).Storage
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := containers.ParseResourceID(d.Id())
@@ -248,8 +249,8 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).Storage
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	storageClient := meta.(*clients.Client).Storage
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := containers.ParseResourceID(d.Id())

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -192,8 +193,8 @@ func testCheckAzureRMTemplateDeploymentExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Resource.DeploymentsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Resource.DeploymentsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -222,8 +223,8 @@ func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", deploymentName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Resource.DeploymentsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Resource.DeploymentsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, deploymentName); err != nil {
 			return fmt.Errorf("Failed deleting Deployment %q (Resource Group %q): %+v", deploymentName, resourceGroup, err)
@@ -247,8 +248,8 @@ func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.
 }
 
 func testCheckAzureRMTemplateDeploymentDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Resource.DeploymentsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Resource.DeploymentsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_template_deployment" {

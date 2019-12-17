@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -121,8 +122,8 @@ func testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(resourceName 
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Graph.ServicePrincipalsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Graph.ServicePrincipalsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		id := strings.Split(rs.Primary.ID, "/")
 		objectId := id[0]

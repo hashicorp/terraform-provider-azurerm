@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -302,7 +303,7 @@ func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiClient
+	conn := testAccProvider.Meta().(*clients.Client).ApiManagement.ApiClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api" {
@@ -313,7 +314,7 @@ func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		revision := rs.Primary.Attributes["revision"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiId)
@@ -344,8 +345,8 @@ func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		revision := rs.Primary.Attributes["revision"]
 
-		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).ApiManagement.ApiClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiId)

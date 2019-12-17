@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -133,8 +134,8 @@ func resourceArmCognitiveAccount() *schema.Resource {
 }
 
 func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Cognitive.AccountsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Cognitive.AccountsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -181,8 +182,8 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Cognitive.AccountsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Cognitive.AccountsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -210,8 +211,8 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Cognitive.AccountsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Cognitive.AccountsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -268,8 +269,8 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmCognitiveAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Cognitive.AccountsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Cognitive.AccountsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

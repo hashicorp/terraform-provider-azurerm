@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -118,8 +119,8 @@ func testCheckAzureRMMariaDbConfigurationValue(resourceName string, value string
 			return fmt.Errorf("Bad: no resource group found in state for MariaDb Configuration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).MariaDB.ConfigurationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).MariaDB.ConfigurationsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -143,8 +144,8 @@ func testCheckAzureRMMariaDbConfigurationValueReset(rInt int, configurationName 
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestmariadbsvr-%d", rInt)
 
-		client := testAccProvider.Meta().(*ArmClient).MariaDB.ConfigurationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).MariaDB.ConfigurationsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
 		if err != nil {
@@ -166,8 +167,8 @@ func testCheckAzureRMMariaDbConfigurationValueReset(rInt int, configurationName 
 }
 
 func testCheckAzureRMMariaDbConfigurationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).MariaDB.ConfigurationsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).MariaDB.ConfigurationsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mariadb_configuration" {

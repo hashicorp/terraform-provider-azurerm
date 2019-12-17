@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -607,10 +608,10 @@ func resourceArmKubernetesCluster() *schema.Resource {
 }
 
 func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Containers.KubernetesClustersClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Containers.KubernetesClustersClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	tenantId := meta.(*ArmClient).Account.TenantId
+	tenantId := meta.(*clients.Client).Account.TenantId
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
 
@@ -738,11 +739,11 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	nodePoolsClient := meta.(*ArmClient).Containers.AgentPoolsClient
-	clusterClient := meta.(*ArmClient).Containers.KubernetesClustersClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	nodePoolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
+	clusterClient := meta.(*clients.Client).Containers.KubernetesClustersClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	tenantId := meta.(*ArmClient).Account.TenantId
+	tenantId := meta.(*clients.Client).Account.TenantId
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster update.")
 
@@ -932,8 +933,8 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Containers.KubernetesClustersClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Containers.KubernetesClustersClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := containers.ParseKubernetesClusterID(d.Id())
@@ -1057,8 +1058,8 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Containers.KubernetesClustersClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Containers.KubernetesClustersClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := containers.ParseKubernetesClusterID(d.Id())

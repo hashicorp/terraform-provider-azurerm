@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 // the schema schema was used for both V0 and V1
@@ -70,7 +71,7 @@ func resourceStorageTableStateResourceV0V1() *schema.Resource {
 func resourceStorageTableStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	tableName := rawState["name"].(string)
 	accountName := rawState["storage_account_name"].(string)
-	environment := meta.(*ArmClient).Account.Environment
+	environment := meta.(*clients.Client).Account.Environment
 
 	id := rawState["id"].(string)
 	newResourceID := fmt.Sprintf("https://%s.table.%s/%s", accountName, environment.StorageEndpointSuffix, tableName)
@@ -83,7 +84,7 @@ func resourceStorageTableStateUpgradeV0ToV1(rawState map[string]interface{}, met
 func resourceStorageTableStateUpgradeV1ToV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	tableName := rawState["name"].(string)
 	accountName := rawState["storage_account_name"].(string)
-	environment := meta.(*ArmClient).Account.Environment
+	environment := meta.(*clients.Client).Account.Environment
 
 	id := rawState["id"].(string)
 	newResourceID := fmt.Sprintf("https://%s.table.%s/Tables('%s')", accountName, environment.StorageEndpointSuffix, tableName)

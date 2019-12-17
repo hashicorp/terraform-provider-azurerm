@@ -37,13 +37,13 @@ func Provider() terraform.ResourceProvider {
 	//			type ArmClient struct { // ./azurerm/config.go
 	//				common.Client
 	//			}
-	//		Then access the fields using: `meta.(*ArmClient).Example.Inner`
-	//		Rather than `meta.(*ArmClient).Client.Example.Inner`
+	//		Then access the fields using: `meta.(*clients.Client).Example.Inner`
+	//		Rather than `meta.(*clients.Client).Client.Example.Inner`
 	//		This allows us to have less code changes in Step 8
 	//	7. (DONE) Move the client registration into a Build method on the Common struct, allowing us
 	//	   to move the resources without breaking (as) many WIP PR's
 	//
-	//	8. This should allow us to Find+Replace `(*ArmClient)` to `*common.Client`
+	//	8. This should allow us to Find+Replace `(*clients.Client)` to `*common.Client`
 	//		Unfortunately this'll need to be in a big-bang, due to the fact this is cast
 	//		All over the place
 	//
@@ -751,19 +751,16 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
 			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
 		}
-		client, err := getArmClient(p.StopContext(), clientBuilder)
+		client, err := clients.Build(p.StopContext(), clientBuilder)
 		if err != nil {
 			return nil, err
 		}
 
-		// TODO: clean this up when ArmClient is removed
 		client.StopContext = p.StopContext()
 
 		// replaces the context between tests
 		p.MetaReset = func() error {
-			// TODO: remove the old reference here
 			client.StopContext = p.StopContext()
-			client.Client.StopContext = p.StopContext()
 			return nil
 		}
 

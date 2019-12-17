@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -151,7 +152,7 @@ func TestAccAzureRMApiManagementApiVersionSet_update(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementApiVersionSetDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiVersionSetClient
+	client := testAccProvider.Meta().(*clients.Client).ApiManagement.ApiVersionSetClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api_version_set" {
 			continue
@@ -161,7 +162,7 @@ func testCheckAzureRMApiManagementApiVersionSetDestroy(s *terraform.State) error
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 
 		if err != nil {
@@ -186,8 +187,8 @@ func testCheckAzureRMApiManagementApiVersionSetExists(resourceName string) resou
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiVersionSetClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).ApiManagement.ApiVersionSetClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

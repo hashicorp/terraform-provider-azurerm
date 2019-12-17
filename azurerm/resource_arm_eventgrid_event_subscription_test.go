@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -151,8 +152,8 @@ func TestAccAzureRMEventGridEventSubscription_filter(t *testing.T) {
 }
 
 func testCheckAzureRMEventGridEventSubscriptionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).EventGrid.EventSubscriptionsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).EventGrid.EventSubscriptionsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventgrid_event_subscription" {
@@ -193,8 +194,8 @@ func testCheckAzureRMEventGridEventSubscriptionExists(resourceName string) resou
 			return fmt.Errorf("Bad: no scope found in state for EventGrid Event Subscription: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).EventGrid.EventSubscriptionsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).EventGrid.EventSubscriptionsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

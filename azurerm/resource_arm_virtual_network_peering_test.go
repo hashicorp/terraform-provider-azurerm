@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -155,8 +156,8 @@ func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.T
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
-		client := testAccProvider.Meta().(*ArmClient).Network.VnetPeeringsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vnetName, name)
 		if err != nil {
@@ -187,8 +188,8 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resour
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
-		client := testAccProvider.Meta().(*ArmClient).Network.VnetPeeringsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
 		if err != nil {
@@ -204,8 +205,8 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resour
 }
 
 func testCheckAzureRMVirtualNetworkPeeringDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.VnetPeeringsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_network_peering" {

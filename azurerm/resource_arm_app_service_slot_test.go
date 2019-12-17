@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -1614,7 +1615,7 @@ func TestAccAzureRMAppServiceSlot_autoSwap(t *testing.T) {
 }
 
 func testCheckAzureRMAppServiceSlotDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
+	client := testAccProvider.Meta().(*clients.Client).Web.AppServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_slot" {
@@ -1625,7 +1626,7 @@ func testCheckAzureRMAppServiceSlotDestroy(s *terraform.State) error {
 		appServiceName := rs.Primary.Attributes["app_service_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
 
 		if err != nil {
@@ -1655,8 +1656,8 @@ func testCheckAzureRMAppServiceSlotExists(slot string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for App Service Slot: %q/%q", appServiceName, slot)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Web.AppServicesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

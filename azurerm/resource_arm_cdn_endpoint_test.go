@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -279,8 +280,8 @@ func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Cdn.EndpointsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Cdn.EndpointsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, profileName, name)
 		if err != nil {
@@ -310,8 +311,8 @@ func testCheckAzureRMCdnEndpointDisappears(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Cdn.EndpointsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Cdn.EndpointsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		future, err := conn.Delete(ctx, resourceGroup, profileName, name)
 		if err != nil {
@@ -327,8 +328,8 @@ func testCheckAzureRMCdnEndpointDisappears(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Cdn.EndpointsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).Cdn.EndpointsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cdn_endpoint" {

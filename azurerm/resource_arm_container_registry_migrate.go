@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func resourceAzureRMContainerRegistryMigrateState(
@@ -93,10 +94,10 @@ func updateV1ToV2StorageAccountName(is *terraform.InstanceState, meta interface{
 }
 
 func findAzureStorageAccountIdFromName(name string, meta interface{}) (string, error) {
-	ctx, cancel := context.WithTimeout(meta.(*ArmClient).StopContext, time.Minute*5)
+	ctx, cancel := context.WithTimeout(meta.(*clients.Client).StopContext, time.Minute*5)
 	defer cancel()
 
-	client := meta.(*ArmClient).Storage.AccountsClient
+	client := meta.(*clients.Client).Storage.AccountsClient
 	accounts, err := client.List(ctx)
 	if err != nil {
 		return "", err

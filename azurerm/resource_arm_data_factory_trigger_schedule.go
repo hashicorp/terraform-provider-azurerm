@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -122,8 +123,8 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 }
 
 func resourceArmDataFactoryTriggerScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DataFactory.TriggersClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DataFactory.TriggersClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Data Factory Trigger Schedule creation.")
@@ -206,8 +207,8 @@ func resourceArmDataFactoryTriggerScheduleCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DataFactory.TriggersClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DataFactory.TriggersClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -268,8 +269,8 @@ func resourceArmDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmDataFactoryTriggerScheduleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DataFactory.TriggersClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DataFactory.TriggersClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

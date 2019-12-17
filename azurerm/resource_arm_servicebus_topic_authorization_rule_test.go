@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -133,8 +134,8 @@ func TestAccAzureRMServiceBusTopicAuthorizationRule_rightsUpdate(t *testing.T) {
 }
 
 func testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ServiceBus.TopicsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).ServiceBus.TopicsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_topic_authorization_rule" {
@@ -173,8 +174,8 @@ func testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName string)
 			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Topic: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).ServiceBus.TopicsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).ServiceBus.TopicsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, topicName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

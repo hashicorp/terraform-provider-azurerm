@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -69,8 +70,8 @@ func resourceArmApiManagementProperty() *schema.Resource {
 }
 
 func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ApiManagement.PropertyClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ApiManagement.PropertyClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -119,8 +120,8 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ApiManagement.PropertyClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ApiManagement.PropertyClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -157,8 +158,8 @@ func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmApiManagementPropertyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ApiManagement.PropertyClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ApiManagement.PropertyClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

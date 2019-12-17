@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -387,8 +388,8 @@ func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerEndpointsClient: %+v", err)
@@ -419,8 +420,8 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
 			return fmt.Errorf("Bad: Delete on trafficManagerEndpointsClient: %+v", err)
@@ -431,7 +432,7 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 }
 
 func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
+	conn := testAccProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_endpoint" {
@@ -442,7 +443,7 @@ func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
 		endpointType := rs.Primary.Attributes["type"]
 		profileName := rs.Primary.Attributes["profile_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
 			return nil

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -170,8 +171,8 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		// Ensure resource group exists in API
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).Batch.AccountClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Batch.AccountClient
 
 		resp, err := conn.Get(ctx, resourceGroup, batchAccount)
 		if err != nil {
@@ -187,8 +188,8 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Batch.AccountClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).Batch.AccountClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_batch_account" {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -247,7 +248,7 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ServiceClient
+	conn := testAccProvider.Meta().(*clients.Client).ApiManagement.ServiceClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management" {
@@ -256,7 +257,7 @@ func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -287,8 +288,8 @@ func testCheckAzureRMApiManagementExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for Api Management: %s", apiMangementName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ServiceClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).ApiManagement.ServiceClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, apiMangementName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
@@ -63,7 +64,7 @@ func testCheckAzureRMSubscriptionId(resourceName string) resource.TestCheckFunc 
 
 		attributeName := "subscription_id"
 		subscriptionId := rs.Primary.Attributes[attributeName]
-		client := testAccProvider.Meta().(*ArmClient)
+		client := testAccProvider.Meta().(*clients.Client)
 		if subscriptionId != client.Account.SubscriptionId {
 			return fmt.Errorf("%s: Attribute '%s' expected \"%s\", got \"%s\"", resourceName, attributeName, client.Account.SubscriptionId, subscriptionId)
 		}

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -182,8 +183,8 @@ func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 }
 
 func testCheckAzureRMApplicationInsightsAPIKeyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).AppInsights.APIKeysClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).AppInsights.APIKeysClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_application_insights_api_key" {
@@ -228,8 +229,8 @@ func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resour
 		resGroup := id.ResourceGroup
 		appInsightsName := id.Path["components"]
 
-		conn := testAccProvider.Meta().(*ArmClient).AppInsights.APIKeysClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).AppInsights.APIKeysClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, appInsightsName, keyID)
 		if err != nil {

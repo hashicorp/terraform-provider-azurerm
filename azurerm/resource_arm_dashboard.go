@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -53,8 +54,8 @@ func resourceArmDashboard() *schema.Resource {
 }
 
 func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Portal.DashboardsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Portal.DashboardsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	t := d.Get("tags").(map[string]interface{})
@@ -92,8 +93,8 @@ func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Portal.DashboardsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Portal.DashboardsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, parseErr := azure.ParseAzureResourceID(d.Id())
@@ -128,8 +129,8 @@ func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmDashboardDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Portal.DashboardsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Portal.DashboardsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, parseErr := azure.ParseAzureResourceID(d.Id())

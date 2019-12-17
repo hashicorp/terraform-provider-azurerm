@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
@@ -622,8 +623,8 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := testAccProvider.Meta().(*clients.Client).Storage
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		containerName := rs.Primary.Attributes["storage_container_name"]
@@ -663,8 +664,8 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := testAccProvider.Meta().(*clients.Client).Storage
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		containerName := rs.Primary.Attributes["storage_container_name"]
@@ -701,8 +702,8 @@ func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind blobs.Blob
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := testAccProvider.Meta().(*clients.Client).Storage
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		containerName := rs.Primary.Attributes["storage_container_name"]
@@ -761,8 +762,8 @@ func testCheckAzureRMStorageBlobDestroy(s *terraform.State) error {
 			continue
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := testAccProvider.Meta().(*clients.Client).Storage
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		containerName := rs.Primary.Attributes["storage_container_name"]

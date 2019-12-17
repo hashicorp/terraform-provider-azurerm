@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -275,8 +276,8 @@ func testCheckAzureRMFirewallExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -304,8 +305,8 @@ func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on azureFirewallsClient: %+v", err)
@@ -319,8 +320,8 @@ func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMFirewallDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_firewall" {

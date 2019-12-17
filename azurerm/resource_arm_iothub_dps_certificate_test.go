@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -109,8 +110,8 @@ func TestAccAzureRMIotHubDPSCertificate_update(t *testing.T) {
 }
 
 func testCheckAzureRMIotHubDPSCertificateDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).IoTHub.DPSCertificateClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).IoTHub.DPSCertificateClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothub_dps_certificate" {
@@ -136,7 +137,7 @@ func testCheckAzureRMIotHubDPSCertificateDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotHubDPSCertificateExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -150,7 +151,7 @@ func testCheckAzureRMIotHubDPSCertificateExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for IoT Device Provisioning Service Certificate: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).IoTHub.DPSCertificateClient
+		client := testAccProvider.Meta().(*clients.Client).IoTHub.DPSCertificateClient
 		resp, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

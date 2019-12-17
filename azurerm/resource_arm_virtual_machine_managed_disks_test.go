@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -601,8 +602,8 @@ func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.
 		name := vmID.Path["virtualMachines"]
 		resourceGroup := vmID.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.VMClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Deallocate(ctx, resourceGroup, name)
 		if err != nil {
@@ -2206,8 +2207,8 @@ func testGetAzureRMVirtualMachineManagedDisk(managedDiskID *string) (*compute.Di
 	}
 	name := armID.Path["disks"]
 	resourceGroup := armID.ResourceGroup
-	client := testAccProvider.Meta().(*ArmClient).Compute.DisksClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Compute.DisksClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 	d, err := client.Get(ctx, resourceGroup, name)
 	//check status first since sdk client returns error if not 200
 	if d.Response.StatusCode == http.StatusNotFound {

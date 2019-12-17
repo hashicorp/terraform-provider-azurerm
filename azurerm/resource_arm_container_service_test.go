@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -411,8 +412,8 @@ func testCheckAzureRMContainerServiceExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Container Service Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Containers.ServicesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Containers.ServicesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -428,7 +429,7 @@ func testCheckAzureRMContainerServiceExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMContainerServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Containers.ServicesClient
+	conn := testAccProvider.Meta().(*clients.Client).Containers.ServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_service" {
@@ -437,7 +438,7 @@ func testCheckAzureRMContainerServiceDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -191,8 +192,8 @@ func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestChec
 		scope := rs.Primary.Attributes["scope"]
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).Authorization.RoleDefinitionsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
 
 		if err != nil {
@@ -215,8 +216,8 @@ func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
 		scope := rs.Primary.Attributes["scope"]
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).Authorization.RoleDefinitionsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
 
 		if err != nil {

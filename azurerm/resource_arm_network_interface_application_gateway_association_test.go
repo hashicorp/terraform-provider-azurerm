@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -101,8 +102,8 @@ func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssocia
 		backendAddressPoolId := rs.Primary.Attributes["backend_address_pool_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {
@@ -151,8 +152,8 @@ func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssocia
 		backendAddressPoolId := rs.Primary.Attributes["backend_address_pool_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {

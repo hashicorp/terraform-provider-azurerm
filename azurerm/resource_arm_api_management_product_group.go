@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -42,8 +43,8 @@ func resourceArmApiManagementProductGroup() *schema.Resource {
 }
 
 func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ApiManagement.ProductGroupsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -60,7 +61,7 @@ func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta int
 		}
 
 		if !utils.ResponseWasNotFound(resp) {
-			subscriptionId := meta.(*ArmClient).Account.SubscriptionId
+			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 			resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/products/%s/groups/%s", subscriptionId, resourceGroup, serviceName, groupName, productId)
 			return tf.ImportAsExistsError("azurerm_api_management_product_group", resourceId)
 		}
@@ -78,8 +79,8 @@ func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta int
 }
 
 func resourceArmApiManagementProductGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ApiManagement.ProductGroupsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -111,8 +112,8 @@ func resourceArmApiManagementProductGroupRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmApiManagementProductGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ApiManagement.ProductGroupsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ApiManagement.ProductGroupsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

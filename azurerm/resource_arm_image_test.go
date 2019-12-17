@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"golang.org/x/crypto/ssh"
 )
@@ -285,7 +286,7 @@ func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 
 func testGeneralizeVMImage(resourceGroup string, vmName string, userName string, password string, hostName string, port string, location string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		armClient := testAccProvider.Meta().(*ArmClient)
+		armClient := testAccProvider.Meta().(*clients.Client)
 		vmClient := armClient.Compute.VMClient
 		ctx := armClient.StopContext
 
@@ -363,8 +364,8 @@ func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource
 			return fmt.Errorf("Bad: no resource group found in state for image: %s", dName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.ImagesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Compute.ImagesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dName, "")
 		if err != nil {
@@ -386,8 +387,8 @@ func testCheckAzureVMExists(sourceVM string, shouldExist bool) resource.TestChec
 	return func(s *terraform.State) error {
 		log.Printf("[INFO] testing MANAGED IMAGE VM EXISTS - BEGIN.")
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.VMClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		vmRs, vmOk := s.RootModule().Resources[sourceVM]
 		if !vmOk {
 			return fmt.Errorf("VM Not found: %s", sourceVM)
@@ -421,8 +422,8 @@ func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.Test
 	return func(s *terraform.State) error {
 		log.Printf("[INFO] testing MANAGED IMAGE VMSS EXISTS - BEGIN.")
 
-		vmssClient := testAccProvider.Meta().(*ArmClient).Compute.VMScaleSetClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		vmssClient := testAccProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		vmRs, vmOk := s.RootModule().Resources[sourceVMSS]
 		if !vmOk {
 			return fmt.Errorf("VMSS Not found: %s", sourceVMSS)
@@ -453,8 +454,8 @@ func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.Test
 }
 
 func testCheckAzureRMImageDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Compute.DisksClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Compute.DisksClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_image" {

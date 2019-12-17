@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -234,8 +235,8 @@ func testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName string)
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).NotificationHubs.HubsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		notificationHubName := rs.Primary.Attributes["notification_hub_name"]
@@ -256,8 +257,8 @@ func testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName string)
 }
 
 func testCheckAzureRMNotificationHubAuthorizationRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).NotificationHubs.HubsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_notification_hub_authorization_rule" {

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -415,8 +416,8 @@ func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).Batch.PoolClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
@@ -441,8 +442,8 @@ func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).Batch.PoolClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {

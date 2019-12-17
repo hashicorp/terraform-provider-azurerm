@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
@@ -289,8 +290,8 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 		policySetName := rs.Primary.Attributes["name"]
 		managementGroupId := rs.Primary.Attributes["management_group_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).Policy.SetDefinitionsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Policy.SetDefinitionsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		var err error
 		var resp policy.SetDefinition
@@ -313,8 +314,8 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Policy.SetDefinitionsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Policy.SetDefinitionsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_policy_set_definition" {

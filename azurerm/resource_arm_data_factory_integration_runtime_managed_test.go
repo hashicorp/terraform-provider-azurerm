@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -316,8 +317,8 @@ func testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(name string) res
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory Managed Integration Runtime: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).DataFactory.IntegrationRuntimesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).DataFactory.IntegrationRuntimesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 		if err != nil {
@@ -333,8 +334,8 @@ func testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(name string) res
 }
 
 func testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).DataFactory.IntegrationRuntimesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).DataFactory.IntegrationRuntimesClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_factory_integration_managed" {

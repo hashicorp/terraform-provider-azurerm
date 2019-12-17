@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -243,7 +244,7 @@ func TestAccAzureRMApiManagementBackend_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementBackendDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.BackendClient
+	conn := testAccProvider.Meta().(*clients.Client).ApiManagement.BackendClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_backend" {
@@ -253,7 +254,7 @@ func testCheckAzureRMApiManagementBackendDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
@@ -282,8 +283,8 @@ func testCheckAzureRMApiManagementBackendExists(name string) resource.TestCheckF
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.BackendClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).ApiManagement.BackendClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
@@ -313,8 +314,8 @@ func testCheckAzureRMApiManagementBackendDisappears(resourceName string) resourc
 			return fmt.Errorf("Bad: no resource group found in state for backend: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.BackendClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).ApiManagement.BackendClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Delete(ctx, resourceGroup, serviceName, name, "")
 		if err != nil {

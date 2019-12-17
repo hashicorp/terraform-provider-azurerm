@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -108,8 +109,8 @@ func resourceArmPolicyDefinition() *schema.Resource {
 }
 
 func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Policy.DefinitionsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Policy.DefinitionsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -215,8 +216,8 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Policy.DefinitionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Policy.DefinitionsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name, err := parsePolicyDefinitionNameFromId(d.Id())
@@ -264,8 +265,8 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Policy.DefinitionsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Policy.DefinitionsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name, err := parsePolicyDefinitionNameFromId(d.Id())

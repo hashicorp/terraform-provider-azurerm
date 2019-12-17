@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -300,8 +301,8 @@ func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCh
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).MSSQL.ElasticPoolsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).MSSQL.ElasticPoolsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, poolName)
 		if err != nil {
@@ -317,8 +318,8 @@ func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMMsSqlElasticPoolDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).MSSQL.ElasticPoolsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).MSSQL.ElasticPoolsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mssql_elasticpool" {
@@ -354,8 +355,8 @@ func testCheckAzureRMMsSqlElasticPoolDisappears(resourceName string) resource.Te
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).MSSQL.ElasticPoolsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).MSSQL.ElasticPoolsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName, poolName); err != nil {
 			return fmt.Errorf("Bad: Delete on msSqlElasticPoolsClient: %+v", err)

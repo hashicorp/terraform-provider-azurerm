@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -1078,8 +1079,8 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 func testCheckAzureRMMonitorActionGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Monitor.ActionGroupsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).Monitor.ActionGroupsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_monitor_action_group" {
@@ -1117,8 +1118,8 @@ func testCheckAzureRMMonitorActionGroupExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Action Group Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Monitor.ActionGroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).Monitor.ActionGroupsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {

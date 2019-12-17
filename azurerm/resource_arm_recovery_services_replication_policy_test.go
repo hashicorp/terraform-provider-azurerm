@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMRecoveryReplicationPolicy_basic(t *testing.T) {
@@ -70,8 +71,8 @@ func testCheckAzureRMRecoveryReplicationPolicyExists(resourceName string) resour
 		vaultName := state.Primary.Attributes["recovery_vault_name"]
 		policyName := state.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resourceGroupName, vaultName)
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, policyName)
 		if err != nil {
@@ -96,8 +97,8 @@ func testCheckAzureRMRecoveryReplicationPolicyDestroy(s *terraform.State) error 
 		vaultName := rs.Primary.Attributes["recovery_vault_name"]
 		policyName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resourceGroup, vaultName)
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resourceGroup, vaultName)
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, policyName)
 		if err != nil {

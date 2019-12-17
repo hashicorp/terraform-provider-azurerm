@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -139,8 +140,8 @@ func TestAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(t *testing.
 }
 
 func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).LogAnalytics.LinkedServicesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).LogAnalytics.LinkedServicesClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_log_analytics_linked_service" {
@@ -184,8 +185,8 @@ func testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName string) resour
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Linked Service: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).LogAnalytics.LinkedServicesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).LogAnalytics.LinkedServicesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, workspaceName, lsName)
 		if err != nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -133,8 +134,8 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(t *testin
 }
 
 func testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ServiceBus.NamespacesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).ServiceBus.NamespacesClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_namespace_authorization_rule" {
@@ -171,8 +172,8 @@ func testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName str
 			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Namespace: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).ServiceBus.NamespacesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).ServiceBus.NamespacesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

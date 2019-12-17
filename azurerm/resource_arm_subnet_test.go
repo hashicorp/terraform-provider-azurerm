@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -319,8 +320,8 @@ func testCheckAzureRMSubnetExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.SubnetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vnetName, name, "")
 		if err != nil {
@@ -352,9 +353,9 @@ func testCheckAzureRMSubnetRouteTableExists(resourceName string, routeTableId st
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", subnetName)
 		}
 
-		networksClient := testAccProvider.Meta().(*ArmClient).Network.VnetClient
-		subnetsClient := testAccProvider.Meta().(*ArmClient).Network.SubnetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		networksClient := testAccProvider.Meta().(*clients.Client).Network.VnetClient
+		subnetsClient := testAccProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		vnetResp, vnetErr := networksClient.Get(ctx, resourceGroup, vnetName, "")
 		if vnetErr != nil {
@@ -401,8 +402,8 @@ func testCheckAzureRMSubnetDisappears(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.SubnetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
 		if err != nil {
 			if !response.WasNotFound(future.Response()) {
@@ -419,8 +420,8 @@ func testCheckAzureRMSubnetDisappears(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMSubnetDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.SubnetsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Network.SubnetsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_subnet" {

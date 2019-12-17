@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -130,8 +131,8 @@ func testCheckAzureRMMySQLDatabaseExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Database: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).MySQL.DatabasesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).MySQL.DatabasesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -146,8 +147,8 @@ func testCheckAzureRMMySQLDatabaseExists(resourceName string) resource.TestCheck
 }
 
 func testCheckAzureRMMySQLDatabaseDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).MySQL.DatabasesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).MySQL.DatabasesClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mysql_database" {

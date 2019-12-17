@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -146,8 +147,8 @@ func testCheckAzureRMPrivateDnsSrvRecordExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS SRV record: %s", srvName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).PrivateDns.RecordSetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.SRV, srvName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get SRV RecordSet: %+v", err)
@@ -162,8 +163,8 @@ func testCheckAzureRMPrivateDnsSrvRecordExists(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMPrivateDnsSrvRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).PrivateDns.RecordSetsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_private_dns_srv_record" {

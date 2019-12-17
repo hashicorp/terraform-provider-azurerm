@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
@@ -272,8 +273,8 @@ func testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccount
 	resourceGroupName := rid.ResourceGroup
 	storageAccountName := rid.Path["storageAccounts"]
 
-	conn := testAccProvider.Meta().(*ArmClient).Storage.ManagementPoliciesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*clients.Client).Storage.ManagementPoliciesClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	response, err := conn.Get(ctx, resourceGroupName, storageAccountName)
 	if err != nil {

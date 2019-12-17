@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -140,7 +141,7 @@ resource "azurerm_iothub_endpoint_servicebus_topic" "import" {
 
 func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -154,7 +155,7 @@ func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) reso
 		endpointName := parsedIothubId.Path["Endpoints"]
 		resourceGroup := parsedIothubId.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
+		client := testAccProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
@@ -186,8 +187,8 @@ func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) reso
 }
 
 func testAccAzureRMIotHubEndpointServiceBusTopicDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).IoTHub.ResourceClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothub_endpoint_servicebus_topic" {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -308,8 +309,8 @@ func testCheckAzureRMFirewallNatRuleCollectionExists(resourceName string) resour
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
@@ -342,8 +343,8 @@ func testCheckAzureRMFirewallNatRuleCollectionDoesNotExist(resourceName string, 
 		firewallName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
@@ -371,8 +372,8 @@ func testCheckAzureRMFirewallNatRuleCollectionDisappears(resourceName string) re
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err

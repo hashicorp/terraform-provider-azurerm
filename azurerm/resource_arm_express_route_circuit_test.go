@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -288,8 +289,8 @@ func testCheckAzureRMExpressRouteCircuitExists(resourceName string, erc *network
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit: %s", expressRouteCircuitName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.ExpressRouteCircuitsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Network.ExpressRouteCircuitsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, expressRouteCircuitName)
 		if err != nil {
@@ -307,8 +308,8 @@ func testCheckAzureRMExpressRouteCircuitExists(resourceName string, erc *network
 }
 
 func testCheckAzureRMExpressRouteCircuitDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.ExpressRouteCircuitsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Network.ExpressRouteCircuitsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_express_route_circuit" {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -113,8 +114,8 @@ func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*ArmClient).Resource.GroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Resource.GroupsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup)
 		if err != nil {
@@ -140,8 +141,8 @@ func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestC
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*ArmClient).Resource.GroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Resource.GroupsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		deleteFuture, err := client.Delete(ctx, resourceGroup)
 		if err != nil {
@@ -158,8 +159,8 @@ func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Resource.GroupsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Resource.GroupsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_resource_group" {

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -67,8 +68,8 @@ func resourceArmManagementLock() *schema.Resource {
 }
 
 func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Resource.LocksClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Resource.LocksClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Management Lock creation.")
 
@@ -116,8 +117,8 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmManagementLockRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Resource.LocksClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Resource.LocksClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parseAzureRMLockId(d.Id())
@@ -146,8 +147,8 @@ func resourceArmManagementLockRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmManagementLockDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Resource.LocksClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Resource.LocksClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parseAzureRMLockId(d.Id())

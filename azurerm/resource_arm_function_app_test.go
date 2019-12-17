@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -776,7 +777,7 @@ func TestAccAzureRMFunctionApp_ftpsState(t *testing.T) {
 }
 
 func testCheckAzureRMFunctionAppDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
+	client := testAccProvider.Meta().(*clients.Client).Web.AppServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_function_app" {
@@ -785,7 +786,7 @@ func testCheckAzureRMFunctionAppDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -815,8 +816,8 @@ func testCheckAzureRMFunctionAppExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for Function App: %s", functionAppName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Web.AppServicesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, functionAppName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -844,8 +845,8 @@ func testCheckAzureRMFunctionAppHasContentShare(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Function App: %s", functionAppName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Web.AppServicesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		appSettingsResp, err := client.ListApplicationSettings(ctx, resourceGroup, functionAppName)
 		if err != nil {
@@ -876,8 +877,8 @@ func testCheckAzureRMFunctionAppHasNoContentShare(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for Function App: %s", functionAppName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Web.AppServicesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		appSettingsResp, err := client.ListApplicationSettings(ctx, resourceGroup, functionAppName)
 		if err != nil {

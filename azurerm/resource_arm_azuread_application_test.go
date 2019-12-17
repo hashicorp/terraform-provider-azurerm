@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -138,8 +139,8 @@ func testCheckAzureRMActiveDirectoryApplicationExists(resourceName string) resou
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Graph.ApplicationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Graph.ApplicationsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
 		if err != nil {
@@ -159,8 +160,8 @@ func testCheckAzureRMActiveDirectoryApplicationDestroy(s *terraform.State) error
 			continue
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Graph.ApplicationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Graph.ApplicationsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
 		if err != nil {

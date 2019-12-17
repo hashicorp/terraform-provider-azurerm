@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -190,8 +191,8 @@ func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.T
 		shareName := rs.Primary.Attributes["share_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := testAccProvider.Meta().(*clients.Client).Storage
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -229,8 +230,8 @@ func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
 		shareName := rs.Primary.Attributes["share_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := testAccProvider.Meta().(*clients.Client).Storage
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

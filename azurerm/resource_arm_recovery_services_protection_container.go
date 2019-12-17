@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -63,8 +64,8 @@ func resourceArmRecoveryServicesProtectionContainerCreate(d *schema.ResourceData
 	fabricName := d.Get("recovery_fabric_name").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -113,8 +114,8 @@ func resourceArmRecoveryServicesProtectionContainerRead(d *schema.ResourceData, 
 	fabricName := id.Path["replicationFabrics"]
 	name := id.Path["replicationProtectionContainers"]
 
-	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resp, err := client.Get(ctx, fabricName, name)
@@ -144,8 +145,8 @@ func resourceArmRecoveryServicesProtectionContainerDelete(d *schema.ResourceData
 	fabricName := id.Path["replicationFabrics"]
 	name := id.Path["replicationProtectionContainers"]
 
-	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	future, err := client.Delete(ctx, fabricName, name)

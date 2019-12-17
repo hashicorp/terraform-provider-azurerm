@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -240,7 +241,7 @@ resource "azurerm_kusto_database" "test" {
 }
 
 func testCheckAzureRMKustoDatabaseDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Kusto.DatabasesClient
+	client := testAccProvider.Meta().(*clients.Client).Kusto.DatabasesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_kusto_database" {
@@ -251,7 +252,7 @@ func testCheckAzureRMKustoDatabaseDestroy(s *terraform.State) error {
 		clusterName := rs.Primary.Attributes["cluster_name"]
 		name := rs.Primary.Attributes["name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, clusterName, name)
 
 		if err != nil {
@@ -286,8 +287,8 @@ func testCheckAzureRMKustoDatabaseExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for Kusto Database: %s", kustoDatabase)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Kusto.DatabasesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Kusto.DatabasesClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, clusterName, kustoDatabase)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -215,8 +216,8 @@ func testCheckAzureRMRelayHybridConnectionExists(resourceName string) resource.T
 		relayNamespace := rs.Primary.Attributes["relay_namespace_name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*ArmClient).Relay.HybridConnectionsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := testAccProvider.Meta().(*clients.Client).Relay.HybridConnectionsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, relayNamespace, name)
 		if err != nil {
@@ -232,8 +233,8 @@ func testCheckAzureRMRelayHybridConnectionExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMRelayHybridConnectionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Relay.HybridConnectionsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := testAccProvider.Meta().(*clients.Client).Relay.HybridConnectionsClient
+	ctx := testAccProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_relay_hybrid_connection" {

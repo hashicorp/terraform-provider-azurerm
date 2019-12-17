@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -136,8 +137,8 @@ func testCheckAzureRMStreamAnalyticsJobExists(resourceName string) resource.Test
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.JobsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*clients.Client).StreamAnalytics.JobsClient
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on streamAnalyticsJobsClient: %+v", err)
@@ -152,7 +153,7 @@ func testCheckAzureRMStreamAnalyticsJobExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMStreamAnalyticsJobDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.JobsClient
+	conn := testAccProvider.Meta().(*clients.Client).StreamAnalytics.JobsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_job" {
@@ -161,7 +162,7 @@ func testCheckAzureRMStreamAnalyticsJobDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			return nil
