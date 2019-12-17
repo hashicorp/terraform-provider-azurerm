@@ -217,7 +217,7 @@ resource "azurerm_storage_share" "test" {
   metadata             = {}
   
   lifecycle {
-	ignore_changes = [metadata]
+	ignore_changes = [metadata] // Ignore changes Azure Backup makes to the metadata
   }
 }
 
@@ -270,7 +270,7 @@ func testAccAzureRMBackupProtectedFileShare_updatePolicy(rInt int, location stri
 %s
 
 resource "azurerm_backup_protection_policy_file_share" "test2" {
-  name                = "acctest-%d"
+  name                = "acctest-%d-secondary"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 	
@@ -304,7 +304,7 @@ func testAccAzureRMBackupProtectedFileShare_requiresImport(rInt int, location st
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protected_file_share" "test" {
+resource "azurerm_backup_protected_file_share" "test_import" {
   resource_group_name       = "${azurerm_resource_group.test.name}"
   recovery_vault_name       = "${azurerm_recovery_services_vault.test.name}"
   source_storage_account_id = "${azurerm_storage_account.test.id}"

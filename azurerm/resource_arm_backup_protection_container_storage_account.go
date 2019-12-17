@@ -206,11 +206,12 @@ func resourceArmBackupProtectionContainerStorageAccountDelete(d *schema.Resource
 
 func resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *schema.ResourceData) (backup.OperationStatus, error) {
 	state := &resource.StateChangeConf{
-		MinTimeout: 10 * time.Second,
-		Delay:      10 * time.Second,
-		Pending:    []string{"InProgress"},
-		Target:     []string{"Succeeded"},
-		Refresh:    resourceArmBackupProtectionContainerStorageAccountCheckOperation(ctx, client, vaultName, resourceGroup, operationID),
+		MinTimeout:                10 * time.Second,
+		Delay:                     10 * time.Second,
+		Pending:                   []string{"InProgress"},
+		Target:                    []string{"Succeeded"},
+		Refresh:                   resourceArmBackupProtectionContainerStorageAccountCheckOperation(ctx, client, vaultName, resourceGroup, operationID),
+		ContinuousTargetOccurence: 5, // Without this buffer, file share backups and storage account deletions may fail if performed immediately after creating/destroying the container
 	}
 
 	if features.SupportsCustomTimeouts() {
@@ -223,7 +224,7 @@ func resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx cont
 		state.Timeout = 30 * time.Minute
 	}
 
-	log.Printf("[DEBUG] Waiting for backup operation %s (Vault %s) to complete", operationID, vaultName)
+	log.Printf("[DEBUG] Waiting for backup container operation %q (Vault %q) to complete", operationID, vaultName)
 	resp, err := state.WaitForState()
 	if err != nil {
 		return resp.(backup.OperationStatus), err
@@ -246,7 +247,6 @@ func resourceArmBackupProtectionContainerStorageAccountCheckOperation(ctx contex
 			err = fmt.Errorf("Recovery Service Protection Container operation status failed with status %q (Vault %q Resource Group %q Operation ID %q): %+v", resp.Status, vaultName, resourceGroup, operationID, errMsg)
 		}
 
-		log.Printf("[DEBUG] Backup operation %s status is %s", operationID, string(resp.Status))
 		return resp, string(resp.Status), err
 	}
 }
