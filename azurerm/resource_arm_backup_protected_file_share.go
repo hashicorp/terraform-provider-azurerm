@@ -74,6 +74,7 @@ func resourceArmBackupProtectedFileShare() *schema.Resource {
 
 func resourceArmBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).RecoveryServices.ProtectedItemsClient
+	opClient := meta.(*ArmClient).RecoveryServices.BackupOperationStatusesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -98,7 +99,7 @@ func resourceArmBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, met
 	protectedItemName := fmt.Sprintf("AzureFileShare;%s", fileShareName)
 	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
 
-	log.Printf("[DEBUG] Creating/updating Recovery Service Protected File Share %s (Container Name %q)", protectedItemName, containerName)
+	log.Printf("[DEBUG] Creating/updating Recovery Service Protected File Share %q (Container Name %q)", protectedItemName, containerName)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err2 := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
@@ -124,13 +125,32 @@ func resourceArmBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, met
 		},
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item); err != nil {
+	resp, err := client.CreateOrUpdate(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, item)
+	if err != nil {
 		return fmt.Errorf("Error creating/updating Recovery Service Protected File Share %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 
-	resp, err := resourceArmBackupProtectedFileShareWaitForStateCreateUpdate(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyID, d)
+	locationURL, err := resp.Response.Location()
+	if err != nil || locationURL == nil {
+		return fmt.Errorf("Error creating/udpating Azure File Share backup item %q (Vault %q): Location header missing or empty", containerName, vaultName)
+	}
+
+	opResourceID := azure.HandleAzureSdkForGoBug2824(locationURL.Path)
+
+	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
 	if err != nil {
 		return err
+	}
+	operationID := parsedLocation.Path["operationResults"]
+
+	if _, err := resourceArmBackupProtectedFileShareWaitForOperation(ctx, opClient, vaultName, resourceGroup, operationID, d); err != nil {
+		return err
+	}
+
+	resp, err = client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+
+	if err != nil {
+		return fmt.Errorf("Error creating/udpating Azure File Share backup item %q (Vault %q): %+v", protectedItemName, vaultName, err)
 	}
 
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1) // This code is a workaround for this bug https://github.com/Azure/azure-sdk-for-go/issues/2824
@@ -163,7 +183,7 @@ func resourceArmBackupProtectedFileShareRead(d *schema.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Recovery Service Protected File Share %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Recovery Service Protected File Share %q (Vault %q Resource Group %q): %+v", protectedItemName, vaultName, resourceGroup, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -171,7 +191,8 @@ func resourceArmBackupProtectedFileShareRead(d *schema.ResourceData, meta interf
 
 	if properties := resp.Properties; properties != nil {
 		if item, ok := properties.AsAzureFileshareProtectedItem(); ok {
-			d.Set("source_storage_account_id", item.SourceResourceID)
+			sourceResourceID := strings.Replace(*item.SourceResourceID, "Microsoft.storage", "Microsoft.Storage", 1) // The SDK is returning inconsistent capitalization
+			d.Set("source_storage_account_id", sourceResourceID)
 			d.Set("source_file_share_name", item.FriendlyName)
 
 			if v := item.PolicyID; v != nil {
@@ -185,6 +206,7 @@ func resourceArmBackupProtectedFileShareRead(d *schema.ResourceData, meta interf
 
 func resourceArmBackupProtectedFileShareDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).RecoveryServices.ProtectedItemsClient
+	opClient := meta.(*ArmClient).RecoveryServices.BackupOperationStatusesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -207,20 +229,33 @@ func resourceArmBackupProtectedFileShareDelete(d *schema.ResourceData, meta inte
 		}
 	}
 
-	if _, err := resourceArmBackupProtectedFileShareWaitForDeletion(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, "", d); err != nil {
+	locationURL, err := resp.Response.Location()
+	if err != nil || locationURL == nil {
+		return fmt.Errorf("Error deleting Azure File Share backups item %s (Vault %s): Location header missing or empty", containerName, vaultName)
+	}
+
+	opResourceID := azure.HandleAzureSdkForGoBug2824(locationURL.Path)
+
+	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
+	if err != nil {
+		return err
+	}
+	operationID := parsedLocation.Path["backupOperationResults"] // This is different for create and delete requests ¯\_(ツ)_/¯
+
+	if _, err := resourceArmBackupProtectedFileShareWaitForOperation(ctx, opClient, vaultName, resourceGroup, operationID, d); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func resourceArmBackupProtectedFileShareWaitForStateCreateUpdate(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyID string, d *schema.ResourceData) (backup.ProtectedItemResource, error) {
+func resourceArmBackupProtectedFileShareWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *schema.ResourceData) (backup.OperationStatus, error) {
 	state := &resource.StateChangeConf{
-		MinTimeout: 30 * time.Second,
+		MinTimeout: 10 * time.Second,
 		Delay:      10 * time.Second,
-		Pending:    []string{"NotFound"},
-		Target:     []string{"Found"},
-		Refresh:    resourceArmBackupProtectedFileShareRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyID, true),
+		Pending:    []string{"InProgress"},
+		Target:     []string{"Succeeded"},
+		Refresh:    resourceArmBackupProtectedFileShareCheckOperation(ctx, client, vaultName, resourceGroup, operationID),
 	}
 
 	if features.SupportsCustomTimeouts() {
@@ -233,66 +268,30 @@ func resourceArmBackupProtectedFileShareWaitForStateCreateUpdate(ctx context.Con
 		state.Timeout = 30 * time.Minute
 	}
 
+	log.Printf("[DEBUG] Waiting for backup operation %s (Vault %s) to complete", operationID, vaultName)
 	resp, err := state.WaitForState()
 	if err != nil {
-		i, _ := resp.(backup.ProtectedItemResource)
-		return i, fmt.Errorf("Error waiting for the Recovery Service Protected File Share %q to be true (Resource Group %q) to provision: %+v", protectedItemName, resourceGroup, err)
+		return resp.(backup.OperationStatus), err
 	}
-
-	return resp.(backup.ProtectedItemResource), nil
+	return resp.(backup.OperationStatus), nil
 }
 
-func resourceArmBackupProtectedFileShareWaitForDeletion(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyID string, d *schema.ResourceData) (backup.ProtectedItemResource, error) {
-	state := &resource.StateChangeConf{
-		MinTimeout: 30 * time.Second,
-		Delay:      10 * time.Second,
-		Pending:    []string{"Found"},
-		Target:     []string{"NotFound"},
-		Refresh:    resourceArmBackupProtectedFileShareRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyID, false),
-	}
-
-	if features.SupportsCustomTimeouts() {
-		state.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		state.Timeout = 30 * time.Minute
-	}
-
-	resp, err := state.WaitForState()
-	if err != nil {
-		i, _ := resp.(backup.ProtectedItemResource)
-		return i, fmt.Errorf("Error waiting for the Recovery Service Protected File Share %q to be false (Resource Group %q) to provision: %+v", protectedItemName, resourceGroup, err)
-	}
-
-	return resp.(backup.ProtectedItemResource), nil
-}
-
-func resourceArmBackupProtectedFileShareRefreshFunc(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyID string, newResource bool) resource.StateRefreshFunc {
-	// TODO: split this into two functions
+func resourceArmBackupProtectedFileShareCheckOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+		resp, err := client.Get(ctx, vaultName, resourceGroup, operationID)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return resp, "NotFound", nil
-			}
-
-			return resp, "Error", fmt.Errorf("Error making Read request on Recovery Service Protected File Share %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
-		} else if !newResource && policyID != "" {
-			if properties := resp.Properties; properties != nil {
-				if vm, ok := properties.AsAzureFileshareProtectedItem(); ok {
-					if v := vm.PolicyID; v != nil {
-						if strings.Replace(*v, "Subscriptions", "subscriptions", 1) != policyID {
-							return resp, "NotFound", nil
-						}
-					} else {
-						return resp, "Error", fmt.Errorf("Error reading policy ID attribute nil on Recovery Service Protected File Share %q (Resource Group %q)", protectedItemName, resourceGroup)
-					}
-				} else {
-					return resp, "Error", fmt.Errorf("Error reading properties on Recovery Service Protected File Share %q (Resource Group %q)", protectedItemName, resourceGroup)
-				}
-			} else {
-				return resp, "Error", fmt.Errorf("Error reading properties on empty Recovery Service Protected File Share %q (Resource Group %q)", protectedItemName, resourceGroup)
-			}
+			return resp, "Error", fmt.Errorf("Error making Read request on Recovery Service Protection Container operation %q (Vault %q in Resource Group %q): %+v", operationID, vaultName, resourceGroup, err)
 		}
-		return resp, "Found", nil
+
+		if opErr := resp.Error; opErr != nil {
+			errMsg := "No upstream error message"
+			if opErr.Message != nil {
+				errMsg = *opErr.Message
+			}
+			err = fmt.Errorf("Azure Backup operation status failed with status %q (Vault %q Resource Group %q Operation ID %q): %+v", resp.Status, vaultName, resourceGroup, operationID, errMsg)
+		}
+
+		log.Printf("[DEBUG] Backup operation %s status is %s", operationID, string(resp.Status))
+		return resp, string(resp.Status), err
 	}
 }
