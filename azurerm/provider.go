@@ -18,36 +18,6 @@ import (
 
 // Provider returns a terraform.ResourceProvider.
 func Provider() terraform.ResourceProvider {
-	// NOTE: as part of migrating Data Sources/Resources into Packages - we should be able to use
-	// the Service Registration interface to gradually migrate Data Sources/Resources over to the
-	// new pattern.
-	// However this requires that the following be done first:
-	//  1. (DONE) Migrating the top level functions into the internal package
-	//	2. (DONE) Finish migrating the SDK Clients into Packages
-	//	3. (DONE) Switch the remaining resources over to the new Storage SDK
-	//		(so we can remove `getBlobStorageClientForStorageAccount` from `config.go`)
-	//  4. (DONE) Introducing a parent struct which becomes a nested field in `config.go`
-	//  	for those properties, to ease migration (probably internal/common/clients.go)
-	//	5. (DONE) Making the SDK Clients public in the ArmClient
-	//  6. (DONE) Migrating the Fields from the `ArmClient` to the new base `Client`
-	//		But leaving the referencing accessing the top-level field e.g.
-	//			type Client struct { // ./azurerm/internal/common/client.go
-	//				Example example.Client
-	//			}
-	//			type ArmClient struct { // ./azurerm/config.go
-	//				common.Client
-	//			}
-	//		Then access the fields using: `meta.(*clients.Client).Example.Inner`
-	//		Rather than `meta.(*clients.Client).Client.Example.Inner`
-	//		This allows us to have less code changes in Step 8
-	//	7. (DONE) Move the client registration into a Build method on the Common struct, allowing us
-	//	   to move the resources without breaking (as) many WIP PR's
-	//
-	//	8. This should allow us to Find+Replace `(*clients.Client)` to `*common.Client`
-	//		Unfortunately this'll need to be in a big-bang, due to the fact this is cast
-	//		All over the place
-	//
-	// For the moment/until that's done, we'll have to continue defining these inline
 	dataSources := map[string]*schema.Resource{
 		"azurerm_api_management":                            dataSourceApiManagementService(),
 		"azurerm_api_management_api":                        dataSourceApiManagementApi(),
@@ -778,9 +748,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 			if !skipProviderRegistration {
 				availableResourceProviders := providerList.Values()
-				requiredResourceProviders := requiredResourceProviders()
+				requiredResourceProviders := provider.RequiredResourceProviders()
 
-				err := ensureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
+				err := provider.EnsureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
 					return nil, fmt.Errorf(resourceProviderRegistrationErrorFmt, err)
 				}

@@ -1,4 +1,4 @@
-package azurerm
+package provider
 
 import (
 	"context"
@@ -8,12 +8,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourceproviders"
 )
 
-// requiredResourceProviders returns all of the Resource Providers used by the AzureRM Provider
+// RequiredResourceProviders returns all of the Resource Providers used by the AzureRM Provider
 // whilst all may not be used by every user - the intention is that we determine which should be
 // registered such that we can avoid obscure errors where Resource Providers aren't registered.
 // new Resource Providers should be added to this list as they're used in the Provider
 // (this is the approach used by Microsoft in their tooling)
-func requiredResourceProviders() map[string]struct{} {
+func RequiredResourceProviders() map[string]struct{} {
 	// NOTE: Resource Providers in this list are case sensitive
 	return map[string]struct{}{
 		"Microsoft.ApiManagement":        {},
@@ -68,7 +68,7 @@ func requiredResourceProviders() map[string]struct{} {
 	}
 }
 
-func ensureResourceProvidersAreRegistered(ctx context.Context, client resources.ProvidersClient, availableRPs []resources.Provider, requiredRPs map[string]struct{}) error {
+func EnsureResourceProvidersAreRegistered(ctx context.Context, client resources.ProvidersClient, availableRPs []resources.Provider, requiredRPs map[string]struct{}) error {
 	log.Printf("[DEBUG] Determining which Resource Providers require Registration")
 	providersToRegister := resourceproviders.DetermineResourceProvidersRequiringRegistration(availableRPs, requiredRPs)
 
