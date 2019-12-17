@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccAzureRMVirtualNetworkGateway_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -74,7 +75,7 @@ func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -99,7 +100,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -118,7 +119,7 @@ func TestAccAzureRMVirtualNetworkGateway_activeActive(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -138,7 +139,7 @@ func TestAccAzureRMVirtualNetworkGateway_standard(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -159,7 +160,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw2(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -180,7 +181,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw3(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -222,7 +223,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -244,7 +245,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -265,7 +266,7 @@ func TestAccAzureRMVirtualNetworkGateway_enableBgp(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -287,7 +288,7 @@ func TestAccAzureRMVirtualNetworkGateway_expressRoute(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -312,8 +313,8 @@ func testCheckAzureRMVirtualNetworkGatewayExists(resourceName string) resource.T
 		gatewayName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Network.VnetGatewayClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetGatewayClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {
@@ -329,8 +330,8 @@ func testCheckAzureRMVirtualNetworkGatewayExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.VnetGatewayClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetGatewayClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_network_gateway" {

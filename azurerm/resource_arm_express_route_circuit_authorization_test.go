@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func testAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -51,7 +52,7 @@ func testAccAzureRMExpressRouteCircuitAuthorization_requiresImport(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -76,7 +77,7 @@ func testAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -106,8 +107,8 @@ func testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName string)
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit Authorization: %s", expressRouteCircuitName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.ExpressRouteAuthsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteAuthsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, expressRouteCircuitName, authorizationName)
 		if err != nil {
@@ -123,8 +124,8 @@ func testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName string)
 }
 
 func testCheckAzureRMExpressRouteCircuitAuthorizationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.ExpressRouteAuthsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteAuthsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_express_route_circuit" {

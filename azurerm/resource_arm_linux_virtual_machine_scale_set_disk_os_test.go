@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) {
@@ -15,7 +16,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -75,7 +76,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -139,7 +140,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing.T
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -169,7 +170,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStan
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -199,7 +200,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStan
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -229,7 +230,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypePrem
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -259,7 +260,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnable
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{

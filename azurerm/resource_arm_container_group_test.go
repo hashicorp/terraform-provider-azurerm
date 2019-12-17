@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
@@ -21,7 +22,7 @@ func TestAccAzureRMContainerGroup_SystemAssignedIdentity(t *testing.T) {
 	config := testAccAzureRMContainerGroup_SystemAssignedIdentity(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,7 +53,7 @@ func TestAccAzureRMContainerGroup_UserAssignedIdentity(t *testing.T) {
 	config := testAccAzureRMContainerGroup_UserAssignedIdentity(ri, testLocation(), rs)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -80,7 +81,7 @@ func TestAccAzureRMContainerGroup_multipleAssignedIdentities(t *testing.T) {
 	config := testAccAzureRMContainerGroup_MultipleAssignedIdentities(ri, testLocation(), rs)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -112,7 +113,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -150,7 +151,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -189,7 +190,7 @@ func TestAccAzureRMContainerGroup_logTypeUnset(t *testing.T) {
 	config := testAccAzureRMContainerGroup_logTypeUnset(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -223,7 +224,7 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -260,7 +261,7 @@ func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -286,7 +287,7 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -316,7 +317,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -395,7 +396,7 @@ func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -423,7 +424,7 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -452,7 +453,7 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1224,8 +1225,8 @@ func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Containers.GroupsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.GroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -1239,8 +1240,8 @@ func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Containers.GroupsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.GroupsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_group" {

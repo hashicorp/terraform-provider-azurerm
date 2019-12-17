@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	computeSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
@@ -20,7 +21,7 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_basicLinux(t *testing.T) {
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,7 +46,7 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_basicWindows(t *testing.T) {
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -74,7 +75,7 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_requiresImport(t *testing.T) 
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -97,7 +98,7 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_autoUpgradeDisabled(t *testin
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -120,7 +121,7 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_extensionChaining(t *testing.
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -150,7 +151,7 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_forceUpdateTag(t *testing.T) 
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -185,7 +186,7 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_protectedSettings(t *testing.
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -210,7 +211,7 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_protectedSettingsOnly(t *test
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -235,7 +236,7 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_updateVersion(t *testing.T) {
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -273,8 +274,8 @@ func testCheckAzureRMVirtualMachineScaleSetExtensionExists(resourceName string) 
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Compute.VMScaleSetExtensionsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetExtensionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		virtualMachineScaleSetIdRaw := rs.Primary.Attributes["virtual_machine_scale_set_id"]
@@ -297,8 +298,8 @@ func testCheckAzureRMVirtualMachineScaleSetExtensionExists(resourceName string) 
 }
 
 func testCheckAzureRMVirtualMachineScaleSetExtensionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Compute.VMScaleSetExtensionsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetExtensionsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_machine_scale_set_extension" {

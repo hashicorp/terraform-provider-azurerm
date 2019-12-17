@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
@@ -17,7 +18,7 @@ func TestAccAzureRMRecoveryReplicatedVm_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryReplicatedVmDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -225,8 +226,8 @@ func testCheckAzureRMRecoveryReplicatedVmExists(resourceName string) resource.Te
 		protectionContainerName := state.Primary.Attributes["source_recovery_protection_container_name"]
 		replicationName := state.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, replicationName)
 		if err != nil {

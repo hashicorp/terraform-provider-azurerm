@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -53,7 +54,7 @@ func testAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -81,7 +82,7 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -115,7 +116,7 @@ func testAccAzureRMRoleAssignment_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -140,7 +141,7 @@ func testAccAzureRMRoleAssignment_dataActions(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -168,7 +169,7 @@ func testAccAzureRMRoleAssignment_builtin(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -197,7 +198,7 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -225,7 +226,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -245,7 +246,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipalWithType(t *t
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -264,7 +265,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_group(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -287,8 +288,8 @@ func testCheckAzureRMRoleAssignmentExists(resourceName string) resource.TestChec
 		scope := rs.Primary.Attributes["scope"]
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
 		if err != nil {
@@ -311,8 +312,8 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 		scope := rs.Primary.Attributes["scope"]
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
 		if err != nil {
@@ -334,7 +335,7 @@ func testAccAzureRMRoleAssignment_managementGroup(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{

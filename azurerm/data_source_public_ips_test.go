@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
@@ -20,7 +21,7 @@ func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccDataSourceAzureRMPublicIPs_assigned(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -82,7 +83,7 @@ func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{

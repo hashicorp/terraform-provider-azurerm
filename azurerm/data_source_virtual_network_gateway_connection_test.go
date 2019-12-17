@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
@@ -18,7 +19,7 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testi
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,7 +45,7 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testi
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -70,7 +71,7 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *test
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{

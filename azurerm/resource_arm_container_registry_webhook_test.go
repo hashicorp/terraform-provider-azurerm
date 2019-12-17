@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,7 +18,7 @@ func TestAccAzureRMContainerRegistryWebhook_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -43,7 +44,7 @@ func TestAccAzureRMContainerRegistryWebhook_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -75,7 +76,7 @@ func TestAccAzureRMContainerRegistryWebhook_actions(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -106,7 +107,7 @@ func TestAccAzureRMContainerRegistryWebhook_status(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -135,7 +136,7 @@ func TestAccAzureRMContainerRegistryWebhook_serviceUri(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -164,7 +165,7 @@ func TestAccAzureRMContainerRegistryWebhook_scope(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -193,7 +194,7 @@ func TestAccAzureRMContainerRegistryWebhook_customHeaders(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -624,7 +625,7 @@ resource "azurerm_container_registry_webhook" "test" {
 }
 
 func testCheckAzureRMContainerRegistryWebhookDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Containers.WebhooksClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.WebhooksClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_registry_webhook" {
@@ -635,7 +636,7 @@ func testCheckAzureRMContainerRegistryWebhookDestroy(s *terraform.State) error {
 		registryName := rs.Primary.Attributes["registry_name"]
 		name := rs.Primary.Attributes["name"]
 
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, registryName, name)
 
 		if err != nil {
@@ -670,8 +671,8 @@ func testCheckAzureRMContainerRegistryWebhookExists(resourceName string) resourc
 			return fmt.Errorf("Bad: no registry name found in state for Container Registry Webhook: %s", webhookName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Containers.WebhooksClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.WebhooksClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, registryName, webhookName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

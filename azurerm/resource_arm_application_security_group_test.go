@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,7 +46,7 @@ func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -69,7 +70,7 @@ func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -91,7 +92,7 @@ func TestAccAzureRMApplicationSecurityGroup_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -122,8 +123,8 @@ func testCheckAzureRMApplicationSecurityGroupDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Network.ApplicationSecurityGroupsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationSecurityGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 
@@ -155,8 +156,8 @@ func testCheckAzureRMApplicationSecurityGroupExists(resourceName string) resourc
 			return fmt.Errorf("Bad: no resource group found in state for Application Security Group: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.ApplicationSecurityGroupsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationSecurityGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {

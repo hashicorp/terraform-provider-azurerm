@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -78,7 +79,7 @@ func TestAccAzureRMContainerRegistry_basic_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -108,7 +109,7 @@ func TestAccAzureRMContainerRegistry_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -131,7 +132,7 @@ func TestAccAzureRMContainerRegistry_basic_standard(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -155,7 +156,7 @@ func TestAccAzureRMContainerRegistry_basic_premium(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -179,7 +180,7 @@ func TestAccAzureRMContainerRegistry_basic_basic2Premium2basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -213,7 +214,7 @@ func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -238,7 +239,7 @@ func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -266,7 +267,7 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			// first config creates an ACR with locations
@@ -329,7 +330,7 @@ func TestAccAzureRMContainerRegistry_networkAccessProfileIp(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -356,7 +357,7 @@ func TestAccAzureRMContainerRegistry_networkAccessProfile_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -415,7 +416,7 @@ func TestAccAzureRMContainerRegistry_networkAccessProfileVnet(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -436,8 +437,8 @@ func TestAccAzureRMContainerRegistry_networkAccessProfileVnet(t *testing.T) {
 }
 
 func testCheckAzureRMContainerRegistryDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Containers.RegistriesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.RegistriesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_registry" {
@@ -474,8 +475,8 @@ func testCheckAzureRMContainerRegistryExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Containers.RegistriesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.RegistriesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -504,8 +505,8 @@ func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku s
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Containers.ReplicationsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.ReplicationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.List(ctx, resourceGroup, name)
 		if err != nil {

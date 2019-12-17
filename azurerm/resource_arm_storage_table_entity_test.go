@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
@@ -23,7 +24,7 @@ func TestAccAzureRMTableEntity_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -54,7 +55,7 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -79,7 +80,7 @@ func TestAccAzureRMTableEntity_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -121,8 +122,8 @@ func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFu
 		partitionKey := rs.Primary.Attributes["partition_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
 
-		storageClient := testAccProvider.Meta().(*clients.Client).Storage
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -166,8 +167,8 @@ func testCheckAzureRMTableEntityDestroy(s *terraform.State) error {
 		partitionKey := rs.Primary.Attributes["parititon_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
 
-		storageClient := testAccProvider.Meta().(*clients.Client).Storage
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

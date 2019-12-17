@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -18,7 +19,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_listen(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,7 +53,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_requiresImport(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -82,7 +83,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_manage(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -113,7 +114,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_send(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -146,7 +147,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_multi(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -199,7 +200,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_updated(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -235,8 +236,8 @@ func testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName string)
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		notificationHubName := rs.Primary.Attributes["notification_hub_name"]
@@ -257,8 +258,8 @@ func testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName string)
 }
 
 func testCheckAzureRMNotificationHubAuthorizationRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_notification_hub_authorization_rule" {

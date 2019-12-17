@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +50,7 @@ func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,7 +74,7 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -97,8 +98,8 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 }
 
 func testCheckAzureRMSharedImageDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Compute.GalleryImagesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleryImagesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_shared_image" {
@@ -140,8 +141,8 @@ func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for Shared Image: %s", imageName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Compute.GalleryImagesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleryImagesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, galleryName, imageName)
 		if err != nil {

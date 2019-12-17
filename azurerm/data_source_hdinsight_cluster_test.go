@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMHDInsightCluster_hadoop(t *testing.T) {
@@ -18,7 +19,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_hadoop(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_hadoop(rInt, rString, location),
@@ -42,7 +43,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_hbase(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_hbase(rInt, rString, location),
@@ -66,7 +67,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_interactiveQuery(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_interactiveQuery(rInt, rString, location),
@@ -90,7 +91,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_kafka(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_kafka(rInt, rString, location),
@@ -114,7 +115,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_mlServices(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_mlServices(rInt, rString, location),
@@ -138,7 +139,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_rserver(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_rserver(rInt, rString, location),
@@ -162,7 +163,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_spark(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_spark(rInt, rString, location),
@@ -186,7 +187,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_storm(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_storm(rInt, rString, location),

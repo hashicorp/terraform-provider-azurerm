@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 // NOTE: all of the tests in this file are for functionality which will be removed in 2.0
@@ -20,7 +21,7 @@ func testAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet(t *te
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,7 +46,7 @@ func testAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{

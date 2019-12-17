@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
@@ -22,7 +23,7 @@ func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 	config := testAccAzureRMVirtualMachine_winTimeZone(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -43,7 +44,7 @@ func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 	config := testAccAzureRMVirtualMachineSystemAssignedIdentity(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -67,7 +68,7 @@ func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
 	config := testAccAzureRMVirtualMachineUserAssignedIdentity(ri, testLocation(), rs)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -91,7 +92,7 @@ func TestAccAzureRMVirtualMachine_multipleAssignedIdentity(t *testing.T) {
 	config := testAccAzureRMVirtualMachineMultipleAssignedIdentity(ri, testLocation(), rs)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -115,7 +116,7 @@ func TestAccAzureRMVirtualMachine_withPPG(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -143,8 +144,8 @@ func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.Virtu
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vmName, "")
 		if err != nil {
@@ -162,8 +163,8 @@ func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.Virtu
 }
 
 func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Compute.VMClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_machine" {

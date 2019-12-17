@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -15,7 +16,7 @@ func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 	config := testAccAzureRMLogicAppActionHttp_basic(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,7 +45,7 @@ func TestAccAzureRMLogicAppActionHttp_requiresImport(t *testing.T) {
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -67,7 +68,7 @@ func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 	config := testAccAzureRMLogicAppActionHttp_headers(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -90,7 +91,7 @@ func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{

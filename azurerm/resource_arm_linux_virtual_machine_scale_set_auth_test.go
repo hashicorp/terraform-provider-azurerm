@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMLinuxVirtualMachineScaleSet_authPassword(t *testing.T) {
@@ -15,7 +16,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authPassword(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,7 +46,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authSSHKey(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,7 +74,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authSSHKeyAndPassword(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -103,7 +104,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authMultipleSSHKeys(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -131,7 +132,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authUpdatingSSHKeys(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -173,7 +174,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{

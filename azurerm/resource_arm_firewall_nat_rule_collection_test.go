@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMFirewallNatRuleCollection_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccAzureRMFirewallNatRuleCollection_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -74,7 +75,7 @@ func TestAccAzureRMFirewallNatRuleCollection_updatedName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -111,7 +112,7 @@ func TestAccAzureRMFirewallNatRuleCollection_multipleRuleCollections(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -161,7 +162,7 @@ func TestAccAzureRMFirewallNatRuleCollection_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -199,7 +200,7 @@ func TestAccAzureRMFirewallNatRuleCollection_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -221,7 +222,7 @@ func TestAccAzureRMFirewallNatRuleCollection_multipleRules(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -268,7 +269,7 @@ func TestAccAzureRMFirewallNatRuleCollection_updateFirewallTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -309,8 +310,8 @@ func testCheckAzureRMFirewallNatRuleCollectionExists(resourceName string) resour
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
@@ -343,8 +344,8 @@ func testCheckAzureRMFirewallNatRuleCollectionDoesNotExist(resourceName string, 
 		firewallName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
@@ -372,8 +373,8 @@ func testCheckAzureRMFirewallNatRuleCollectionDisappears(resourceName string) re
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err

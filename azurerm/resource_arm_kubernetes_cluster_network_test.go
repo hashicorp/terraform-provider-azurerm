@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func testAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
@@ -18,7 +19,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +50,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testin
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -80,7 +81,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -111,7 +112,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -142,7 +143,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *test
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -174,7 +175,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -206,7 +207,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -238,7 +239,7 @@ func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -270,7 +271,7 @@ func testAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -334,7 +335,7 @@ func testAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -365,7 +366,7 @@ func testAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -396,7 +397,7 @@ func testAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -26,7 +27,7 @@ func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +50,7 @@ func TestAccAzureRMStorageBlob_appendEmpty(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -76,7 +77,7 @@ func TestAccAzureRMStorageBlob_appendEmptyMetaData(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -103,7 +104,7 @@ func TestAccAzureRMStorageBlob_blockEmpty(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -130,7 +131,7 @@ func TestAccAzureRMStorageBlob_blockEmptyMetaData(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -157,7 +158,7 @@ func TestAccAzureRMStorageBlob_blockEmptyAccessTier(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -199,7 +200,7 @@ func TestAccAzureRMStorageBlob_blockFromInlineContent(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -226,7 +227,7 @@ func TestAccAzureRMStorageBlob_blockFromPublicBlob(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -253,7 +254,7 @@ func TestAccAzureRMStorageBlob_blockFromPublicFile(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -280,7 +281,7 @@ func TestAccAzureRMStorageBlob_blockFromExistingBlob(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -316,7 +317,7 @@ func TestAccAzureRMStorageBlob_blockFromLocalFile(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -344,7 +345,7 @@ func TestAccAzureRMStorageBlob_contentType(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -383,7 +384,7 @@ func TestAccAzureRMStorageBlob_contentTypePremium(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -410,7 +411,7 @@ func TestAccAzureRMStorageBlob_pageEmpty(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -437,7 +438,7 @@ func TestAccAzureRMStorageBlob_pageEmptyPremium(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -464,7 +465,7 @@ func TestAccAzureRMStorageBlob_pageEmptyMetaData(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -491,7 +492,7 @@ func TestAccAzureRMStorageBlob_pageFromExistingBlob(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -527,7 +528,7 @@ func TestAccAzureRMStorageBlob_pageFromLocalFile(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -560,7 +561,7 @@ func TestAccAzureRMStorageBlob_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -585,7 +586,7 @@ func TestAccAzureRMStorageBlob_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -623,8 +624,8 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*clients.Client).Storage
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		containerName := rs.Primary.Attributes["storage_container_name"]
@@ -664,8 +665,8 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*clients.Client).Storage
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		containerName := rs.Primary.Attributes["storage_container_name"]
@@ -702,8 +703,8 @@ func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind blobs.Blob
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*clients.Client).Storage
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		containerName := rs.Primary.Attributes["storage_container_name"]
@@ -762,8 +763,8 @@ func testCheckAzureRMStorageBlobDestroy(s *terraform.State) error {
 			continue
 		}
 
-		storageClient := testAccProvider.Meta().(*clients.Client).Storage
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		containerName := rs.Primary.Attributes["storage_container_name"]

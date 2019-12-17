@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
@@ -18,7 +19,7 @@ func TestAccAzureRMRecoveryNetworkMapping_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryNetworkMappingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -146,8 +147,14 @@ func testCheckAzureRMRecoveryNetworkMappingDestroy(s *terraform.State) error {
 		}
 		networkName := id.Path["virtualNetworks"]
 
+<<<<<<< HEAD
 		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+=======
+		// Ensure mapping exists in API
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+>>>>>>> refactor: switching to use the provider in the acceptance package
 
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
 		if err != nil {

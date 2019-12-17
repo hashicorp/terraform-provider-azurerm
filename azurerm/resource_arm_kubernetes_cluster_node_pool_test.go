@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
@@ -24,7 +25,7 @@ func testAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -76,7 +77,7 @@ func testAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -125,7 +126,7 @@ func testAccAzureRMKubernetesClusterNodePool_availabilityZones(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -151,7 +152,7 @@ func testAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -170,7 +171,7 @@ func testAccAzureRMKubernetesClusterNodePool_multiplePools(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -203,7 +204,7 @@ func testAccAzureRMKubernetesClusterNodePool_manualScale(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -229,7 +230,7 @@ func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(t *testing
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -261,7 +262,7 @@ func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *t
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -311,7 +312,7 @@ func testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -361,7 +362,7 @@ func testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -399,7 +400,7 @@ func testAccAzureRMKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -426,7 +427,7 @@ func testAccAzureRMKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -458,7 +459,7 @@ func testAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -484,7 +485,7 @@ func testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -511,7 +512,7 @@ func testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -538,7 +539,7 @@ func testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -565,7 +566,7 @@ func testAccAzureRMKubernetesClusterNodePool_windows(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -591,7 +592,7 @@ func testAccAzureRMKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -628,8 +629,8 @@ func testCheckAzureRMKubernetesClusterNodePoolDestroy(s *terraform.State) error 
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
 
 		if err != nil {
@@ -659,8 +660,8 @@ func testCheckAzureRMKubernetesNodePoolExists(resourceName string) resource.Test
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		agent_pool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
 		if err != nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -20,7 +21,7 @@ func TestAccAzureRMVirtualWan_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualWanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -48,7 +49,7 @@ func TestAccAzureRMVirtualWan_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualWanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -71,7 +72,7 @@ func TestAccAzureRMVirtualWan_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualWanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -90,8 +91,8 @@ func TestAccAzureRMVirtualWan_complete(t *testing.T) {
 }
 
 func testCheckAzureRMVirtualWanDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.VirtualWanClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualWanClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_wan" {
@@ -131,8 +132,8 @@ func testCheckAzureRMVirtualWanExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for Virtual WAN: %s", virtualWanName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.VirtualWanClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualWanClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualWanName)
 		if err != nil {

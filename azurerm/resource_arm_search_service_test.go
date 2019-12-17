@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -18,7 +19,7 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -48,7 +49,7 @@ func TestAccAzureRMSearchService_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -72,7 +73,7 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -101,7 +102,7 @@ func TestAccAzureRMSearchService_tagUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -134,8 +135,8 @@ func testCheckAzureRMSearchServiceExists(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		searchName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Search.ServicesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Search.ServicesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
 		if err != nil {
@@ -159,8 +160,8 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		searchName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Search.ServicesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Search.ServicesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
 		if err != nil {

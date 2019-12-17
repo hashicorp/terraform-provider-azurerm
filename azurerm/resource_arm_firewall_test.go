@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -56,7 +57,7 @@ func TestAccAzureRMFirewall_basicOld(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -91,7 +92,7 @@ func TestAccAzureRMFirewall_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -118,7 +119,7 @@ func TestAccAzureRMFirewall_withMultiplePublicIPs(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -153,7 +154,7 @@ func TestAccAzureRMFirewall_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -177,7 +178,7 @@ func TestAccAzureRMFirewall_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -215,7 +216,7 @@ func TestAccAzureRMFirewall_withZones(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -247,7 +248,7 @@ func TestAccAzureRMFirewall_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -276,8 +277,8 @@ func testCheckAzureRMFirewallExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -305,8 +306,8 @@ func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on azureFirewallsClient: %+v", err)
@@ -320,8 +321,8 @@ func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMFirewallDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_firewall" {

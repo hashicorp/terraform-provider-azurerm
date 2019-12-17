@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
@@ -19,7 +20,7 @@ func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 	postConfig := testAccAzureRMDevTestLabSchedule_autoShutdownBasicUpdate(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -63,7 +64,7 @@ func TestAccAzureRMDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 	postConfig := testAccAzureRMDevTestLabSchedule_autoStartupBasicUpdate(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -106,7 +107,7 @@ func TestAccAzureRMDevTestLabSchedule_concurrent(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -131,8 +132,8 @@ func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.Test
 		devTestLabName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*clients.Client).DevTestLabs.LabSchedulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabSchedulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, devTestLabName, name, "")
 		if err != nil {
@@ -148,8 +149,8 @@ func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMDevTestLabScheduleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).DevTestLabs.LabSchedulesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabSchedulesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dev_test_schedule" {

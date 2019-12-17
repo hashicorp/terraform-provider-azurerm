@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -18,7 +19,7 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
@@ -43,7 +44,7 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(t *testing.
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
@@ -68,7 +69,7 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_deleted(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
@@ -102,8 +103,8 @@ func testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(resourceName strin
 		natRuleId := rs.Primary.Attributes["nat_rule_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {
@@ -152,8 +153,8 @@ func testCheckAzureRMNetworkInterfaceNATRuleAssociationDisappears(resourceName s
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 		natRuleId := rs.Primary.Attributes["nat_rule_id"]
 
-		client := testAccProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {

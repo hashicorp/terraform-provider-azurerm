@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -177,7 +178,7 @@ func TestAccAzureRMEventHub_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -201,7 +202,7 @@ func TestAccAzureRMEventHub_basicOnePartition(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -233,7 +234,7 @@ func TestAccAzureRMEventHub_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -258,7 +259,7 @@ func TestAccAzureRMEventHub_partitionCountUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -285,7 +286,7 @@ func TestAccAzureRMEventHub_standard(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -310,7 +311,7 @@ func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -341,7 +342,7 @@ func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -370,7 +371,7 @@ func TestAccAzureRMEventHub_messageRetentionUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -392,8 +393,8 @@ func TestAccAzureRMEventHub_messageRetentionUpdate(t *testing.T) {
 }
 
 func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub" {
@@ -433,8 +434,8 @@ func testCheckAzureRMEventHubExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {

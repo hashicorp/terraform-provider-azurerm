@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -112,7 +113,7 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -142,7 +143,7 @@ func TestAccAzureRMRedisCache_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -165,7 +166,7 @@ func TestAccAzureRMRedisCache_standard(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -189,7 +190,7 @@ func TestAccAzureRMRedisCache_premium(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -213,7 +214,7 @@ func TestAccAzureRMRedisCache_premiumSharded(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -239,7 +240,7 @@ func TestAccAzureRMRedisCache_premiumShardedScaling(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -265,7 +266,7 @@ func TestAccAzureRMRedisCache_NonStandardCasing(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -291,7 +292,7 @@ func TestAccAzureRMRedisCache_BackupDisabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -312,7 +313,7 @@ func TestAccAzureRMRedisCache_BackupEnabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -346,7 +347,7 @@ func TestAccAzureRMRedisCache_BackupEnabledDisabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -383,7 +384,7 @@ func TestAccAzureRMRedisCache_AOFBackupEnabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -413,7 +414,7 @@ func TestAccAzureRMRedisCache_AOFBackupEnabledDisabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -441,7 +442,7 @@ func TestAccAzureRMRedisCache_PatchSchedule(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -468,7 +469,7 @@ func TestAccAzureRMRedisCache_PatchScheduleUpdated(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -494,7 +495,7 @@ func TestAccAzureRMRedisCache_InternalSubnet(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -519,7 +520,7 @@ func TestAccAzureRMRedisCache_InternalSubnetStaticIP(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -545,7 +546,7 @@ func TestAccAzureRMRedisCache_InternalSubnet_withZone(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -579,8 +580,8 @@ func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for Redis Instance: %s", redisName)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Redis.Client
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Redis.Client
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, redisName)
 		if err != nil {
@@ -596,8 +597,8 @@ func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Redis.Client
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Redis.Client
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_redis_cache" {
@@ -629,7 +630,7 @@ func TestAccAzureRMRedisCache_SubscribeAllEvents(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -649,7 +650,7 @@ func TestAccAzureRMRedisCache_WithoutAuth(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -18,7 +19,7 @@ func TestAccAzureRMIotHubDPS_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,7 +53,7 @@ func TestAccAzureRMIotHubDPS_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -75,7 +76,7 @@ func TestAccAzureRMIotHubDPS_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -110,7 +111,7 @@ func TestAccAzureRMIotHubDPS_linkedHubs(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -140,8 +141,8 @@ func TestAccAzureRMIotHubDPS_linkedHubs(t *testing.T) {
 }
 
 func testCheckAzureRMIotHubDPSDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothubdps" {
@@ -166,7 +167,7 @@ func testCheckAzureRMIotHubDPSDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotHubDPSExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -178,7 +179,7 @@ func testCheckAzureRMIotHubDPSExists(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for IoT Device Provisioning Service: %s", iotdpsName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 		resp, err := client.Get(ctx, iotdpsName, resourceGroup)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -21,7 +22,7 @@ func testAccAzureRMNetworkPacketCapture_localDisk(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,7 +53,7 @@ func testAccAzureRMNetworkPacketCapture_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -77,7 +78,7 @@ func testAccAzureRMNetworkPacketCapture_storageAccount(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -104,7 +105,7 @@ func testAccAzureRMNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -130,7 +131,7 @@ func testAccAzureRMNetworkPacketCapture_withFilters(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -150,8 +151,8 @@ func testAccAzureRMNetworkPacketCapture_withFilters(t *testing.T) {
 
 func testCheckAzureRMNetworkPacketCaptureExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*clients.Client).Network.PacketCapturesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PacketCapturesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -176,8 +177,8 @@ func testCheckAzureRMNetworkPacketCaptureExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMNetworkPacketCaptureDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.PacketCapturesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PacketCapturesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_network_packet_capture" {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -18,7 +19,7 @@ func TestAccAzureRMSignalRService_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -56,7 +57,7 @@ func TestAccAzureRMSignalRService_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -89,7 +90,7 @@ func TestAccAzureRMSignalRService_standard(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -123,7 +124,7 @@ func TestAccAzureRMSignalRService_standardWithCap2(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -160,7 +161,7 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -224,7 +225,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -288,7 +289,7 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -349,7 +350,7 @@ func TestAccAzureRMSignalRService_serviceMode(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -384,7 +385,7 @@ func TestAccAzureRMSignalRService_cors(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -522,8 +523,8 @@ resource "azurerm_signalr_service" "test" {
 }
 
 func testCheckAzureRMSignalRServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).SignalR.Client
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).SignalR.Client
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_signalr_service" {
 			continue
@@ -557,8 +558,8 @@ func testCheckAzureRMSignalRServiceExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for SignalR service: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).SignalR.Client
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).SignalR.Client
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {

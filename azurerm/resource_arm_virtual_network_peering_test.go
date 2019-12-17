@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -21,7 +22,7 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -55,7 +56,7 @@ func TestAccAzureRMVirtualNetworkPeering_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -82,7 +83,7 @@ func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -110,7 +111,7 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -156,8 +157,8 @@ func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.T
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
-		client := testAccProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vnetName, name)
 		if err != nil {
@@ -188,8 +189,8 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resour
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
-		client := testAccProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
 		if err != nil {
@@ -205,8 +206,8 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resour
 }
 
 func testCheckAzureRMVirtualNetworkPeeringDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_network_peering" {

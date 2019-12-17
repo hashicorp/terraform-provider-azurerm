@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,7 +47,7 @@ func TestAccAzureRMServiceBusTopic_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -69,7 +70,7 @@ func TestAccAzureRMServiceBusTopic_basicDisabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -96,7 +97,7 @@ func TestAccAzureRMServiceBusTopic_basicDisableEnable(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -130,7 +131,7 @@ func TestAccAzureRMServiceBusTopic_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -159,7 +160,7 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -194,7 +195,7 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -228,7 +229,7 @@ func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -259,7 +260,7 @@ func TestAccAzureRMServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -282,8 +283,8 @@ func TestAccAzureRMServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 }
 
 func testCheckAzureRMServiceBusTopicDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).ServiceBus.TopicsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.TopicsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_topic" {
@@ -325,8 +326,8 @@ func testCheckAzureRMServiceBusTopicExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for topic: %s", topicName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).ServiceBus.TopicsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.TopicsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName)
 		if err != nil {

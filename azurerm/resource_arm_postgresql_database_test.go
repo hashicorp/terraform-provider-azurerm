@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -18,7 +19,7 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,7 +45,7 @@ func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -69,7 +70,7 @@ func TestAccAzureRMPostgreSQLDatabase_collationWithHyphen(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -90,7 +91,7 @@ func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -111,7 +112,7 @@ func TestAccAzureRMPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -141,8 +142,8 @@ func testCheckAzureRMPostgreSQLDatabaseExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Database: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Postgres.DatabasesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.DatabasesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -157,8 +158,8 @@ func testCheckAzureRMPostgreSQLDatabaseExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMPostgreSQLDatabaseDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Postgres.DatabasesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.DatabasesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_postgresql_database" {

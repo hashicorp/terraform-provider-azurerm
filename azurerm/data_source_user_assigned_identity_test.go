@@ -6,6 +6,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -23,7 +24,7 @@ func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs),

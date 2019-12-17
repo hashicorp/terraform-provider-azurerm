@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -64,7 +65,7 @@ func testAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -96,7 +97,7 @@ func testAccAzureRMExpressRouteCircuit_requiresImport(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -120,7 +121,7 @@ func testAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -145,7 +146,7 @@ func testAccAzureRMExpressRouteCircuit_update(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -173,7 +174,7 @@ func testAccAzureRMExpressRouteCircuit_tierUpdate(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -201,7 +202,7 @@ func testAccAzureRMExpressRouteCircuit_premiumMetered(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -228,7 +229,7 @@ func testAccAzureRMExpressRouteCircuit_premiumUnlimited(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -255,7 +256,7 @@ func testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -289,8 +290,8 @@ func testCheckAzureRMExpressRouteCircuitExists(resourceName string, erc *network
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit: %s", expressRouteCircuitName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.ExpressRouteCircuitsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteCircuitsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, expressRouteCircuitName)
 		if err != nil {
@@ -308,8 +309,8 @@ func testCheckAzureRMExpressRouteCircuitExists(resourceName string, erc *network
 }
 
 func testCheckAzureRMExpressRouteCircuitDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.ExpressRouteCircuitsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteCircuitsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_express_route_circuit" {

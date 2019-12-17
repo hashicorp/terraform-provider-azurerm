@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testing.T) {
@@ -12,7 +13,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testin
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("Europe"),
@@ -30,7 +31,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany(t *testi
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("Germany"),
@@ -48,7 +49,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom(t 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("United Kingdom"),
@@ -66,7 +67,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_world(t *testing
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("World"),

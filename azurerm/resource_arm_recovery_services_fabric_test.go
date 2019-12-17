@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
@@ -17,7 +18,7 @@ func TestAccAzureRMRecoveryFabric_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryFabricDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -71,8 +72,8 @@ func testCheckAzureRMRecoveryFabricExists(resourceName string) resource.TestChec
 		fabricName := state.Primary.Attributes["name"]
 
 		// Ensure fabric exists in API
-		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.FabricClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.FabricClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName)
 		if err != nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -18,7 +19,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -40,7 +41,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -63,7 +64,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -82,7 +83,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -101,7 +102,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(t *tes
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -123,7 +124,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -153,7 +154,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testin
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -185,7 +186,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -220,8 +221,8 @@ func testCheckAzureRMServiceBusSubscriptionRuleExists(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for Subscription Rule: %q", ruleName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).ServiceBus.SubscriptionRulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.SubscriptionRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, ruleName)
 		if err != nil {

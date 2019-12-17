@@ -5,13 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMBuiltInRoleDefinition_contributor(t *testing.T) {
 	dataSourceName := "data.azurerm_builtin_role_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceBuiltInRoleDefinition("Contributor"),
@@ -38,7 +39,7 @@ func TestAccDataSourceAzureRMBuiltInRoleDefinition_owner(t *testing.T) {
 	dataSourceName := "data.azurerm_builtin_role_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceBuiltInRoleDefinition("Owner"),
@@ -60,7 +61,7 @@ func TestAccDataSourceAzureRMBuiltInRoleDefinition_reader(t *testing.T) {
 	dataSourceName := "data.azurerm_builtin_role_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceBuiltInRoleDefinition("Reader"),
@@ -82,7 +83,7 @@ func TestAccDataSourceAzureRMBuiltInRoleDefinition_virtualMachineContributor(t *
 	dataSourceName := "data.azurerm_builtin_role_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceBuiltInRoleDefinition("VirtualMachineContributor"),

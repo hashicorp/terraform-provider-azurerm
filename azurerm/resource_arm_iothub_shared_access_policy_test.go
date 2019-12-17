@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -21,7 +22,7 @@ func TestAccAzureRMIotHubSharedAccessPolicy_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +50,7 @@ func TestAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -72,7 +73,7 @@ func TestAccAzureRMIotHubSharedAccessPolicy_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -174,7 +175,7 @@ resource "azurerm_iothub_shared_access_policy" "test" {
 
 func testCheckAzureRMIotHubSharedAccessPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -188,7 +189,7 @@ func testCheckAzureRMIotHubSharedAccessPolicyExists(resourceName string) resourc
 		keyName := parsedIothubId.Path["IotHubKeys"]
 		resourceGroup := parsedIothubId.ResourceGroup
 
-		client := testAccProvider.Meta().(*clients.Client).IoTHub.ResourceClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 
 		for accessPolicyIterator, err := client.ListKeysComplete(ctx, resourceGroup, iothubName); accessPolicyIterator.NotDone(); err = accessPolicyIterator.NextWithContext(ctx) {
 			if err != nil {
@@ -205,8 +206,8 @@ func testCheckAzureRMIotHubSharedAccessPolicyExists(resourceName string) resourc
 }
 
 func testCheckAzureRMIotHubSharedAccessPolicyDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).IoTHub.ResourceClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothub_shared_access_policy" {

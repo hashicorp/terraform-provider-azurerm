@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -20,7 +21,7 @@ func TestAccAzureRMPrivateDnsAaaaRecord_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccAzureRMPrivateDnsAaaaRecord_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -76,7 +77,7 @@ func TestAccAzureRMPrivateDnsAaaaRecord_updateRecords(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -106,7 +107,7 @@ func TestAccAzureRMPrivateDnsAaaaRecord_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -147,8 +148,8 @@ func testCheckAzureRMPrivateDnsAaaaRecordExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS AAAA record: %s", aaaaName)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.AAAA, aaaaName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get AAAA RecordSet: %+v", err)
@@ -163,8 +164,8 @@ func testCheckAzureRMPrivateDnsAaaaRecordExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMPrivateDnsAaaaRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_private_dns_aaaa_record" {

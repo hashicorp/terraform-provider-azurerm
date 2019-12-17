@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -20,7 +21,7 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) 
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -54,7 +55,7 @@ func testAccAzureRMExpressRouteCircuitPeering_requiresImport(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -78,7 +79,7 @@ func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -105,7 +106,7 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpda
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -148,8 +149,8 @@ func testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit Peering: %s", peeringType)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.ExpressRoutePeeringsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRoutePeeringsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
 		if err != nil {
@@ -165,8 +166,8 @@ func testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName string) resou
 }
 
 func testCheckAzureRMExpressRouteCircuitPeeringDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.ExpressRoutePeeringsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRoutePeeringsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_express_route_circuit_peering" {

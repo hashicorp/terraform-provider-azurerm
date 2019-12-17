@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -64,7 +65,7 @@ func TestAccAzureRMAppService_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -96,7 +97,7 @@ func TestAccAzureRMAppService_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -120,7 +121,7 @@ func TestAccAzureRMAppService_movingAppService(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -146,7 +147,7 @@ func TestAccAzureRMAppService_freeTier(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -171,7 +172,7 @@ func TestAccAzureRMAppService_sharedTier(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -196,7 +197,7 @@ func TestAccAzureRMAppService_32Bit(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -223,7 +224,7 @@ func TestAccAzureRMAppService_backup(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -285,7 +286,7 @@ func TestAccAzureRMAppService_http2Enabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -311,7 +312,7 @@ func TestAccAzureRMAppService_alwaysOn(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -337,7 +338,7 @@ func TestAccAzureRMAppService_appCommandLine(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -363,7 +364,7 @@ func TestAccAzureRMAppService_httpsOnly(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -390,7 +391,7 @@ func TestAccAzureRMAppService_clientCertEnabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -423,7 +424,7 @@ func TestAccAzureRMAppService_appSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -449,7 +450,7 @@ func TestAccAzureRMAppService_clientAffinityEnabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -475,7 +476,7 @@ func TestAccAzureRMAppService_clientAffinityDisabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -501,7 +502,7 @@ func TestAccAzureRMAppService_virtualNetwork(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -534,7 +535,7 @@ func TestAccAzureRMAppService_enableManageServiceIdentity(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -559,7 +560,7 @@ func TestAccAzureRMAppService_updateResourceByEnablingManageServiceIdentity(t *t
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -589,7 +590,7 @@ func TestAccAzureRMAppService_userAssignedIdentity(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -613,7 +614,7 @@ func TestAccAzureRMAppService_multipleAssignedIdentities(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -638,7 +639,7 @@ func TestAccAzureRMAppService_clientAffinityUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -676,7 +677,7 @@ func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -719,7 +720,7 @@ func TestAccAzureRMAppService_storageAccounts(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -752,7 +753,7 @@ func TestAccAzureRMAppService_oneIpRestriction(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -779,7 +780,7 @@ func TestAccAzureRMAppService_oneVNetSubnetIpRestriction(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -806,7 +807,7 @@ func TestAccAzureRMAppService_zeroedIpRestriction(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -844,7 +845,7 @@ func TestAccAzureRMAppService_manyIpRestrictions(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -877,7 +878,7 @@ func TestAccAzureRMAppService_defaultDocuments(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -905,7 +906,7 @@ func TestAccAzureRMAppService_enabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -931,7 +932,7 @@ func TestAccAzureRMAppService_localMySql(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -958,7 +959,7 @@ func TestAccAzureRMAppService_applicationBlobStorageLogs(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -997,7 +998,7 @@ func TestAccAzureRMAppService_httpFileSystemLogs(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1035,7 +1036,7 @@ func TestAccAzureRMAppService_httpBlobStorageLogs(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1072,7 +1073,7 @@ func TestAccAzureRMAppService_httpFileSystemAndStorageBlobLogs(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1097,7 +1098,7 @@ func TestAccAzureRMAppService_managedPipelineMode(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1124,7 +1125,7 @@ func TestAccAzureRMAppService_tagsUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1155,7 +1156,7 @@ func TestAccAzureRMAppService_remoteDebugging(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1182,7 +1183,7 @@ func TestAccAzureRMAppService_windowsDotNet2(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1208,7 +1209,7 @@ func TestAccAzureRMAppService_windowsDotNet4(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1235,7 +1236,7 @@ func TestAccAzureRMAppService_windowsDotNetUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1263,7 +1264,7 @@ func TestAccAzureRMAppService_windowsJava7Java(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1291,7 +1292,7 @@ func TestAccAzureRMAppService_windowsJava8Java(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1318,7 +1319,7 @@ func TestAccAzureRMAppService_windowsJava11Java(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1346,7 +1347,7 @@ func TestAccAzureRMAppService_windowsJava7Jetty(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1374,7 +1375,7 @@ func TestAccAzureRMAppService_windowsJava8Jetty(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1401,7 +1402,7 @@ func TestAccAzureRMAppService_windowsJava11Jetty(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1428,7 +1429,7 @@ func TestAccAzureRMAppService_windowsJava7Tomcat(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1456,7 +1457,7 @@ func TestAccAzureRMAppService_windowsJava8Tomcat(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1483,7 +1484,7 @@ func TestAccAzureRMAppService_windowsJava11Tomcat(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1511,7 +1512,7 @@ func TestAccAzureRMAppService_windowsJava7Minor(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1539,7 +1540,7 @@ func TestAccAzureRMAppService_windowsJava8Minor(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1567,7 +1568,7 @@ func TestAccAzureRMAppService_windowsPHP7(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1593,7 +1594,7 @@ func TestAccAzureRMAppService_windowsPython(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1619,7 +1620,7 @@ func TestAccAzureRMAppService_webSockets(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1645,7 +1646,7 @@ func TestAccAzureRMAppService_scmType(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1672,7 +1673,7 @@ func TestAccAzureRMAppService_ftpsState(t *testing.T) {
 	config := testAccAzureRMAppService_ftpsState(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1698,7 +1699,7 @@ func TestAccAzureRMAppService_linuxFxVersion(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1722,7 +1723,7 @@ func TestAccAzureRMAppService_minTls(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1760,7 +1761,7 @@ func TestAccAzureRMAppService_corsSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1788,7 +1789,7 @@ func TestAccAzureRMAppService_authSettingsAdditionalLoginParams(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1820,7 +1821,7 @@ func TestAccAzureRMAppService_authSettingsAdditionalAllowedExternalRedirectUrls(
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1853,7 +1854,7 @@ func TestAccAzureRMAppService_authSettingsRuntimeVersion(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1885,7 +1886,7 @@ func TestAccAzureRMAppService_authSettingsTokenRefreshExtensionHours(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1917,7 +1918,7 @@ func TestAccAzureRMAppService_authSettingsUnauthenticatedClientAction(t *testing
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1949,7 +1950,7 @@ func TestAccAzureRMAppService_authSettingsTokenStoreEnabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1981,7 +1982,7 @@ func TestAccAzureRMAppService_aadAuthSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -2011,7 +2012,7 @@ func TestAccAzureRMAppService_facebookAuthSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -2040,7 +2041,7 @@ func TestAccAzureRMAppService_googleAuthSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -2069,7 +2070,7 @@ func TestAccAzureRMAppService_microsoftAuthSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -2098,7 +2099,7 @@ func TestAccAzureRMAppService_twitterAuthSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -2128,7 +2129,7 @@ func TestAccAzureRMAppService_multiAuthSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -2177,7 +2178,7 @@ func TestAccAzureRMAppService_basicWindowsContainer(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -2198,7 +2199,7 @@ func TestAccAzureRMAppService_basicWindowsContainer(t *testing.T) {
 }
 
 func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Web.AppServicesClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service" {
@@ -2208,7 +2209,7 @@ func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -2238,8 +2239,8 @@ func testCheckAzureRMAppServiceExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for App Service: %s", appServiceName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Web.AppServicesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, appServiceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Destroy,
 		Steps: []resource.TestStep{
 			{
@@ -48,7 +49,7 @@ func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update(t *testing
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Destroy,
 		Steps: []resource.TestStep{
 			{
@@ -98,8 +99,8 @@ func testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Exists(name stri
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory Storage: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
@@ -115,8 +116,8 @@ func testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Exists(name stri
 }
 
 func testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Destroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_factory_linked_service_data_lake_storage_gen2" {

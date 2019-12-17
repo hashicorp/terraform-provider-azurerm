@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -47,7 +48,7 @@ func TestAccAzureRMSqlDatabase_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -70,7 +71,7 @@ func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -91,7 +92,7 @@ func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -120,7 +121,7 @@ func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -147,7 +148,7 @@ func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -177,7 +178,7 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -208,7 +209,7 @@ func TestAccAzureRMSqlDatabase_collation(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -238,7 +239,7 @@ func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -268,7 +269,7 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -309,7 +310,7 @@ func TestAccAzureRMSqlDatabase_readScale(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -341,8 +342,8 @@ func testCheckAzureRMSqlDatabaseExists(resourceName string) resource.TestCheckFu
 		serverName := rs.Primary.Attributes["server_name"]
 		databaseName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Sql.DatabasesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.DatabasesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, databaseName, "")
 		if err != nil {
@@ -367,8 +368,8 @@ func testCheckAzureRMSqlDatabaseDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		databaseName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Sql.DatabasesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.DatabasesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, databaseName, "")
 		if err != nil {
@@ -397,8 +398,8 @@ func testCheckAzureRMSqlDatabaseDisappears(resourceName string) resource.TestChe
 		serverName := rs.Primary.Attributes["server_name"]
 		databaseName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Sql.DatabasesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.DatabasesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName, databaseName); err != nil {
 			return fmt.Errorf("Bad: Delete on sqlDatabasesClient: %+v", err)
@@ -414,7 +415,7 @@ func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{

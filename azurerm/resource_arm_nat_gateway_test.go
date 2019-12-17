@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMNatGateway_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,7 +46,7 @@ func TestAccAzureRMNatGateway_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -76,7 +77,7 @@ func TestAccAzureRMNatGateway_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -115,8 +116,8 @@ func testCheckAzureRMNatGatewayExists(resourceName string) resource.TestCheckFun
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Network.NatGatewayClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.NatGatewayClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -130,8 +131,8 @@ func testCheckAzureRMNatGatewayExists(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMNatGatewayDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.NatGatewayClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.NatGatewayClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_nat_gateway" {

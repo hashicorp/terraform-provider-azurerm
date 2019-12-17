@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMSharedImageGallery_basic(t *testing.T) {
@@ -15,7 +16,7 @@ func TestAccDataSourceAzureRMSharedImageGallery_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -35,7 +36,7 @@ func TestAccDataSourceAzureRMSharedImageGallery_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
 		Steps: []resource.TestStep{
 			{

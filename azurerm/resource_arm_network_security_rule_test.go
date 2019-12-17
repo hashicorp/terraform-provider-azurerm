@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func TestAccAzureRMNetworkSecurityRule_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +50,7 @@ func TestAccAzureRMNetworkSecurityRule_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -72,7 +73,7 @@ func TestAccAzureRMNetworkSecurityRule_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -92,7 +93,7 @@ func TestAccAzureRMNetworkSecurityRule_addingRules(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -117,7 +118,7 @@ func TestAccAzureRMNetworkSecurityRule_augmented(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -140,7 +141,7 @@ func TestAccAzureRMNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -172,8 +173,8 @@ func testCheckAzureRMNetworkSecurityRuleExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for network security rule: %q", sgName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.SecurityRuleClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityRuleClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, sgName, sgrName)
 		if err != nil {
@@ -201,8 +202,8 @@ func testCheckAzureRMNetworkSecurityRuleDisappears(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for network security rule: %s", sgName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.SecurityRuleClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityRuleClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, sgName, sgrName)
 		if err != nil {
 			if !response.WasNotFound(future.Response()) {
@@ -215,8 +216,8 @@ func testCheckAzureRMNetworkSecurityRuleDisappears(resourceName string) resource
 }
 
 func testCheckAzureRMNetworkSecurityRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.SecurityRuleClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityRuleClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_network_security_rule" {

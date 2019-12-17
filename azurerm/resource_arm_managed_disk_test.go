@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -22,7 +23,7 @@ func TestAccAzureRMManagedDisk_empty(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -53,7 +54,7 @@ func TestAccAzureRMManagedDisk_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -77,7 +78,7 @@ func TestAccAzureRMManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -99,7 +100,7 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -129,7 +130,7 @@ func TestAccAzureRMManagedDisk_copy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -149,7 +150,7 @@ func TestAccAzureRMManagedDisk_fromPlatformImage(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -169,7 +170,7 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -205,7 +206,7 @@ func TestAccAzureRMManagedDisk_encryption(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -234,7 +235,7 @@ func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
 	config := testAccAzureRMManagedDiskNonStandardCasing(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -259,7 +260,7 @@ func TestAccAzureRMManagedDisk_importEmpty_withZone(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -285,7 +286,7 @@ func TestAccAzureRMManagedDisk_create_withUltraSSD(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -311,7 +312,7 @@ func TestAccAzureRMManagedDisk_update_withUltraSSD(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -347,7 +348,7 @@ func TestAccAzureRMManagedDisk_import_withUltraSSD(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -377,8 +378,8 @@ func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, sho
 			return fmt.Errorf("Bad: no resource group found in state for disk: %s", dName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Compute.DisksClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dName)
 		if err != nil {
@@ -399,8 +400,8 @@ func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, sho
 }
 
 func testCheckAzureRMManagedDiskDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Compute.DisksClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_managed_disk" {
@@ -437,8 +438,8 @@ func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, vmName)
 		if err != nil {

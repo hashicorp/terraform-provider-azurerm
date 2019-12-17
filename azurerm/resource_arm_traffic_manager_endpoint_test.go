@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -20,7 +21,7 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,7 +53,7 @@ func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -79,7 +80,7 @@ func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -106,7 +107,7 @@ func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -143,7 +144,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -179,7 +180,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -223,7 +224,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updateCustomeHeaders(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -264,7 +265,7 @@ func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -295,7 +296,7 @@ func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -318,7 +319,7 @@ func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -346,7 +347,7 @@ func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -388,8 +389,8 @@ func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerEndpointsClient: %+v", err)
@@ -420,8 +421,8 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
 			return fmt.Errorf("Bad: Delete on trafficManagerEndpointsClient: %+v", err)
@@ -432,7 +433,7 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 }
 
 func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_endpoint" {
@@ -443,7 +444,7 @@ func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
 		endpointType := rs.Primary.Attributes["type"]
 		profileName := rs.Primary.Attributes["profile_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
 			return nil

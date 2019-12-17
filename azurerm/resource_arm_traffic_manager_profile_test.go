@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -29,7 +30,7 @@ func TestAccAzureRMTrafficManagerProfile_geographic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -58,7 +59,7 @@ func TestAccAzureRMTrafficManagerProfile_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -88,7 +89,7 @@ func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -120,7 +121,7 @@ func TestAccAzureRMTrafficManagerProfile_weightedTCP(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -152,7 +153,7 @@ func TestAccAzureRMTrafficManagerProfile_performance(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -184,7 +185,7 @@ func TestAccAzureRMTrafficManagerProfile_priority(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -212,7 +213,7 @@ func TestAccAzureRMTrafficManagerProfile_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -254,7 +255,7 @@ func TestAccAzureRMTrafficManagerProfile_performanceToGeographic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -290,7 +291,7 @@ func TestAccAzureRMTrafficManagerProfile_priorityToWeighted(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -320,7 +321,7 @@ func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettings(t *testing
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -355,7 +356,7 @@ func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettingsError(t *te
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -381,8 +382,8 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*clients.Client).TrafficManager.ProfilesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.ProfilesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerProfilesClient: %+v", err)
@@ -397,7 +398,7 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).TrafficManager.ProfilesClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.ProfilesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_profile" {
@@ -408,7 +409,7 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return nil

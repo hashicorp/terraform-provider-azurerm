@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMLogicAppWorkflow_basic(t *testing.T) {
@@ -16,7 +17,7 @@ func TestAccDataSourceAzureRMLogicAppWorkflow_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -39,7 +40,7 @@ func TestAccDataSourceAzureRMLogicAppWorkflow_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{

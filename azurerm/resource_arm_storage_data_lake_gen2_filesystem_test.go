@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
@@ -24,7 +25,7 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -56,7 +57,7 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -82,7 +83,7 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_properties(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -118,8 +119,8 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName string) re
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Storage.FileSystemsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		fileSystemName := rs.Primary.Attributes["name"]
 		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
@@ -146,8 +147,8 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemDestroy(s *terraform.State) er
 			continue
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Storage.FileSystemsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		fileSystemName := rs.Primary.Attributes["name"]
 		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])

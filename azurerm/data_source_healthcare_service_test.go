@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMDataSourceHealthCareService_basic(t *testing.T) {
@@ -16,8 +17,8 @@ func TestAccAzureRMDataSourceHealthCareService_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHealthcareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceHealthcareService_basic(ri, location),

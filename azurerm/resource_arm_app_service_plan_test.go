@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -58,7 +59,7 @@ func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -84,7 +85,7 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -122,7 +123,7 @@ func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -145,7 +146,7 @@ func TestAccAzureRMAppServicePlan_standardWindows(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -169,7 +170,7 @@ func TestAccAzureRMAppServicePlan_premiumWindows(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -194,7 +195,7 @@ func TestAccAzureRMAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -226,7 +227,7 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -260,7 +261,7 @@ func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -281,7 +282,7 @@ func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -303,7 +304,7 @@ func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -326,7 +327,7 @@ func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
 }
 
 func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Web.AppServicePlansClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicePlansClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_plan" {
@@ -335,7 +336,7 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -366,8 +367,8 @@ func testCheckAzureRMAppServicePlanExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for App Service Plan: %s", appServicePlanName)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Web.AppServicePlansClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicePlansClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, appServicePlanName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

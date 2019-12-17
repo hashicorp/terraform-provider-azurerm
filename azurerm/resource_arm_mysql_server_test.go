@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -18,7 +19,7 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -79,7 +80,7 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -106,7 +107,7 @@ func TestAccAzureRMMySQLServer_basicEightZero(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -134,7 +135,7 @@ func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -162,7 +163,7 @@ func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -191,7 +192,7 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -235,7 +236,7 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -275,7 +276,7 @@ func TestAccAzureRMMySQLServer_storageAutogrow(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -312,8 +313,8 @@ func testCheckAzureRMMySQLServerExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Server: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).MySQL.ServersClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ServersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -329,8 +330,8 @@ func testCheckAzureRMMySQLServerExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMMySQLServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).MySQL.ServersClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ServersClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mysql_server" {

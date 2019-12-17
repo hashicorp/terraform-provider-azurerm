@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
@@ -67,7 +68,7 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -112,7 +113,7 @@ func TestAccAzureRMStorageAccount_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -137,7 +138,7 @@ func TestAccAzureRMStorageAccount_writeLock(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -178,7 +179,7 @@ func TestAccAzureRMStorageAccount_premium(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -208,7 +209,7 @@ func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -235,7 +236,7 @@ func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -263,7 +264,7 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -304,7 +305,7 @@ func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -340,7 +341,7 @@ func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -376,7 +377,7 @@ func TestAccAzureRMStorageAccount_isHnsEnabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -412,7 +413,7 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -447,7 +448,7 @@ func TestAccAzureRMStorageAccount_blockBlobStorage(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -477,7 +478,7 @@ func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -515,7 +516,7 @@ func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -550,7 +551,7 @@ func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -582,7 +583,7 @@ func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -611,7 +612,7 @@ func TestAccAzureRMStorageAccount_updateResourceByEnablingIdentity(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -644,7 +645,7 @@ func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -685,7 +686,7 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -718,7 +719,7 @@ func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -800,7 +801,7 @@ func TestAccAzureRMStorageAccount_queueProperties(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -841,8 +842,8 @@ func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestChec
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		// Ensure resource group exists in API
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
-		conn := testAccProvider.Meta().(*clients.Client).Storage.AccountsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.AccountsClient
 
 		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount, "")
 		if err != nil {
@@ -869,8 +870,8 @@ func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.Test
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		// Ensure resource group exists in API
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
-		conn := testAccProvider.Meta().(*clients.Client).Storage.AccountsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.AccountsClient
 
 		if _, err := conn.Delete(ctx, resourceGroup, storageAccount); err != nil {
 			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
@@ -881,8 +882,8 @@ func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.Test
 }
 
 func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
-	conn := testAccProvider.Meta().(*clients.Client).Storage.AccountsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.AccountsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_account" {

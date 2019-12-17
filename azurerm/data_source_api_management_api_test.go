@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
@@ -15,7 +16,7 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceApiManagementApi_basic(rInt, location),
@@ -40,7 +41,7 @@ func TestAccDataSourceAzureRMApiManagementApi_complete(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceApiManagementApi_complete(rInt, location),

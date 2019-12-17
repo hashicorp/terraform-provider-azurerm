@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
@@ -24,7 +25,7 @@ func TestAccAzureRMBatchPool_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +60,7 @@ func TestAccAzureRMBatchPool_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -93,7 +94,7 @@ func TestAccAzureRMBatchPool_fixedScale_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -127,7 +128,7 @@ func TestAccAzureRMBatchPool_autoScale_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -158,7 +159,7 @@ func TestAccAzureRMBatchPool_completeUpdated(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -208,7 +209,7 @@ func TestAccAzureRMBatchPoolStartTask_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -253,7 +254,7 @@ func TestAccAzureRMBatchPool_certificates(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -287,7 +288,7 @@ func TestAccAzureRMBatchPool_validateResourceFileWithoutSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -305,7 +306,7 @@ func TestAccAzureRMBatchPool_container(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -329,7 +330,7 @@ func TestAccAzureRMBatchPool_validateResourceFileWithMultipleSources(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -346,7 +347,7 @@ func TestAccAzureRMBatchPool_validateResourceFileBlobPrefixWithoutAutoStorageCon
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -363,7 +364,7 @@ func TestAccAzureRMBatchPool_validateResourceFileHttpURLWithoutFilePath(t *testi
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -381,7 +382,7 @@ func TestAccAzureRMBatchPool_customImage(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -416,8 +417,8 @@ func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
-		conn := testAccProvider.Meta().(*clients.Client).Batch.PoolClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
@@ -442,8 +443,8 @@ func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
-		conn := testAccProvider.Meta().(*clients.Client).Batch.PoolClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {

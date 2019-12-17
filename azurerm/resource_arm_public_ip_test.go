@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -20,7 +21,7 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,7 +53,7 @@ func TestAccAzureRMPublicIpStatic_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -78,7 +79,7 @@ func TestAccAzureRMPublicIpStatic_basicOld(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -114,7 +115,7 @@ func TestAccAzureRMPublicIpStatic_zones(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -144,7 +145,7 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -171,7 +172,7 @@ func TestAccAzureRMPublicIpStatic_standard_withIPv6_fails(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -190,7 +191,7 @@ func TestAccAzureRMPublicIpDynamic_basic_withIPv6(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -216,7 +217,7 @@ func TestAccAzureRMPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -242,7 +243,7 @@ func TestAccAzureRMPublicIpStatic_basic_withIPv4(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -268,7 +269,7 @@ func TestAccAzureRMPublicIpStatic_standard(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -293,7 +294,7 @@ func TestAccAzureRMPublicIpStatic_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -315,7 +316,7 @@ func TestAccAzureRMPublicIpStatic_idleTimeout(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -343,7 +344,7 @@ func TestAccAzureRMPublicIpStatic_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -376,7 +377,7 @@ func TestAccAzureRMPublicIpStatic_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -408,7 +409,7 @@ func TestAccAzureRMPublicIpStatic_standardPrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -430,7 +431,7 @@ func TestAccAzureRMPublicIpStatic_standardPrefixWithTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -461,7 +462,7 @@ func TestAccAzureRMPublicIpDynamic_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -486,7 +487,7 @@ func TestAccAzureRMPublicIpStatic_importIdError(t *testing.T) {
 	config := testAccAzureRMPublicIPStatic_basic(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -509,7 +510,7 @@ func TestAccAzureRMPublicIpStatic_canLabelBe63(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -543,8 +544,8 @@ func testCheckAzureRMPublicIpExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for public ip: %s", publicIPName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.PublicIPsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, publicIPName, "")
 		if err != nil {
@@ -573,8 +574,8 @@ func testCheckAzureRMPublicIpDisappears(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for public ip: %s", publicIpName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.PublicIPsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, publicIpName)
 		if err != nil {
 			return fmt.Errorf("Error deleting Public IP %q (Resource Group %q): %+v", publicIpName, resourceGroup, err)
@@ -589,8 +590,8 @@ func testCheckAzureRMPublicIpDisappears(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.PublicIPsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_public_ip" {

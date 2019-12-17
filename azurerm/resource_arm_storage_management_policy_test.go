@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -22,7 +23,7 @@ func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
 			{
@@ -64,7 +65,7 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
 			{
@@ -126,7 +127,7 @@ func TestAccAzureRMStorageManagementPolicy_updateMultipleRule(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
 			{
@@ -273,8 +274,8 @@ func testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccount
 	resourceGroupName := rid.ResourceGroup
 	storageAccountName := rid.Path["storageAccounts"]
 
-	conn := testAccProvider.Meta().(*clients.Client).Storage.ManagementPoliciesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.ManagementPoliciesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	response, err := conn.Get(ctx, resourceGroupName, storageAccountName)
 	if err != nil {

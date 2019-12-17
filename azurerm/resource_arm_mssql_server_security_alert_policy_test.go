@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,7 +18,7 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -47,7 +48,7 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -98,8 +99,8 @@ func testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName string) r
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName)
 		if err != nil {

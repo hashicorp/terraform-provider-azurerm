@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMRouteTable_basic(t *testing.T) {
@@ -16,7 +17,7 @@ func TestAccDataSourceAzureRMRouteTable_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -38,7 +39,7 @@ func TestAccDataSourceAzureRMRouteTable_singleRoute(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -63,7 +64,7 @@ func TestAccDataSourceAzureRMRouteTable_multipleRoutes(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{

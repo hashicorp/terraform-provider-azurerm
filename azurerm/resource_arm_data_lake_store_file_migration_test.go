@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
@@ -32,7 +33,7 @@ func TestAccAzureRMDataLakeStoreFileMigrateState(t *testing.T) {
 		return
 	}
 
-	client.StopContext = testAccProvider.StopContext()
+	client.StopContext = acceptance.AzureProvider.StopContext()
 
 	filesClient := client.Datalake.StoreFilesClient
 

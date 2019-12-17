@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 		return
 	}
 
-	client.StopContext = testAccProvider.StopContext()
+	client.StopContext = acceptance.AzureProvider.StopContext()
 
 	rs := acctest.RandString(4)
 	resourceGroupName := fmt.Sprintf("acctestRG%s", rs)

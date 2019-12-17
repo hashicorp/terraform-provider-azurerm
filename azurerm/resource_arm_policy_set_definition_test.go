@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -22,7 +23,7 @@ func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,7 +53,7 @@ func TestAccAzureRMPolicySetDefinition_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -76,7 +77,7 @@ func TestAccAzureRMPolicySetDefinition_custom(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -101,7 +102,7 @@ func TestAccAzureRMPolicySetDefinition_ManagementGroup(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -290,8 +291,8 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 		policySetName := rs.Primary.Attributes["name"]
 		managementGroupId := rs.Primary.Attributes["management_group_id"]
 
-		client := testAccProvider.Meta().(*clients.Client).Policy.SetDefinitionsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.SetDefinitionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		var err error
 		var resp policy.SetDefinition
@@ -314,8 +315,8 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Policy.SetDefinitionsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.SetDefinitionsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_policy_set_definition" {

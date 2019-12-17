@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
@@ -18,7 +19,7 @@ func testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *te
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -83,7 +84,7 @@ func testAccAzureRMKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -113,7 +114,7 @@ func testAccAzureRMKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -143,7 +144,7 @@ func testAccAzureRMKubernetesCluster_addonProfileOMS(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -175,7 +176,7 @@ func testAccAzureRMKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -242,7 +243,7 @@ func testAccAzureRMKubernetesCluster_addonProfileRouting(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{

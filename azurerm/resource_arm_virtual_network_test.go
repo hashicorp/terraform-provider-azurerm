@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,7 +46,7 @@ func TestAccAzureRMVirtualNetwork_basicUpdated(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -85,7 +86,7 @@ func TestAccAzureRMVirtualNetwork_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -109,7 +110,7 @@ func TestAccAzureRMVirtualNetwork_ddosProtectionPlan(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -136,7 +137,7 @@ func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -160,7 +161,7 @@ func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -195,7 +196,7 @@ func TestAccAzureRMVirtualNetwork_bug373(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -223,8 +224,8 @@ func testCheckAzureRMVirtualNetworkExists(resourceName string) resource.TestChec
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		client := testAccProvider.Meta().(*clients.Client).Network.VnetClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, "")
 		if err != nil {
@@ -254,8 +255,8 @@ func testCheckAzureRMVirtualNetworkDisappears(resourceName string) resource.Test
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		client := testAccProvider.Meta().(*clients.Client).Network.VnetClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, virtualNetworkName)
 		if err != nil {
@@ -271,8 +272,8 @@ func testCheckAzureRMVirtualNetworkDisappears(resourceName string) resource.Test
 }
 
 func testCheckAzureRMVirtualNetworkDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.VnetClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_network" {

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccAzureRMRelayNamespace_basicClassic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -80,7 +81,7 @@ func TestAccAzureRMRelayNamespace_basicNotDefined(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -102,7 +103,7 @@ func TestAccAzureRMRelayNamespace_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -130,7 +131,7 @@ func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -165,8 +166,8 @@ func testCheckAzureRMRelayNamespaceExists(resourceName string) resource.TestChec
 		name := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*clients.Client).Relay.NamespacesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Relay.NamespacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -182,8 +183,8 @@ func testCheckAzureRMRelayNamespaceExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMRelayNamespaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Relay.NamespacesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Relay.NamespacesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_relay_namespace" {

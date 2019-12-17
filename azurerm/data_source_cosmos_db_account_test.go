@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
@@ -15,7 +16,7 @@ func TestAccDataSourceAzureRMCosmosDBAccount_boundedStaleness_complete(t *testin
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -36,7 +37,7 @@ func TestAccDataSourceAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +60,7 @@ func TestAccDataSourceAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -81,7 +82,7 @@ func TestAccDataSourceAzureRMCosmosDBAccount_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{

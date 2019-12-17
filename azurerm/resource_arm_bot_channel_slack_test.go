@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,7 +25,7 @@ func testAccAzureRMBotChannelSlack_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelSlackDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -58,7 +59,7 @@ func testAccAzureRMBotChannelSlack_update(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelSlackDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -111,8 +112,8 @@ func testCheckAzureRMBotChannelSlackExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channel Slack")
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Bot.ChannelClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameSlackChannel))
 		if err != nil {
@@ -128,8 +129,8 @@ func testCheckAzureRMBotChannelSlackExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMBotChannelSlackDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Bot.ChannelClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_bot_channel_slack" {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -20,7 +21,7 @@ func TestAccAzureRMMonitorDiagnosticSetting_eventhub(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -56,7 +57,7 @@ func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -80,7 +81,7 @@ func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -110,7 +111,7 @@ func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(t *te
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -143,7 +144,7 @@ func TestAccAzureRMMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -174,8 +175,8 @@ func testCheckAzureRMMonitorDiagnosticSettingExists(resourceName string) resourc
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Monitor.DiagnosticSettingsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.DiagnosticSettingsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		name := rs.Primary.Attributes["name"]
 		actualResourceId := rs.Primary.Attributes["target_resource_id"]
 		targetResourceId := strings.TrimPrefix(actualResourceId, "/")
@@ -194,8 +195,8 @@ func testCheckAzureRMMonitorDiagnosticSettingExists(resourceName string) resourc
 }
 
 func testCheckAzureRMMonitorDiagnosticSettingDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Monitor.DiagnosticSettingsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.DiagnosticSettingsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_monitor_diagnostic_setting" {

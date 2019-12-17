@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +50,7 @@ func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,7 +74,7 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -97,7 +98,7 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -127,7 +128,7 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -167,7 +168,7 @@ func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -188,7 +189,7 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -208,7 +209,7 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -242,7 +243,7 @@ func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -280,8 +281,8 @@ func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Cdn.EndpointsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.EndpointsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, profileName, name)
 		if err != nil {
@@ -311,8 +312,8 @@ func testCheckAzureRMCdnEndpointDisappears(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Cdn.EndpointsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.EndpointsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := conn.Delete(ctx, resourceGroup, profileName, name)
 		if err != nil {
@@ -328,8 +329,8 @@ func testCheckAzureRMCdnEndpointDisappears(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Cdn.EndpointsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.EndpointsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cdn_endpoint" {

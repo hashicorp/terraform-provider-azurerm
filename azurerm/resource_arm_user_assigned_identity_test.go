@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -22,7 +23,7 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -53,7 +54,7 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -86,8 +87,8 @@ func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).MSI.UserAssignedIdentitiesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MSI.UserAssignedIdentitiesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -103,8 +104,8 @@ func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMUserAssignedIdentityDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).MSI.UserAssignedIdentitiesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MSI.UserAssignedIdentitiesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_machine" {

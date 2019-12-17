@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -20,7 +21,7 @@ func TestAccAzureRMLocalNetworkGateway_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,7 +53,7 @@ func TestAccAzureRMLocalNetworkGateway_requiresImport(t *testing.T) {
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -75,7 +76,7 @@ func TestAccAzureRMLocalNetworkGateway_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -98,7 +99,7 @@ func TestAccAzureRMLocalNetworkGateway_tags(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -125,7 +126,7 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -153,7 +154,7 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsDisable(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -187,7 +188,7 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsEnable(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -221,7 +222,7 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsComplete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -265,8 +266,8 @@ func testCheckAzureRMLocalNetworkGatewayExists(resourceName string) resource.Tes
 		resGrp := id.ResourceGroup
 
 		// and finally, check that it exists on Azure:
-		client := testAccProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resGrp, localNetName)
 		if err != nil {
@@ -298,8 +299,8 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(resourceName string) resource
 		resourceGroup := id.ResourceGroup
 
 		// and finally, check that it exists on Azure:
-		client := testAccProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, localNetName)
 		if err != nil {
@@ -330,8 +331,8 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 		localNetName := id.Path["localNetworkGateways"]
 		resourceGroup := id.ResourceGroup
 
-		client := testAccProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, localNetName)
 
 		if err != nil {

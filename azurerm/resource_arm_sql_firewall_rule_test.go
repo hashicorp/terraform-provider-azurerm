@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -18,7 +19,7 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -55,7 +56,7 @@ func TestAccAzureRMSqlFirewallRule_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -80,7 +81,7 @@ func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -106,8 +107,8 @@ func testCheckAzureRMSqlFirewallRuleExists(resourceName string) resource.TestChe
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -132,8 +133,8 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -162,8 +163,8 @@ func testCheckAzureRMSqlFirewallRuleDisappears(resourceName string) resource.Tes
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {

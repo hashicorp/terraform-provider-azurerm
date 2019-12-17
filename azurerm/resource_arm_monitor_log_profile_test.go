@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -55,7 +56,7 @@ func testAccAzureRMMonitorLogProfile_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -86,7 +87,7 @@ func testAccAzureRMMonitorLogProfile_requiresImport(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -110,7 +111,7 @@ func testAccAzureRMMonitorLogProfile_servicebus(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -130,7 +131,7 @@ func testAccAzureRMMonitorLogProfile_complete(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -151,7 +152,7 @@ func testAccAzureRMMonitorLogProfile_disappears(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -167,8 +168,8 @@ func testAccAzureRMMonitorLogProfile_disappears(t *testing.T) {
 }
 
 func testCheckAzureRMLogProfileDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Monitor.LogProfilesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.LogProfilesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_monitor_log_profile" {
@@ -195,8 +196,8 @@ func testCheckAzureRMLogProfileExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Monitor.LogProfilesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.LogProfilesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		resp, err := client.Get(ctx, name)
@@ -222,8 +223,8 @@ func testCheckAzureRMLogProfileDisappears(resourceName string) resource.TestChec
 
 		name := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Monitor.LogProfilesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.LogProfilesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := client.Delete(ctx, name); err != nil {
 			return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)

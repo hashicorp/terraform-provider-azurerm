@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 const k8sVersionRX = `[0-9]+\.[0-9]+\.[0-9]*`
@@ -17,7 +18,7 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMKubernetesServiceVersions_basic(location),
@@ -39,7 +40,7 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_filtered(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMKubernetesServiceVersions_filtered(location),

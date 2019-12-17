@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServicePostgreSQLDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +50,7 @@ func TestAccAzureRMDataFactoryLinkedServicePostgreSQL_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServicePostgreSQLDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -100,8 +101,8 @@ func testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(name string) resou
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
@@ -117,8 +118,8 @@ func testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(name string) resou
 }
 
 func testCheckAzureRMDataFactoryLinkedServicePostgreSQLDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_factory_linked_service_postgresql" {

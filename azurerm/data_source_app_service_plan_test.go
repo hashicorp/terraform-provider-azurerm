@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -17,7 +18,7 @@ func TestAccDataSourceAzureRMAppServicePlan_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServicePlan_basic(rInt, location),
@@ -42,7 +43,7 @@ func TestAccDataSourceAzureRMAppServicePlan_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServicePlan_complete(rInt, location),
@@ -68,7 +69,7 @@ func TestAccDataSourceAzureRMAppServicePlan_premiumSKU(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServicePlan_premiumSKU(rInt, location),
@@ -91,7 +92,7 @@ func TestAccDataSourceAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServicePlan_basicWindowsContainer(rInt, location),

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -18,7 +19,7 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +50,7 @@ func TestAccAzureRMNotificationHub_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -75,8 +76,8 @@ func testCheckAzureRMNotificationHubExists(resourceName string) resource.TestChe
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		namespaceName := rs.Primary.Attributes["namespace_name"]
@@ -96,8 +97,8 @@ func testCheckAzureRMNotificationHubExists(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_notification_hub" {

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -20,7 +21,7 @@ func TestAccAzureRMDataFactoryTriggerSchedule_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryTriggerScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -48,7 +49,7 @@ func TestAccAzureRMDataFactoryTriggerSchedule_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryTriggerScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -92,8 +93,8 @@ func testCheckAzureRMDataFactoryTriggerScheduleExists(name string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).DataFactory.TriggersClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.TriggersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
@@ -109,8 +110,8 @@ func testCheckAzureRMDataFactoryTriggerScheduleExists(name string) resource.Test
 }
 
 func testCheckAzureRMDataFactoryTriggerScheduleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).DataFactory.TriggersClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.TriggersClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_factory_trigger_schedule" {

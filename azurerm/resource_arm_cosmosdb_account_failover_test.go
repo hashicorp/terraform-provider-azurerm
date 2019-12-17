@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMCosmosDBAccount_failover_boundedStaleness(t *testing.T) {
@@ -15,7 +16,7 @@ func TestAccAzureRMCosmosDBAccount_failover_boundedStaleness(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -35,7 +36,7 @@ func TestAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -54,7 +55,7 @@ func TestAccAzureRMCosmosDBAccount_failover_eventualConsistency(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -74,7 +75,7 @@ func TestAccAzureRMCosmosDBAccount_failover_mongoDB(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -94,7 +95,7 @@ func TestAccAzureRMCosmosDBAccount_failover_session(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -113,7 +114,7 @@ func TestAccAzureRMCosmosDBAccount_failover_strong(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -132,7 +133,7 @@ func TestAccAzureRMCosmosDBAccount_failover_geoReplicated(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{

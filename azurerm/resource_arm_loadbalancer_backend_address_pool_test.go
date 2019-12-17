@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -26,7 +27,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -66,7 +67,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -92,7 +93,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_removal(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -113,7 +114,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -153,8 +154,8 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolNotExists(addressPoolName str
 
 func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*clients.Client).Network.LoadBalancersClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		_, i, exists := findLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
 		if !exists {

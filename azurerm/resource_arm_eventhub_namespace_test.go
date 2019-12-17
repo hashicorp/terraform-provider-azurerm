@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func TestAccAzureRMEventHubNamespace_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccAzureRMEventHubNamespace_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,7 +74,7 @@ func TestAccAzureRMEventHubNamespace_standard(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -97,7 +98,7 @@ func TestAccAzureRMEventHubNamespace_networkrule_iprule(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -121,7 +122,7 @@ func TestAccAzureRMEventHubNamespace_networkrule_vnet(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -145,7 +146,7 @@ func TestAccAzureRMEventHubNamespace_readDefaultKeys(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -168,7 +169,7 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnits(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -192,7 +193,7 @@ func TestAccAzureRMEventHubNamespace_NonStandardCasing(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -218,7 +219,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -245,7 +246,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -267,7 +268,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -296,7 +297,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -326,7 +327,7 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -357,7 +358,7 @@ func TestAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -371,8 +372,8 @@ func TestAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *
 }
 
 func testCheckAzureRMEventHubNamespaceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub_namespace" {
@@ -408,8 +409,8 @@ func testCheckAzureRMEventHubNamespaceExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub Namespace: %s", namespaceName)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName)
 		if err != nil {

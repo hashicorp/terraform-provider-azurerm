@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -22,7 +23,7 @@ func TestAccAzureRMMonitorMetricAlert_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -62,7 +63,7 @@ func TestAccAzureRMMonitorMetricAlert_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -87,7 +88,7 @@ func TestAccAzureRMMonitorMetricAlert_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -144,7 +145,7 @@ func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -358,8 +359,8 @@ resource "azurerm_monitor_metric_alert" "test" {
 }
 
 func testCheckAzureRMMonitorMetricAlertDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Monitor.MetricAlertsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.MetricAlertsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_monitor_metric_alert" {
 			continue
@@ -393,8 +394,8 @@ func testCheckAzureRMMonitorMetricAlertExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Metric Alert Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Monitor.MetricAlertsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.MetricAlertsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {

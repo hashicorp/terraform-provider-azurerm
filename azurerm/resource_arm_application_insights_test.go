@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -75,7 +76,7 @@ func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -101,7 +102,7 @@ func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -127,7 +128,7 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -153,7 +154,7 @@ func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -179,7 +180,7 @@ func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -205,7 +206,7 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -225,8 +226,8 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 }
 
 func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).AppInsights.ComponentsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.ComponentsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_application_insights" {
@@ -264,8 +265,8 @@ func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for App Insights: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).AppInsights.ComponentsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.ComponentsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -287,7 +288,7 @@ func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{

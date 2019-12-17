@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -60,7 +61,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -90,7 +91,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -113,7 +114,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -132,8 +133,8 @@ func TestAccAzureRMLogAnalyticsWorkspace_complete(t *testing.T) {
 }
 
 func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).LogAnalytics.WorkspacesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.WorkspacesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_log_analytics_workspace" {
@@ -171,8 +172,8 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Workspace: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).LogAnalytics.WorkspacesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.WorkspacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -18,7 +19,7 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -47,7 +48,7 @@ func TestAccAzureRMRoute_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -70,7 +71,7 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -107,7 +108,7 @@ func TestAccAzureRMRoute_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -130,7 +131,7 @@ func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -164,8 +165,8 @@ func testCheckAzureRMRouteExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for route: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.RoutesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RoutesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, rtName, name)
 		if err != nil {
@@ -193,8 +194,8 @@ func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for route: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.RoutesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RoutesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, rtName, name)
 		if err != nil {
@@ -210,8 +211,8 @@ func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMRouteDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.RoutesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RoutesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_route" {

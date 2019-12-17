@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func TestAccAzureRMRouteTable_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccAzureRMRouteTable_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -75,7 +76,7 @@ func TestAccAzureRMRouteTable_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -101,7 +102,7 @@ func TestAccAzureRMRouteTable_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -139,7 +140,7 @@ func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -166,7 +167,7 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -209,7 +210,7 @@ func TestAccAzureRMRouteTable_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -232,7 +233,7 @@ func TestAccAzureRMRouteTable_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -264,7 +265,7 @@ func TestAccAzureRMRouteTable_multipleRoutes(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -306,7 +307,7 @@ func TestAccAzureRMRouteTable_withTagsSubnet(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -342,8 +343,8 @@ func testCheckAzureRMRouteTableExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for route table: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.RouteTablesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RouteTablesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
@@ -371,8 +372,8 @@ func testCheckAzureRMRouteTableDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for route table: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.RouteTablesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RouteTablesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -390,8 +391,8 @@ func testCheckAzureRMRouteTableDisappears(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMRouteTableDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.RouteTablesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RouteTablesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_route_table" {

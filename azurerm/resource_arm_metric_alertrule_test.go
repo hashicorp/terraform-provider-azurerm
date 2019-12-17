@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -74,7 +75,7 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -118,7 +119,7 @@ func TestAccAzureRMMetricAlertRule_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -142,7 +143,7 @@ func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -170,8 +171,8 @@ func testCheckAzureRMMetricAlertRuleExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for Alert Rule: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Monitor.AlertRulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AlertRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -187,8 +188,8 @@ func testCheckAzureRMMetricAlertRuleExists(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMMetricAlertRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Monitor.AlertRulesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AlertRulesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_metric_alertrule" {

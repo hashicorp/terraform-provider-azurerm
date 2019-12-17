@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -84,7 +85,7 @@ func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -108,7 +109,7 @@ func TestAccAzureRMContainerService_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -133,7 +134,7 @@ func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -154,7 +155,7 @@ func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -173,7 +174,7 @@ func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -412,8 +413,8 @@ func testCheckAzureRMContainerServiceExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Container Service Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Containers.ServicesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.ServicesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -429,7 +430,7 @@ func testCheckAzureRMContainerServiceExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMContainerServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Containers.ServicesClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.ServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_service" {
@@ -438,7 +439,7 @@ func testCheckAzureRMContainerServiceDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 

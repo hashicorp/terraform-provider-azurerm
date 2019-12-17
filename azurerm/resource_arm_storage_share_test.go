@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -21,7 +22,7 @@ func TestAccAzureRMStorageShare_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,7 +53,7 @@ func TestAccAzureRMStorageShare_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -77,7 +78,7 @@ func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -100,7 +101,7 @@ func TestAccAzureRMStorageShare_metaData(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -137,7 +138,7 @@ func TestAccAzureRMStorageShare_acl(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -174,7 +175,7 @@ func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -204,8 +205,8 @@ func testCheckAzureRMStorageShareExists(resourceName string) resource.TestCheckF
 		shareName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*clients.Client).Storage
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -238,8 +239,8 @@ func testCheckAzureRMStorageShareDisappears(resourceName string) resource.TestCh
 		shareName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*clients.Client).Storage
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -271,8 +272,8 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 		shareName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*clients.Client).Storage
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

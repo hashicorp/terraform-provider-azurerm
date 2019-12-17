@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func TestAccAzureRMApiManagementAPIPolicy_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccAzureRMApiManagementAPIPolicy_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -74,7 +75,7 @@ func TestAccAzureRMApiManagementAPIPolicy_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -106,7 +107,7 @@ func TestAccAzureRMApiManagementAPIPolicy_customPolicy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -137,8 +138,8 @@ func testCheckAzureRMApiManagementAPIPolicyExists(resourceName string) resource.
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*clients.Client).ApiManagement.ApiPoliciesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiPoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -153,7 +154,7 @@ func testCheckAzureRMApiManagementAPIPolicyExists(resourceName string) resource.
 }
 
 func testCheckAzureRMApiManagementAPIPolicyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).ApiManagement.ApiPoliciesClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiPoliciesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api_policy" {
@@ -163,7 +164,7 @@ func testCheckAzureRMApiManagementAPIPolicyDestroy(s *terraform.State) error {
 		apiName := rs.Primary.Attributes["api_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

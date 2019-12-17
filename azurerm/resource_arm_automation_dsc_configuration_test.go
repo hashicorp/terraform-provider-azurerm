@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -18,7 +19,7 @@ func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -53,7 +54,7 @@ func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -71,8 +72,8 @@ func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationDscConfigurationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Automation.DscConfigurationClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.DscConfigurationClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_automation_dsc_configuration" {
@@ -119,8 +120,8 @@ func testCheckAzureRMAutomationDscConfigurationExists(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for Automation Dsc Configuration: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Automation.DscConfigurationClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.DscConfigurationClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,7 +47,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_requiresImport(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -67,7 +68,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_basicWeekly(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -89,7 +90,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_completeDaily(t *testing.T
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -111,7 +112,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_completeWeekly(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -133,7 +134,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDaily(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -159,7 +160,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeekly(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -184,7 +185,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateDailyToWeekly(t *tes
 	ri := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -209,7 +210,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToDaily(t *tes
 	ri := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -235,7 +236,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToPartial(t *t
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -256,8 +257,8 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToPartial(t *t
 }
 
 func testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).RecoveryServices.ProtectionPoliciesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionPoliciesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_recovery_services_protection_policy_vm" {
@@ -285,8 +286,8 @@ func testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy(s *terraform.Stat
 
 func testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.ProtectionPoliciesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionPoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

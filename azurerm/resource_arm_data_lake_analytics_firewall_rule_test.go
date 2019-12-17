@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -22,7 +23,7 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -56,7 +57,7 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -81,7 +82,7 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -111,7 +112,7 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_azureServices(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -146,8 +147,8 @@ func testCheckAzureRMDataLakeAnalyticsFirewallRuleExists(resourceName string) re
 			return fmt.Errorf("Bad: no resource group found in state for data lake store firewall rule: %s", firewallRuleName)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Datalake.AnalyticsFirewallRulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.AnalyticsFirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, firewallRuleName)
 		if err != nil {
@@ -163,8 +164,8 @@ func testCheckAzureRMDataLakeAnalyticsFirewallRuleExists(resourceName string) re
 }
 
 func testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Datalake.AnalyticsFirewallRulesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.AnalyticsFirewallRulesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_lake_analytics_firewall_rule" {

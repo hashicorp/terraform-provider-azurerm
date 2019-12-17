@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
@@ -17,7 +18,7 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy(),
 		Steps: []resource.TestStep{
 			{
@@ -47,7 +48,7 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy(),
 		Steps: []resource.TestStep{
 			{
@@ -93,7 +94,7 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy(),
 		Steps: []resource.TestStep{
 			{
@@ -185,8 +186,8 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terrafor
 		return false, fmt.Errorf("Failed to parse ID (id: %s): %+v", id, err)
 	}
 
-	conn := testAccProvider.Meta().(*clients.Client).AppInsights.AnalyticsItemsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.AnalyticsItemsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	response, err := conn.Get(ctx, resGroup, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {

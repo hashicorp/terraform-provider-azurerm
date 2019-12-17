@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -21,7 +22,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_basic(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -54,7 +55,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(t *testing.T)
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -79,7 +80,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) 
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -118,7 +119,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -152,7 +153,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -187,7 +188,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_managedServiceIdentity(t *te
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_managedServiceIdentity(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -215,7 +216,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtension(t *t
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -251,8 +252,8 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string)
 		virtualMachineName := id.Path["virtualMachines"]
 		resourceGroup := id.ResourceGroup
 
-		client := testAccProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
 		if err != nil {
@@ -297,8 +298,8 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy(s *terraform.State)
 		virtualMachineName := id.Path["virtualMachines"]
 		resourceGroup := id.ResourceGroup
 
-		client := testAccProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
 		if err != nil {

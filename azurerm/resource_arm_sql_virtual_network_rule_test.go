@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -26,7 +27,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -62,7 +63,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -98,7 +99,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -129,7 +130,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -156,7 +157,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -180,7 +181,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -205,7 +206,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -360,8 +361,8 @@ func testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName string) resource.T
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -389,8 +390,8 @@ func testCheckAzureRMSqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -422,8 +423,8 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(resourceName string) resour
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {

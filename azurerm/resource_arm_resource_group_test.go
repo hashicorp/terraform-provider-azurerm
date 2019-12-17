@@ -17,7 +17,7 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -41,7 +41,7 @@ func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -60,7 +60,7 @@ func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			testData.DisappearsStep(acceptance.DisappearsStepData{
@@ -77,7 +77,7 @@ func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -114,8 +114,8 @@ func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*clients.Client).Resource.GroupsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup)
 		if err != nil {
@@ -141,8 +141,8 @@ func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestC
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*clients.Client).Resource.GroupsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		deleteFuture, err := client.Delete(ctx, resourceGroup)
 		if err != nil {
@@ -159,8 +159,8 @@ func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Resource.GroupsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_resource_group" {

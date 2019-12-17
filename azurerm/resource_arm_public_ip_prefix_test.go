@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
@@ -25,8 +26,8 @@ func testCheckAzureRMPublicIPPrefixExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for public ip prefix: %s", publicIpPrefixName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, publicIpPrefixName, "")
 		if err != nil {
@@ -55,8 +56,8 @@ func testCheckAzureRMPublicIPPrefixDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for public ip prefix: %s", publicIpPrefixName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, publicIpPrefixName)
 		if err != nil {
 			return fmt.Errorf("Error deleting Public IP Prefix %q (Resource Group %q): %+v", publicIpPrefixName, resourceGroup, err)
@@ -71,8 +72,8 @@ func testCheckAzureRMPublicIPPrefixDisappears(resourceName string) resource.Test
 }
 
 func testCheckAzureRMPublicIPPrefixDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_public_ip_prefix" {
@@ -103,7 +104,7 @@ func TestAccAzureRMPublicIpPrefix_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -130,7 +131,7 @@ func TestAccAzureRMPublicIpPrefix_prefixLength(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -159,7 +160,7 @@ func TestAccAzureRMPublicIpPrefix_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -190,7 +191,7 @@ func TestAccAzureRMPublicIpPrefix_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{

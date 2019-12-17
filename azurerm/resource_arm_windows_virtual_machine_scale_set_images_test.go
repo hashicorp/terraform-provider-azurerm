@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
@@ -16,7 +17,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(t *testin
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -65,7 +66,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesFromCapturedVirtualMachin
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -125,7 +126,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdate(t *testing.T
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -171,7 +172,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesManualUpdateExternalRoll(
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -217,7 +218,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesRollingUpdate(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -263,7 +264,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{

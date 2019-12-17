@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -20,7 +21,7 @@ func TestAccAzureRMApiManagementProduct_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -57,7 +58,7 @@ func TestAccAzureRMApiManagementProduct_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -75,7 +76,7 @@ func TestAccAzureRMApiManagementProduct_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product" {
@@ -85,7 +86,7 @@ func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
 		productId := rs.Primary.Attributes["product_id"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -108,7 +109,7 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -170,7 +171,7 @@ func TestAccAzureRMApiManagementProduct_subscriptionsLimit(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -198,7 +199,7 @@ func TestAccAzureRMApiManagementProduct_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -231,7 +232,7 @@ func TestAccAzureRMApiManagementProduct_approvalRequiredError(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -256,8 +257,8 @@ func testCheckAzureRMApiManagementProductExists(resourceName string) resource.Te
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

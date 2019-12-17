@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -20,7 +21,7 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -42,7 +43,7 @@ func TestAccAzureRMTemplateDeployment_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -64,7 +65,7 @@ func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -84,7 +85,7 @@ func TestAccAzureRMTemplateDeployment_nestedTemplate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -102,7 +103,7 @@ func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -121,7 +122,7 @@ func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -140,7 +141,7 @@ func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -168,7 +169,7 @@ func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -193,8 +194,8 @@ func testCheckAzureRMTemplateDeploymentExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Resource.DeploymentsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -223,8 +224,8 @@ func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", deploymentName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Resource.DeploymentsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, deploymentName); err != nil {
 			return fmt.Errorf("Failed deleting Deployment %q (Resource Group %q): %+v", deploymentName, resourceGroup, err)
@@ -248,8 +249,8 @@ func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.
 }
 
 func testCheckAzureRMTemplateDeploymentDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Resource.DeploymentsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_template_deployment" {

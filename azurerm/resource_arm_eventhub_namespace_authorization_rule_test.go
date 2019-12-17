@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -34,7 +35,7 @@ func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -74,7 +75,7 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -96,7 +97,7 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -133,8 +134,8 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T)
 }
 
 func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub_authorization_rule" {
@@ -158,8 +159,8 @@ func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.Stat
 
 func testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

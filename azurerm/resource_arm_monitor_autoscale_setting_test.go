@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -20,7 +21,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -56,7 +57,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -81,7 +82,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_multipleProfiles(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -105,7 +106,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -152,7 +153,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_multipleRules(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -191,7 +192,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_customEmails(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -227,7 +228,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_recurrence(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -257,7 +258,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -298,7 +299,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_fixedDate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -334,8 +335,8 @@ func testCheckAzureRMMonitorAutoScaleSettingExists(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for Monitor AutoScale Setting: %s", autoscaleSettingName)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, autoscaleSettingName)
 		if err != nil {
@@ -351,8 +352,8 @@ func testCheckAzureRMMonitorAutoScaleSettingExists(resourceName string) resource
 }
 
 func testCheckAzureRMMonitorAutoScaleSettingDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_monitor_autoscale_setting" {

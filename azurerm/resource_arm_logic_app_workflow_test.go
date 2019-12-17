@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -18,7 +19,7 @@ func TestAccAzureRMLogicAppWorkflow_empty(t *testing.T) {
 	config := testAccAzureRMLogicAppWorkflow_empty(ri, testLocation())
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +50,7 @@ func TestAccAzureRMLogicAppWorkflow_requiresImport(t *testing.T) {
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -72,7 +73,7 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -119,8 +120,8 @@ func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Logic App Workflow: %s", workflowName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Logic.WorkflowsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
 		if err != nil {
@@ -136,8 +137,8 @@ func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMLogicAppWorkflowDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Logic.WorkflowsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_logic_app_workflow" {

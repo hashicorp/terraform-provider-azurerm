@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,7 +18,7 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,7 +46,7 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(t *testing.T
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -69,7 +70,7 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -97,8 +98,8 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) 
 }
 
 func testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub_namespace_disaster_recovery_config" {
@@ -122,8 +123,8 @@ func testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy(s *terraform
 
 func testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

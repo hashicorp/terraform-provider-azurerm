@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -18,7 +19,7 @@ func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -47,7 +48,7 @@ func TestAccAzureRMNetworkSecurityGroup_requiresImport(t *testing.T) {
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -69,7 +70,7 @@ func TestAccAzureRMNetworkSecurityGroup_singleRule(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -93,7 +94,7 @@ func TestAccAzureRMNetworkSecurityGroup_update(t *testing.T) {
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -137,7 +138,7 @@ func TestAccAzureRMNetworkSecurityGroup_disappears(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -157,7 +158,7 @@ func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -196,7 +197,7 @@ func TestAccAzureRMNetworkSecurityGroup_addingExtraRules(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -223,7 +224,7 @@ func TestAccAzureRMNetworkSecurityGroup_augmented(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -247,7 +248,7 @@ func TestAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -279,8 +280,8 @@ func testCheckAzureRMNetworkSecurityGroupExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for network security group: %q", sgName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.SecurityGroupClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityGroupClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, sgName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -307,8 +308,8 @@ func testCheckAzureRMNetworkSecurityGroupDisappears(resourceName string) resourc
 			return fmt.Errorf("Bad: no resource group found in state for network security group: %q", sgName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Network.SecurityGroupClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityGroupClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, sgName)
 		if err != nil {
 			if !response.WasNotFound(future.Response()) {
@@ -321,8 +322,8 @@ func testCheckAzureRMNetworkSecurityGroupDisappears(resourceName string) resourc
 }
 
 func testCheckAzureRMNetworkSecurityGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Network.SecurityGroupClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityGroupClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_network_security_group" {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
@@ -143,8 +144,8 @@ func testCheckAzureRMKubernetesClusterExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Managed Kubernetes Cluster: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Containers.KubernetesClustersClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.KubernetesClustersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		aks, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -160,7 +161,7 @@ func testCheckAzureRMKubernetesClusterExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMKubernetesClusterDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Containers.KubernetesClustersClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.KubernetesClustersClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_kubernetes_cluster" {
@@ -170,7 +171,7 @@ func testCheckAzureRMKubernetesClusterDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {

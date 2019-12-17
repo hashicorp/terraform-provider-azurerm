@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -20,7 +21,7 @@ func TestAccAzureRMDnsTxtRecord_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsTxtRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -51,7 +52,7 @@ func TestAccAzureRMDnsTxtRecord_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsTxtRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -76,7 +77,7 @@ func TestAccAzureRMDnsTxtRecord_updateRecords(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsTxtRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -105,7 +106,7 @@ func TestAccAzureRMDnsTxtRecord_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsTxtRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -146,8 +147,8 @@ func testCheckAzureRMDnsTxtRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for DNS TXT record: %s", txtName)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, txtName, dns.TXT)
 		if err != nil {
 			return fmt.Errorf("Bad: Get TXT RecordSet: %+v", err)
@@ -162,8 +163,8 @@ func testCheckAzureRMDnsTxtRecordExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMDnsTxtRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_txt_record" {

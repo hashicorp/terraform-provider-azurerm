@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -20,7 +21,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_no_permission(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -43,7 +44,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -69,7 +70,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_read_telemetry_permissions(t *testi
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -99,7 +100,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_write_annotations_permission(t *tes
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -129,7 +130,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -159,7 +160,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -183,8 +184,8 @@ func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 }
 
 func testCheckAzureRMApplicationInsightsAPIKeyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).AppInsights.APIKeysClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.APIKeysClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_application_insights_api_key" {
@@ -229,8 +230,8 @@ func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resour
 		resGroup := id.ResourceGroup
 		appInsightsName := id.Path["components"]
 
-		conn := testAccProvider.Meta().(*clients.Client).AppInsights.APIKeysClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.APIKeysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, appInsightsName, keyID)
 		if err != nil {

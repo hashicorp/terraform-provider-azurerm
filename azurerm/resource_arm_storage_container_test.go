@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -24,7 +25,7 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -56,7 +57,7 @@ func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -82,7 +83,7 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -117,7 +118,7 @@ func TestAccAzureRMStorageContainer_metaData(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -165,7 +166,7 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -189,7 +190,7 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -217,7 +218,7 @@ func TestAccAzureRMStorageContainer_web(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -243,8 +244,8 @@ func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*clients.Client).Storage
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
@@ -282,8 +283,8 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*clients.Client).Storage
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
@@ -315,8 +316,8 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		storageClient := testAccProvider.Meta().(*clients.Client).Storage
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]

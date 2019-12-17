@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -20,7 +21,7 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,7 +45,7 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -74,7 +75,7 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_switchSubnets(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -102,7 +103,7 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -126,7 +127,7 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -152,8 +153,8 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName string) resour
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).MariaDB.VirtualNetworkRulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -178,8 +179,8 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleDestroy(s *terraform.State) error 
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).MariaDB.VirtualNetworkRulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -208,8 +209,8 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleDisappears(resourceName string) re
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).MariaDB.VirtualNetworkRulesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {

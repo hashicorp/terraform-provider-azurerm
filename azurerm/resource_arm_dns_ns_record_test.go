@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -21,7 +22,7 @@ func TestAccAzureRMDnsNsRecord_deprecatedBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -41,7 +42,7 @@ func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -72,7 +73,7 @@ func TestAccAzureRMDnsNsRecord_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -99,7 +100,7 @@ func TestAccAzureRMDnsNsRecord_deprecatedUpdateRecords(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -129,7 +130,7 @@ func TestAccAzureRMDnsNsRecord_updateRecords(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -160,7 +161,7 @@ func TestAccAzureRMDnsNsRecord_deprecatedChangeRecordToRecords(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -191,7 +192,7 @@ func TestAccAzureRMDnsNsRecord_deprecatedWithTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -221,7 +222,7 @@ func TestAccAzureRMDnsNsRecord_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -262,8 +263,8 @@ func testCheckAzureRMDnsNsRecordExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for DNS NS record: %s", nsName)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, nsName, dns.NS)
 		if err != nil {
 			return fmt.Errorf("Bad: Get DNS NS Record: %+v", err)
@@ -278,8 +279,8 @@ func testCheckAzureRMDnsNsRecordExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMDnsNsRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_ns_record" {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -47,7 +48,7 @@ func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -71,7 +72,7 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -95,7 +96,7 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -128,7 +129,7 @@ func TestAccAzureRMSqlServer_withIdentity(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -156,7 +157,7 @@ func TestAccAzureRMSqlServer_updateWithIdentityAdded(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -198,8 +199,8 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s", sqlServerName)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Sql.ServersClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -213,8 +214,8 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Sql.ServersClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_server" {
@@ -251,8 +252,8 @@ func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).Sql.ServersClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName)
 		if err != nil {

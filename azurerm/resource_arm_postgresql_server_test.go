@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +20,7 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -80,7 +81,7 @@ func TestAccAzureRMPostgreSQLServer_basicTenPointZero(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -110,7 +111,7 @@ func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -145,7 +146,7 @@ func TestAccAzureRMPostgreSQLServer_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -172,7 +173,7 @@ func TestAccAzureRMPostgreSQLServer_basicMaxStorage(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -203,7 +204,7 @@ func TestAccAzureRMPostgreSQLServer_generalPurpose(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -231,7 +232,7 @@ func TestAccAzureRMPostgreSQLServer_memoryOptimized(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -261,7 +262,7 @@ func TestAccAzureRMPostgreSQLServer_updatePassword(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -289,7 +290,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -327,7 +328,7 @@ func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -374,8 +375,8 @@ func testCheckAzureRMPostgreSQLServerExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Server: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Postgres.ServersClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -391,8 +392,8 @@ func testCheckAzureRMPostgreSQLServerExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMPostgreSQLServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Postgres.ServersClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServersClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_postgresql_server" {

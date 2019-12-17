@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -53,7 +54,7 @@ func TestAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -109,7 +110,7 @@ func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -143,7 +144,7 @@ func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -177,7 +178,7 @@ func TestAccAzureRMServiceFabricCluster_manualLatest(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -204,7 +205,7 @@ func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -229,7 +230,7 @@ func TestAccAzureRMServiceFabricCluster_certificate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -259,7 +260,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -295,7 +296,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -333,7 +334,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -395,7 +396,7 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateThumbprint(t *testing.T
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -428,7 +429,7 @@ func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -463,7 +464,7 @@ func TestAccAzureRMServiceFabricCluster_certificateCommonNames(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -492,7 +493,7 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -526,7 +527,7 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -574,7 +575,7 @@ func TestAccAzureRMServiceFabricCluster_diagnosticsConfig(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -605,7 +606,7 @@ func TestAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -642,7 +643,7 @@ func TestAccAzureRMServiceFabricCluster_fabricSettings(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -670,7 +671,7 @@ func TestAccAzureRMServiceFabricCluster_fabricSettingsRemove(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -697,7 +698,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -728,7 +729,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -759,7 +760,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -786,7 +787,7 @@ func TestAccAzureRMServiceFabricCluster_nodeTypeProperties(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -815,7 +816,7 @@ func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -836,8 +837,8 @@ func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
 }
 
 func testCheckAzureRMServiceFabricClusterDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).ServiceFabric.ClustersClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceFabric.ClustersClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_service_fabric_cluster" {
@@ -875,8 +876,8 @@ func testCheckAzureRMServiceFabricClusterExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Service Fabric Cluster %q", clusterName)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).ServiceFabric.ClustersClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceFabric.ClustersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, clusterName)
 		if err != nil {

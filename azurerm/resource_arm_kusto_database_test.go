@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMKustoDatabase_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,7 +47,7 @@ func TestAccAzureRMKustoDatabase_softDeletePeriod(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -76,7 +77,7 @@ func TestAccAzureRMKustoDatabase_hotCachePeriod(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -241,7 +242,7 @@ resource "azurerm_kusto_database" "test" {
 }
 
 func testCheckAzureRMKustoDatabaseDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).Kusto.DatabasesClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_kusto_database" {
@@ -252,7 +253,7 @@ func testCheckAzureRMKustoDatabaseDestroy(s *terraform.State) error {
 		clusterName := rs.Primary.Attributes["cluster_name"]
 		name := rs.Primary.Attributes["name"]
 
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, clusterName, name)
 
 		if err != nil {
@@ -287,8 +288,8 @@ func testCheckAzureRMKustoDatabaseExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for Kusto Database: %s", kustoDatabase)
 		}
 
-		client := testAccProvider.Meta().(*clients.Client).Kusto.DatabasesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, clusterName, kustoDatabase)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -51,7 +52,7 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -79,7 +80,7 @@ func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -107,7 +108,7 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -145,7 +146,7 @@ func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -171,8 +172,8 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		// Ensure resource group exists in API
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
-		conn := testAccProvider.Meta().(*clients.Client).Batch.AccountClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.AccountClient
 
 		resp, err := conn.Get(ctx, resourceGroup, batchAccount)
 		if err != nil {
@@ -188,8 +189,8 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Batch.AccountClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.AccountClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_batch_account" {

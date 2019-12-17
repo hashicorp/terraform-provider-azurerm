@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
@@ -18,7 +19,7 @@ func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +60,7 @@ func testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -88,7 +89,7 @@ func testAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -122,7 +123,7 @@ func testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{

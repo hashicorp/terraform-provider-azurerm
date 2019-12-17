@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -26,7 +27,7 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -67,7 +68,7 @@ func TestAccAzureRMLoadBalancerProbe_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -95,7 +96,7 @@ func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -124,7 +125,7 @@ func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -156,7 +157,7 @@ func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -186,7 +187,7 @@ func TestAccAzureRMLoadBalancerProbe_disappears(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -226,8 +227,8 @@ func testCheckAzureRMLoadBalancerProbeNotExists(natRuleName string, lb *network.
 
 func testCheckAzureRMLoadBalancerProbeDisappears(addressPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*clients.Client).Network.LoadBalancersClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		_, i, exists := findLoadBalancerProbeByName(lb, addressPoolName)
 		if !exists {

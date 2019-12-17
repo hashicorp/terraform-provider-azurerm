@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMSqlDatabase_basic(t *testing.T) {
@@ -15,7 +16,7 @@ func TestAccDataSourceAzureRMSqlDatabase_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -43,7 +44,7 @@ func TestAccDataSourceAzureRMSqlDatabase_elasticPool(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -68,7 +69,7 @@ func TestAccDataSourceAzureRMSqlDatabase_readScale(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{

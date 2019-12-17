@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -19,7 +20,7 @@ func TestAccAzureRMHDInsightHadoopCluster_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +62,7 @@ func TestAccAzureRMHDInsightHadoopCluster_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -88,7 +89,7 @@ func TestAccAzureRMHDInsightHadoopCluster_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -147,7 +148,7 @@ func TestAccAzureRMHDInsightHadoopCluster_sshKeys(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -184,7 +185,7 @@ func TestAccAzureRMHDInsightHadoopCluster_virtualNetwork(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -221,7 +222,7 @@ func TestAccAzureRMHDInsightHadoopCluster_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -258,7 +259,7 @@ func TestAccAzureRMHDInsightHadoopCluster_edgeNodeBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -297,7 +298,7 @@ func TestAccAzureRMHDInsightHadoopCluster_addEdgeNodeBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -382,7 +383,7 @@ func TestAccAzureRMHDInsightHadoopCluster_gen2storage(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -419,7 +420,7 @@ func TestAccAzureRMHDInsightHadoopCluster_gen2AndBlobStorage(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{

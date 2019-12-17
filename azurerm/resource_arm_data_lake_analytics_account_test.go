@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMDataLakeAnalyticsAccount_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccAzureRMDataLakeAnalyticsAccount_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,7 +74,7 @@ func TestAccAzureRMDataLakeAnalyticsAccount_tier(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -98,7 +99,7 @@ func TestAccAzureRMDataLakeAnalyticsAccount_withTags(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -138,8 +139,8 @@ func testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName string) resourc
 			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", accountName)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Datalake.AnalyticsAccountsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.AnalyticsAccountsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName)
 		if err != nil {
@@ -155,8 +156,8 @@ func testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName string) resourc
 }
 
 func testCheckAzureRMDataLakeAnalyticsAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Datalake.AnalyticsAccountsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.AnalyticsAccountsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_lake_analytics_account" {

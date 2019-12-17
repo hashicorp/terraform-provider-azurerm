@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMApplicationSecurityGroup_basic(t *testing.T) {
@@ -13,7 +14,7 @@ func TestAccDataSourceAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceApplicationSecurityGroup_basic(ri, testLocation()),
@@ -33,7 +34,7 @@ func TestAccDataSourceAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceApplicationSecurityGroup_complete(ri, testLocation()),

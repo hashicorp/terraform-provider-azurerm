@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +50,7 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(t *testin
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,7 +74,7 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_inputs(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -114,8 +115,8 @@ func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(resourceName str
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*clients.Client).StreamAnalytics.FunctionsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.FunctionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on streamAnalyticsFunctionsClient: %+v", err)
@@ -130,7 +131,7 @@ func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(resourceName str
 }
 
 func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_function_javascript_udf" {
@@ -140,7 +141,7 @@ func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy(s *terraform.St
 		name := rs.Primary.Attributes["name"]
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return nil

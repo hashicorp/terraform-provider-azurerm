@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -20,7 +21,7 @@ func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +51,7 @@ func TestAccAzureRMMonitorActionGroup_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -74,7 +75,7 @@ func TestAccAzureRMMonitorActionGroup_emailReceiver(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -99,7 +100,7 @@ func TestAccAzureRMMonitorActionGroup_itsmReceiver(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -124,7 +125,7 @@ func TestAccAzureRMMonitorActionGroup_azureAppPushReceiver(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -149,7 +150,7 @@ func TestAccAzureRMMonitorActionGroup_smsReceiver(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -174,7 +175,7 @@ func TestAccAzureRMMonitorActionGroup_webhookReceiver(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -199,7 +200,7 @@ func TestAccAzureRMMonitorActionGroup_automationRunbookReceiver(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -224,7 +225,7 @@ func TestAccAzureRMMonitorActionGroup_voiceReceiver(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -249,7 +250,7 @@ func TestAccAzureRMMonitorActionGroup_logicAppReceiver(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -275,7 +276,7 @@ func TestAccAzureRMMonitorActionGroup_azureFunctionReceiver(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -300,7 +301,7 @@ func TestAccAzureRMMonitorActionGroup_armRoleReceiver(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -326,7 +327,7 @@ func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -353,7 +354,7 @@ func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -404,7 +405,7 @@ func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -529,7 +530,7 @@ func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -1079,8 +1080,8 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 func testCheckAzureRMMonitorActionGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Monitor.ActionGroupsClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ActionGroupsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_monitor_action_group" {
@@ -1118,8 +1119,8 @@ func testCheckAzureRMMonitorActionGroupExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Action Group Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).Monitor.ActionGroupsClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ActionGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {

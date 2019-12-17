@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -24,7 +25,7 @@ func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -53,7 +54,7 @@ func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -76,7 +77,7 @@ func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -100,7 +101,7 @@ func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -124,7 +125,7 @@ func TestAccAzureRMCosmosDBAccount_consistentPrefix(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -148,7 +149,7 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -172,7 +173,7 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -198,7 +199,7 @@ func TestAccAzureRMCosmosDBAccount_consistency_change(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -225,7 +226,7 @@ func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -251,7 +252,7 @@ func TestAccAzureRMCosmosDBAccount_capabilityGremlin(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -276,7 +277,7 @@ func TestAccAzureRMCosmosDBAccount_capabilityTable(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -301,7 +302,7 @@ func TestAccAzureRMCosmosDBAccount_capabilityCassandra(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -326,7 +327,7 @@ func TestAccAzureRMCosmosDBAccount_capabilityAggregationPipeline(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -351,7 +352,7 @@ func TestAccAzureRMCosmosDBAccount_capabilityMongo35(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -376,7 +377,7 @@ func TestAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -401,7 +402,7 @@ func TestAccAzureRMCosmosDBAccount_capabilityUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -433,7 +434,7 @@ func TestAbcAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -460,7 +461,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -484,7 +485,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_non_boundedStaleness_cp(t *test
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -510,7 +511,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_add_remove(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -544,7 +545,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -570,7 +571,7 @@ func TestAccAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -593,7 +594,7 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -623,7 +624,7 @@ func TestAccAzureRMCosmosDBAccount_emptyIpFilter(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -649,7 +650,7 @@ func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -670,8 +671,8 @@ func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cosmosdb_account" {
@@ -696,8 +697,8 @@ func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDBAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

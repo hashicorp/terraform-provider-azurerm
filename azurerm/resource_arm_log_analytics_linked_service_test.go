@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -19,7 +20,7 @@ func TestAccAzureRMLogAnalyticsLinkedService_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,7 +53,7 @@ func TestAccAzureRMLogAnalyticsLinkedService_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -78,7 +79,7 @@ func TestAccAzureRMLogAnalyticsLinkedService_complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -103,7 +104,7 @@ func TestAccAzureRMLogAnalyticsLinkedService_noResourceID(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -121,7 +122,7 @@ func TestAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -140,8 +141,8 @@ func TestAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(t *testing.
 }
 
 func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*clients.Client).LogAnalytics.LinkedServicesClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.LinkedServicesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_log_analytics_linked_service" {
@@ -185,8 +186,8 @@ func testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName string) resour
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Linked Service: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*clients.Client).LogAnalytics.LinkedServicesClient
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.LinkedServicesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, workspaceName, lsName)
 		if err != nil {

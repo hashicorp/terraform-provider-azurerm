@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -20,7 +21,7 @@ func TestAccAzureRMIotHubEndpointServiceBusQueue_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testAccAzureRMIotHubEndpointStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +50,7 @@ func TestAccAzureRMIotHubEndpointServiceBusQueue_requiresImport(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testAccAzureRMIotHubEndpointServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -143,7 +144,7 @@ resource "azurerm_iothub_endpoint_servicebus_queue" "import" {
 
 func testAccAzureRMIotHubEndpointServiceBusQueueExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -157,7 +158,7 @@ func testAccAzureRMIotHubEndpointServiceBusQueueExists(resourceName string) reso
 		endpointName := parsedIothubId.Path["Endpoints"]
 		resourceGroup := parsedIothubId.ResourceGroup
 
-		client := testAccProvider.Meta().(*clients.Client).IoTHub.ResourceClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
@@ -188,8 +189,8 @@ func testAccAzureRMIotHubEndpointServiceBusQueueExists(resourceName string) reso
 }
 
 func testAccAzureRMIotHubEndpointServiceBusQueueDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*clients.Client).IoTHub.ResourceClient
-	ctx := testAccProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothub_endpoint_servicebus_queue" {

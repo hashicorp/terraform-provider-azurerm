@@ -29,7 +29,7 @@ func init() {
 		"azuread": azuread.Provider().(*schema.Provider),
 	}
 	acceptance.SupportedProviders = map[string]terraform.ResourceProvider{
-		"azurerm": testAccProvider,
+		"azurerm": acceptance.AzureProvider,
 		"azuread": azuread.Provider().(*schema.Provider),
 	}
 }
