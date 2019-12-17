@@ -143,6 +143,10 @@ The following arguments are supported:
 
 ~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be sku "Basic" not "Standard"
 
+* `generation` - (Optional) Configuration of the generation if the virtual network
+    gateway. Valid options are `Generation1`, `Generation2` and `None` and depend on
+    the `type` and `sku` arguments. Setting `generation` is only supported for 
+    `type` `Vpn`. `Generation2` is only valid for `sku` larger than `VpnGw2` or `VpnGw2AZ`.
 
 * `ip_configuration` (Required) One or two `ip_configuration` blocks documented below.
     An active-standby gateway requires exactly one `ip_configuration` block whereas
