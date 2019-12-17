@@ -12,10 +12,10 @@ import (
 func TestAccDataSourceAzureRMSharedImageGallery_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_shared_image_gallery.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
 		Steps: []resource.TestStep{
@@ -32,10 +32,10 @@ func TestAccDataSourceAzureRMSharedImageGallery_basic(t *testing.T) {
 func TestAccDataSourceAzureRMSharedImageGallery_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_shared_image_gallery.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
 		Steps: []resource.TestStep{

@@ -25,7 +25,7 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "LRS")
 	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS", "")
 
@@ -70,7 +70,7 @@ func TestAccAzureRMImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS", "V2")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
@@ -105,12 +105,12 @@ func TestAccAzureRMImage_standaloneImageZoneRedundant(t *testing.T) {
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "ZRS")
 	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "ZRS", "")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
@@ -150,10 +150,10 @@ func TestAccAzureRMImage_requiresImport(t *testing.T) {
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
@@ -174,7 +174,7 @@ func TestAccAzureRMImage_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMImage_standaloneImage_requiresImport(ri, userName, password, hostName, location),
-				ExpectError: testRequiresImportError("azurerm_image"),
+				ExpectError: acceptance.RequiresImportError("azurerm_image"),
 			},
 		},
 	})
@@ -187,12 +187,12 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMImage_customImage_fromVHD_setup(ri, userName, password, hostName, location)
 	postConfig := testAccAzureRMImage_customImage_fromVHD_provision(ri, userName, password, hostName, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
@@ -222,12 +222,12 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMImage_customImage_fromVM_sourceVM(ri, userName, password, hostName, location)
 	postConfig := testAccAzureRMImage_customImage_fromVM_destinationVM(ri, userName, password, hostName, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
@@ -257,12 +257,12 @@ func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMImageVMSS_customImage_fromVHD_setup(ri, userName, password, hostName, location)
 	postConfig := testAccAzureRMImageVMSS_customImage_fromVHD_provision(ri, userName, password, hostName, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{

@@ -48,10 +48,10 @@ func TestAccAzureRMNetworkDDoSProtectionPlan(t *testing.T) {
 func testAccAzureRMNetworkDDoSProtectionPlan_basic(t *testing.T) {
 	resourceName := "azurerm_network_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
@@ -79,10 +79,10 @@ func testAccAzureRMNetworkDDoSProtectionPlan_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_network_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
@@ -94,7 +94,7 @@ func testAccAzureRMNetworkDDoSProtectionPlan_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMNetworkDDoSProtectionPlan_requiresImportConfig(ri, location),
-				ExpectError: testRequiresImportError("azurerm_network_ddos_protection_plan"),
+				ExpectError: acceptance.RequiresImportError("azurerm_network_ddos_protection_plan"),
 			},
 		},
 	})
@@ -103,10 +103,10 @@ func testAccAzureRMNetworkDDoSProtectionPlan_requiresImport(t *testing.T) {
 func testAccAzureRMNetworkDDoSProtectionPlan_withTags(t *testing.T) {
 	resourceName := "azurerm_network_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
@@ -139,10 +139,10 @@ func testAccAzureRMNetworkDDoSProtectionPlan_withTags(t *testing.T) {
 func testAccAzureRMNetworkDDoSProtectionPlan_disappears(t *testing.T) {
 	resourceName := "azurerm_network_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{

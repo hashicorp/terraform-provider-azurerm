@@ -24,12 +24,12 @@ func TestAccAzureRMBatchPool_basic(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPool_basic(ri, rs, testLocation()),
+				Config: testaccAzureRMBatchPool_basic(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -59,12 +59,12 @@ func TestAccAzureRMBatchPool_requiresImport(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPool_basic(ri, rs, testLocation()),
+				Config: testaccAzureRMBatchPool_basic(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -80,8 +80,8 @@ func TestAccAzureRMBatchPool_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testaccAzureRMBatchPool_requiresImport(ri, rs, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_batch_account"),
+				Config:      testaccAzureRMBatchPool_requiresImport(ri, rs, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_batch_account"),
 			},
 		},
 	})
@@ -93,12 +93,12 @@ func TestAccAzureRMBatchPool_fixedScale_complete(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPool_fixedScale_complete(ri, rs, testLocation()),
+				Config: testaccAzureRMBatchPool_fixedScale_complete(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -127,12 +127,12 @@ func TestAccAzureRMBatchPool_autoScale_complete(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPool_autoScale_complete(ri, rs, testLocation()),
+				Config: testaccAzureRMBatchPool_autoScale_complete(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -158,12 +158,12 @@ func TestAccAzureRMBatchPool_completeUpdated(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPool_fixedScale_complete(ri, rs, testLocation()),
+				Config: testaccAzureRMBatchPool_fixedScale_complete(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -182,7 +182,7 @@ func TestAccAzureRMBatchPool_completeUpdated(t *testing.T) {
 				),
 			},
 			{
-				Config: testaccAzureRMBatchPool_autoScale_complete(ri, rs, testLocation()),
+				Config: testaccAzureRMBatchPool_autoScale_complete(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -208,12 +208,12 @@ func TestAccAzureRMBatchPoolStartTask_basic(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPoolStartTask_basic(ri, rs, testLocation()),
+				Config: testaccAzureRMBatchPoolStartTask_basic(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -253,12 +253,12 @@ func TestAccAzureRMBatchPool_certificates(t *testing.T) {
 	certificate1ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, ri, rs)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPoolCertificates(ri, rs, testLocation()),
+				Config: testaccAzureRMBatchPoolCertificates(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
@@ -287,12 +287,12 @@ func TestAccAzureRMBatchPool_validateResourceFileWithoutSource(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testaccAzureRMBatchPoolValidateResourceFileWithoutSource(ri, rs, testLocation()),
+				Config:      testaccAzureRMBatchPoolValidateResourceFileWithoutSource(ri, rs, acceptance.Location()),
 				ExpectError: regexp.MustCompile("Exactly one of auto_storage_container_name, storage_container_url and http_url must be specified"),
 			},
 		},
@@ -305,12 +305,12 @@ func TestAccAzureRMBatchPool_container(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPoolContainerConfiguration(ri, rs, testLocation()),
+				Config: testaccAzureRMBatchPoolContainerConfiguration(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.type", "DockerCompatible"),
@@ -329,12 +329,12 @@ func TestAccAzureRMBatchPool_validateResourceFileWithMultipleSources(t *testing.
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testaccAzureRMBatchPoolValidateResourceFileWithMultipleSources(ri, rs, testLocation()),
+				Config:      testaccAzureRMBatchPoolValidateResourceFileWithMultipleSources(ri, rs, acceptance.Location()),
 				ExpectError: regexp.MustCompile("Exactly one of auto_storage_container_name, storage_container_url and http_url must be specified"),
 			},
 		},
@@ -346,12 +346,12 @@ func TestAccAzureRMBatchPool_validateResourceFileBlobPrefixWithoutAutoStorageCon
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testaccAzureRMBatchPoolValidateResourceFileBlobPrefixWithoutAutoStorageContainerName(ri, rs, testLocation()),
+				Config:      testaccAzureRMBatchPoolValidateResourceFileBlobPrefixWithoutAutoStorageContainerName(ri, rs, acceptance.Location()),
 				ExpectError: regexp.MustCompile("auto_storage_container_name or storage_container_url must be specified when using blob_prefix"),
 			},
 		},
@@ -363,12 +363,12 @@ func TestAccAzureRMBatchPool_validateResourceFileHttpURLWithoutFilePath(t *testi
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testaccAzureRMBatchPoolValidateResourceFileHttpURLWithoutFilePath(ri, rs, testLocation()),
+				Config:      testaccAzureRMBatchPoolValidateResourceFileHttpURLWithoutFilePath(ri, rs, acceptance.Location()),
 				ExpectError: regexp.MustCompile("file_path must be specified when using http_url"),
 			},
 		},
@@ -381,12 +381,12 @@ func TestAccAzureRMBatchPool_customImage(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPoolCustomImageConfiguration(ri, rs, testLocation()),
+				Config: testaccAzureRMBatchPoolCustomImageConfiguration(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),

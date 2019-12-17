@@ -20,12 +20,12 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTemplateDeployment_basicMultiple(ri, testLocation()),
+				Config: testAccAzureRMTemplateDeployment_basicMultiple(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 				),
@@ -42,19 +42,19 @@ func TestAccAzureRMTemplateDeployment_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTemplateDeployment_basicMultiple(ri, testLocation()),
+				Config: testAccAzureRMTemplateDeployment_basicMultiple(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 				),
 			},
 			{
-				Config:      testAccAzureRMTemplateDeployment_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_template_deployment"),
+				Config:      testAccAzureRMTemplateDeployment_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_template_deployment"),
 			},
 		},
 	})
@@ -64,12 +64,12 @@ func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTemplateDeployment_basicSingle(ri, testLocation()),
+				Config: testAccAzureRMTemplateDeployment_basicSingle(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					testCheckAzureRMTemplateDeploymentDisappears("azurerm_template_deployment.test"),
@@ -84,12 +84,12 @@ func TestAccAzureRMTemplateDeployment_nestedTemplate(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTemplateDeployment_nestedTemplate(ri, testLocation()),
+				Config: testAccAzureRMTemplateDeployment_nestedTemplate(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 				),
@@ -102,12 +102,12 @@ func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTemplateDeployment_withParams(ri, testLocation()),
+				Config: testAccAzureRMTemplateDeployment_withParams(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
@@ -121,12 +121,12 @@ func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMTemplateDeployment_withParamsBody(ri, testLocation()),
+				Config: testaccAzureRMTemplateDeployment_withParamsBody(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
@@ -140,12 +140,12 @@ func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTemplateDeployment_withOutputs(ri, testLocation()),
+				Config: testAccAzureRMTemplateDeployment_withOutputs(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					resource.TestCheckOutput("tfIntOutput", "-123"),
@@ -168,12 +168,12 @@ func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMTemplateDeployment_withError(ri, testLocation()),
+				Config:      testAccAzureRMTemplateDeployment_withError(ri, acceptance.Location()),
 				ExpectError: regexp.MustCompile("Error validating Template for Deployment"),
 			},
 		},

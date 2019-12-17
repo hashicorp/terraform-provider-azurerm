@@ -18,10 +18,10 @@ import (
 func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
 	resourceName := "azurerm_monitor_activity_log_alert.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
 		Steps: []resource.TestStep{
@@ -53,10 +53,10 @@ func TestAccAzureRMMonitorActivityLogAlert_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_monitor_activity_log_alert.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
 		Steps: []resource.TestStep{
@@ -68,7 +68,7 @@ func TestAccAzureRMMonitorActivityLogAlert_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMMonitorActivityLogAlert_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_monitor_activity_log_alert"),
+				ExpectError: acceptance.RequiresImportError("azurerm_monitor_activity_log_alert"),
 			},
 		},
 	})
@@ -78,10 +78,10 @@ func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
 	resourceName := "azurerm_monitor_activity_log_alert.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMMonitorActivityLogAlert_singleResource(ri, rs, testLocation())
+	config := testAccAzureRMMonitorActivityLogAlert_singleResource(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
 		Steps: []resource.TestStep{
@@ -111,10 +111,10 @@ func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
 	resourceName := "azurerm_monitor_activity_log_alert.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, testLocation())
+	config := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
 		Steps: []resource.TestStep{
@@ -151,12 +151,12 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 	resourceName := "azurerm_monitor_activity_log_alert.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 	basicConfig := testAccAzureRMMonitorActivityLogAlert_basic(ri, location)
 	completeConfig := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{

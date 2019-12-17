@@ -18,12 +18,12 @@ func TestAccAzureRMMapsAccount_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMapsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMapsAccount_basic(ri, testLocation()),
+				Config: testAccAzureRMMapsAccount_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "x_ms_client_id"),
@@ -46,12 +46,12 @@ func TestAccAzureRMMapsAccount_sku(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMapsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMapsAccount_sku(ri, testLocation()),
+				Config: testAccAzureRMMapsAccount_sku(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "x_ms_client_id"),
@@ -72,10 +72,10 @@ func TestAccAzureRMMapsAccount_sku(t *testing.T) {
 func TestAccAzureRMMapsAccount_tags(t *testing.T) {
 	resourceName := "azurerm_maps_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMapsAccountDestroy,
 		Steps: []resource.TestStep{

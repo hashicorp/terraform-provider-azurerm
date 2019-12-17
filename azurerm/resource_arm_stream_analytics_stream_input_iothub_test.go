@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_avro(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_stream_input_iothub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy,
 		Steps: []resource.TestStep{
@@ -45,10 +45,10 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_avro(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_csv(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_stream_input_iothub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy,
 		Steps: []resource.TestStep{
@@ -74,10 +74,10 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_csv(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_json(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_stream_input_iothub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy,
 		Steps: []resource.TestStep{
@@ -103,10 +103,10 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_json(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_update(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_stream_input_iothub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy,
 		Steps: []resource.TestStep{
@@ -143,10 +143,10 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_requiresImport(t *testing.T)
 
 	resourceName := "azurerm_stream_analytics_stream_input_iothub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy,
 		Steps: []resource.TestStep{
@@ -158,7 +158,7 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_requiresImport(t *testing.T)
 			},
 			{
 				Config:      testAccAzureRMStreamAnalyticsStreamInputIoTHub_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_stream_analytics_stream_input_iothub"),
+				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_stream_input_iothub"),
 			},
 		},
 	})

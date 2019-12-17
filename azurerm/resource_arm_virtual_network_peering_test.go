@@ -18,10 +18,10 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkPeering_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
@@ -52,10 +52,10 @@ func TestAccAzureRMVirtualNetworkPeering_requiresImport(t *testing.T) {
 	firstResourceName := "azurerm_virtual_network_peering.test1"
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
@@ -68,7 +68,7 @@ func TestAccAzureRMVirtualNetworkPeering_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMVirtualNetworkPeering_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_virtual_network_peering"),
+				ExpectError: acceptance.RequiresImportError("azurerm_virtual_network_peering"),
 			},
 		},
 	})
@@ -79,10 +79,10 @@ func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkPeering_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
@@ -106,11 +106,11 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
-	postConfig := testAccAzureRMVirtualNetworkPeering_basicUpdate(ri, testLocation())
+	preConfig := testAccAzureRMVirtualNetworkPeering_basic(ri, acceptance.Location())
+	postConfig := testAccAzureRMVirtualNetworkPeering_basicUpdate(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{

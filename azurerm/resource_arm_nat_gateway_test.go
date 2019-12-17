@@ -16,10 +16,10 @@ func TestAccAzureRMNatGateway_basic(t *testing.T) {
 	resourceName := "azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
 	// Using alt location because the resource currently in private preview and is only available in eastus2.
-	location := testAltLocation()
+	location := acceptance.AltLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -42,10 +42,10 @@ func TestAccAzureRMNatGateway_complete(t *testing.T) {
 	resourceName := "azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
 	// Using alt location because the resource currently in private preview and is only available in eastus2.
-	location := testAltLocation()
+	location := acceptance.AltLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -73,10 +73,10 @@ func TestAccAzureRMNatGateway_update(t *testing.T) {
 	resourceName := "azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
 	// Using alt location because the resource currently in private preview and is only available in eastus2.
-	location := testAltLocation()
+	location := acceptance.AltLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{

@@ -17,10 +17,10 @@ import (
 func TestAccAzureRMApiManagement_basic(t *testing.T) {
 	resourceName := "azurerm_api_management.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagement_basic(ri, testLocation())
+	config := testAccAzureRMApiManagement_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
@@ -43,10 +43,10 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
 	resourceName := "azurerm_api_management.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagement_basicClassic(ri, testLocation())
+	config := testAccAzureRMApiManagement_basicClassic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
@@ -68,10 +68,10 @@ func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
 // Remove in 2.0
 func TestAccAzureRMApiManagement_basicNotDefined(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagement_basicNotDefined(ri, testLocation())
+	config := testAccAzureRMApiManagement_basicNotDefined(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
@@ -91,10 +91,10 @@ func TestAccAzureRMApiManagement_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
@@ -106,7 +106,7 @@ func TestAccAzureRMApiManagement_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApiManagement_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management"),
 			},
 		},
 	})
@@ -115,10 +115,10 @@ func TestAccAzureRMApiManagement_requiresImport(t *testing.T) {
 func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 	resourceName := "azurerm_api_management.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagement_customProps(ri, testAltLocation())
+	config := testAccAzureRMApiManagement_customProps(ri, acceptance.AltLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
@@ -140,10 +140,10 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 func TestAccAzureRMApiManagement_complete(t *testing.T) {
 	resourceName := "azurerm_api_management.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagement_complete(ri, testLocation(), testAltLocation(), testAltLocation2())
+	config := testAccAzureRMApiManagement_complete(ri, acceptance.Location(), acceptance.AltLocation(), acceptance.AltLocation2())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
@@ -176,10 +176,10 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 func TestAccAzureRMApiManagement_signInSignUpSettings(t *testing.T) {
 	resourceName := "azurerm_api_management.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
@@ -201,10 +201,10 @@ func TestAccAzureRMApiManagement_signInSignUpSettings(t *testing.T) {
 func TestAccAzureRMApiManagement_policy(t *testing.T) {
 	resourceName := "azurerm_api_management.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{

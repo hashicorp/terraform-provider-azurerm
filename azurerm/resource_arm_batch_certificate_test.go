@@ -19,7 +19,7 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 	resourceName := "azurerm_batch_certificate.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, ri, rs)
@@ -27,7 +27,7 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 	config := testAccAzureRMBatchCertificatePfx(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchCertificateDestroy,
 		Steps: []resource.TestStep{
@@ -53,12 +53,12 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 func TestAccAzureRMBatchCertificate_PfxWithoutPassword(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	config := testAccAzureRMBatchCertificatePfxWithoutPassword(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchCertificateDestroy,
 		Steps: []resource.TestStep{
@@ -74,7 +74,7 @@ func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 	resourceName := "azurerm_batch_certificate.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, ri, rs)
@@ -82,7 +82,7 @@ func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 	config := testAccAzureRMBatchCertificateCer(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchCertificateDestroy,
 		Steps: []resource.TestStep{
@@ -109,12 +109,12 @@ func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 func TestAccAzureRMBatchCertificate_CerWithPassword(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	config := testAccAzureRMBatchCertificateCerWithPassword(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchCertificateDestroy,
 		Steps: []resource.TestStep{

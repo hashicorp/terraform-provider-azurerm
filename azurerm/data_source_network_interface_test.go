@@ -16,14 +16,14 @@ func TestAccDataSourceArmVirtualNetworkInterface_basic(t *testing.T) {
 	name := fmt.Sprintf("acctest-nic-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceArmVirtualNetworkInterface_basic(ri, testLocation()),
+				Config: testAccDataSourceArmVirtualNetworkInterface_basic(ri, acceptance.Location()),
 			},
 			{
-				Config: testAccDataSourceArmVirtualNetworkInterface_withDataSource(ri, testLocation()),
+				Config: testAccDataSourceArmVirtualNetworkInterface_withDataSource(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),

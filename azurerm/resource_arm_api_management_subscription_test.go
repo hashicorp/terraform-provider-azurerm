@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMAPIManagementSubscription_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_subscription.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -49,10 +49,10 @@ func TestAccAzureRMAPIManagementSubscription_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_subscription.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -67,7 +67,7 @@ func TestAccAzureRMAPIManagementSubscription_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAPIManagementSubscription_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_subscription"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_subscription"),
 			},
 		},
 	})
@@ -76,10 +76,10 @@ func TestAccAzureRMAPIManagementSubscription_requiresImport(t *testing.T) {
 func TestAccAzureRMAPIManagementSubscription_update(t *testing.T) {
 	resourceName := "azurerm_api_management_subscription.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -121,10 +121,10 @@ func TestAccAzureRMAPIManagementSubscription_update(t *testing.T) {
 func TestAccAzureRMAPIManagementSubscription_complete(t *testing.T) {
 	resourceName := "azurerm_api_management_subscription.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{

@@ -18,10 +18,10 @@ import (
 func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_basic(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -52,9 +52,9 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(t *testing.T)
 
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -66,7 +66,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(t *testing.T)
 			},
 			{
 				Config:      testAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_virtual_machine_data_disk_attachment"),
+				ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_data_disk_attachment"),
 			},
 		},
 	})
@@ -76,10 +76,10 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) 
 	firstResourceName := "azurerm_virtual_machine_data_disk_attachment.first"
 	secondResourceName := "azurerm_virtual_machine_data_disk_attachment.second"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -116,9 +116,9 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) 
 func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -150,9 +150,9 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T
 func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -184,10 +184,10 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *
 func TestAccAzureRMVirtualMachineDataDiskAttachment_managedServiceIdentity(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_managedServiceIdentity(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
@@ -213,9 +213,9 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_managedServiceIdentity(t *te
 func TestAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtension(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{

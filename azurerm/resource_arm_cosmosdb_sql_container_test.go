@@ -18,13 +18,13 @@ func TestAccAzureRMCosmosDbSqlContainer_basic(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_sql_container.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbSqlContainer_basic(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlContainerExists(resourceName),
 				),
@@ -43,13 +43,13 @@ func TestAccAzureRMCosmosDbSqlContainer_complete(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_sql_container.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_complete(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbSqlContainer_complete(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlContainerExists(resourceName),
 				),
@@ -68,13 +68,13 @@ func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_sql_container.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_complete(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbSqlContainer_complete(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlContainerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "600"),
@@ -87,7 +87,7 @@ func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
 			},
 			{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_update(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbSqlContainer_update(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlContainerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),

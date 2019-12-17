@@ -17,10 +17,10 @@ import (
 func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_caa_record.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsCaaRecord_basic(ri, testLocation())
+	config := testAccAzureRMDnsCaaRecord_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
@@ -48,10 +48,10 @@ func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dns_caa_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
@@ -63,7 +63,7 @@ func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDnsCaaRecord_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_dns_caa_record"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dns_caa_record"),
 			},
 		},
 	})
@@ -72,12 +72,12 @@ func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
 func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_caa_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsCaaRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsCaaRecord_updateRecords(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
@@ -102,12 +102,12 @@ func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
 func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_caa_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsCaaRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsCaaRecord_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{

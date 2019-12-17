@@ -14,12 +14,12 @@ func TestAccDataSourceAzureRMStreamAnalyticsJob_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMStreamAnalyticsJob_basic(ri, testLocation()),
+				Config: testAccDataSourceAzureRMStreamAnalyticsJob_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "job_id"),
 				),

@@ -13,10 +13,10 @@ func TestAccDataSourceAzureRMKeyVaultKey_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_key.test"
 
 	rString := acctest.RandString(8)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

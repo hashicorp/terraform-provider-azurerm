@@ -18,12 +18,12 @@ func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationDscConfiguration_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationDscConfiguration_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationDscConfigurationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "location"),
@@ -50,10 +50,10 @@ func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_automation_dsc_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -65,7 +65,7 @@ func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAutomationDscConfiguration_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_automation_dsc_configuration"),
+				ExpectError: acceptance.RequiresImportError("azurerm_automation_dsc_configuration"),
 			},
 		},
 	})

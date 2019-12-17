@@ -22,12 +22,12 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 	rs := acctest.RandString(14)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs),
+				Config: testAccAzureRMUserAssignedIdentity_basic(ri, acceptance.Location(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMUserAssignedIdentityExists(resourceName),
 					resource.TestMatchResourceAttr(resourceName, "principal_id", validate.UUIDRegExp),
@@ -53,12 +53,12 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 	rs := acctest.RandString(14)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs),
+				Config: testAccAzureRMUserAssignedIdentity_basic(ri, acceptance.Location(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMUserAssignedIdentityExists(resourceName),
 					resource.TestMatchResourceAttr(resourceName, "principal_id", validate.UUIDRegExp),
@@ -66,8 +66,8 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMUserAssignedIdentity_requiresImport(ri, testLocation(), rs),
-				ExpectError: testRequiresImportError("azurerm_user_assigned_identity"),
+				Config:      testAccAzureRMUserAssignedIdentity_requiresImport(ri, acceptance.Location(), rs),
+				ExpectError: acceptance.RequiresImportError("azurerm_user_assigned_identity"),
 			},
 		},
 	})

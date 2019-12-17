@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	resourceName := "azurerm_virtual_network_gateway_connection.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -46,10 +46,10 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_requiresImport(t *testing.T) 
 
 	resourceName := "azurerm_virtual_network_gateway_connection.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_requiresImport(t *testing.T) 
 			},
 			{
 				Config:      testAccAzureRMVirtualNetworkGatewayConnection_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_virtual_network_gateway_connection"),
+				ExpectError: acceptance.RequiresImportError("azurerm_virtual_network_gateway_connection"),
 			},
 		},
 	})
@@ -74,10 +74,10 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	ri2 := tf.AccRandTimeInt()
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
-	config := testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, sharedKey, testLocation(), testAltLocation())
+	config := testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, sharedKey, acceptance.Location(), acceptance.AltLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -96,10 +96,10 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -142,14 +142,14 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.
 
 	ri := tf.AccRandTimeInt()
 	ri2 := tf.AccRandTimeInt()
-	loc1 := testLocation()
-	loc2 := testAltLocation()
+	loc1 := acceptance.Location()
+	loc2 := acceptance.AltLocation()
 
 	firstSharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 	secondSharedKey := "4-r33ly-53cr37-1p53c-5h4r3d-k3y"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{

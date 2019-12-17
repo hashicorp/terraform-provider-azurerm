@@ -12,10 +12,10 @@ import (
 func testAccDataSourceAzureRMNetAppAccount_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_netapp_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

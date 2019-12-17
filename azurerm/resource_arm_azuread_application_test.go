@@ -18,7 +18,7 @@ func TestAccAzureRMActiveDirectoryApplication_basic(t *testing.T) {
 	config := testAccAzureRMActiveDirectoryApplication_basic(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
@@ -46,7 +46,7 @@ func TestAccAzureRMActiveDirectoryApplication_availableToOtherTenants(t *testing
 	config := testAccAzureRMActiveDirectoryApplication_availableToOtherTenants(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
@@ -72,7 +72,7 @@ func TestAccAzureRMActiveDirectoryApplication_complete(t *testing.T) {
 	config := testAccAzureRMActiveDirectoryApplication_complete(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
@@ -105,7 +105,7 @@ func TestAccAzureRMActiveDirectoryApplication_update(t *testing.T) {
 	updatedConfig := testAccAzureRMActiveDirectoryApplication_complete(updatedId)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{

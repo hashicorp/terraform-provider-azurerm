@@ -22,9 +22,9 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, testLocation())
+	config := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -50,11 +50,11 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine(t *testing.T) {
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_storageBlob_attach(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, testLocation())
-	prepConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_destroyVM(ri, testLocation())
-	config := testAccAzureRMVirtualMachine_basicLinuxMachine_storageBlob_attach(ri, testLocation())
+	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, acceptance.Location())
+	prepConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_destroyVM(ri, acceptance.Location())
+	config := testAccAzureRMVirtualMachine_basicLinuxMachine_storageBlob_attach(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -82,9 +82,9 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_storageBlob_attach(t *testin
 func TestAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(ri, testLocation())
+	config := testAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -101,9 +101,9 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(t *testing.T) {
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_disappears(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, testLocation())
+	config := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -122,9 +122,9 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_disappears(t *testing.T) {
 func TestAccAzureRMVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(t *testing.T) {
 	var vm, mirrorVm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(ri, testLocation())
+	config := testAccAzureRMVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -146,9 +146,9 @@ func TestAccAzureRMVirtualMachine_withDataDisk(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_withDataDisk(ri, testLocation())
+	config := testAccAzureRMVirtualMachine_withDataDisk(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -167,11 +167,11 @@ func TestAccAzureRMVirtualMachine_tags(t *testing.T) {
 
 	resourceName := "azurerm_virtual_machine.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, location)
 	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineUpdated(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -204,11 +204,11 @@ func TestAccAzureRMVirtualMachine_updateMachineSize(t *testing.T) {
 
 	resourceName := "azurerm_virtual_machine.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, location)
 	postConfig := testAccAzureRMVirtualMachine_updatedLinuxMachine(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -233,9 +233,9 @@ func TestAccAzureRMVirtualMachine_updateMachineSize(t *testing.T) {
 func TestAccAzureRMVirtualMachine_basicWindowsMachine(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_basicWindowsMachine(ri, testLocation())
+	config := testAccAzureRMVirtualMachine_basicWindowsMachine(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -252,9 +252,9 @@ func TestAccAzureRMVirtualMachine_basicWindowsMachine(t *testing.T) {
 func TestAccAzureRMVirtualMachine_windowsUnattendedConfig(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_windowsUnattendedConfig(ri, testLocation(), "Standard_D1_v2")
+	config := testAccAzureRMVirtualMachine_windowsUnattendedConfig(ri, acceptance.Location(), "Standard_D1_v2")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -271,10 +271,10 @@ func TestAccAzureRMVirtualMachine_windowsUnattendedConfig(t *testing.T) {
 func TestAccAzureRMVirtualMachine_windowsMachineResize(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMVirtualMachine_windowsUnattendedConfig(ri, testLocation(), "Standard_D1_v2")
-	postConfig := testAccAzureRMVirtualMachine_windowsUnattendedConfig(ri, testLocation(), "Standard_D2_v2")
+	preConfig := testAccAzureRMVirtualMachine_windowsUnattendedConfig(ri, acceptance.Location(), "Standard_D1_v2")
+	postConfig := testAccAzureRMVirtualMachine_windowsUnattendedConfig(ri, acceptance.Location(), "Standard_D2_v2")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -297,9 +297,9 @@ func TestAccAzureRMVirtualMachine_windowsMachineResize(t *testing.T) {
 func TestAccAzureRMVirtualMachine_diagnosticsProfile(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_diagnosticsProfile(ri, testLocation())
+	config := testAccAzureRMVirtualMachine_diagnosticsProfile(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -316,9 +316,9 @@ func TestAccAzureRMVirtualMachine_diagnosticsProfile(t *testing.T) {
 func TestAccAzureRMVirtualMachine_winRMConfig(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_winRMConfig(ri, testLocation())
+	config := testAccAzureRMVirtualMachine_winRMConfig(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -335,10 +335,10 @@ func TestAccAzureRMVirtualMachine_winRMConfig(t *testing.T) {
 func TestAccAzureRMVirtualMachine_deleteVHDOptOut(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMVirtualMachine_withDataDisk(ri, testLocation())
-	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM(ri, testLocation())
+	preConfig := testAccAzureRMVirtualMachine_withDataDisk(ri, acceptance.Location())
+	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -362,10 +362,10 @@ func TestAccAzureRMVirtualMachine_deleteVHDOptOut(t *testing.T) {
 func TestAccAzureRMVirtualMachine_deleteVHDOptIn(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksBefore(ri, testLocation())
-	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksAfter(ri, testLocation())
+	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksBefore(ri, acceptance.Location())
+	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksAfter(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -390,10 +390,10 @@ func TestAccAzureRMVirtualMachine_ChangeComputerName(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMVirtualMachine_machineNameBeforeUpdate(ri, testLocation())
-	postConfig := testAccAzureRMVirtualMachine_updateMachineName(ri, testLocation())
+	preConfig := testAccAzureRMVirtualMachine_machineNameBeforeUpdate(ri, acceptance.Location())
+	postConfig := testAccAzureRMVirtualMachine_updateMachineName(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -420,10 +420,10 @@ func TestAccAzureRMVirtualMachine_ChangeAvailabilitySet(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMVirtualMachine_withAvailabilitySet(ri, testLocation())
-	postConfig := testAccAzureRMVirtualMachine_updateAvailabilitySet(ri, testLocation())
+	preConfig := testAccAzureRMVirtualMachine_withAvailabilitySet(ri, acceptance.Location())
+	postConfig := testAccAzureRMVirtualMachine_updateAvailabilitySet(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -450,10 +450,10 @@ func TestAccAzureRMVirtualMachine_changeStorageImageReference(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageBefore(ri, testLocation())
-	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageAfter(ri, testLocation())
+	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageBefore(ri, acceptance.Location())
+	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageAfter(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -480,10 +480,10 @@ func TestAccAzureRMVirtualMachine_changeOSDiskVhdUri(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, testLocation())
-	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineWithOSDiskVhdUriChanged(ri, testLocation())
+	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, acceptance.Location())
+	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineWithOSDiskVhdUriChanged(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -513,12 +513,12 @@ func TestAccAzureRMVirtualMachine_plan(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualMachine_plan(ri, testLocation()),
+				Config: testAccAzureRMVirtualMachine_plan(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
 				),
@@ -530,10 +530,10 @@ func TestAccAzureRMVirtualMachine_plan(t *testing.T) {
 func TestAccAzureRMVirtualMachine_changeSSHKey(t *testing.T) {
 	var vm compute.VirtualMachine
 	rs := strings.ToLower(acctest.RandString(10))
-	preConfig := testAccAzureRMVirtualMachine_linuxMachineWithSSH(rs, testLocation())
-	postConfig := testAccAzureRMVirtualMachine_linuxMachineWithSSHRemoved(rs, testLocation())
+	preConfig := testAccAzureRMVirtualMachine_linuxMachineWithSSH(rs, acceptance.Location())
+	postConfig := testAccAzureRMVirtualMachine_linuxMachineWithSSHRemoved(rs, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -557,12 +557,12 @@ func TestAccAzureRMVirtualMachine_optionalOSProfile(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, location)
 	prepConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_destroy(ri, location)
 	config := testAccAzureRMVirtualMachine_basicLinuxMachine_attach_without_osProfile(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -596,9 +596,9 @@ func TestAccAzureRMVirtualMachine_optionalOSProfile(t *testing.T) {
 func TestAccAzureRMVirtualMachine_primaryNetworkInterfaceId(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_primaryNetworkInterfaceId(ri, testLocation())
+	config := testAccAzureRMVirtualMachine_primaryNetworkInterfaceId(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{

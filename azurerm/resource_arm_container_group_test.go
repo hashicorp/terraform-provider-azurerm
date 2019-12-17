@@ -19,9 +19,9 @@ import (
 func TestAccAzureRMContainerGroup_SystemAssignedIdentity(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMContainerGroup_SystemAssignedIdentity(ri, testLocation())
+	config := testAccAzureRMContainerGroup_SystemAssignedIdentity(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -50,9 +50,9 @@ func TestAccAzureRMContainerGroup_UserAssignedIdentity(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
-	config := testAccAzureRMContainerGroup_UserAssignedIdentity(ri, testLocation(), rs)
+	config := testAccAzureRMContainerGroup_UserAssignedIdentity(ri, acceptance.Location(), rs)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -78,9 +78,9 @@ func TestAccAzureRMContainerGroup_multipleAssignedIdentities(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
-	config := testAccAzureRMContainerGroup_MultipleAssignedIdentities(ri, testLocation(), rs)
+	config := testAccAzureRMContainerGroup_MultipleAssignedIdentities(ri, acceptance.Location(), rs)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -109,10 +109,10 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
 
-	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
+	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -146,11 +146,11 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
 
-	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
-	updated := testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(ri, testLocation())
+	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, acceptance.Location())
+	updated := testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -187,9 +187,9 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 func TestAccAzureRMContainerGroup_logTypeUnset(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMContainerGroup_logTypeUnset(ri, testLocation())
+	config := testAccAzureRMContainerGroup_logTypeUnset(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -220,10 +220,10 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
 
-	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
+	config := testAccAzureRMContainerGroup_linuxBasic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -257,10 +257,10 @@ func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -272,7 +272,7 @@ func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMContainerGroup_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_container_group"),
+				ExpectError: acceptance.RequiresImportError("azurerm_container_group"),
 			},
 		},
 	})
@@ -282,11 +282,11 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
 
-	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
-	updatedConfig := testAccAzureRMContainerGroup_linuxBasicUpdated(ri, testLocation())
+	config := testAccAzureRMContainerGroup_linuxBasic(ri, acceptance.Location())
+	updatedConfig := testAccAzureRMContainerGroup_linuxBasicUpdated(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -313,10 +313,10 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
 
-	config := testAccAzureRMContainerGroup_linuxComplete(ri, testLocation())
+	config := testAccAzureRMContainerGroup_linuxComplete(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -392,10 +392,10 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMContainerGroup_virtualNetwork(ri, testLocation())
+	config := testAccAzureRMContainerGroup_virtualNetwork(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -420,10 +420,10 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
 
-	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation())
+	config := testAccAzureRMContainerGroup_windowsBasic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -449,10 +449,10 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
 
-	config := testAccAzureRMContainerGroup_windowsComplete(ri, testLocation())
+	config := testAccAzureRMContainerGroup_windowsComplete(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{

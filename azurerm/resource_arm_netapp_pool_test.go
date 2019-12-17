@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMNetAppPool_basic(t *testing.T) {
 	resourceName := "azurerm_netapp_pool.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
 		Steps: []resource.TestStep{
@@ -48,19 +48,19 @@ func TestAccAzureRMNetAppPool_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppPool_basic(ri, testLocation()),
+				Config: testAccAzureRMNetAppPool_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppPoolExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMNetAppPool_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_netapp_pool"),
+				Config:      testAccAzureRMNetAppPool_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_netapp_pool"),
 			},
 		},
 	})
@@ -69,10 +69,10 @@ func TestAccAzureRMNetAppPool_requiresImport(t *testing.T) {
 func TestAccAzureRMNetAppPool_complete(t *testing.T) {
 	resourceName := "azurerm_netapp_pool.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
 		Steps: []resource.TestStep{
@@ -96,10 +96,10 @@ func TestAccAzureRMNetAppPool_complete(t *testing.T) {
 func TestAccAzureRMNetAppPool_update(t *testing.T) {
 	resourceName := "azurerm_netapp_pool.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
 		Steps: []resource.TestStep{

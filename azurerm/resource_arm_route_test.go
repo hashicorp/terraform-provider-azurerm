@@ -18,12 +18,12 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRoute_basic(ri, testLocation()),
+				Config: testAccAzureRMRoute_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists("azurerm_route.test"),
 				),
@@ -44,10 +44,10 @@ func TestAccAzureRMRoute_requiresImport(t *testing.T) {
 	}
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
@@ -59,7 +59,7 @@ func TestAccAzureRMRoute_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMRoute_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_route"),
+				ExpectError: acceptance.RequiresImportError("azurerm_route"),
 			},
 		},
 	})
@@ -70,12 +70,12 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRoute_basic(ri, testLocation()),
+				Config: testAccAzureRMRoute_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "next_hop_type", "VnetLocal"),
@@ -83,7 +83,7 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMRoute_basicAppliance(ri, testLocation()),
+				Config: testAccAzureRMRoute_basicAppliance(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "next_hop_type", "VirtualAppliance"),
@@ -91,7 +91,7 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMRoute_basic(ri, testLocation()),
+				Config: testAccAzureRMRoute_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "next_hop_type", "VnetLocal"),
@@ -104,10 +104,10 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 
 func TestAccAzureRMRoute_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMRoute_basic(ri, testLocation())
+	config := testAccAzureRMRoute_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
@@ -125,12 +125,12 @@ func TestAccAzureRMRoute_disappears(t *testing.T) {
 
 func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMRoute_basic(ri, location)
 	postConfig := testAccAzureRMRoute_multipleRoutes(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{

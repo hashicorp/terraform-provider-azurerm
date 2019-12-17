@@ -18,12 +18,12 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
@@ -36,7 +36,7 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMSqlFirewallRule_withUpdates(ri, testLocation()),
+				Config: testAccAzureRMSqlFirewallRule_withUpdates(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "10.0.17.62"),
@@ -55,12 +55,12 @@ func TestAccAzureRMSqlFirewallRule_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
@@ -68,8 +68,8 @@ func TestAccAzureRMSqlFirewallRule_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMSqlFirewallRule_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_sql_firewall_rule"),
+				Config:      testAccAzureRMSqlFirewallRule_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_sql_firewall_rule"),
 			},
 		},
 	})
@@ -80,12 +80,12 @@ func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlFirewallRuleExists(resourceName),
 					testCheckAzureRMSqlFirewallRuleDisappears(resourceName),

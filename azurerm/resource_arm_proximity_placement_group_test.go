@@ -17,10 +17,10 @@ import (
 func TestAccProximityPlacementGroup_basic(t *testing.T) {
 	resourceName := "azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccProximityPlacementGroup_basic(ri, testLocation())
+	config := testAccProximityPlacementGroup_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
@@ -47,10 +47,10 @@ func TestAccProximityPlacementGroup_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccProximityPlacementGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccProximityPlacementGroup_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_proximity_placement_group"),
+				ExpectError: acceptance.RequiresImportError("azurerm_proximity_placement_group"),
 			},
 		},
 	})
@@ -71,10 +71,10 @@ func TestAccProximityPlacementGroup_requiresImport(t *testing.T) {
 func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 	resourceName := "azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccProximityPlacementGroup_basic(ri, testLocation())
+	config := testAccProximityPlacementGroup_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
@@ -93,12 +93,12 @@ func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 	resourceName := "azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccProximityPlacementGroup_withTags(ri, location)
 	postConfig := testAccProximityPlacementGroup_withUpdatedTags(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{

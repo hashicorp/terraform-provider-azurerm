@@ -20,12 +20,12 @@ func TestAccAzureRMIotHubEndpointServiceBusQueue_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testAccAzureRMIotHubEndpointStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubEndpointServiceBusQueue_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotHubEndpointServiceBusQueue_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testAccAzureRMIotHubEndpointServiceBusQueueExists(resourceName),
 				),
@@ -46,10 +46,10 @@ func TestAccAzureRMIotHubEndpointServiceBusQueue_requiresImport(t *testing.T) {
 	}
 	resourceName := "azurerm_iothub_endpoint_servicebus_queue.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testAccAzureRMIotHubEndpointServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMIotHubEndpointServiceBusQueue_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubEndpointServiceBusQueue_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_iothub_endpoint_servicebus_queue"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_endpoint_servicebus_queue"),
 			},
 		},
 	})

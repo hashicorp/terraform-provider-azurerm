@@ -19,12 +19,12 @@ func TestAccAzureRMLogAnalyticsLinkedService_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsLinkedService_basic(ri, testLocation()),
+				Config: testAccAzureRMLogAnalyticsLinkedService_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", ri)),
@@ -49,10 +49,10 @@ func TestAccAzureRMLogAnalyticsLinkedService_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_log_analytics_linked_service.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
@@ -67,7 +67,7 @@ func TestAccAzureRMLogAnalyticsLinkedService_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLogAnalyticsLinkedService_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_log_analytics_linked_service"),
+				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_linked_service"),
 			},
 		},
 	})
@@ -78,12 +78,12 @@ func TestAccAzureRMLogAnalyticsLinkedService_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsLinkedService_complete(ri, testLocation()),
+				Config: testAccAzureRMLogAnalyticsLinkedService_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "linked_service_name", "automation"),
@@ -103,12 +103,12 @@ func TestAccAzureRMLogAnalyticsLinkedService_noResourceID(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMLogAnalyticsLinkedService_noResourceID(ri, testLocation()),
+				Config:      testAccAzureRMLogAnalyticsLinkedService_noResourceID(ri, acceptance.Location()),
 				ExpectError: regexp.MustCompile("A `resource_id` must be specified either using the `resource_id` field at the top level or within the `linked_service_properties` block"),
 			},
 		},
@@ -121,12 +121,12 @@ func TestAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(t *testing.
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(ri, testLocation()),
+				Config: testAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName),
 				),

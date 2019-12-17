@@ -18,12 +18,12 @@ func TestAccAzureRMIotHubDPSCertificate_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubDPSCertificate_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotHubDPSCertificate_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubDPSCertificateExists(resourceName),
 				),
@@ -48,10 +48,10 @@ func TestAccAzureRMIotHubDPSCertificate_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_iothub_dps_certificate.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
 		Steps: []resource.TestStep{
@@ -63,7 +63,7 @@ func TestAccAzureRMIotHubDPSCertificate_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubDPSCertificate_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_iothubdps"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothubdps"),
 			},
 		},
 	})
@@ -74,12 +74,12 @@ func TestAccAzureRMIotHubDPSCertificate_update(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubDPSCertificate_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotHubDPSCertificate_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubDPSCertificateExists(resourceName),
 				),
@@ -93,7 +93,7 @@ func TestAccAzureRMIotHubDPSCertificate_update(t *testing.T) {
 				},
 			},
 			{
-				Config: testAccAzureRMIotHubDPSCertificate_update(rInt, testLocation()),
+				Config: testAccAzureRMIotHubDPSCertificate_update(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubDPSCertificateExists(resourceName),
 				),

@@ -19,12 +19,12 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlServer_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlServer_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(resourceName),
 				),
@@ -47,19 +47,19 @@ func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlServer_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlServer_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMSqlServer_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_sql_server"),
+				Config:      testAccAzureRMSqlServer_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_sql_server"),
 			},
 		},
 	})
@@ -68,10 +68,10 @@ func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
 func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSqlServer_basic(ri, testLocation())
+	config := testAccAzureRMSqlServer_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
@@ -90,12 +90,12 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	resourceName := "azurerm_sql_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMSqlServer_withTags(ri, location)
 	postConfig := testAccAzureRMSqlServer_withTagsUpdated(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
@@ -128,12 +128,12 @@ func TestAccAzureRMSqlServer_withIdentity(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlServer_withIdentity(ri, testLocation()),
+				Config: testAccAzureRMSqlServer_withIdentity(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
@@ -156,18 +156,18 @@ func TestAccAzureRMSqlServer_updateWithIdentityAdded(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlServer_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlServer_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(resourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMSqlServer_withIdentity(ri, testLocation()),
+				Config: testAccAzureRMSqlServer_withIdentity(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),

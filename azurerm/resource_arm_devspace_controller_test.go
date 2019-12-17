@@ -18,12 +18,12 @@ import (
 func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
 	resourceName := "azurerm_devspace_controller.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevSpaceControllerDestroy,
 		Steps: []resource.TestStep{
@@ -47,12 +47,12 @@ func TestAccAzureRMDevSpaceController_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_devspace_controller.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevSpaceControllerDestroy,
 		Steps: []resource.TestStep{
@@ -64,7 +64,7 @@ func TestAccAzureRMDevSpaceController_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDevSpaceController_requiresImport(rInt, location, clientId, clientSecret),
-				ExpectError: testRequiresImportError("azurerm_devspace_controller"),
+				ExpectError: acceptance.RequiresImportError("azurerm_devspace_controller"),
 			},
 		},
 	})

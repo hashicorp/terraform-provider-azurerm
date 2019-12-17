@@ -44,10 +44,10 @@ func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 	resourceName := "azurerm_dev_test_virtual_network.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
@@ -75,10 +75,10 @@ func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dev_test_virtual_network.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
@@ -91,7 +91,7 @@ func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDevTestVirtualNetwork_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_dev_test_virtual_network"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_virtual_network"),
 			},
 		},
 	})
@@ -100,10 +100,10 @@ func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
 func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
 	resourceName := "azurerm_dev_test_virtual_network.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{

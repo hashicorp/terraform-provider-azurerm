@@ -43,10 +43,10 @@ func TestAccAzureRMNetAppAccount(t *testing.T) {
 func testAccAzureRMNetAppAccount_basic(t *testing.T) {
 	resourceName := "azurerm_netapp_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
@@ -75,19 +75,19 @@ func testAccAzureRMNetAppAccount_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppAccount_basicConfig(ri, testLocation()),
+				Config: testAccAzureRMNetAppAccount_basicConfig(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppAccountExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMNetAppAccount_requiresImportConfig(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_netapp_account"),
+				Config:      testAccAzureRMNetAppAccount_requiresImportConfig(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_netapp_account"),
 			},
 		},
 	})
@@ -96,10 +96,10 @@ func testAccAzureRMNetAppAccount_requiresImport(t *testing.T) {
 func testAccAzureRMNetAppAccount_complete(t *testing.T) {
 	resourceName := "azurerm_netapp_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
@@ -125,10 +125,10 @@ func testAccAzureRMNetAppAccount_complete(t *testing.T) {
 func testAccAzureRMNetAppAccount_update(t *testing.T) {
 	resourceName := "azurerm_netapp_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{

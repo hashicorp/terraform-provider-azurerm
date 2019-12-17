@@ -19,12 +19,12 @@ func TestAccAzureRMKustoEventHubDataConnection_basic(t *testing.T) {
 	rs := acctest.RandString(6)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoEventHubDataConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoEventHubDataConnection_basic(ri, rs, testLocation()),
+				Config: testAccAzureRMKustoEventHubDataConnection_basic(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoEventHubDataConnectionExists(resourceName),
 				),

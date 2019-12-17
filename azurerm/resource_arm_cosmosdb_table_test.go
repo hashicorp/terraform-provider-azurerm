@@ -18,12 +18,12 @@ func TestAccAzureRMCosmosDbTable_basic(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbTable_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbTable_basic(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbTableExists(resourceName),
 				),

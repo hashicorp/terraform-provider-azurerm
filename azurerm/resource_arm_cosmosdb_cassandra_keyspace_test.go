@@ -18,12 +18,12 @@ func TestAccAzureRMCosmosDbCassandraKeyspace_basic(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_cassandra_keyspace.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbCassandraKeyspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbCassandraKeyspace_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbCassandraKeyspace_basic(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName),
 				),

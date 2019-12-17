@@ -19,12 +19,12 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRelayNamespace_basic(ri, testLocation()),
+				Config: testAccAzureRMRelayNamespace_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRelayNamespaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "metric_id"),
@@ -50,12 +50,12 @@ func TestAccAzureRMRelayNamespace_basicClassic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRelayNamespace_basicClassic(ri, testLocation()),
+				Config: testAccAzureRMRelayNamespace_basicClassic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRelayNamespaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "metric_id"),
@@ -80,12 +80,12 @@ func TestAccAzureRMRelayNamespace_basicNotDefined(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMRelayNamespace_basicNotDefined(ri, testLocation()),
+				Config:      testAccAzureRMRelayNamespace_basicNotDefined(ri, acceptance.Location()),
 				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
 			},
 		},
@@ -102,12 +102,12 @@ func TestAccAzureRMRelayNamespace_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRelayNamespace_basic(ri, testLocation()),
+				Config: testAccAzureRMRelayNamespace_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRelayNamespaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "metric_id"),
@@ -118,8 +118,8 @@ func TestAccAzureRMRelayNamespace_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMRelayNamespace_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_relay_namespace"),
+				Config:      testAccAzureRMRelayNamespace_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_relay_namespace"),
 			},
 		},
 	})
@@ -130,12 +130,12 @@ func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRelayNamespace_complete(ri, testLocation()),
+				Config: testAccAzureRMRelayNamespace_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRelayNamespaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "metric_id"),

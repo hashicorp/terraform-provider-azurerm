@@ -70,11 +70,11 @@ func TestValidateMonitorMetricAlertRuleTags(t *testing.T) {
 func TestAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(t *testing.T) {
 	resourceName := "azurerm_monitor_metric_alertrule.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(ri, testLocation(), true)
-	postConfig := testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(ri, testLocation(), false)
+	preConfig := testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(ri, acceptance.Location(), true)
+	postConfig := testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(ri, acceptance.Location(), false)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
@@ -115,10 +115,10 @@ func TestAccAzureRMMonitorMetricAlertRule_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_monitor_metric_alertrule.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
@@ -130,7 +130,7 @@ func TestAccAzureRMMonitorMetricAlertRule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMMonitorMetricAlertRule_requiresImport(ri, location, true),
-				ExpectError: testRequiresImportError("azurerm_monitor_metric_alertrule"),
+				ExpectError: acceptance.RequiresImportError("azurerm_monitor_metric_alertrule"),
 			},
 		},
 	})
@@ -139,10 +139,10 @@ func TestAccAzureRMMonitorMetricAlertRule_requiresImport(t *testing.T) {
 func TestAccAzureRMMonitorMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 	resourceName := "azurerm_monitor_metric_alertrule.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMonitorMetricAlertRule_sqlDatabaseStorage(ri, testLocation())
+	config := testAccAzureRMMonitorMetricAlertRule_sqlDatabaseStorage(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{

@@ -20,12 +20,12 @@ func TestAccAzureRMAutomationSchedule_oneTime_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_oneTime_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationSchedule_oneTime_basic(ri, acceptance.Location()),
 				Check:  checkAccAzureRMAutomationSchedule_oneTime_basic(resourceName),
 			},
 			{
@@ -44,10 +44,10 @@ func TestAccAzureRMAutomationSchedule_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_automation_schedule.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
@@ -57,7 +57,7 @@ func TestAccAzureRMAutomationSchedule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAutomationSchedule_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_automation_schedule"),
+				ExpectError: acceptance.RequiresImportError("azurerm_automation_schedule"),
 			},
 		},
 	})
@@ -73,12 +73,12 @@ func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_oneTime_complete(ri, testLocation(), startTime),
+				Config: testAccAzureRMAutomationSchedule_oneTime_complete(ri, acceptance.Location(), startTime),
 				Check:  checkAccAzureRMAutomationSchedule_oneTime_complete(resourceName, startTime),
 			},
 			{
@@ -100,16 +100,16 @@ func TestAccAzureRMAutomationSchedule_oneTime_update(t *testing.T) {
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_oneTime_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationSchedule_oneTime_basic(ri, acceptance.Location()),
 				Check:  checkAccAzureRMAutomationSchedule_oneTime_basic(resourceName),
 			},
 			{
-				Config: testAccAzureRMAutomationSchedule_oneTime_complete(ri, testLocation(), startTime),
+				Config: testAccAzureRMAutomationSchedule_oneTime_complete(ri, acceptance.Location(), startTime),
 				Check:  checkAccAzureRMAutomationSchedule_oneTime_complete(resourceName, startTime),
 			},
 		},
@@ -121,12 +121,12 @@ func TestAccAzureRMAutomationSchedule_hourly(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_basic(ri, testLocation(), "Hour", 7),
+				Config: testAccAzureRMAutomationSchedule_recurring_basic(ri, acceptance.Location(), "Hour", 7),
 				Check:  checkAccAzureRMAutomationSchedule_recurring_basic(resourceName, "Hour", 7),
 			},
 			{
@@ -143,12 +143,12 @@ func TestAccAzureRMAutomationSchedule_daily(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_basic(ri, testLocation(), "Day", 7),
+				Config: testAccAzureRMAutomationSchedule_recurring_basic(ri, acceptance.Location(), "Day", 7),
 				Check:  checkAccAzureRMAutomationSchedule_recurring_basic(resourceName, "Day", 7),
 			},
 			{
@@ -165,12 +165,12 @@ func TestAccAzureRMAutomationSchedule_weekly(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_basic(ri, testLocation(), "Week", 7),
+				Config: testAccAzureRMAutomationSchedule_recurring_basic(ri, acceptance.Location(), "Week", 7),
 				Check:  checkAccAzureRMAutomationSchedule_recurring_basic(resourceName, "Week", 7),
 			},
 			{
@@ -187,12 +187,12 @@ func TestAccAzureRMAutomationSchedule_monthly(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_basic(ri, testLocation(), "Month", 7),
+				Config: testAccAzureRMAutomationSchedule_recurring_basic(ri, acceptance.Location(), "Month", 7),
 				Check:  checkAccAzureRMAutomationSchedule_recurring_basic(resourceName, "Month", 7),
 			},
 			{
@@ -209,12 +209,12 @@ func TestAccAzureRMAutomationSchedule_weekly_advanced(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_advanced_week(ri, testLocation(), "Monday"),
+				Config: testAccAzureRMAutomationSchedule_recurring_advanced_week(ri, acceptance.Location(), "Monday"),
 				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_week(resourceName),
 			},
 			{
@@ -231,12 +231,12 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_day(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_advanced_month(ri, testLocation(), 2),
+				Config: testAccAzureRMAutomationSchedule_recurring_advanced_month(ri, acceptance.Location(), 2),
 				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName),
 			},
 			{
@@ -253,12 +253,12 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_week_day(t *testing.T)
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(ri, testLocation(), "Monday", 2),
+				Config: testAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(ri, acceptance.Location(), "Monday", 2),
 				Check:  checkAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(resourceName, "Monday", 2),
 			},
 			{

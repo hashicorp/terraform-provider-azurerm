@@ -20,12 +20,12 @@ func TestAccAzureRMIotHubEndpointStorageContainer_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testAccAzureRMIotHubEndpointStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubEndpointStorageContainer_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotHubEndpointStorageContainer_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testAccAzureRMIotHubEndpointStorageContainerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "file_name_format", "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"),
@@ -50,10 +50,10 @@ func TestAccAzureRMIotHubEndpointStorageContainer_requiresImport(t *testing.T) {
 	}
 	resourceName := "azurerm_iothub_endpoint_storage_container.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testAccAzureRMIotHubEndpointStorageContainerDestroy,
 		Steps: []resource.TestStep{
@@ -65,7 +65,7 @@ func TestAccAzureRMIotHubEndpointStorageContainer_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubEndpointStorageContainer_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_iothub_endpoint_storage_container"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_endpoint_storage_container"),
 			},
 		},
 	})

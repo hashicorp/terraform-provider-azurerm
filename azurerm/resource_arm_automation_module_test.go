@@ -18,12 +18,12 @@ func TestAccAzureRMAutomationModule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationModule_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationModule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationModuleExists(resourceName),
 				),
@@ -47,10 +47,10 @@ func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_automation_module.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAutomationModule_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_automation_module"),
+				ExpectError: acceptance.RequiresImportError("azurerm_automation_module"),
 			},
 		},
 	})
@@ -71,10 +71,10 @@ func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
 func TestAccAzureRMAutomationModule_multipleModules(t *testing.T) {
 	resourceName := "azurerm_automation_module.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
 		Steps: []resource.TestStep{

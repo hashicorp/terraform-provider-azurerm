@@ -14,11 +14,11 @@ func TestAccDataSourceAzureRMSchedulerJobCollection_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSchedulerJobCollection_basic(ri, testLocation()),
+				Config: testAccDataSourceSchedulerJobCollection_basic(ri, acceptance.Location()),
 				Check:  checkAccAzureRMSchedulerJobCollection_basic(dataSourceName),
 			},
 		},
@@ -30,11 +30,11 @@ func TestAccDataSourceAzureRMSchedulerJobCollection_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSchedulerJobCollection_complete(ri, testLocation()),
+				Config: testAccDataSourceSchedulerJobCollection_complete(ri, acceptance.Location()),
 				Check:  checkAccAzureRMSchedulerJobCollection_complete(dataSourceName),
 			},
 		},

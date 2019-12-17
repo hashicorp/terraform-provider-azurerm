@@ -18,12 +18,12 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlAdministrator_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlAdministrator_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlAdministratorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin"),
@@ -35,7 +35,7 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMSqlAdministrator_withUpdates(ri, testLocation()),
+				Config: testAccAzureRMSqlAdministrator_withUpdates(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlAdministratorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin2"),
@@ -53,20 +53,20 @@ func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlAdministrator_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlAdministrator_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlAdministratorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin"),
 				),
 			},
 			{
-				Config:      testAccAzureRMSqlAdministrator_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_sql_active_directory_administrator"),
+				Config:      testAccAzureRMSqlAdministrator_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_sql_active_directory_administrator"),
 			},
 		},
 	})
@@ -75,10 +75,10 @@ func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
 func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_active_directory_administrator.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
+	config := testAccAzureRMSqlAdministrator_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{

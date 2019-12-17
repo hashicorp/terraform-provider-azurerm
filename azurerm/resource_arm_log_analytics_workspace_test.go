@@ -60,12 +60,12 @@ func TestAccAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsWorkspace_basic(ri, testLocation()),
+				Config: testAccAzureRMLogAnalyticsWorkspace_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName),
 				),
@@ -87,10 +87,10 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_log_analytics_workspace.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
@@ -102,7 +102,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLogAnalyticsWorkspace_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_log_analytics_workspace"),
+				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_workspace"),
 			},
 		},
 	})
@@ -113,12 +113,12 @@ func TestAccAzureRMLogAnalyticsWorkspace_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsWorkspace_complete(ri, testLocation()),
+				Config: testAccAzureRMLogAnalyticsWorkspace_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName),
 				),

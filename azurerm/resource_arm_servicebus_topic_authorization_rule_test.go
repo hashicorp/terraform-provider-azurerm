@@ -34,12 +34,12 @@ func testAccAzureRMServiceBusTopicAuthorizationRule(t *testing.T, listen, send, 
 	resourceName := "azurerm_servicebus_topic_authorization_rule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), listen, send, manage),
+				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(tf.AccRandTimeInt(), acceptance.Location(), listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -71,12 +71,12 @@ func TestAccAzureRMServiceBusTopicAuthorizationRule_requiresImport(t *testing.T)
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(ri, testLocation(), true, false, false),
+				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(ri, acceptance.Location(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
@@ -85,8 +85,8 @@ func TestAccAzureRMServiceBusTopicAuthorizationRule_requiresImport(t *testing.T)
 				),
 			},
 			{
-				Config:      testAccAzureRMServiceBusTopicAuthorizationRule_requiresImport(ri, testLocation(), true, false, false),
-				ExpectError: testRequiresImportError("azurerm_servicebus_topic_authorization_rule"),
+				Config:      testAccAzureRMServiceBusTopicAuthorizationRule_requiresImport(ri, acceptance.Location(), true, false, false),
+				ExpectError: acceptance.RequiresImportError("azurerm_servicebus_topic_authorization_rule"),
 			},
 		},
 	})
@@ -97,12 +97,12 @@ func TestAccAzureRMServiceBusTopicAuthorizationRule_rightsUpdate(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(ri, testLocation(), true, false, false),
+				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(ri, acceptance.Location(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
@@ -111,7 +111,7 @@ func TestAccAzureRMServiceBusTopicAuthorizationRule_rightsUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(ri, testLocation(), true, true, true),
+				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(ri, acceptance.Location(), true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),

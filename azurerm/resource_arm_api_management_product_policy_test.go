@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMApiManagementProductPolicy_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_product_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -47,10 +47,10 @@ func TestAccAzureRMApiManagementProductPolicy_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_product_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMApiManagementProductPolicy_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApiManagementProductPolicy_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_product"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_product"),
 			},
 		},
 	})
@@ -71,10 +71,10 @@ func TestAccAzureRMApiManagementProductPolicy_requiresImport(t *testing.T) {
 func TestAccAzureRMApiManagementProductPolicy_update(t *testing.T) {
 	resourceName := "azurerm_api_management_product_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductPolicyDestroy,
 		Steps: []resource.TestStep{

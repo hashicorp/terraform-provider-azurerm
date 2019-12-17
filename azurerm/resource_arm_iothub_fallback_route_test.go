@@ -21,12 +21,12 @@ func TestAccAzureRMIotHubFallbackRoute_basic(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubFallbackRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(rInt, rs, testLocation()),
+				Config: testAccAzureRMIotHubFallbackRoute_basic(rInt, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubFallbackRouteExists(resourceName),
 				),
@@ -48,11 +48,11 @@ func TestAccAzureRMIotHubFallbackRoute_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_iothub_fallback_route.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
@@ -64,7 +64,7 @@ func TestAccAzureRMIotHubFallbackRoute_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubFallbackRoute_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_iothub_fallback_route"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_fallback_route"),
 			},
 		},
 	})
@@ -76,12 +76,12 @@ func TestAccAzureRMIotHubFallbackRoute_update(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubFallbackRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(rInt, rs, testLocation()),
+				Config: testAccAzureRMIotHubFallbackRoute_basic(rInt, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubFallbackRouteExists(resourceName),
 				),
@@ -92,7 +92,7 @@ func TestAccAzureRMIotHubFallbackRoute_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMIotHubFallbackRoute_update(rInt, rs, testLocation()),
+				Config: testAccAzureRMIotHubFallbackRoute_update(rInt, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubFallbackRouteExists(resourceName),
 				),

@@ -14,12 +14,12 @@ func TestAccDataSourceAzureRMStorageAccount_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_storage_account.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location)
 	config := testAccDataSourceAzureRMStorageAccount_basicWithDataSource(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
@@ -43,10 +43,10 @@ func TestAccDataSourceAzureRMStorageAccount_withWriteLock(t *testing.T) {
 	dataSourceName := "data.azurerm_storage_account.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{

@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMStreamAnalyticsStreamInputEventHub_avro(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_stream_input_eventhub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
 		Steps: []resource.TestStep{
@@ -45,10 +45,10 @@ func TestAccAzureRMStreamAnalyticsStreamInputEventHub_avro(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsStreamInputEventHub_csv(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_stream_input_eventhub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
 		Steps: []resource.TestStep{
@@ -74,10 +74,10 @@ func TestAccAzureRMStreamAnalyticsStreamInputEventHub_csv(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsStreamInputEventHub_json(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_stream_input_eventhub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
 		Steps: []resource.TestStep{
@@ -103,10 +103,10 @@ func TestAccAzureRMStreamAnalyticsStreamInputEventHub_json(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsStreamInputEventHub_update(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_stream_input_eventhub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
 		Steps: []resource.TestStep{
@@ -143,10 +143,10 @@ func TestAccAzureRMStreamAnalyticsStreamInputEventHub_requiresImport(t *testing.
 
 	resourceName := "azurerm_stream_analytics_stream_input_eventhub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
 		Steps: []resource.TestStep{
@@ -158,7 +158,7 @@ func TestAccAzureRMStreamAnalyticsStreamInputEventHub_requiresImport(t *testing.
 			},
 			{
 				Config:      testAccAzureRMStreamAnalyticsStreamInputEventHub_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_stream_analytics_stream_input_eventhub"),
+				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_stream_input_eventhub"),
 			},
 		},
 	})

@@ -15,10 +15,10 @@ import (
 func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 	resourceName := "azurerm_private_endpoint.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
 		Steps: []resource.TestStep{
@@ -41,10 +41,10 @@ func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 func TestAccAzureRMPrivateEndpoint_requestMessage(t *testing.T) {
 	resourceName := "azurerm_private_endpoint.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
 		Steps: []resource.TestStep{

@@ -18,12 +18,12 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
@@ -44,12 +44,12 @@ func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
@@ -57,8 +57,8 @@ func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMPostgreSQLDatabase_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_postgresql_database"),
+				Config:      testAccAzureRMPostgreSQLDatabase_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_postgresql_database"),
 			},
 		},
 	})
@@ -69,12 +69,12 @@ func TestAccAzureRMPostgreSQLDatabase_collationWithHyphen(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLDatabase_collationWithHyphen(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLDatabase_collationWithHyphen(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
@@ -90,12 +90,12 @@ func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLDatabase_charsetLowercase(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLDatabase_charsetLowercase(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
@@ -111,12 +111,12 @@ func TestAccAzureRMPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLDatabase_charsetMixedcase(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLDatabase_charsetMixedcase(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),

@@ -18,12 +18,12 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationCredential_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationCredential_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationCredentialExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "username", "test_user"),
@@ -47,10 +47,10 @@ func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_automation_credential.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAutomationCredential_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_automation_credential"),
+				ExpectError: acceptance.RequiresImportError("azurerm_automation_credential"),
 			},
 		},
 	})
@@ -73,12 +73,12 @@ func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationCredential_complete(ri, testLocation()),
+				Config: testAccAzureRMAutomationCredential_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationCredentialExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "username", "test_user"),

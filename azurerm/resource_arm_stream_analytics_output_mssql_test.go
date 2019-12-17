@@ -19,10 +19,10 @@ func TestAccAzureRMStreamAnalyticsOutputSql_basic(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_mssql.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
 		Steps: []resource.TestStep{
@@ -49,10 +49,10 @@ func TestAccAzureRMStreamAnalyticsOutputSql_update(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_mssql.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
 		Steps: []resource.TestStep{
@@ -90,10 +90,10 @@ func TestAccAzureRMStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_mssql.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
 		Steps: []resource.TestStep{
@@ -105,7 +105,7 @@ func TestAccAzureRMStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMStreamAnalyticsOutputSql_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_stream_analytics_output_mssql"),
+				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_output_mssql"),
 			},
 		},
 	})

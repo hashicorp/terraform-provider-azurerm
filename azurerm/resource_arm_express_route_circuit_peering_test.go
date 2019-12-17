@@ -17,10 +17,10 @@ import (
 func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_peering.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
@@ -51,10 +51,10 @@ func testAccAzureRMExpressRouteCircuitPeering_requiresImport(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_peering.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
@@ -66,7 +66,7 @@ func testAccAzureRMExpressRouteCircuitPeering_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMExpressRouteCircuitPeering_requiresImportConfig(ri, location),
-				ExpectError: testRequiresImportError("azurerm_express_route_circuit_peering"),
+				ExpectError: acceptance.RequiresImportError("azurerm_express_route_circuit_peering"),
 			},
 		},
 	})
@@ -75,10 +75,10 @@ func testAccAzureRMExpressRouteCircuitPeering_requiresImport(t *testing.T) {
 func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_peering.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
@@ -102,10 +102,10 @@ func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_peering.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{

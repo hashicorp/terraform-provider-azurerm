@@ -19,10 +19,10 @@ func testAccAzureRMNetworkConnectionMonitor_addressBasic(t *testing.T) {
 	resourceName := "azurerm_network_connection_monitor.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
@@ -54,10 +54,10 @@ func testAccAzureRMNetworkConnectionMonitor_requiresImport(t *testing.T) {
 	resourceName := "azurerm_network_connection_monitor.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
@@ -69,7 +69,7 @@ func testAccAzureRMNetworkConnectionMonitor_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMNetworkConnectionMonitor_requiresImportConfig(ri, location),
-				ExpectError: testRequiresImportError("azurerm_network_connection_monitor"),
+				ExpectError: acceptance.RequiresImportError("azurerm_network_connection_monitor"),
 			},
 		},
 	})
@@ -79,11 +79,11 @@ func testAccAzureRMNetworkConnectionMonitor_addressComplete(t *testing.T) {
 	resourceName := "azurerm_network_connection_monitor.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	autoStart := "false"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
@@ -111,11 +111,11 @@ func testAccAzureRMNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 	resourceName := "azurerm_network_connection_monitor.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	autoStart := "true"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
@@ -149,10 +149,10 @@ func testAccAzureRMNetworkConnectionMonitor_vmBasic(t *testing.T) {
 	resourceName := "azurerm_network_connection_monitor.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
@@ -179,11 +179,11 @@ func testAccAzureRMNetworkConnectionMonitor_vmComplete(t *testing.T) {
 	resourceName := "azurerm_network_connection_monitor.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	autoStart := "false"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
@@ -211,10 +211,10 @@ func testAccAzureRMNetworkConnectionMonitor_vmUpdate(t *testing.T) {
 	resourceName := "azurerm_network_connection_monitor.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
@@ -248,10 +248,10 @@ func testAccAzureRMNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
 	resourceName := "azurerm_network_connection_monitor.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
@@ -287,10 +287,10 @@ func testAccAzureRMNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
 
 func testAccAzureRMNetworkConnectionMonitor_missingDestination(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
@@ -304,10 +304,10 @@ func testAccAzureRMNetworkConnectionMonitor_missingDestination(t *testing.T) {
 
 func testAccAzureRMNetworkConnectionMonitor_conflictingDestinations(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{

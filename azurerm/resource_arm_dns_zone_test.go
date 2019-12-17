@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMDnsZone_basic(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsZone_basic(ri, testLocation())
+	config := testAccAzureRMDnsZone_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
@@ -46,10 +46,10 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dns_zone.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDnsZone_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_dns_zone"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dns_zone"),
 			},
 		},
 	})
@@ -70,10 +70,10 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsZone_withVNets(ri, testLocation())
+	config := testAccAzureRMDnsZone_withVNets(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
@@ -95,12 +95,12 @@ func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsZone_withTags(ri, location)
 	postConfig := testAccAzureRMDnsZone_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{

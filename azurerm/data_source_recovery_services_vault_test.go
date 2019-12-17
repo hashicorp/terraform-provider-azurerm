@@ -15,11 +15,11 @@ func TestAccDataSourceAzureRMRecoveryServicesVault_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceRecoveryServicesVault_basic(ri, testLocation()),
+				Config: testAccDataSourceRecoveryServicesVault_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRecoveryServicesVaultExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),

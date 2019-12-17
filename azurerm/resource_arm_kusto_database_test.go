@@ -19,12 +19,12 @@ func TestAccAzureRMKustoDatabase_basic(t *testing.T) {
 	rs := acctest.RandString(6)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoDatabase_basic(ri, rs, testLocation()),
+				Config: testAccAzureRMKustoDatabase_basic(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoDatabaseExists(resourceName),
 				),
@@ -42,11 +42,11 @@ func TestAccAzureRMKustoDatabase_softDeletePeriod(t *testing.T) {
 	resourceName := "azurerm_kusto_database.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
-	preConfig := testAccAzureRMKustoDatabase_softDeletePeriod(ri, rs, testLocation())
-	postConfig := testAccAzureRMKustoDatabase_softDeletePeriodUpdate(ri, rs, testLocation())
+	preConfig := testAccAzureRMKustoDatabase_softDeletePeriod(ri, rs, acceptance.Location())
+	postConfig := testAccAzureRMKustoDatabase_softDeletePeriodUpdate(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
@@ -72,11 +72,11 @@ func TestAccAzureRMKustoDatabase_hotCachePeriod(t *testing.T) {
 	resourceName := "azurerm_kusto_database.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
-	preConfig := testAccAzureRMKustoDatabase_hotCachePeriod(ri, rs, testLocation())
-	postConfig := testAccAzureRMKustoDatabase_hotCachePeriodUpdate(ri, rs, testLocation())
+	preConfig := testAccAzureRMKustoDatabase_hotCachePeriod(ri, rs, acceptance.Location())
+	postConfig := testAccAzureRMKustoDatabase_hotCachePeriodUpdate(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
 		Steps: []resource.TestStep{

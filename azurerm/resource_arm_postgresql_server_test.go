@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPostgreSQLServer_basicNinePointFive(ri, testLocation())
+	config := testAccAzureRMPostgreSQLServer_basicNinePointFive(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
@@ -47,10 +47,10 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, testLocation())
+	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
@@ -80,12 +80,12 @@ func TestAccAzureRMPostgreSQLServer_basicTenPointZero(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLServer_basicTenPointZero(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLServer_basicTenPointZero(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
@@ -110,12 +110,12 @@ func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLServer_basicEleven(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLServer_basicEleven(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
@@ -145,12 +145,12 @@ func TestAccAzureRMPostgreSQLServer_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLServer_basicTenPointZero(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLServer_basicTenPointZero(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
@@ -159,8 +159,8 @@ func TestAccAzureRMPostgreSQLServer_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMPostgreSQLServer_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_postgresql_server"),
+				Config:      testAccAzureRMPostgreSQLServer_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_postgresql_server"),
 			},
 		},
 	})
@@ -169,10 +169,10 @@ func TestAccAzureRMPostgreSQLServer_requiresImport(t *testing.T) {
 func TestAccAzureRMPostgreSQLServer_basicMaxStorage(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPostgreSQLServer_basicMaxStorage(ri, testLocation())
+	config := testAccAzureRMPostgreSQLServer_basicMaxStorage(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
@@ -200,10 +200,10 @@ func TestAccAzureRMPostgreSQLServer_basicMaxStorage(t *testing.T) {
 func TestAccAzureRMPostgreSQLServer_generalPurpose(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPostgreSQLServer_generalPurpose(ri, testLocation())
+	config := testAccAzureRMPostgreSQLServer_generalPurpose(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
@@ -228,10 +228,10 @@ func TestAccAzureRMPostgreSQLServer_generalPurpose(t *testing.T) {
 func TestAccAzureRMPostgreSQLServer_memoryOptimized(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPostgreSQLServer_memoryOptimizedGeoRedundant(ri, testLocation())
+	config := testAccAzureRMPostgreSQLServer_memoryOptimizedGeoRedundant(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
@@ -256,12 +256,12 @@ func TestAccAzureRMPostgreSQLServer_memoryOptimized(t *testing.T) {
 func TestAccAzureRMPostgreSQLServer_updatePassword(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, location)
 	updatedConfig := testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedPassword(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
@@ -284,12 +284,12 @@ func TestAccAzureRMPostgreSQLServer_updatePassword(t *testing.T) {
 func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, location)
 	updatedConfig := testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
@@ -322,12 +322,12 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMPostgreSQLServer_generalPurpose(ri, location)
 	updatedConfig := testAccAzureRMPostgreSQLServer_memoryOptimized(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{

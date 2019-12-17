@@ -17,10 +17,10 @@ import (
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
+	config := testAccAzureRMServiceBusNamespace_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
@@ -47,19 +47,19 @@ func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusNamespace_basic(ri, testLocation()),
+				Config: testAccAzureRMServiceBusNamespace_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMServiceBusNamespace_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_servicebus_namespace"),
+				Config:      testAccAzureRMServiceBusNamespace_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_servicebus_namespace"),
 			},
 		},
 	})
@@ -68,10 +68,10 @@ func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
+	config := testAccAzureRMServiceBusNamespace_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
@@ -97,10 +97,10 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
 
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespaceNonStandardCasing(ri, testLocation())
+	config := testAccAzureRMServiceBusNamespaceNonStandardCasing(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
@@ -127,10 +127,10 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespace_premium(ri, testLocation())
+	config := testAccAzureRMServiceBusNamespace_premium(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
@@ -151,10 +151,10 @@ func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespace_basicCapacity(ri, testLocation())
+	config := testAccAzureRMServiceBusNamespace_basicCapacity(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
@@ -168,10 +168,10 @@ func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespace_premiumCapacity(ri, testLocation())
+	config := testAccAzureRMServiceBusNamespace_premiumCapacity(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
@@ -186,10 +186,10 @@ func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_zoneRedundant(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespace_zoneRedundant(ri, testLocation())
+	config := testAccAzureRMServiceBusNamespace_zoneRedundant(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{

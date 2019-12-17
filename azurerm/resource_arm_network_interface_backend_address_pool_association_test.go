@@ -18,13 +18,13 @@ func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(t *testin
 	resourceName := "azurerm_network_interface_backend_address_pool_association.test"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(resourceName),
 				),
@@ -41,9 +41,9 @@ func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(
 
 	resourceName := "azurerm_network_interface_backend_address_pool_association.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -56,7 +56,7 @@ func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(
 			},
 			{
 				Config:      testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_network_interface_backend_address_pool_association"),
+				ExpectError: acceptance.RequiresImportError("azurerm_network_interface_backend_address_pool_association"),
 			},
 		},
 	})
@@ -65,10 +65,10 @@ func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_requiresImport(
 func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_network_interface_backend_address_pool_association.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,

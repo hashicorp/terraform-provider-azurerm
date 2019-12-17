@@ -17,12 +17,12 @@ func TestAccAzureRMRecoveryReplicatedVm_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryReplicatedVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryReplicatedVm_basic(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMRecoveryReplicatedVm_basic(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRecoveryReplicatedVmExists(replicationName),
 				),

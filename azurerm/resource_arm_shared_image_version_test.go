@@ -25,21 +25,21 @@ func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 	sshPort := "22"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMSharedImageVersion_setup(ri, testLocation(), userName, password, hostName),
+				Config:  testAccAzureRMSharedImageVersion_setup(ri, acceptance.Location(), userName, password, hostName),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, testLocation()),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, acceptance.Location()),
 				),
 			},
 			{
-				Config: testAccAzureRMSharedImageVersion_imageVersion(ri, testLocation(), userName, password, hostName),
+				Config: testAccAzureRMSharedImageVersion_imageVersion(ri, acceptance.Location(), userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
@@ -47,7 +47,7 @@ func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMSharedImageVersion_imageVersionUpdated(ri, testLocation(), testAltLocation(), userName, password, hostName),
+				Config: testAccAzureRMSharedImageVersion_imageVersionUpdated(ri, acceptance.Location(), acceptance.AltLocation(), userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
@@ -161,21 +161,21 @@ func TestAccAzureRMSharedImageVersion_requiresImport(t *testing.T) {
 	sshPort := "22"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMSharedImageVersion_setup(ri, testLocation(), userName, password, hostName),
+				Config:  testAccAzureRMSharedImageVersion_setup(ri, acceptance.Location(), userName, password, hostName),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, testLocation()),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, acceptance.Location()),
 				),
 			},
 			{
-				Config: testAccAzureRMSharedImageVersion_imageVersion(ri, testLocation(), userName, password, hostName),
+				Config: testAccAzureRMSharedImageVersion_imageVersion(ri, acceptance.Location(), userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
@@ -183,8 +183,8 @@ func TestAccAzureRMSharedImageVersion_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMSharedImageVersion_requiresImport(ri, testLocation(), userName, password, hostName),
-				ExpectError: testRequiresImportError("azurerm_shared_image_version"),
+				Config:      testAccAzureRMSharedImageVersion_requiresImport(ri, acceptance.Location(), userName, password, hostName),
+				ExpectError: acceptance.RequiresImportError("azurerm_shared_image_version"),
 			},
 		},
 	})

@@ -12,7 +12,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testin
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -30,7 +30,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany(t *testi
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -48,7 +48,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom(t 
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -66,7 +66,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_world(t *testing
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

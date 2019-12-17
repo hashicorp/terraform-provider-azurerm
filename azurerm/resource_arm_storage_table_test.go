@@ -20,10 +20,10 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
+	config := testAccAzureRMStorageTable_basic(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
 		Steps: []resource.TestStep{
@@ -52,10 +52,10 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
 		Steps: []resource.TestStep{
@@ -67,7 +67,7 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMStorageTable_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_storage_table"),
+				ExpectError: acceptance.RequiresImportError("azurerm_storage_table"),
 			},
 		},
 	})
@@ -76,10 +76,10 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
+	config := testAccAzureRMStorageTable_basic(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
 		Steps: []resource.TestStep{
@@ -98,11 +98,11 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 func TestAccAzureRMStorageTable_acl(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
 		Steps: []resource.TestStep{

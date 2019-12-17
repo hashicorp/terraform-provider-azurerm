@@ -12,10 +12,10 @@ import (
 func TestAccAzureRMDataFactoryDataSource_basic(t *testing.T) {
 	dsn := "azurerm_data_factory.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryDestroy,
 		Steps: []resource.TestStep{

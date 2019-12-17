@@ -18,12 +18,12 @@ func TestAccAzureRMMySQLFirewallRule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMMySQLFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLFirewallRuleExists(resourceName),
 				),
@@ -47,19 +47,19 @@ func TestAccAzureRMMySQLFirewallRule_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMMySQLFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLFirewallRuleExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMySQLFirewallRule_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_mysql_firewall_rule"),
+				Config:      testAccAzureRMMySQLFirewallRule_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_mysql_firewall_rule"),
 			},
 		},
 	})

@@ -12,10 +12,10 @@ import (
 func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_dns_zone.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
@@ -32,10 +32,10 @@ func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
 func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 	dataSourceName := "data.azurerm_dns_zone.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
@@ -53,11 +53,11 @@ func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 func TestAccDataSourceAzureRMDNSZone_withoutResourceGroupName(t *testing.T) {
 	dataSourceName := "data.azurerm_dns_zone.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", rInt)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{

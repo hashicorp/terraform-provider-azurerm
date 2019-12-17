@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMApplicationInsightsWebTests_basic(t *testing.T) {
 	resourceName := "azurerm_application_insights_web_test.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsWebTests_basic(ri, testLocation())
+	config := testAccAzureRMApplicationInsightsWebTests_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
 		Steps: []resource.TestStep{
@@ -43,12 +43,12 @@ func TestAccAzureRMApplicationInsightsWebTests_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationInsightsWebTests_complete(ri, testLocation()),
+				Config: testAccAzureRMApplicationInsightsWebTests_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsWebTestExists(resourceName),
 				),
@@ -65,10 +65,10 @@ func TestAccAzureRMApplicationInsightsWebTests_complete(t *testing.T) {
 func TestAccAzureRMApplicationInsightsWebTests_update(t *testing.T) {
 	resourceName := "azurerm_application_insights_web_test.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
 		Steps: []resource.TestStep{
@@ -111,11 +111,11 @@ func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_application_insights_web_test.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMApplicationInsightsWebTests_basic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
 		Steps: []resource.TestStep{
@@ -127,7 +127,7 @@ func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApplicationInsightsWebTests_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_application_insights_web_test"),
+				ExpectError: acceptance.RequiresImportError("azurerm_application_insights_web_test"),
 			},
 		},
 	})

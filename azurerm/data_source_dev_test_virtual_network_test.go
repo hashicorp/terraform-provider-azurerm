@@ -20,10 +20,10 @@ func TestAccDataSourceArmDevTestVirtualNetwork_basic(t *testing.T) {
 	subnetName := name + "Subnet"
 	subnetResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, name, subnetName)
 
-	config := testAccDataSourceArmDevTestVirtualNetwork_basic(ri, testLocation())
+	config := testAccDataSourceArmDevTestVirtualNetwork_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

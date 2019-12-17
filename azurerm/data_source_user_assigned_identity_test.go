@@ -20,14 +20,14 @@ func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs),
+				Config: testAccDataSourceAzureRMUserAssignedIdentity_basic(ri, acceptance.Location(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctest%s-uai", rs)),
 					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", fmt.Sprintf("acctest%d-rg", ri)),

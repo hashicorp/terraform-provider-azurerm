@@ -54,11 +54,11 @@ func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 
 func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelsRegistration_basicConfig(ri, testLocation())
+	config := testAccAzureRMBotChannelsRegistration_basicConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_channels_registration.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
@@ -80,12 +80,12 @@ func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 
 func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelsRegistration_basicConfig(ri, testLocation())
-	config2 := testAccAzureRMBotChannelsRegistration_updateConfig(ri, testLocation())
+	config := testAccAzureRMBotChannelsRegistration_basicConfig(ri, acceptance.Location())
+	config2 := testAccAzureRMBotChannelsRegistration_updateConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_channels_registration.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
@@ -119,11 +119,11 @@ func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 
 func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelsRegistration_completeConfig(ri, testLocation())
+	config := testAccAzureRMBotChannelsRegistration_completeConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_channels_registration.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{

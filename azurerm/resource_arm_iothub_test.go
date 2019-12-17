@@ -19,12 +19,12 @@ func TestAccAzureRMIotHub_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotHub_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists(resourceName),
 				),
@@ -43,12 +43,12 @@ func TestAccAzureRMIotHub_ipFilterRules(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_ipFilterRules(rInt, testLocation()),
+				Config: testAccAzureRMIotHub_ipFilterRules(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists(resourceName),
 				),
@@ -70,10 +70,10 @@ func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_iothub.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
@@ -85,7 +85,7 @@ func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHub_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_iothub"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub"),
 			},
 		},
 	})
@@ -96,12 +96,12 @@ func TestAccAzureRMIotHub_standard(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_standard(rInt, testLocation()),
+				Config: testAccAzureRMIotHub_standard(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists(resourceName),
 				),
@@ -121,12 +121,12 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 	rStr := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_customRoutes(rInt, rStr, testLocation()),
+				Config: testAccAzureRMIotHub_customRoutes(rInt, rStr, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "endpoint.#", "2"),
@@ -150,12 +150,12 @@ func TestAccAzureRMIotHub_fileUpload(t *testing.T) {
 	rStr := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_fileUpload(rInt, rStr, testLocation()),
+				Config: testAccAzureRMIotHub_fileUpload(rInt, rStr, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "file_upload.#", "1"),
@@ -176,12 +176,12 @@ func TestAccAzureRMIotHub_fallbackRoute(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_fallbackRoute(rInt, testLocation()),
+				Config: testAccAzureRMIotHub_fallbackRoute(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "fallback_route.0.source", "DeviceMessages"),

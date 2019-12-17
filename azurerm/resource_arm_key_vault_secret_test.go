@@ -19,10 +19,10 @@ import (
 func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
+	config := testAccAzureRMKeyVaultSecret_basic(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
@@ -45,10 +45,10 @@ func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 func TestAccAzureRMKeyVaultSecret_basicClassic(t *testing.T) {
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basicClasic(rs, testLocation())
+	config := testAccAzureRMKeyVaultSecret_basicClasic(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
@@ -76,10 +76,10 @@ func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
@@ -92,7 +92,7 @@ func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMKeyVaultSecret_requiresImport(rs, location),
-				ExpectError: testRequiresImportError("azurerm_key_vault_secret"),
+				ExpectError: acceptance.RequiresImportError("azurerm_key_vault_secret"),
 			},
 		},
 	})
@@ -101,10 +101,10 @@ func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
+	config := testAccAzureRMKeyVaultSecret_basic(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
@@ -122,10 +122,10 @@ func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
 
 func TestAccAzureRMKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
+	config := testAccAzureRMKeyVaultSecret_basic(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
@@ -144,10 +144,10 @@ func TestAccAzureRMKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing
 func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_complete(rs, testLocation())
+	config := testAccAzureRMKeyVaultSecret_complete(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
@@ -173,11 +173,11 @@ func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
-	updatedConfig := testAccAzureRMKeyVaultSecret_basicUpdated(rs, testLocation())
+	config := testAccAzureRMKeyVaultSecret_basic(rs, acceptance.Location())
+	updatedConfig := testAccAzureRMKeyVaultSecret_basicUpdated(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{

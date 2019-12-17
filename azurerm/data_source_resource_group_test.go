@@ -14,10 +14,10 @@ import (
 func TestAccDataSourceAzureRMResourceGroup_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	name := fmt.Sprintf("acctestRg_%d", ri)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

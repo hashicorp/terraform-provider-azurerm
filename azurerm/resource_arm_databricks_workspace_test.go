@@ -75,12 +75,12 @@ func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDatabricksWorkspace_basic(ri, testLocation()),
+				Config: testAccAzureRMDatabricksWorkspace_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
@@ -103,10 +103,10 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_databricks_workspace.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
@@ -118,7 +118,7 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDatabricksWorkspace_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_databricks_workspace"),
+				ExpectError: acceptance.RequiresImportError("azurerm_databricks_workspace"),
 			},
 		},
 	})
@@ -127,10 +127,10 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 	resourceName := "azurerm_databricks_workspace.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{

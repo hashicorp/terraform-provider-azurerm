@@ -81,10 +81,10 @@ func TestAccAzureRMContainerService_agentProfilePoolCountValidation(t *testing.T
 
 func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMContainerService_dcosBasic(ri, testLocation())
+	config := testAccAzureRMContainerService_dcosBasic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
@@ -105,10 +105,10 @@ func TestAccAzureRMContainerService_requiresImport(t *testing.T) {
 	}
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
@@ -120,7 +120,7 @@ func TestAccAzureRMContainerService_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMContainerService_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_container_service"),
+				ExpectError: acceptance.RequiresImportError("azurerm_container_service"),
 			},
 		},
 	})
@@ -130,10 +130,10 @@ func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMContainerService_kubernetesBasic(ri, clientId, clientSecret, testLocation())
+	config := testAccAzureRMContainerService_kubernetesBasic(ri, clientId, clientSecret, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
@@ -151,10 +151,10 @@ func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMContainerService_kubernetesComplete(ri, clientId, clientSecret, testLocation())
+	config := testAccAzureRMContainerService_kubernetesComplete(ri, clientId, clientSecret, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
@@ -170,10 +170,10 @@ func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 
 func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMContainerService_swarmBasic(ri, testLocation())
+	config := testAccAzureRMContainerService_swarmBasic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{

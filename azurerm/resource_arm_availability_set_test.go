@@ -18,10 +18,10 @@ import (
 func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
+	config := testAccAzureRMAvailabilitySet_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
@@ -50,10 +50,10 @@ func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_availability_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
@@ -67,7 +67,7 @@ func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAvailabilitySet_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_availability_set"),
+				ExpectError: acceptance.RequiresImportError("azurerm_availability_set"),
 			},
 		},
 	})
@@ -76,10 +76,10 @@ func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
 func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
+	config := testAccAzureRMAvailabilitySet_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
@@ -100,12 +100,12 @@ func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMAvailabilitySet_withTags(ri, location)
 	postConfig := testAccAzureRMAvailabilitySet_withUpdatedTags(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
@@ -138,10 +138,10 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 func TestAccAzureRMAvailabilitySet_withPPG(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAvailabilitySet_withPPG(ri, testLocation())
+	config := testAccAzureRMAvailabilitySet_withPPG(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
@@ -164,10 +164,10 @@ func TestAccAzureRMAvailabilitySet_withPPG(t *testing.T) {
 func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAvailabilitySet_withDomainCounts(ri, testLocation())
+	config := testAccAzureRMAvailabilitySet_withDomainCounts(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
@@ -191,10 +191,10 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAvailabilitySet_managed(ri, testLocation())
+	config := testAccAzureRMAvailabilitySet_managed(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{

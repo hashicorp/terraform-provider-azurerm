@@ -18,12 +18,12 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLServer_basicFiveSix(ri, testLocation()),
+				Config: testAccAzureRMMySQLServer_basicFiveSix(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(resourceName),
 				),
@@ -50,19 +50,19 @@ func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLServer_basicFiveSevenUpdated(ri, testLocation()),
+				Config: testAccAzureRMMySQLServer_basicFiveSevenUpdated(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMySQLServer_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_mysql_server"),
+				Config:      testAccAzureRMMySQLServer_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_mysql_server"),
 			},
 		},
 	})
@@ -76,10 +76,10 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 
 	resourceName := "azurerm_mysql_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, testLocation())
+	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
@@ -106,12 +106,12 @@ func TestAccAzureRMMySQLServer_basicEightZero(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLServer_basicEightZero(ri, testLocation()),
+				Config: testAccAzureRMMySQLServer_basicEightZero(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(resourceName),
 				),
@@ -131,10 +131,10 @@ func TestAccAzureRMMySQLServer_basicEightZero(t *testing.T) {
 func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMySQLServer_generalPurpose(ri, testLocation())
+	config := testAccAzureRMMySQLServer_generalPurpose(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
@@ -159,10 +159,10 @@ func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(ri, testLocation())
+	config := testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
@@ -186,12 +186,12 @@ func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, location)
 	updatedConfig := testAccAzureRMMySQLServer_basicFiveSevenUpdated(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
@@ -230,12 +230,12 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMMySQLServer_generalPurpose(ri, location)
 	updatedConfig := testAccAzureRMMySQLServer_memoryOptimized(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
@@ -270,12 +270,12 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 func TestAccAzureRMMySQLServer_storageAutogrow(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, location)
 	updatedConfig := testAccAzureRMMySQLServer_autogrow(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{

@@ -19,12 +19,12 @@ func TestAccAzureRMKustoCluster_basic(t *testing.T) {
 	rs := acctest.RandString(6)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_basic(ri, rs, testLocation()),
+				Config: testAccAzureRMKustoCluster_basic(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoClusterExists(resourceName),
 				),
@@ -42,11 +42,11 @@ func TestAccAzureRMKustoCluster_withTags(t *testing.T) {
 	resourceName := "azurerm_kusto_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
-	preConfig := testAccAzureRMKustoCluster_withTags(ri, rs, testLocation())
-	postConfig := testAccAzureRMKustoCluster_withTagsUpdate(ri, rs, testLocation())
+	preConfig := testAccAzureRMKustoCluster_withTags(ri, rs, acceptance.Location())
+	postConfig := testAccAzureRMKustoCluster_withTagsUpdate(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{
@@ -75,11 +75,11 @@ func TestAccAzureRMKustoCluster_sku(t *testing.T) {
 	resourceName := "azurerm_kusto_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
-	preConfig := testAccAzureRMKustoCluster_basic(ri, rs, testLocation())
-	postConfig := testAccAzureRMKustoCluster_skuUpdate(ri, rs, testLocation())
+	preConfig := testAccAzureRMKustoCluster_basic(ri, rs, acceptance.Location())
+	postConfig := testAccAzureRMKustoCluster_skuUpdate(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{

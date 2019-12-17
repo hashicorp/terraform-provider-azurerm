@@ -11,7 +11,7 @@ import (
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_key(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -29,7 +29,7 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_key(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secret(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -47,7 +47,7 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secret(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_certificate(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -65,7 +65,7 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_certificate(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecret(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -83,7 +83,7 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecret(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keyCertificate(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -101,7 +101,7 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keyCertificate(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secretCertificate(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -119,7 +119,7 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secretCertificate(t *testing.T
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecretCertificate(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

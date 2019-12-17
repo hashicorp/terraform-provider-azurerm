@@ -14,10 +14,10 @@ import (
 func TestAccDataSourceAzureRMAppServicePlan_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service_plan.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -39,10 +39,10 @@ func TestAccDataSourceAzureRMAppServicePlan_basic(t *testing.T) {
 func TestAccDataSourceAzureRMAppServicePlan_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service_plan.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -65,10 +65,10 @@ func TestAccDataSourceAzureRMAppServicePlan_complete(t *testing.T) {
 func TestAccDataSourceAzureRMAppServicePlan_premiumSKU(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service_plan.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -88,10 +88,10 @@ func TestAccDataSourceAzureRMAppServicePlan_premiumSKU(t *testing.T) {
 func TestAccDataSourceAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service_plan.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

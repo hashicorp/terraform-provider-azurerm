@@ -17,12 +17,12 @@ import (
 func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_extension.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMVirtualMachineExtension_basic(ri, location)
 	postConfig := testAccAzureRMVirtualMachineExtension_basicUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
 		Steps: []resource.TestStep{
@@ -58,10 +58,10 @@ func TestAccAzureRMVirtualMachineExtension_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_virtual_machine_extension.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
 		Steps: []resource.TestStep{
@@ -73,7 +73,7 @@ func TestAccAzureRMVirtualMachineExtension_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMVirtualMachineExtension_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_virtual_machine_extension"),
+				ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_extension"),
 			},
 		},
 	})
@@ -83,10 +83,10 @@ func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 	firstResourceName := "azurerm_virtual_machine_extension.test"
 	secondResourceName := "azurerm_virtual_machine_extension.test2"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachineExtension_concurrent(ri, testLocation())
+	config := testAccAzureRMVirtualMachineExtension_concurrent(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
 		Steps: []resource.TestStep{
@@ -105,10 +105,10 @@ func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachineExtension_linuxDiagnostics(ri, testLocation())
+	config := testAccAzureRMVirtualMachineExtension_linuxDiagnostics(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
 		Steps: []resource.TestStep{

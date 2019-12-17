@@ -17,12 +17,12 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLConfiguration_characterSetServer(ri, testLocation()),
+				Config: testAccAzureRMMySQLConfiguration_characterSetServer(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "hebrew"),
 				),
@@ -33,7 +33,7 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMMySQLConfiguration_empty(ri, testLocation()),
+				Config: testAccAzureRMMySQLConfiguration_empty(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMySQLConfigurationValueReset(ri, "character_set_server"),
@@ -48,12 +48,12 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, testLocation()),
+				Config: testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "30"),
 				),
@@ -64,7 +64,7 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMMySQLConfiguration_empty(ri, testLocation()),
+				Config: testAccAzureRMMySQLConfiguration_empty(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMySQLConfigurationValueReset(ri, "interactive_timeout"),
@@ -79,12 +79,12 @@ func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, testLocation()),
+				Config: testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "on"),
 				),
@@ -95,7 +95,7 @@ func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMMySQLConfiguration_empty(ri, testLocation()),
+				Config: testAccAzureRMMySQLConfiguration_empty(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMySQLConfigurationValueReset(ri, "log_slow_admin_statements"),

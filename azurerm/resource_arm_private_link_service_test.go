@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMPrivateLinkService_basic(t *testing.T) {
 	resourceName := "azurerm_private_link_service.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
 		Steps: []resource.TestStep{
@@ -49,10 +49,10 @@ func TestAccAzureRMPrivateLinkService_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_private_link_service.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
 		Steps: []resource.TestStep{
@@ -64,7 +64,7 @@ func TestAccAzureRMPrivateLinkService_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMPrivateLinkService_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_private_link_service"),
+				ExpectError: acceptance.RequiresImportError("azurerm_private_link_service"),
 			},
 		},
 	})
@@ -73,10 +73,10 @@ func TestAccAzureRMPrivateLinkService_requiresImport(t *testing.T) {
 func TestAccAzureRMPrivateLinkService_update(t *testing.T) {
 	resourceName := "azurerm_private_link_service.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
 		Steps: []resource.TestStep{
@@ -129,10 +129,10 @@ func TestAccAzureRMPrivateLinkService_update(t *testing.T) {
 func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 	resourceName := "azurerm_private_link_service.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
 		Steps: []resource.TestStep{
@@ -220,10 +220,10 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 func TestAccAzureRMPrivateLinkService_enableProxyProtocol(t *testing.T) {
 	resourceName := "azurerm_private_link_service.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
 		Steps: []resource.TestStep{
@@ -270,10 +270,10 @@ func TestAccAzureRMPrivateLinkService_enableProxyProtocol(t *testing.T) {
 func TestAccAzureRMPrivateLinkService_complete(t *testing.T) {
 	resourceName := "azurerm_private_link_service.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
 		Steps: []resource.TestStep{

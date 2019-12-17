@@ -12,10 +12,10 @@ import (
 func TestAccDataSourceAzureRMSqlDatabase_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_sql_database.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
@@ -40,10 +40,10 @@ func TestAccDataSourceAzureRMSqlDatabase_basic(t *testing.T) {
 func TestAccDataSourceAzureRMSqlDatabase_elasticPool(t *testing.T) {
 	dataSourceName := "data.azurerm_sql_database.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
@@ -65,10 +65,10 @@ func TestAccDataSourceAzureRMSqlDatabase_elasticPool(t *testing.T) {
 func TestAccDataSourceAzureRMSqlDatabase_readScale(t *testing.T) {
 	dataSourceName := "data.azurerm_sql_database.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{

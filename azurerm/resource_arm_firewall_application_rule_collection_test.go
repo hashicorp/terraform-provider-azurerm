@@ -18,10 +18,10 @@ func TestAccAzureRMFirewallApplicationRuleCollection_basic(t *testing.T) {
 	resourceName := "azurerm_firewall_application_rule_collection.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -59,10 +59,10 @@ func TestAccAzureRMFirewallApplicationRuleCollection_requiresImport(t *testing.T
 	resourceName := "azurerm_firewall_application_rule_collection.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -74,7 +74,7 @@ func TestAccAzureRMFirewallApplicationRuleCollection_requiresImport(t *testing.T
 			},
 			{
 				Config:      testAccAzureRMFirewallApplicationRuleCollection_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_firewall_application_rule_collection"),
+				ExpectError: acceptance.RequiresImportError("azurerm_firewall_application_rule_collection"),
 			},
 		},
 	})
@@ -84,10 +84,10 @@ func TestAccAzureRMFirewallApplicationRuleCollection_updatedName(t *testing.T) {
 	resourceName := "azurerm_firewall_application_rule_collection.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -122,10 +122,10 @@ func TestAccAzureRMFirewallApplicationRuleCollection_multipleRuleCollections(t *
 	secondRule := "azurerm_firewall_application_rule_collection.test_add"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -174,10 +174,10 @@ func TestAccAzureRMFirewallApplicationRuleCollection_update(t *testing.T) {
 	secondResourceName := "azurerm_firewall_application_rule_collection.test_add"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -219,10 +219,10 @@ func TestAccAzureRMFirewallApplicationRuleCollection_disappears(t *testing.T) {
 	resourceName := "azurerm_firewall_application_rule_collection.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -246,10 +246,10 @@ func TestAccAzureRMFirewallApplicationRuleCollection_multipleRules(t *testing.T)
 	resourceName := "azurerm_firewall_application_rule_collection.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -291,10 +291,10 @@ func TestAccAzureRMFirewallApplicationRuleCollection_multipleProtocols(t *testin
 	resourceName := "azurerm_firewall_application_rule_collection.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -326,10 +326,10 @@ func TestAccAzureRMFirewallApplicationRuleCollection_updateProtocols(t *testing.
 	resourceName := "azurerm_firewall_application_rule_collection.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -386,10 +386,10 @@ func TestAccAzureRMFirewallApplicationRuleCollection_updateFirewallTags(t *testi
 	resourceName := "azurerm_firewall_application_rule_collection.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{

@@ -16,11 +16,11 @@ import (
 
 func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(ri, testLocation())
+	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
 		Steps: []resource.TestStep{
@@ -41,11 +41,11 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
 
 func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(ri, testLocation())
+	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
 		Steps: []resource.TestStep{
@@ -69,11 +69,11 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testi
 
 func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(ri, testLocation())
+	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
 		Steps: []resource.TestStep{
@@ -101,11 +101,11 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T
 func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
-	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(ri, testLocation(), rs)
+	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(ri, acceptance.Location(), rs)
 	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
 		Steps: []resource.TestStep{

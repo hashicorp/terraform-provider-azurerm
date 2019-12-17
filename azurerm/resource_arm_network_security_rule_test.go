@@ -19,12 +19,12 @@ func TestAccAzureRMNetworkSecurityRule_basic(t *testing.T) {
 	resourceName := "azurerm_network_security_rule.test"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkSecurityRule_basic(rInt, testLocation()),
+				Config: testAccAzureRMNetworkSecurityRule_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityRuleExists(resourceName),
 				),
@@ -46,10 +46,10 @@ func TestAccAzureRMNetworkSecurityRule_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_network_security_rule.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMNetworkSecurityRule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMNetworkSecurityRule_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_network_security_rule"),
+				ExpectError: acceptance.RequiresImportError("azurerm_network_security_rule"),
 			},
 		},
 	})
@@ -72,12 +72,12 @@ func TestAccAzureRMNetworkSecurityRule_disappears(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkSecurityRule_basic(rInt, testLocation()),
+				Config: testAccAzureRMNetworkSecurityRule_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityRuleExists(resourceGroup),
 					testCheckAzureRMNetworkSecurityRuleDisappears(resourceGroup),
@@ -92,19 +92,19 @@ func TestAccAzureRMNetworkSecurityRule_addingRules(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkSecurityRule_updateBasic(rInt, testLocation()),
+				Config: testAccAzureRMNetworkSecurityRule_updateBasic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityRuleExists("azurerm_network_security_rule.test1"),
 				),
 			},
 
 			{
-				Config: testAccAzureRMNetworkSecurityRule_updateExtraRule(rInt, testLocation()),
+				Config: testAccAzureRMNetworkSecurityRule_updateExtraRule(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityRuleExists("azurerm_network_security_rule.test2"),
 				),
@@ -117,12 +117,12 @@ func TestAccAzureRMNetworkSecurityRule_augmented(t *testing.T) {
 	resourceName := "azurerm_network_security_rule.test1"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkSecurityRule_augmented(rInt, testLocation()),
+				Config: testAccAzureRMNetworkSecurityRule_augmented(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityRuleExists(resourceName),
 				),
@@ -140,12 +140,12 @@ func TestAccAzureRMNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
 	resourceName := "azurerm_network_security_rule.test1"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkSecurityRule_applicationSecurityGroups(rInt, testLocation()),
+				Config: testAccAzureRMNetworkSecurityRule_applicationSecurityGroups(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityRuleExists(resourceName),
 				),

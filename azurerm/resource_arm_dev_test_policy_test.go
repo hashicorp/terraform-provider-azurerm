@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMDevTestPolicy_basic(t *testing.T) {
 	resourceName := "azurerm_dev_test_policy.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -47,10 +47,10 @@ func TestAccAzureRMDevTestPolicy_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dev_test_policy.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -63,7 +63,7 @@ func TestAccAzureRMDevTestPolicy_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDevTestPolicy_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_dev_test_policy"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_policy"),
 			},
 		},
 	})
@@ -72,10 +72,10 @@ func TestAccAzureRMDevTestPolicy_requiresImport(t *testing.T) {
 func TestAccAzureRMDevTestPolicy_complete(t *testing.T) {
 	resourceName := "azurerm_dev_test_policy.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestPolicyDestroy,
 		Steps: []resource.TestStep{

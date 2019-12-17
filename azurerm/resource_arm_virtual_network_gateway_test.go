@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
-	config := testAccAzureRMVirtualNetworkGateway_basic(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGateway_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -47,10 +47,10 @@ func TestAccAzureRMVirtualNetworkGateway_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_virtual_network_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMVirtualNetworkGateway_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMVirtualNetworkGateway_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_virtual_network_gateway"),
+				ExpectError: acceptance.RequiresImportError("azurerm_virtual_network_gateway"),
 			},
 		},
 	})
@@ -71,10 +71,10 @@ func TestAccAzureRMVirtualNetworkGateway_requiresImport(t *testing.T) {
 func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
-	config := testAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -96,10 +96,10 @@ func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkGateway_vpnGw1(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGateway_vpnGw1(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -115,10 +115,10 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_activeActive(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkGateway_activeActive(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGateway_activeActive(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -135,10 +135,10 @@ func TestAccAzureRMVirtualNetworkGateway_activeActive(t *testing.T) {
 func TestAccAzureRMVirtualNetworkGateway_standard(t *testing.T) {
 	resourceName := "azurerm_virtual_network_gateway.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkGateway_sku(ri, testLocation(), "Standard")
+	config := testAccAzureRMVirtualNetworkGateway_sku(ri, acceptance.Location(), "Standard")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -156,10 +156,10 @@ func TestAccAzureRMVirtualNetworkGateway_standard(t *testing.T) {
 func TestAccAzureRMVirtualNetworkGateway_vpnGw2(t *testing.T) {
 	resourceName := "azurerm_virtual_network_gateway.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkGateway_sku(ri, testLocation(), "VpnGw2")
+	config := testAccAzureRMVirtualNetworkGateway_sku(ri, acceptance.Location(), "VpnGw2")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -177,10 +177,10 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw2(t *testing.T) {
 func TestAccAzureRMVirtualNetworkGateway_vpnGw3(t *testing.T) {
 	resourceName := "azurerm_virtual_network_gateway.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkGateway_sku(ri, testLocation(), "VpnGw3")
+	config := testAccAzureRMVirtualNetworkGateway_sku(ri, acceptance.Location(), "VpnGw3")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -219,10 +219,10 @@ func TestAccAzureRMVirtualNetworkGateway_generation(t *testing.T) {
 func TestAccAzureRMVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
-	config := testAccAzureRMVirtualNetworkGateway_vpnClientConfig(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGateway_vpnClientConfig(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -241,10 +241,10 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
 func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
-	config := testAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -262,10 +262,10 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
 func TestAccAzureRMVirtualNetworkGateway_enableBgp(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
-	config := testAccAzureRMVirtualNetworkGateway_enableBgp(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGateway_enableBgp(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -284,10 +284,10 @@ func TestAccAzureRMVirtualNetworkGateway_enableBgp(t *testing.T) {
 func TestAccAzureRMVirtualNetworkGateway_expressRoute(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_virtual_network_gateway.test"
-	config := testAccAzureRMVirtualNetworkGateway_expressRoute(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGateway_expressRoute(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{

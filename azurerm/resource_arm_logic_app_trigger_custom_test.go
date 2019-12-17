@@ -13,9 +13,9 @@ import (
 func TestAccAzureRMLogicAppTriggerCustom_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_custom.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
@@ -42,9 +42,9 @@ func TestAccAzureRMLogicAppTriggerCustom_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_logic_app_trigger_custom.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
@@ -56,7 +56,7 @@ func TestAccAzureRMLogicAppTriggerCustom_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLogicAppTriggerCustom_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_logic_app_trigger_custom"),
+				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_trigger_custom"),
 			},
 		},
 	})

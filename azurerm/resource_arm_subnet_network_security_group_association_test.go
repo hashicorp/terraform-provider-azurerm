@@ -17,10 +17,10 @@ import (
 func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_basic(t *testing.T) {
 	resourceName := "azurerm_subnet_network_security_group_association.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -48,10 +48,10 @@ func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_requiresImport(t *testi
 
 	resourceName := "azurerm_subnet_network_security_group_association.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -64,7 +64,7 @@ func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_requiresImport(t *testi
 			},
 			{
 				Config:      testAccAzureRMSubnetNetworkSecurityGroupAssociation_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_subnet_network_security_group_association"),
+				ExpectError: acceptance.RequiresImportError("azurerm_subnet_network_security_group_association"),
 			},
 		},
 	})
@@ -73,10 +73,10 @@ func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_requiresImport(t *testi
 func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_subnet_network_security_group_association.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,

@@ -15,11 +15,11 @@ import (
 
 func TestAccAzureRMDataFactoryDatasetMySQL_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryDatasetMySQL_basic(ri, testLocation())
+	config := testAccAzureRMDataFactoryDatasetMySQL_basic(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_dataset_mysql.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryDatasetMySQLDestroy,
 		Steps: []resource.TestStep{
@@ -40,12 +40,12 @@ func TestAccAzureRMDataFactoryDatasetMySQL_basic(t *testing.T) {
 
 func TestAccAzureRMDataFactoryDatasetMySQL_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryDatasetMySQL_update1(ri, testLocation())
-	config2 := testAccAzureRMDataFactoryDatasetMySQL_update2(ri, testLocation())
+	config := testAccAzureRMDataFactoryDatasetMySQL_update1(ri, acceptance.Location())
+	config2 := testAccAzureRMDataFactoryDatasetMySQL_update2(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_dataset_mysql.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryDatasetMySQLDestroy,
 		Steps: []resource.TestStep{

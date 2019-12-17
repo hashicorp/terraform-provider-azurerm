@@ -20,12 +20,12 @@ func TestAccAzureRMAnalysisServicesServer_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAnalysisServicesServer_basic(ri, testLocation()),
+				Config: testAccAzureRMAnalysisServicesServer_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAnalysisServicesServerExists(resourceName),
 				),
@@ -42,11 +42,11 @@ func TestAccAzureRMAnalysisServicesServer_basic(t *testing.T) {
 func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
 	resourceName := "azurerm_analysis_services_server.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMAnalysisServicesServer_withTags(ri, testLocation())
-	postConfig := testAccAzureRMAnalysisServicesServer_withTagsUpdate(ri, testLocation())
+	preConfig := testAccAzureRMAnalysisServicesServer_withTags(ri, acceptance.Location())
+	postConfig := testAccAzureRMAnalysisServicesServer_withTagsUpdate(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
@@ -74,11 +74,11 @@ func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
 func TestAccAzureRMAnalysisServicesServer_querypoolConnectionMode(t *testing.T) {
 	resourceName := "azurerm_analysis_services_server.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(ri, testLocation(), "All")
-	postConfig := testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(ri, testLocation(), "ReadOnly")
+	preConfig := testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(ri, acceptance.Location(), "All")
+	postConfig := testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(ri, acceptance.Location(), "ReadOnly")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
@@ -104,14 +104,14 @@ func TestAccAzureRMAnalysisServicesServer_firewallSettings(t *testing.T) {
 	resourceName := "azurerm_analysis_services_server.test"
 	ri := tf.AccRandTimeInt()
 
-	config1 := testAccAzureRMAnalysisServicesServer_firewallSettings1(ri, testLocation(), true)
+	config1 := testAccAzureRMAnalysisServicesServer_firewallSettings1(ri, acceptance.Location(), true)
 
-	config2 := testAccAzureRMAnalysisServicesServer_firewallSettings2(ri, testLocation(), false)
+	config2 := testAccAzureRMAnalysisServicesServer_firewallSettings2(ri, acceptance.Location(), false)
 
-	config3 := testAccAzureRMAnalysisServicesServer_firewallSettings3(ri, testLocation(), true)
+	config3 := testAccAzureRMAnalysisServicesServer_firewallSettings3(ri, acceptance.Location(), true)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
@@ -167,11 +167,11 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 	email2 := os.Getenv(ArmAccAdminEmail2)
 	preAdminUsers := []string{email1}
 	postAdminUsers := []string{email1, email2}
-	preConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, testLocation(), preAdminUsers)
-	postConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, testLocation(), postAdminUsers)
+	preConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, acceptance.Location(), preAdminUsers)
+	postConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, acceptance.Location(), postAdminUsers)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
@@ -200,12 +200,12 @@ func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAnalysisServicesServer_serverFullName(ri, testLocation()),
+				Config: testAccAzureRMAnalysisServicesServer_serverFullName(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAnalysisServicesServerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "server_full_name"),
@@ -226,12 +226,12 @@ func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 	rs := acctest.RandString(6)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(ri, testLocation(), rs),
+				Config: testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(ri, acceptance.Location(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAnalysisServicesServerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "backup_blob_container_uri"),

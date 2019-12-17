@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMPointToSiteVPNGateway_basic(t *testing.T) {
 	resourceName := "azurerm_point_to_site_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -46,10 +46,10 @@ func TestAccAzureRMPointToSiteVPNGateway_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_point_to_site_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMPointToSiteVPNGateway_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAzureRMPointToSiteVPNGateway_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_point_to_site_vpn_gateway"),
+				ExpectError: acceptance.RequiresImportError("azurerm_point_to_site_vpn_gateway"),
 			},
 		},
 	})
@@ -70,10 +70,10 @@ func TestAccAzureRMPointToSiteVPNGateway_requiresImport(t *testing.T) {
 func TestAccAzureRMPointToSiteVPNGateway_update(t *testing.T) {
 	resourceName := "azurerm_point_to_site_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -106,10 +106,10 @@ func TestAccAzureRMPointToSiteVPNGateway_update(t *testing.T) {
 func TestAccAzureRMPointToSiteVPNGateway_tags(t *testing.T) {
 	resourceName := "azurerm_point_to_site_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
 		Steps: []resource.TestStep{

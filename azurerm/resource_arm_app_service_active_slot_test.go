@@ -12,10 +12,10 @@ import (
 func TestAccAzureRMAppServiceActiveSlot_basic(t *testing.T) {
 	resourceName := "azurerm_app_service_active_slot.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceActiveSlot_basic(ri, testLocation())
+	config := testAccAzureRMAppServiceActiveSlot_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// Destroy actually does nothing so we just return nil
 		CheckDestroy: nil,
@@ -33,11 +33,11 @@ func TestAccAzureRMAppServiceActiveSlot_basic(t *testing.T) {
 func TestAccAzureRMAppServiceActiveSlot_update(t *testing.T) {
 	resourceName := "azurerm_app_service_active_slot.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceActiveSlot_update(ri, testLocation())
-	config2 := testAccAzureRMAppServiceActiveSlot_updated(ri, testLocation())
+	config := testAccAzureRMAppServiceActiveSlot_update(ri, acceptance.Location())
+	config2 := testAccAzureRMAppServiceActiveSlot_updated(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// Destroy actually does nothing so we just return nil
 		CheckDestroy: nil,

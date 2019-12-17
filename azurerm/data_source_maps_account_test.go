@@ -12,10 +12,10 @@ import (
 func TestAccDataSourceAzureRMMapsAccount_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_maps_account.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

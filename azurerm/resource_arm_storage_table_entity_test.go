@@ -19,11 +19,11 @@ import (
 func TestAccAzureRMTableEntity_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_table_entity.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
@@ -50,11 +50,11 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_table_entity.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
@@ -66,7 +66,7 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMTableEntity_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_storage_table_entity"),
+				ExpectError: acceptance.RequiresImportError("azurerm_storage_table_entity"),
 			},
 		},
 	})
@@ -75,11 +75,11 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 func TestAccAzureRMTableEntity_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_table_entity.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{

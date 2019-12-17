@@ -19,12 +19,12 @@ func testAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "authorization_key"),
@@ -48,10 +48,10 @@ func testAccAzureRMExpressRouteCircuitAuthorization_requiresImport(t *testing.T)
 	resourceName := "azurerm_express_route_circuit_authorization.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
 		Steps: []resource.TestStep{
@@ -64,7 +64,7 @@ func testAccAzureRMExpressRouteCircuitAuthorization_requiresImport(t *testing.T)
 			},
 			{
 				Config:      testAccAzureRMExpressRouteCircuitAuthorization_requiresImportConfig(ri, location),
-				ExpectError: testRequiresImportError("azurerm_express_route_circuit_authorization"),
+				ExpectError: acceptance.RequiresImportError("azurerm_express_route_circuit_authorization"),
 			},
 		},
 	})
@@ -76,12 +76,12 @@ func testAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuitAuthorization_multipleConfig(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuitAuthorization_multipleConfig(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitAuthorizationExists(firstResourceName),
 					resource.TestCheckResourceAttrSet(firstResourceName, "authorization_key"),

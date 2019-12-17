@@ -55,12 +55,12 @@ func TestAccAzureRMLoadBalancer_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancer_basic(ri, testLocation()),
+				Config: testAccAzureRMLoadBalancer_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 				),
@@ -82,10 +82,10 @@ func TestAccAzureRMLoadBalancer_requiresImport(t *testing.T) {
 
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
@@ -97,7 +97,7 @@ func TestAccAzureRMLoadBalancer_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLoadBalancer_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_lb"),
+				ExpectError: acceptance.RequiresImportError("azurerm_lb"),
 			},
 		},
 	})
@@ -108,12 +108,12 @@ func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancer_standard(ri, testLocation()),
+				Config: testAccAzureRMLoadBalancer_standard(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 				),
@@ -129,11 +129,11 @@ func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 func TestAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_lb.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
@@ -156,10 +156,10 @@ func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 	var lb network.LoadBalancer
 	resourceName := "azurerm_lb.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
@@ -197,10 +197,10 @@ func TestAccAzureRMLoadBalancer_tags(t *testing.T) {
 	var lb network.LoadBalancer
 	resourceName := "azurerm_lb.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
@@ -231,12 +231,12 @@ func TestAccAzureRMLoadBalancer_emptyPrivateIP(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancer_emptyIPAddress(ri, testLocation()),
+				Config: testAccAzureRMLoadBalancer_emptyIPAddress(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists(resourceName, &lb),
 					resource.TestCheckResourceAttrSet(resourceName, "frontend_ip_configuration.0.private_ip_address"),

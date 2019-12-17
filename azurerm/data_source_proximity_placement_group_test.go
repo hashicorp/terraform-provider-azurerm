@@ -13,10 +13,10 @@ import (
 func TestAccProximityPlacementGroupDataSource_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

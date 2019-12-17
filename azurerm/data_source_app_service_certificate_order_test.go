@@ -18,10 +18,10 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 
 	dataSourceName := "data.azurerm_app_service_certificate_order.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -45,10 +45,10 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 
 	dataSourceName := "data.azurerm_app_service_certificate_order.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -72,10 +72,10 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 
 	dataSourceName := "data.azurerm_app_service_certificate_order.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

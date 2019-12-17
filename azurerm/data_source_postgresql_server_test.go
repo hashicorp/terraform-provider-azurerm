@@ -12,11 +12,11 @@ import (
 func TestAccDataSourceAzureRMPPostgreSqlServer_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_postgresql_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	version := "9.5"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{

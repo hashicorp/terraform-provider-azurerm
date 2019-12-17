@@ -15,10 +15,10 @@ import (
 func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_property.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAPIManagementProperty_basic(ri, testLocation())
+	config := testAccAzureRMAPIManagementProperty_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementPropertyDestroy,
 		Steps: []resource.TestStep{
@@ -44,11 +44,11 @@ func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 	resourceName := "azurerm_api_management_property.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAPIManagementProperty_basic(ri, testLocation())
-	config2 := testAccAzureRMAPIManagementProperty_update(ri, testLocation())
+	config := testAccAzureRMAPIManagementProperty_basic(ri, acceptance.Location())
+	config2 := testAccAzureRMAPIManagementProperty_update(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementPropertyDestroy,
 		Steps: []resource.TestStep{

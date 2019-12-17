@@ -18,12 +18,12 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHub_basic(ri, testLocation()),
+				Config: testAccAzureRMNotificationHub_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
@@ -49,12 +49,12 @@ func TestAccAzureRMNotificationHub_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHub_basic(ri, testLocation()),
+				Config: testAccAzureRMNotificationHub_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
@@ -62,8 +62,8 @@ func TestAccAzureRMNotificationHub_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMNotificationHub_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_notification_hub"),
+				Config:      testAccAzureRMNotificationHub_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_notification_hub"),
 			},
 		},
 	})

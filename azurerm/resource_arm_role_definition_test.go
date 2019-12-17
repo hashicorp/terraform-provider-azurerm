@@ -19,7 +19,7 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -50,7 +50,7 @@ func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMRoleDefinition_requiresImport(id, ri),
-				ExpectError: testRequiresImportError("azurerm_role_definition"),
+				ExpectError: acceptance.RequiresImportError("azurerm_role_definition"),
 			},
 		},
 	})
@@ -73,7 +73,7 @@ func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -99,7 +99,7 @@ func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -133,7 +133,7 @@ func TestAccAzureRMRoleDefinition_updateEmptyId(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -167,7 +167,7 @@ func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{

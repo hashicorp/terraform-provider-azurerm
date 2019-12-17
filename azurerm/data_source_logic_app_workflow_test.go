@@ -12,11 +12,11 @@ import (
 func TestAccDataSourceAzureRMLogicAppWorkflow_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_logic_app_workflow.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMLogicAppWorkflow_basic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
@@ -35,11 +35,11 @@ func TestAccDataSourceAzureRMLogicAppWorkflow_basic(t *testing.T) {
 func TestAccDataSourceAzureRMLogicAppWorkflow_tags(t *testing.T) {
 	dataSourceName := "data.azurerm_logic_app_workflow.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMLogicAppWorkflow_tags(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{

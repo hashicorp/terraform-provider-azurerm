@@ -13,10 +13,10 @@ import (
 func TestAccAzureRMAutomationVariableBool_basic(t *testing.T) {
 	resourceName := "azurerm_automation_variable_bool.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
 		Steps: []resource.TestStep{
@@ -39,10 +39,10 @@ func TestAccAzureRMAutomationVariableBool_basic(t *testing.T) {
 func TestAccAzureRMAutomationVariableBool_complete(t *testing.T) {
 	resourceName := "azurerm_automation_variable_bool.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
 		Steps: []resource.TestStep{
@@ -66,10 +66,10 @@ func TestAccAzureRMAutomationVariableBool_complete(t *testing.T) {
 func TestAccAzureRMAutomationVariableBool_basicCompleteUpdate(t *testing.T) {
 	resourceName := "azurerm_automation_variable_bool.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
 		Steps: []resource.TestStep{

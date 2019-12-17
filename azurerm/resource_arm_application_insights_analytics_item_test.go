@@ -14,10 +14,10 @@ import (
 func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	resourceName := "azurerm_application_insights_analytics_item.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAnalyticsItem_basic(ri, testLocation())
+	config := testAccAzureRMApplicationInsightsAnalyticsItem_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy(),
 		Steps: []resource.TestStep{
@@ -43,11 +43,11 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 func TestAccAzureRMApplicationInsightsAnalyticsItem_update(t *testing.T) {
 	resourceName := "azurerm_application_insights_analytics_item.test"
 	ri := tf.AccRandTimeInt()
-	config1 := testAccAzureRMApplicationInsightsAnalyticsItem_basic(ri, testLocation())
-	config2 := testAccAzureRMApplicationInsightsAnalyticsItem_basic2(ri, testLocation())
+	config1 := testAccAzureRMApplicationInsightsAnalyticsItem_basic(ri, acceptance.Location())
+	config2 := testAccAzureRMApplicationInsightsAnalyticsItem_basic2(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy(),
 		Steps: []resource.TestStep{
@@ -90,10 +90,10 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 	resourceName2 := "azurerm_application_insights_analytics_item.test2"
 	resourceName3 := "azurerm_application_insights_analytics_item.test3"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAnalyticsItem_multiple(ri, testLocation())
+	config := testAccAzureRMApplicationInsightsAnalyticsItem_multiple(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy(),
 		Steps: []resource.TestStep{

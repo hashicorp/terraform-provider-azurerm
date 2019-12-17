@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMDevTestLinuxVirtualMachine_basic(t *testing.T) {
 	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -54,10 +54,10 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -69,7 +69,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDevTestLinuxVirtualMachine_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_dev_test_lab_linux_virtual_machine"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_lab_linux_virtual_machine"),
 			},
 		},
 	})
@@ -78,10 +78,10 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
 func TestAccAzureRMDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
 	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -111,10 +111,10 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
 func TestAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(t *testing.T) {
 	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -147,10 +147,10 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(t *testing.T) {
 func TestAccAzureRMDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{

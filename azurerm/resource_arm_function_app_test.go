@@ -22,10 +22,10 @@ func TestAccAzureRMFunctionApp_basic(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_basic(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -57,11 +57,11 @@ func TestAccAzureRMFunctionApp_requiresImport(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 	rs := strings.ToLower(acctest.RandString(11))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -74,7 +74,7 @@ func TestAccAzureRMFunctionApp_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMFunctionApp_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_function_app"),
+				ExpectError: acceptance.RequiresImportError("azurerm_function_app"),
 			},
 		},
 	})
@@ -84,10 +84,10 @@ func TestAccAzureRMFunctionApp_tags(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_tags(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_tags(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -112,11 +112,11 @@ func TestAccAzureRMFunctionApp_tagsUpdate(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_tags(ri, rs, testLocation())
-	updatedConfig := testAccAzureRMFunctionApp_tagsUpdated(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_tags(ri, rs, acceptance.Location())
+	updatedConfig := testAccAzureRMFunctionApp_tagsUpdated(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -145,11 +145,11 @@ func TestAccAzureRMFunctionApp_appSettings(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
-	updatedConfig := testAccAzureRMFunctionApp_appSettings(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_basic(ri, rs, acceptance.Location())
+	updatedConfig := testAccAzureRMFunctionApp_appSettings(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -189,10 +189,10 @@ func TestAccAzureRMFunctionApp_siteConfig(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_alwaysOn(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_alwaysOn(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -216,10 +216,10 @@ func TestAccAzureRMFunctionApp_linuxFxVersion(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_linuxFxVersion(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_linuxFxVersion(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -244,10 +244,10 @@ func TestAccAzureRMFunctionApp_connectionStrings(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_connectionStrings(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_connectionStrings(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -273,14 +273,14 @@ func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	configBase := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
-	configUpdate1 := testAccAzureRMFunctionApp_appSettings(ri, rs, testLocation())
-	configUpdate2 := testAccAzureRMFunctionApp_appSettingsAlwaysOn(ri, rs, testLocation())
-	configUpdate3 := testAccAzureRMFunctionApp_appSettingsAlwaysOnLinuxFxVersion(ri, rs, testLocation())
-	configUpdate4 := testAccAzureRMFunctionApp_appSettingsAlwaysOnLinuxFxVersionConnectionStrings(ri, rs, testLocation())
+	configBase := testAccAzureRMFunctionApp_basic(ri, rs, acceptance.Location())
+	configUpdate1 := testAccAzureRMFunctionApp_appSettings(ri, rs, acceptance.Location())
+	configUpdate2 := testAccAzureRMFunctionApp_appSettingsAlwaysOn(ri, rs, acceptance.Location())
+	configUpdate3 := testAccAzureRMFunctionApp_appSettingsAlwaysOnLinuxFxVersion(ri, rs, acceptance.Location())
+	configUpdate4 := testAccAzureRMFunctionApp_appSettingsAlwaysOnLinuxFxVersionConnectionStrings(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -341,11 +341,11 @@ func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	preConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "~1")
-	postConfig := testAccAzureRMFunctionApp_version(ri, rs, testLocation(), "~2")
+	preConfig := testAccAzureRMFunctionApp_version(ri, rs, acceptance.Location(), "~1")
+	postConfig := testAccAzureRMFunctionApp_version(ri, rs, acceptance.Location(), "~2")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -371,12 +371,12 @@ func TestAccAzureRMFunctionApp_3264bit(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMFunctionApp_basic(ri, rs, location)
 	updatedConfig := testAccAzureRMFunctionApp_64bit(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -402,11 +402,11 @@ func TestAccAzureRMFunctionApp_httpsOnly(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMFunctionApp_httpsOnly(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -425,11 +425,11 @@ func TestAccAzureRMFunctionApp_consumptionPlan(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMFunctionApp_consumptionPlan(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -449,11 +449,11 @@ func TestAccAzureRMFunctionApp_consumptionPlanUppercaseName(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMFunctionApp_consumptionPlanUppercaseName(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -478,10 +478,10 @@ func TestAccAzureRMFunctionApp_createIdentity(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_basicIdentity(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_basicIdentity(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -504,11 +504,11 @@ func TestAccAzureRMFunctionApp_updateIdentity(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 
-	preConfig := testAccAzureRMFunctionApp_basic(ri, rs, testLocation())
-	postConfig := testAccAzureRMFunctionApp_basicIdentity(ri, rs, testLocation())
+	preConfig := testAccAzureRMFunctionApp_basic(ri, rs, acceptance.Location())
+	postConfig := testAccAzureRMFunctionApp_basicIdentity(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -537,10 +537,10 @@ func TestAccAzureRMFunctionApp_loggingDisabled(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_loggingDisabled(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_loggingDisabled(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -565,13 +565,13 @@ func TestAccAzureRMFunctionApp_updateLogging(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	enabledConfig := testAccAzureRMFunctionApp_basic(ri, rs, location)
 	disabledConfig := testAccAzureRMFunctionApp_loggingDisabled(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -605,10 +605,10 @@ func TestAccAzureRMFunctionApp_authSettings(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	config := testAccAzureRMFunctionApp_authSettings(ri, rs, testLocation(), tenantID)
+	config := testAccAzureRMFunctionApp_authSettings(ri, rs, acceptance.Location(), tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -643,10 +643,10 @@ func TestAccAzureRMFunctionApp_corsSettings(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_corsSettings(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_corsSettings(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -673,10 +673,10 @@ func TestAccAzureRMFunctionApp_vnetName(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	vnetName := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_vnetName(ri, rs, testLocation(), vnetName)
+	config := testAccAzureRMFunctionApp_vnetName(ri, rs, acceptance.Location(), vnetName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -700,10 +700,10 @@ func TestAccAzureRMFunctionApp_enableHttp2(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_enableHttp2(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_enableHttp2(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -727,10 +727,10 @@ func TestAccAzureRMFunctionApp_minTlsVersion(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_minTlsVersion(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_minTlsVersion(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
@@ -754,10 +754,10 @@ func TestAccAzureRMFunctionApp_ftpsState(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMFunctionApp_ftpsState(ri, rs, testLocation())
+	config := testAccAzureRMFunctionApp_ftpsState(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{

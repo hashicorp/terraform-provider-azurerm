@@ -17,10 +17,10 @@ import (
 func TestAccAzureRMSharedImageGallery_basic(t *testing.T) {
 	resourceName := "azurerm_shared_image_gallery.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
 		Steps: []resource.TestStep{
@@ -48,20 +48,20 @@ func TestAccAzureRMSharedImageGallery_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImageGallery_basic(ri, testLocation()),
+				Config: testAccAzureRMSharedImageGallery_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageGalleryExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 				),
 			},
 			{
-				Config:      testAccAzureRMSharedImageGallery_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_shared_image_gallery"),
+				Config:      testAccAzureRMSharedImageGallery_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_shared_image_gallery"),
 			},
 		},
 	})
@@ -72,12 +72,12 @@ func TestAccAzureRMSharedImageGallery_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImageGallery_complete(ri, testLocation()),
+				Config: testAccAzureRMSharedImageGallery_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageGalleryExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", "Shared images and things."),

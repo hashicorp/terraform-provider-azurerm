@@ -13,7 +13,7 @@ import (
 func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 	dataSourceName := "data.azurerm_policy_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -33,7 +33,7 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 func TestAccDataSourceAzureRMPolicyDefinition_builtIn_AtManagementGroup(t *testing.T) {
 	dataSourceName := "data.azurerm_policy_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +50,7 @@ func TestAccDataSourceAzureRMPolicyDefinition_custom(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	dataSourceName := "data.azurerm_policy_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

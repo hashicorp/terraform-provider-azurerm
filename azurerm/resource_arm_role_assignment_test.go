@@ -53,7 +53,7 @@ func testAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 	resourceName := "azurerm_role_assignment.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -81,7 +81,7 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 	id := uuid.New().String()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -115,7 +115,7 @@ func testAccAzureRMRoleAssignment_requiresImport(t *testing.T) {
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -129,7 +129,7 @@ func testAccAzureRMRoleAssignment_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMRoleAssignment_requiresImportConfig(id),
-				ExpectError: testRequiresImportError("azurerm_role_assignment"),
+				ExpectError: acceptance.RequiresImportError("azurerm_role_assignment"),
 			},
 		},
 	})
@@ -140,7 +140,7 @@ func testAccAzureRMRoleAssignment_dataActions(t *testing.T) {
 	resourceName := "azurerm_role_assignment.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -168,7 +168,7 @@ func testAccAzureRMRoleAssignment_builtin(t *testing.T) {
 	id := uuid.New().String()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -197,7 +197,7 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -225,7 +225,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -245,7 +245,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipalWithType(t *t
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -264,7 +264,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_group(t *testing.T) {
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -334,7 +334,7 @@ func testAccAzureRMRoleAssignment_managementGroup(t *testing.T) {
 	groupId := uuid.New().String()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
 		Steps: []resource.TestStep{

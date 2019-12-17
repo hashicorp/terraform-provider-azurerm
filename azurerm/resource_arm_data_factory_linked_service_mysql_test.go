@@ -15,11 +15,11 @@ import (
 
 func TestAccAzureRMDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryLinkedServiceMySQL_basic(ri, testLocation())
+	config := testAccAzureRMDataFactoryLinkedServiceMySQL_basic(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_linked_service_mysql.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy,
 		Steps: []resource.TestStep{
@@ -44,12 +44,12 @@ func TestAccAzureRMDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
 
 func TestAccAzureRMDataFactoryLinkedServiceMySQL_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryLinkedServiceMySQL_update1(ri, testLocation())
-	config2 := testAccAzureRMDataFactoryLinkedServiceMySQL_update2(ri, testLocation())
+	config := testAccAzureRMDataFactoryLinkedServiceMySQL_update1(ri, acceptance.Location())
+	config2 := testAccAzureRMDataFactoryLinkedServiceMySQL_update2(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_linked_service_mysql.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy,
 		Steps: []resource.TestStep{

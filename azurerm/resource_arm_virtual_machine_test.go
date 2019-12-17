@@ -20,9 +20,9 @@ func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_winTimeZone(ri, testLocation())
+	config := testAccAzureRMVirtualMachine_winTimeZone(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -41,9 +41,9 @@ func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachineSystemAssignedIdentity(ri, testLocation())
+	config := testAccAzureRMVirtualMachineSystemAssignedIdentity(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -65,9 +65,9 @@ func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
-	config := testAccAzureRMVirtualMachineUserAssignedIdentity(ri, testLocation(), rs)
+	config := testAccAzureRMVirtualMachineUserAssignedIdentity(ri, acceptance.Location(), rs)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -89,9 +89,9 @@ func TestAccAzureRMVirtualMachine_multipleAssignedIdentity(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
-	config := testAccAzureRMVirtualMachineMultipleAssignedIdentity(ri, testLocation(), rs)
+	config := testAccAzureRMVirtualMachineMultipleAssignedIdentity(ri, acceptance.Location(), rs)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -115,12 +115,12 @@ func TestAccAzureRMVirtualMachine_withPPG(t *testing.T) {
 	rs := acctest.RandString(14)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualMachinePPG(ri, testLocation(), rs),
+				Config: testAccAzureRMVirtualMachinePPG(ri, acceptance.Location(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttrSet(resourceName, "proximity_placement_group_id"),

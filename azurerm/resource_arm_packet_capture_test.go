@@ -18,10 +18,10 @@ func testAccAzureRMPacketCapture_localDisk(t *testing.T) {
 	resourceName := "azurerm_packet_capture.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
 		Steps: []resource.TestStep{
@@ -49,10 +49,10 @@ func testAccAzureRMPacketCapture_requiresImport(t *testing.T) {
 	resourceName := "azurerm_packet_capture.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
 		Steps: []resource.TestStep{
@@ -64,7 +64,7 @@ func testAccAzureRMPacketCapture_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAzureRMPacketCapture_localDiskConfig_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_packet_capture"),
+				ExpectError: acceptance.RequiresImportError("azurerm_packet_capture"),
 			},
 		},
 	})
@@ -74,10 +74,10 @@ func testAccAzureRMPacketCapture_storageAccount(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
 		Steps: []resource.TestStep{
@@ -101,10 +101,10 @@ func testAccAzureRMPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
 		Steps: []resource.TestStep{
@@ -127,10 +127,10 @@ func testAccAzureRMPacketCapture_withFilters(t *testing.T) {
 	resourceName := "azurerm_packet_capture.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
 		Steps: []resource.TestStep{

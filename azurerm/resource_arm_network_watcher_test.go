@@ -94,12 +94,12 @@ func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
 	resourceName := "azurerm_network_watcher.test"
 	rInt := tf.AccRandTimeInt()
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
@@ -121,9 +121,9 @@ func testAccAzureRMNetworkWatcher_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_network_watcher.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
@@ -135,7 +135,7 @@ func testAccAzureRMNetworkWatcher_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMNetworkWatcher_requiresImportConfig(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_network_watcher"),
+				ExpectError: acceptance.RequiresImportError("azurerm_network_watcher"),
 			},
 		},
 	})
@@ -145,12 +145,12 @@ func testAccAzureRMNetworkWatcher_complete(t *testing.T) {
 	resourceName := "azurerm_network_watcher.test"
 	rInt := tf.AccRandTimeInt()
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
@@ -169,18 +169,18 @@ func testAccAzureRMNetworkWatcher_update(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
@@ -194,12 +194,12 @@ func testAccAzureRMNetworkWatcher_disappears(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherExists(resourceName),
 					testCheckAzureRMNetworkWatcherDisappears(resourceName),

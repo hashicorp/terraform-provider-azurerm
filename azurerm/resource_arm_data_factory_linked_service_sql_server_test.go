@@ -15,12 +15,12 @@ import (
 
 func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(ri, testLocation())
-	config2 := testAccAzureRMDataFactoryLinkedServiceSQLServer_update(ri, testLocation())
+	config := testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(ri, acceptance.Location())
+	config2 := testAccAzureRMDataFactoryLinkedServiceSQLServer_update(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_linked_service_sql_server.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy,
 		Steps: []resource.TestStep{

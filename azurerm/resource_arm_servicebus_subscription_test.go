@@ -19,12 +19,12 @@ func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusSubscription_basic(ri, testLocation()),
+				Config: testAccAzureRMServiceBusSubscription_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
 				),
@@ -47,19 +47,19 @@ func TestAccAzureRMServiceBusSubscription_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusSubscription_basic(ri, testLocation()),
+				Config: testAccAzureRMServiceBusSubscription_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMServiceBusSubscription_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_servicebus_subscription"),
+				Config:      testAccAzureRMServiceBusSubscription_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_servicebus_subscription"),
 			},
 		},
 	})
@@ -68,10 +68,10 @@ func TestAccAzureRMServiceBusSubscription_requiresImport(t *testing.T) {
 func TestAccAzureRMServiceBusSubscription_defaultTtl(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusSubscription_withDefaultTtl(ri, testLocation())
+	config := testAccAzureRMServiceBusSubscription_withDefaultTtl(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -94,12 +94,12 @@ func TestAccAzureRMServiceBusSubscription_defaultTtl(t *testing.T) {
 func TestAccAzureRMServiceBusSubscription_updateEnableBatched(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusSubscription_updateEnableBatched(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -127,12 +127,12 @@ func TestAccAzureRMServiceBusSubscription_updateEnableBatched(t *testing.T) {
 func TestAccAzureRMServiceBusSubscription_updateRequiresSession(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusSubscription_updateRequiresSession(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -160,14 +160,14 @@ func TestAccAzureRMServiceBusSubscription_updateRequiresSession(t *testing.T) {
 func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusSubscription_updateForwardTo(ri, location)
 
 	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_to-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
@@ -195,14 +195,14 @@ func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 func TestAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(ri, location)
 
 	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_dl_messages_to-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{

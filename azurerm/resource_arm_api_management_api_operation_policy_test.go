@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMApiManagementAPIOperationPolicy_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIOperationPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -47,10 +47,10 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_requiresImport(t *testing.T) 
 
 	resourceName := "azurerm_api_management_api_operation_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIOperationPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_requiresImport(t *testing.T) 
 			},
 			{
 				Config:      testAccAzureRMApiManagementAPIOperationPolicy_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_api_policy"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_api_policy"),
 			},
 		},
 	})
@@ -71,10 +71,10 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_requiresImport(t *testing.T) 
 func TestAccAzureRMApiManagementAPIOperationPolicy_update(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIOperationPolicyDestroy,
 		Steps: []resource.TestStep{

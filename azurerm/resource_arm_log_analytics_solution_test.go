@@ -16,7 +16,7 @@ import (
 func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	resourceName := "azurerm_log_analytics_solution.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, testLocation())
+	config := testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
 		Providers:    acceptance.SupportedProviders,
@@ -45,7 +45,7 @@ func TestAccAzureRMLogAnalyticsSolution_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_log_analytics_solution.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		Providers:    acceptance.SupportedProviders,
@@ -59,7 +59,7 @@ func TestAccAzureRMLogAnalyticsSolution_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLogAnalyticsSolution_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_log_analytics_solution"),
+				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_solution"),
 			},
 		},
 	})
@@ -68,7 +68,7 @@ func TestAccAzureRMLogAnalyticsSolution_requiresImport(t *testing.T) {
 func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 	resourceName := "azurerm_log_analytics_solution.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogAnalyticsSolution_security(ri, testLocation())
+	config := testAccAzureRMLogAnalyticsSolution_security(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
 		Providers:    acceptance.SupportedProviders,

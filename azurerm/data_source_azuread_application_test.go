@@ -15,7 +15,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 	config := testAccDataSourceAzureRMAzureADApplication_objectId(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
@@ -42,7 +42,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectIdComplete(t *testing.T)
 	dataSourceName := "data.azurerm_azuread_application.test"
 	id := uuid.New().String()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
@@ -71,7 +71,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byName(t *testing.T) {
 	config := testAccDataSourceAzureRMAzureADApplication_name(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{

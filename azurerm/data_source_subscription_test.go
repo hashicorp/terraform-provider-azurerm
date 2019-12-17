@@ -15,7 +15,7 @@ func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
 	resourceName := "data.azurerm_subscription.current"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -36,7 +36,7 @@ func TestAccDataSourceAzureRMSubscription_specific(t *testing.T) {
 	resourceName := "data.azurerm_subscription.specific"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

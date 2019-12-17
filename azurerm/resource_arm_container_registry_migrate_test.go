@@ -17,7 +17,7 @@ import (
 )
 
 func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
-	config := testGetAzureConfig(t)
+	config := acceptance.GetAuthConfig(t)
 	if config == nil {
 		t.SkipNow()
 		return
@@ -42,7 +42,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 	rs := acctest.RandString(4)
 	resourceGroupName := fmt.Sprintf("acctestRG%s", rs)
 	storageAccountName := fmt.Sprintf("acctestsa%s", rs)
-	location := azure.NormalizeLocation(testLocation())
+	location := azure.NormalizeLocation(acceptance.Location())
 	ctx := client.StopContext
 
 	err = createResourceGroup(ctx, client, resourceGroupName, location)

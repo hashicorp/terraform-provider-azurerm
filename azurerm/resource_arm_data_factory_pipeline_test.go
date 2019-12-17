@@ -15,11 +15,11 @@ import (
 func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 	resourceName := "azurerm_data_factory_pipeline.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMDataFactoryPipeline_basic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryPipelineDestroy,
 		Steps: []resource.TestStep{
@@ -41,12 +41,12 @@ func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 	resourceName := "azurerm_data_factory_pipeline.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMDataFactoryPipeline_update1(ri, location)
 	config2 := testAccAzureRMDataFactoryPipeline_update2(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryPipelineDestroy,
 		Steps: []resource.TestStep{

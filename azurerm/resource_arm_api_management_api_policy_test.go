@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMApiManagementAPIPolicy_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_api_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -47,10 +47,10 @@ func TestAccAzureRMApiManagementAPIPolicy_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_api_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMApiManagementAPIPolicy_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApiManagementAPIPolicy_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_api_policy"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_api_policy"),
 			},
 		},
 	})
@@ -71,10 +71,10 @@ func TestAccAzureRMApiManagementAPIPolicy_requiresImport(t *testing.T) {
 func TestAccAzureRMApiManagementAPIPolicy_update(t *testing.T) {
 	resourceName := "azurerm_api_management_api_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -103,10 +103,10 @@ func TestAccAzureRMApiManagementAPIPolicy_update(t *testing.T) {
 func TestAccAzureRMApiManagementAPIPolicy_customPolicy(t *testing.T) {
 	resourceName := "azurerm_api_management_api_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{

@@ -12,10 +12,10 @@ import (
 func TestAccDataSourcePrivateLinkServiceEndpointConnections_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_private_link_service_endpoint_connections.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

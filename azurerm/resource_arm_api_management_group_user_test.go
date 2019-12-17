@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMAPIManagementGroupUser_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_group_user.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupUserDestroy,
 		Steps: []resource.TestStep{
@@ -46,10 +46,10 @@ func TestAccAzureRMAPIManagementGroupUser_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_group_user.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupUserDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMAPIManagementGroupUser_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAPIManagementGroupUser_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_group_user"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_group_user"),
 			},
 		},
 	})

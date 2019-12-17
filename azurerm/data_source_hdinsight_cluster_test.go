@@ -15,10 +15,10 @@ func TestAccDataSourceAzureRMHDInsightCluster_hadoop(t *testing.T) {
 	dataSourceName := "data.azurerm_hdinsight_cluster.test"
 	rInt := tf.AccRandTimeInt()
 	rString := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -39,10 +39,10 @@ func TestAccDataSourceAzureRMHDInsightCluster_hbase(t *testing.T) {
 	dataSourceName := "data.azurerm_hdinsight_cluster.test"
 	rInt := tf.AccRandTimeInt()
 	rString := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -63,10 +63,10 @@ func TestAccDataSourceAzureRMHDInsightCluster_interactiveQuery(t *testing.T) {
 	dataSourceName := "data.azurerm_hdinsight_cluster.test"
 	rInt := tf.AccRandTimeInt()
 	rString := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -87,10 +87,10 @@ func TestAccDataSourceAzureRMHDInsightCluster_kafka(t *testing.T) {
 	dataSourceName := "data.azurerm_hdinsight_cluster.test"
 	rInt := tf.AccRandTimeInt()
 	rString := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -111,10 +111,10 @@ func TestAccDataSourceAzureRMHDInsightCluster_mlServices(t *testing.T) {
 	dataSourceName := "data.azurerm_hdinsight_cluster.test"
 	rInt := tf.AccRandTimeInt()
 	rString := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -135,10 +135,10 @@ func TestAccDataSourceAzureRMHDInsightCluster_rserver(t *testing.T) {
 	dataSourceName := "data.azurerm_hdinsight_cluster.test"
 	rInt := tf.AccRandTimeInt()
 	rString := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -159,10 +159,10 @@ func TestAccDataSourceAzureRMHDInsightCluster_spark(t *testing.T) {
 	dataSourceName := "data.azurerm_hdinsight_cluster.test"
 	rInt := tf.AccRandTimeInt()
 	rString := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -183,10 +183,10 @@ func TestAccDataSourceAzureRMHDInsightCluster_storm(t *testing.T) {
 	dataSourceName := "data.azurerm_hdinsight_cluster.test"
 	rInt := tf.AccRandTimeInt()
 	rString := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

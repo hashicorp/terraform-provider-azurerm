@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMFrontDoorFirewallPolicy_basic(t *testing.T) {
 	resourceName := "azurerm_frontdoor_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMFrontDoorFirewallPolicy_basic(ri, testLocation())
+	config := testAccAzureRMFrontDoorFirewallPolicy_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -48,10 +48,10 @@ func TestAccAzureRMFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_frontdoor_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -63,7 +63,7 @@ func TestAccAzureRMFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMFrontDoorFirewallPolicy_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_frontdoor_firewall_policy"),
+				ExpectError: acceptance.RequiresImportError("azurerm_frontdoor_firewall_policy"),
 			},
 		},
 	})
@@ -72,11 +72,11 @@ func TestAccAzureRMFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 func TestAccAzureRMFrontDoorFirewallPolicy_update(t *testing.T) {
 	resourceName := "azurerm_frontdoor_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMFrontDoorFirewallPolicy_update(ri, "", testLocation())
-	configUpdate := testAccAzureRMFrontDoorFirewallPolicy_update(ri, testAccAzureRMFrontDoorFirewallPolicy_updateTemplate(), testLocation())
+	config := testAccAzureRMFrontDoorFirewallPolicy_update(ri, "", acceptance.Location())
+	configUpdate := testAccAzureRMFrontDoorFirewallPolicy_update(ri, testAccAzureRMFrontDoorFirewallPolicy_updateTemplate(), acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -118,10 +118,10 @@ func TestAccAzureRMFrontDoorFirewallPolicy_update(t *testing.T) {
 func TestAccAzureRMFrontDoorFirewallPolicy_complete(t *testing.T) {
 	resourceName := "azurerm_frontdoor_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMFrontDoorFirewallPolicy_update(ri, testAccAzureRMFrontDoorFirewallPolicy_updateTemplate(), testLocation())
+	config := testAccAzureRMFrontDoorFirewallPolicy_update(ri, testAccAzureRMFrontDoorFirewallPolicy_updateTemplate(), acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{

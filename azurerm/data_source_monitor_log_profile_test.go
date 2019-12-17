@@ -20,12 +20,12 @@ func testAccDataSourceAzureRMMonitorLogProfile_storageaccount(t *testing.T) {
 	rs := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMonitorLogProfile_storageaccountConfig(ri, rs, testLocation()),
+				Config: testAccDataSourceAzureRMMonitorLogProfile_storageaccountConfig(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "categories.#"),
@@ -47,12 +47,12 @@ func testAccDataSourceAzureRMMonitorLogProfile_eventhub(t *testing.T) {
 	rs := acctest.RandString(10)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMonitorLogProfile_eventhubConfig(ri, rs, testLocation()),
+				Config: testAccDataSourceAzureRMMonitorLogProfile_eventhubConfig(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "categories.#"),

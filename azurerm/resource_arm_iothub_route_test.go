@@ -22,12 +22,12 @@ func TestAccAzureRMIotHubRoute_basic(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubRoute_basic(rInt, rs, testLocation()),
+				Config: testAccAzureRMIotHubRoute_basic(rInt, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubRouteExists(resourceName),
 				),
@@ -50,10 +50,10 @@ func TestAccAzureRMIotHubRoute_requiresImport(t *testing.T) {
 	resourceName := "azurerm_iothub_route.test"
 	rInt := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
 		Steps: []resource.TestStep{
@@ -65,7 +65,7 @@ func TestAccAzureRMIotHubRoute_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubRoute_requiresImport(rInt, rs, location),
-				ExpectError: testRequiresImportError("azurerm_iothub_route"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_route"),
 			},
 		},
 	})
@@ -77,12 +77,12 @@ func TestAccAzureRMIotHubRoute_update(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubRoute_basic(rInt, rs, testLocation()),
+				Config: testAccAzureRMIotHubRoute_basic(rInt, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubRouteExists(resourceName),
 				),
@@ -93,7 +93,7 @@ func TestAccAzureRMIotHubRoute_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMIotHubRoute_update(rInt, rs, testLocation()),
+				Config: testAccAzureRMIotHubRoute_update(rInt, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubRouteExists(resourceName),
 				),

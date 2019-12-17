@@ -18,11 +18,11 @@ import (
 func TestAccAzureRMStorageShareDirectory_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_share_directory.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
@@ -44,11 +44,11 @@ func TestAccAzureRMStorageShareDirectory_basic(t *testing.T) {
 func TestAccAzureRMStorageShareDirectory_uppercase(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_share_directory.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
@@ -75,11 +75,11 @@ func TestAccAzureRMStorageShareDirectory_requiresImport(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_share_directory.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
@@ -91,7 +91,7 @@ func TestAccAzureRMStorageShareDirectory_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMStorageShareDirectory_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_storage_share_directory"),
+				ExpectError: acceptance.RequiresImportError("azurerm_storage_share_directory"),
 			},
 		},
 	})
@@ -100,11 +100,11 @@ func TestAccAzureRMStorageShareDirectory_requiresImport(t *testing.T) {
 func TestAccAzureRMStorageShareDirectory_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_share_directory.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
@@ -126,11 +126,11 @@ func TestAccAzureRMStorageShareDirectory_complete(t *testing.T) {
 func TestAccAzureRMStorageShareDirectory_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_share_directory.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
@@ -162,10 +162,10 @@ func TestAccAzureRMStorageShareDirectory_update(t *testing.T) {
 func TestAccAzureRMStorageShareDirectory_nested(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{

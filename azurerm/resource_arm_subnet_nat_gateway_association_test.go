@@ -18,10 +18,10 @@ func TestAccAzureRMSubnetNatGatewayAssociation_basic(t *testing.T) {
 	resourceName := "azurerm_subnet_nat_gateway_association.test"
 	ri := tf.AccRandTimeInt()
 	// Using alt location because the resource currently in private preview and is only available in eastus2.
-	location := testAltLocation()
+	location := acceptance.AltLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional since this is a virtual resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -50,9 +50,9 @@ func TestAccAzureRMSubnetNatGatewayAssociation_requiresImport(t *testing.T) {
 	resourceName := "azurerm_subnet_nat_gateway_association.test"
 	ri := tf.AccRandTimeInt()
 	// Using alt location because the resource currently in private preview and is only available in eastus2.
-	location := testAltLocation()
+	location := acceptance.AltLocation()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional since this is a virtual resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -65,7 +65,7 @@ func TestAccAzureRMSubnetNatGatewayAssociation_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMSubnetNatGatewayAssociation_requiresImport(ri, location),
-				ExpectError: testRequiresImportError(""),
+				ExpectError: acceptance.RequiresImportError(""),
 			},
 		},
 	})
@@ -75,9 +75,9 @@ func TestAccAzureRMSubnetNatGatewayAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_subnet_nat_gateway_association.test"
 	ri := tf.AccRandTimeInt()
 	// Using alt location because the resource currently in private preview and is only available in eastus2.
-	location := testAltLocation()
+	location := acceptance.AltLocation()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional since this is virtual resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,

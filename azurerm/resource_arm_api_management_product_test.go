@@ -17,10 +17,10 @@ import (
 func TestAccAzureRMApiManagementProduct_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
@@ -54,10 +54,10 @@ func TestAccAzureRMApiManagementProduct_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
@@ -69,7 +69,7 @@ func TestAccAzureRMApiManagementProduct_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApiManagementProduct_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_product"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_product"),
 			},
 		},
 	})
@@ -105,10 +105,10 @@ func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
 func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
@@ -167,10 +167,10 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 func TestAccAzureRMApiManagementProduct_subscriptionsLimit(t *testing.T) {
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
@@ -195,10 +195,10 @@ func TestAccAzureRMApiManagementProduct_subscriptionsLimit(t *testing.T) {
 func TestAccAzureRMApiManagementProduct_complete(t *testing.T) {
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
@@ -228,10 +228,10 @@ func TestAccAzureRMApiManagementProduct_complete(t *testing.T) {
 func TestAccAzureRMApiManagementProduct_approvalRequiredError(t *testing.T) {
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{

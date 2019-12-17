@@ -15,11 +15,11 @@ import (
 
 func TestAccAzureRMDataFactoryDatasetPostgreSQL_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryDatasetPostgreSQL_basic(ri, testLocation())
+	config := testAccAzureRMDataFactoryDatasetPostgreSQL_basic(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_dataset_postgresql.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryDatasetPostgreSQLDestroy,
 		Steps: []resource.TestStep{
@@ -40,12 +40,12 @@ func TestAccAzureRMDataFactoryDatasetPostgreSQL_basic(t *testing.T) {
 
 func TestAccAzureRMDataFactoryDatasetPostgreSQL_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryDatasetPostgreSQL_update1(ri, testLocation())
-	config2 := testAccAzureRMDataFactoryDatasetPostgreSQL_update2(ri, testLocation())
+	config := testAccAzureRMDataFactoryDatasetPostgreSQL_update1(ri, acceptance.Location())
+	config2 := testAccAzureRMDataFactoryDatasetPostgreSQL_update2(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_dataset_postgresql.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryDatasetPostgreSQLDestroy,
 		Steps: []resource.TestStep{

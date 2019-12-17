@@ -15,11 +15,11 @@ func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctestvnet-%d", ri)
-	location := testLocation()
-	config := testAccDataSourceArmVirtualNetwork_basic(ri, testLocation())
+	location := acceptance.Location()
+	config := testAccDataSourceArmVirtualNetwork_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -41,10 +41,10 @@ func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	virtualNetworkName := fmt.Sprintf("acctestvnet-1-%d", ri)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

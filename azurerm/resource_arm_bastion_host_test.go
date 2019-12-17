@@ -19,10 +19,10 @@ func TestAccAzureRMBastionHost_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
-	config := testAccAzureRMBastionHost_basic(ri, rs, testLocation())
+	config := testAccAzureRMBastionHost_basic(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBastionHostDestroy,
 		Steps: []resource.TestStep{
@@ -41,10 +41,10 @@ func TestAccAzureRMBastionHost_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
-	config := testAccAzureRMBastionHost_complete(ri, rs, testLocation())
+	config := testAccAzureRMBastionHost_complete(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBastionHostDestroy,
 		Steps: []resource.TestStep{
@@ -76,19 +76,19 @@ func TestAccAzureRMBastionHost_requiresImport(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBastionHostDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBastionHost_basic(ri, rs, testLocation()),
+				Config: testAccAzureRMBastionHost_basic(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBastionHostExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMBastionHost_requiresImport(ri, rs, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_bastion_host"),
+				Config:      testAccAzureRMBastionHost_requiresImport(ri, rs, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_bastion_host"),
 			},
 		},
 	})

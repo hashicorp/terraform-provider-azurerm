@@ -17,12 +17,12 @@ func TestAccAzureRMRecoveryFabric_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryFabricDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryFabric_basic(ri, testLocation()),
+				Config: testAccAzureRMRecoveryFabric_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRecoveryFabricExists(resourceName),
 				),

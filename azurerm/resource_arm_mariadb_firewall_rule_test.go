@@ -18,12 +18,12 @@ func TestAccAzureRMMariaDBFirewallRule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDBFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDBFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMMariaDBFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDBFirewallRuleExists(resourceName),
 				),
@@ -47,19 +47,19 @@ func TestAccAzureRMMariaDBFirewallRule_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDBFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDBFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMMariaDBFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDBFirewallRuleExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMariaDBFirewallRule_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_mariadb_firewall_rule"),
+				Config:      testAccAzureRMMariaDBFirewallRule_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_firewall_rule"),
 			},
 		},
 	})

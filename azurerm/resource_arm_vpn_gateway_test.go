@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMVPNGateway_basic(t *testing.T) {
 	resourceName := "azurerm_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -46,10 +46,10 @@ func TestAccAzureRMVPNGateway_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMVPNGateway_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMVPNGateway_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_vpn_gateway"),
+				ExpectError: acceptance.RequiresImportError("azurerm_vpn_gateway"),
 			},
 		},
 	})
@@ -70,10 +70,10 @@ func TestAccAzureRMVPNGateway_requiresImport(t *testing.T) {
 func TestAccAzureRMVPNGateway_bgpSettings(t *testing.T) {
 	resourceName := "azurerm_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -95,10 +95,10 @@ func TestAccAzureRMVPNGateway_bgpSettings(t *testing.T) {
 func TestAccAzureRMVPNGateway_scaleUnit(t *testing.T) {
 	resourceName := "azurerm_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNGatewayDestroy,
 		Steps: []resource.TestStep{
@@ -131,10 +131,10 @@ func TestAccAzureRMVPNGateway_scaleUnit(t *testing.T) {
 func TestAccAzureRMVPNGateway_tags(t *testing.T) {
 	resourceName := "azurerm_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNGatewayDestroy,
 		Steps: []resource.TestStep{

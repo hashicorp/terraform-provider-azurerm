@@ -19,10 +19,10 @@ import (
 func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
 	resourceName := "azurerm_key_vault_key.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicEC(rs, testLocation())
+	config := testAccAzureRMKeyVaultKey_basicEC(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
@@ -45,10 +45,10 @@ func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
 func TestAccAzureRMKeyVaultKey_basicECClassic(t *testing.T) {
 	resourceName := "azurerm_key_vault_key.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicECClassic(rs, testLocation())
+	config := testAccAzureRMKeyVaultKey_basicECClassic(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
@@ -76,10 +76,10 @@ func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_key_vault_key.test"
 	rs := acctest.RandString(6)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
@@ -91,7 +91,7 @@ func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMKeyVaultKey_requiresImport(rs, location),
-				ExpectError: testRequiresImportError("azurerm_key_vault_key"),
+				ExpectError: acceptance.RequiresImportError("azurerm_key_vault_key"),
 			},
 		},
 	})
@@ -100,10 +100,10 @@ func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
 func TestAccAzureRMKeyVaultKey_basicECHSM(t *testing.T) {
 	resourceName := "azurerm_key_vault_key.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicECHSM(rs, testLocation())
+	config := testAccAzureRMKeyVaultKey_basicECHSM(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
@@ -120,10 +120,10 @@ func TestAccAzureRMKeyVaultKey_basicECHSM(t *testing.T) {
 func TestAccAzureRMKeyVaultKey_curveEC(t *testing.T) {
 	resourceName := "azurerm_key_vault_key.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_curveEC(rs, testLocation())
+	config := testAccAzureRMKeyVaultKey_curveEC(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
@@ -145,10 +145,10 @@ func TestAccAzureRMKeyVaultKey_curveEC(t *testing.T) {
 func TestAccAzureRMKeyVaultKey_basicRSA(t *testing.T) {
 	resourceName := "azurerm_key_vault_key.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicRSA(rs, testLocation())
+	config := testAccAzureRMKeyVaultKey_basicRSA(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
@@ -171,10 +171,10 @@ func TestAccAzureRMKeyVaultKey_basicRSA(t *testing.T) {
 func TestAccAzureRMKeyVaultKey_basicRSAHSM(t *testing.T) {
 	resourceName := "azurerm_key_vault_key.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicRSAHSM(rs, testLocation())
+	config := testAccAzureRMKeyVaultKey_basicRSAHSM(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
@@ -197,10 +197,10 @@ func TestAccAzureRMKeyVaultKey_basicRSAHSM(t *testing.T) {
 func TestAccAzureRMKeyVaultKey_complete(t *testing.T) {
 	resourceName := "azurerm_key_vault_key.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_complete(rs, testLocation())
+	config := testAccAzureRMKeyVaultKey_complete(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
@@ -225,11 +225,11 @@ func TestAccAzureRMKeyVaultKey_complete(t *testing.T) {
 func TestAccAzureRMKeyVaultKey_update(t *testing.T) {
 	resourceName := "azurerm_key_vault_key.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicRSA(rs, testLocation())
-	updatedConfig := testAccAzureRMKeyVaultKey_basicUpdated(rs, testLocation())
+	config := testAccAzureRMKeyVaultKey_basicRSA(rs, acceptance.Location())
+	updatedConfig := testAccAzureRMKeyVaultKey_basicUpdated(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
@@ -256,10 +256,10 @@ func TestAccAzureRMKeyVaultKey_update(t *testing.T) {
 func TestAccAzureRMKeyVaultKey_disappears(t *testing.T) {
 	resourceName := "azurerm_key_vault_key.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicEC(rs, testLocation())
+	config := testAccAzureRMKeyVaultKey_basicEC(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
@@ -277,10 +277,10 @@ func TestAccAzureRMKeyVaultKey_disappears(t *testing.T) {
 
 func TestAccAzureRMKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicEC(rs, testLocation())
+	config := testAccAzureRMKeyVaultKey_basicEC(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{

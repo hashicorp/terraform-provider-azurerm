@@ -19,7 +19,7 @@ func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
 		Steps: []resource.TestStep{
@@ -51,7 +51,7 @@ func TestAccAzureRMEventGridTopic_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
 		Steps: []resource.TestStep{
@@ -63,7 +63,7 @@ func TestAccAzureRMEventGridTopic_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMEventGridTopic_requiresImport(ri),
-				ExpectError: testRequiresImportError("azurerm_eventgrid_topic"),
+				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_topic"),
 			},
 		},
 	})
@@ -74,7 +74,7 @@ func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
 		Steps: []resource.TestStep{

@@ -13,11 +13,11 @@ import (
 func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_lb_backend_address_pool.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	addressPoolName := fmt.Sprintf("%d-address-pool", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{

@@ -17,10 +17,10 @@ import (
 func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 	resourceName := "azurerm_private_dns_zone_virtual_network_link.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(ri, testLocation())
+	config := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy,
 		Steps: []resource.TestStep{
@@ -47,10 +47,10 @@ func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(t *testing.T)
 
 	resourceName := "azurerm_private_dns_zone_virtual_network_link.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(t *testing.T)
 			},
 			{
 				Config:      testAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_private_dns_zone_virtual_network_link"),
+				ExpectError: acceptance.RequiresImportError("azurerm_private_dns_zone_virtual_network_link"),
 			},
 		},
 	})
@@ -71,12 +71,12 @@ func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(t *testing.T)
 func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(t *testing.T) {
 	resourceName := "azurerm_private_dns_zone_virtual_network_link.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(ri, location)
 	postConfig := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy,
 		Steps: []resource.TestStep{

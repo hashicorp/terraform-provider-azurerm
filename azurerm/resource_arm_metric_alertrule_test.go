@@ -70,11 +70,11 @@ func TestValidateMetricAlertRuleTags(t *testing.T) {
 func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 	resourceName := "azurerm_metric_alertrule.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, testLocation(), true)
-	postConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, testLocation(), false)
+	preConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, acceptance.Location(), true)
+	postConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, acceptance.Location(), false)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
@@ -115,10 +115,10 @@ func TestAccAzureRMMetricAlertRule_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_metric_alertrule.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
@@ -130,7 +130,7 @@ func TestAccAzureRMMetricAlertRule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMMetricAlertRule_requiresImport(ri, location, true),
-				ExpectError: testRequiresImportError("azurerm_metric_alertrule"),
+				ExpectError: acceptance.RequiresImportError("azurerm_metric_alertrule"),
 			},
 		},
 	})
@@ -139,10 +139,10 @@ func TestAccAzureRMMetricAlertRule_requiresImport(t *testing.T) {
 func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 	resourceName := "azurerm_metric_alertrule.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMetricAlertRule_sqlDatabaseStorage(ri, testLocation())
+	config := testAccAzureRMMetricAlertRule_sqlDatabaseStorage(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{

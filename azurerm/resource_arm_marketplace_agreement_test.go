@@ -37,7 +37,7 @@ func testAccAzureRMMarketplaceAgreement_basic(t *testing.T) {
 	resourceName := "azurerm_marketplace_agreement.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMarketplaceAgreementDestroy,
 		Steps: []resource.TestStep{
@@ -67,7 +67,7 @@ func testAccAzureRMMarketplaceAgreement_requiresImport(t *testing.T) {
 	resourceName := "azurerm_marketplace_agreement.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMarketplaceAgreementDestroy,
 		Steps: []resource.TestStep{
@@ -79,7 +79,7 @@ func testAccAzureRMMarketplaceAgreement_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMMarketplaceAgreement_requiresImportConfig(),
-				ExpectError: testRequiresImportError("azurerm_marketplace_agreement"),
+				ExpectError: acceptance.RequiresImportError("azurerm_marketplace_agreement"),
 			},
 		},
 	})

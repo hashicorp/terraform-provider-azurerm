@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMDevTestVirtualMachine_basic(t *testing.T) {
 	resourceName := "azurerm_dev_test_windows_virtual_machine.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -54,10 +54,10 @@ func TestAccAzureRMDevTestVirtualMachine_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dev_test_windows_virtual_machine.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -69,7 +69,7 @@ func TestAccAzureRMDevTestVirtualMachine_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDevTestWindowsVirtualMachine_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_dev_test_windows_virtual_machine"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_windows_virtual_machine"),
 			},
 		},
 	})
@@ -78,10 +78,10 @@ func TestAccAzureRMDevTestVirtualMachine_requiresImport(t *testing.T) {
 func TestAccAzureRMDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 	resourceName := "azurerm_dev_test_windows_virtual_machine.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
 		Steps: []resource.TestStep{
@@ -114,10 +114,10 @@ func TestAccAzureRMDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 func TestAccAzureRMDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
 	resourceName := "azurerm_dev_test_windows_virtual_machine.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
 		Steps: []resource.TestStep{

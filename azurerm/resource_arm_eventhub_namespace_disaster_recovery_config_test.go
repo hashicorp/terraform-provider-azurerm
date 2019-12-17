@@ -17,12 +17,12 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName),
 				),
@@ -45,12 +45,12 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(t *testing.T
 	t.Skip()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName),
 				),
@@ -69,18 +69,18 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) 
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName),
 				),
@@ -91,7 +91,7 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) 
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated_removed(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated_removed(ri, acceptance.Location(), acceptance.AltLocation()),
 			},
 		},
 	})

@@ -16,11 +16,11 @@ import (
 
 func TestAccAzureRMDataFactoryTriggerSchedule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryTriggerSchedule_basic(ri, testLocation())
+	config := testAccAzureRMDataFactoryTriggerSchedule_basic(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_trigger_schedule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryTriggerScheduleDestroy,
 		Steps: []resource.TestStep{
@@ -43,12 +43,12 @@ func TestAccAzureRMDataFactoryTriggerSchedule_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	loc, _ := time.LoadLocation("UTC")
 	endTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
-	config := testAccAzureRMDataFactoryTriggerSchedule_basic(ri, testLocation())
-	config2 := testAccAzureRMDataFactoryTriggerSchedule_update(ri, testLocation(), endTime)
+	config := testAccAzureRMDataFactoryTriggerSchedule_basic(ri, acceptance.Location())
+	config2 := testAccAzureRMDataFactoryTriggerSchedule_update(ri, acceptance.Location(), endTime)
 	resourceName := "azurerm_data_factory_trigger_schedule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryTriggerScheduleDestroy,
 		Steps: []resource.TestStep{

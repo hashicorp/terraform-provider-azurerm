@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMMariaDbServer_basic(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbServer_basic(ri, testLocation())
+	config := testAccAzureRMMariaDbServer_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
@@ -52,10 +52,10 @@ func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
@@ -67,7 +67,7 @@ func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMMariaDbServer_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_mariadb_server"),
+				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_server"),
 			},
 		},
 	})
@@ -76,10 +76,10 @@ func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
 func TestAccAzureRMMariaDbServer_basicMaxStorage(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbServer_basicMaxStorage(ri, testLocation())
+	config := testAccAzureRMMariaDbServer_basicMaxStorage(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
@@ -107,10 +107,10 @@ func TestAccAzureRMMariaDbServer_basicMaxStorage(t *testing.T) {
 func TestAccAzureRMMariaDbServer_generalPurpose(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbServer_generalPurpose(ri, testLocation())
+	config := testAccAzureRMMariaDbServer_generalPurpose(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
@@ -135,10 +135,10 @@ func TestAccAzureRMMariaDbServer_generalPurpose(t *testing.T) {
 func TestAccAzureRMMariaDbServer_memoryOptimized(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbServer_memoryOptimizedGeoRedundant(ri, testLocation())
+	config := testAccAzureRMMariaDbServer_memoryOptimizedGeoRedundant(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
@@ -163,12 +163,12 @@ func TestAccAzureRMMariaDbServer_memoryOptimized(t *testing.T) {
 func TestAccAzureRMMariaDbServer_updatePassword(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMMariaDbServer_basic(ri, location)
 	updatedConfig := testAccAzureRMMariaDbServer_basicUpdatedPassword(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
@@ -191,12 +191,12 @@ func TestAccAzureRMMariaDbServer_updatePassword(t *testing.T) {
 func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMMariaDbServer_basic(ri, location)
 	updatedConfig := testAccAzureRMMariaDbServer_basicUpdated(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
@@ -227,12 +227,12 @@ func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
 func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMMariaDbServer_generalPurpose(ri, location)
 	updatedConfig := testAccAzureRMMariaDbServer_memoryOptimized(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
@@ -267,12 +267,12 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 func TestAccAzureRMMariaDbServer_storageAutogrow(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMMariaDbServer_basic(ri, location)
 	updatedConfig := testAccAzureRMMariaDbServer_storageAutogrowUpdated(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{

@@ -21,10 +21,10 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_basic(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -53,10 +53,10 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{
@@ -68,7 +68,7 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_storage_data_lake_gen2_filesystem"),
+				ExpectError: acceptance.RequiresImportError("azurerm_storage_data_lake_gen2_filesystem"),
 			},
 		},
 	})
@@ -79,10 +79,10 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_properties(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{

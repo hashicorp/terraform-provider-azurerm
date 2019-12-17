@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMIotHubConsumerGroup_events(t *testing.T) {
 	resourceName := "azurerm_iothub_consumer_group.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -47,10 +47,10 @@ func TestAccAzureRMIotHubConsumerGroup_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_iothub_consumer_group.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -63,7 +63,7 @@ func TestAccAzureRMIotHubConsumerGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubConsumerGroup_requiresImport(rInt, location, "events"),
-				ExpectError: testRequiresImportError("azurerm_iothub_consumer_group"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_consumer_group"),
 			},
 		},
 	})
@@ -72,10 +72,10 @@ func TestAccAzureRMIotHubConsumerGroup_requiresImport(t *testing.T) {
 func TestAccAzureRMIotHubConsumerGroup_operationsMonitoringEvents(t *testing.T) {
 	resourceName := "azurerm_iothub_consumer_group.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{

@@ -12,14 +12,14 @@ import (
 func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_shared_image_version.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	username := "testadmin"
 	password := "Password1234!"
 	hostname := fmt.Sprintf("tftestcustomimagesrc%d", rInt)
 	resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
 		Steps: []resource.TestStep{

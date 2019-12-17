@@ -17,10 +17,10 @@ import (
 func TestAccAzureRMVirtualWan_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_wan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualWanDestroy,
 		Steps: []resource.TestStep{
@@ -48,19 +48,19 @@ func TestAccAzureRMVirtualWan_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualWanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualWan_basic(ri, testLocation()),
+				Config: testAccAzureRMVirtualWan_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualWanExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMVirtualWan_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_virtual_wan"),
+				Config:      testAccAzureRMVirtualWan_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_virtual_wan"),
 			},
 		},
 	})
@@ -71,12 +71,12 @@ func TestAccAzureRMVirtualWan_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualWanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualWan_complete(ri, testLocation()),
+				Config: testAccAzureRMVirtualWan_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualWanExists(resourceName),
 				),

@@ -18,12 +18,12 @@ func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMMySQLDatabase_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLDatabaseExists(resourceName),
 				),
@@ -47,19 +47,19 @@ func TestAccAzureRMMySQLDatabase_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMMySQLDatabase_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLDatabaseExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMySQLDatabase_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_mysql_database"),
+				Config:      testAccAzureRMMySQLDatabase_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_mysql_database"),
 			},
 		},
 	})
@@ -68,10 +68,10 @@ func TestAccAzureRMMySQLDatabase_requiresImport(t *testing.T) {
 func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 	resourceName := "azurerm_mysql_database.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMySQLDatabase_charsetUppercase(ri, testLocation())
+	config := testAccAzureRMMySQLDatabase_charsetUppercase(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
@@ -94,10 +94,10 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 	resourceName := "azurerm_mysql_database.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMySQLDatabase_charsetMixedcase(ri, testLocation())
+	config := testAccAzureRMMySQLDatabase_charsetMixedcase(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{

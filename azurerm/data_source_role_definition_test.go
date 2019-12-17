@@ -17,7 +17,7 @@ func TestAccDataSourceAzureRMRoleDefinition_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -46,7 +46,7 @@ func TestAccDataSourceAzureRMRoleDefinition_basicByName(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -71,7 +71,7 @@ func TestAccDataSourceAzureRMRoleDefinition_basicByName(t *testing.T) {
 func TestAccDataSourceAzureRMRoleDefinition_builtIn_contributor(t *testing.T) {
 	dataSourceName := "data.azurerm_role_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -98,7 +98,7 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_contributor(t *testing.T) {
 func TestAccDataSourceAzureRMRoleDefinition_builtIn_owner(t *testing.T) {
 	dataSourceName := "data.azurerm_role_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -120,7 +120,7 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_owner(t *testing.T) {
 func TestAccDataSourceAzureRMRoleDefinition_builtIn_reader(t *testing.T) {
 	dataSourceName := "data.azurerm_role_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -142,7 +142,7 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_reader(t *testing.T) {
 func TestAccDataSourceAzureRMRoleDefinition_builtIn_virtualMachineContributor(t *testing.T) {
 	dataSourceName := "data.azurerm_role_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

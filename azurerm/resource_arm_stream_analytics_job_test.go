@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMStreamAnalyticsJob_basic(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_job.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
 		Steps: []resource.TestStep{
@@ -43,10 +43,10 @@ func TestAccAzureRMStreamAnalyticsJob_basic(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsJob_complete(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_job.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
 		Steps: []resource.TestStep{
@@ -75,10 +75,10 @@ func TestAccAzureRMStreamAnalyticsJob_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_stream_analytics_job.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
 		Steps: []resource.TestStep{
@@ -90,7 +90,7 @@ func TestAccAzureRMStreamAnalyticsJob_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMStreamAnalyticsJob_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_stream_analytics_job"),
+				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_job"),
 			},
 		},
 	})
@@ -99,10 +99,10 @@ func TestAccAzureRMStreamAnalyticsJob_requiresImport(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsJob_update(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_job.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
 		Steps: []resource.TestStep{

@@ -17,10 +17,10 @@ import (
 
 func TestAccAzureRMApplicationInsightsAPIKey_no_permission(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, testLocation(), "[]", "[]")
+	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, acceptance.Location(), "[]", "[]")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
@@ -40,15 +40,15 @@ func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_application_insights_api_key.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationInsightsAPIKey_basic(ri, testLocation(), "[]", `["annotations"]`),
+				Config: testAccAzureRMApplicationInsightsAPIKey_basic(ri, acceptance.Location(), "[]", `["annotations"]`),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "read_permissions.#", "0"),
@@ -57,7 +57,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApplicationInsightsAPIKey_requiresImport(ri, location, "[]", `["annotations"]`),
-				ExpectError: testRequiresImportError("azurerm_application_insights_api_key"),
+				ExpectError: acceptance.RequiresImportError("azurerm_application_insights_api_key"),
 			},
 		},
 	})
@@ -66,10 +66,10 @@ func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 func TestAccAzureRMApplicationInsightsAPIKey_read_telemetry_permissions(t *testing.T) {
 	resourceName := "azurerm_application_insights_api_key.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, testLocation(), `["aggregate", "api", "draft", "extendqueries", "search"]`, "[]")
+	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, acceptance.Location(), `["aggregate", "api", "draft", "extendqueries", "search"]`, "[]")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
@@ -96,10 +96,10 @@ func TestAccAzureRMApplicationInsightsAPIKey_read_telemetry_permissions(t *testi
 func TestAccAzureRMApplicationInsightsAPIKey_write_annotations_permission(t *testing.T) {
 	resourceName := "azurerm_application_insights_api_key.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, testLocation(), "[]", `["annotations"]`)
+	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, acceptance.Location(), "[]", `["annotations"]`)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
@@ -126,10 +126,10 @@ func TestAccAzureRMApplicationInsightsAPIKey_write_annotations_permission(t *tes
 func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.T) {
 	resourceName := "azurerm_application_insights_api_key.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, testLocation(), `["agentconfig"]`, "[]")
+	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, acceptance.Location(), `["agentconfig"]`, "[]")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
@@ -156,10 +156,10 @@ func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.
 func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 	resourceName := "azurerm_application_insights_api_key.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, testLocation(), `["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]`, `["annotations"]`)
+	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, acceptance.Location(), `["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]`, `["annotations"]`)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{

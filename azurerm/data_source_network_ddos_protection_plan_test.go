@@ -12,10 +12,10 @@ import (
 func testAccAzureRMNetworkDDoSProtectionPlanDataSource_basic(t *testing.T) {
 	dsn := "azurerm_network_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{

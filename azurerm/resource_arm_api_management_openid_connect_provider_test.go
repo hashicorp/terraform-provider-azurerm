@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMApiManagementOpenIDConnectProvider_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_openid_connect_provider.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementOpenIDConnectProviderDestroy,
 		Steps: []resource.TestStep{
@@ -46,10 +46,10 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_requiresImport(t *testing.
 
 	resourceName := "azurerm_api_management_openid_connect_provider.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementOpenIDConnectProviderDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_requiresImport(t *testing.
 			},
 			{
 				Config:      testAccAzureRMApiManagementOpenIDConnectProvider_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_openid_connect_provider"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_openid_connect_provider"),
 			},
 		},
 	})
@@ -70,10 +70,10 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_requiresImport(t *testing.
 func TestAccAzureRMApiManagementOpenIDConnectProvider_update(t *testing.T) {
 	resourceName := "azurerm_api_management_openid_connect_provider.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementOpenIDConnectProviderDestroy,
 		Steps: []resource.TestStep{

@@ -20,11 +20,11 @@ func TestAccAzureRMBotChannelEmail_basic(t *testing.T) {
 		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
 	}
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelEmail_basicConfig(ri, testLocation())
+	config := testAccAzureRMBotChannelEmail_basicConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_channel_email.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelEmailDestroy,
 		Steps: []resource.TestStep{
@@ -54,12 +54,12 @@ func TestAccAzureRMBotChannelEmail_update(t *testing.T) {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
 	}
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelEmail_basicConfig(ri, testLocation())
-	config2 := testAccAzureRMBotChannelEmail_basicUpdate(ri, testLocation())
+	config := testAccAzureRMBotChannelEmail_basicConfig(ri, acceptance.Location())
+	config2 := testAccAzureRMBotChannelEmail_basicUpdate(ri, acceptance.Location())
 	resourceName := "azurerm_bot_channel_email.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelEmailDestroy,
 		Steps: []resource.TestStep{

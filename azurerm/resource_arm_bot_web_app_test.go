@@ -15,11 +15,11 @@ import (
 
 func testAccAzureRMBotWebApp_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotWebApp_basicConfig(ri, testLocation())
+	config := testAccAzureRMBotWebApp_basicConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_web_app.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
 		Steps: []resource.TestStep{
@@ -41,12 +41,12 @@ func testAccAzureRMBotWebApp_basic(t *testing.T) {
 
 func testAccAzureRMBotWebApp_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotWebApp_basicConfig(ri, testLocation())
-	config2 := testAccAzureRMBotWebApp_updateConfig(ri, testLocation())
+	config := testAccAzureRMBotWebApp_basicConfig(ri, acceptance.Location())
+	config2 := testAccAzureRMBotWebApp_updateConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_web_app.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
 		Steps: []resource.TestStep{
@@ -80,11 +80,11 @@ func testAccAzureRMBotWebApp_update(t *testing.T) {
 
 func testAccAzureRMBotWebApp_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotWebApp_completeConfig(ri, testLocation())
+	config := testAccAzureRMBotWebApp_completeConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_web_app.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
 		Steps: []resource.TestStep{

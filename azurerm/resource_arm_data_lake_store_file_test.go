@@ -49,12 +49,12 @@ func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreFileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStoreFile_basic(ri, rs, testLocation()),
+				Config: testAccAzureRMDataLakeStoreFile_basic(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreFileExists(resourceName),
 				),
@@ -93,12 +93,12 @@ func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreFileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStoreFile_largefiles(ri, rs, testLocation(), tmpfile.Name()),
+				Config: testAccAzureRMDataLakeStoreFile_largefiles(ri, rs, acceptance.Location(), tmpfile.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreFileExists(resourceName),
 				),
@@ -123,10 +123,10 @@ func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreFileDestroy,
 		Steps: []resource.TestStep{
@@ -138,7 +138,7 @@ func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDataLakeStoreFile_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_data_lake_store_file"),
+				ExpectError: acceptance.RequiresImportError("azurerm_data_lake_store_file"),
 			},
 		},
 	})

@@ -17,12 +17,12 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(ri, testLocation()),
+				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),
@@ -47,12 +47,12 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(ri, testLocation()),
+				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),
@@ -69,7 +69,7 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_update(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"storage_account_access_key"},
 			},
 			{
-				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_update(ri, testLocation()),
+				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_update(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),

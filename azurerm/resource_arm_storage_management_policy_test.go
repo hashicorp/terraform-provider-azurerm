@@ -18,11 +18,11 @@ func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
 	resourceName := "azurerm_storage_management_policy.testpolicy"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMStorageManagementPolicy_basic(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
@@ -60,11 +60,11 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 	resourceName := "azurerm_storage_management_policy.testpolicy"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMStorageManagementPolicy_multipleRule(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
@@ -121,12 +121,12 @@ func TestAccAzureRMStorageManagementPolicy_updateMultipleRule(t *testing.T) {
 	resourceName := "azurerm_storage_management_policy.testpolicy"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	config1 := testAccAzureRMStorageManagementPolicy_multipleRule(ri, rs, location)
 	config2 := testAccAzureRMStorageManagementPolicy_multipleRuleUpdated(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{

@@ -13,9 +13,9 @@ import (
 func TestAccAzureRMLogicAppTriggerRecurrence_month(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
@@ -44,9 +44,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
@@ -60,7 +60,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLogicAppTriggerRecurrence_requiresImport(ri, location, "Month", 1),
-				ExpectError: testRequiresImportError("azurerm_logic_app_trigger_recurrence"),
+				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_trigger_recurrence"),
 			},
 		},
 	})
@@ -69,9 +69,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_requiresImport(t *testing.T) {
 func TestAccAzureRMLogicAppTriggerRecurrence_week(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
@@ -95,9 +95,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_week(t *testing.T) {
 func TestAccAzureRMLogicAppTriggerRecurrence_day(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
@@ -121,9 +121,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_day(t *testing.T) {
 func TestAccAzureRMLogicAppTriggerRecurrence_minute(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
@@ -147,9 +147,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_minute(t *testing.T) {
 func TestAccAzureRMLogicAppTriggerRecurrence_second(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
@@ -173,9 +173,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_second(t *testing.T) {
 func TestAccAzureRMLogicAppTriggerRecurrence_hour(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
@@ -199,9 +199,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_hour(t *testing.T) {
 func TestAccAzureRMLogicAppTriggerRecurrence_update(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_recurrence.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{

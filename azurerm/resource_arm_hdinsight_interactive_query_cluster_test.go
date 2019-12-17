@@ -16,10 +16,10 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_basic(t *testing.T) {
 	resourceName := "azurerm_hdinsight_interactive_query_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_interactive_query_cluster"),
 		Steps: []resource.TestStep{
@@ -53,10 +53,10 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_gen2basic(t *testing.T) {
 	resourceName := "azurerm_hdinsight_interactive_query_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_interactive_query_cluster"),
 		Steps: []resource.TestStep{
@@ -95,10 +95,10 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_requiresImport(t *testing.T)
 	resourceName := "azurerm_hdinsight_interactive_query_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_interactive_query_cluster"),
 		Steps: []resource.TestStep{
@@ -112,7 +112,7 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_requiresImport(t *testing.T)
 			},
 			{
 				Config:      testAccAzureRMHDInsightInteractiveQueryCluster_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_hdinsight_interactive_query_cluster"),
+				ExpectError: acceptance.RequiresImportError("azurerm_hdinsight_interactive_query_cluster"),
 			},
 		},
 	})
@@ -122,10 +122,10 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_update(t *testing.T) {
 	resourceName := "azurerm_hdinsight_interactive_query_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_interactive_query_cluster"),
 		Steps: []resource.TestStep{
@@ -181,10 +181,10 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_sshKeys(t *testing.T) {
 	resourceName := "azurerm_hdinsight_interactive_query_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_interactive_query_cluster"),
 		Steps: []resource.TestStep{
@@ -218,10 +218,10 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_virtualNetwork(t *testing.T)
 	resourceName := "azurerm_hdinsight_interactive_query_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_interactive_query_cluster"),
 		Steps: []resource.TestStep{
@@ -255,10 +255,10 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_complete(t *testing.T) {
 	resourceName := "azurerm_hdinsight_interactive_query_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_interactive_query_cluster"),
 		Steps: []resource.TestStep{

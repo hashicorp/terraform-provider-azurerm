@@ -100,10 +100,10 @@ func testCheckAzureRMPublicIPPrefixDestroy(s *terraform.State) error {
 func TestAccAzureRMPublicIpPrefix_basic(t *testing.T) {
 	resourceName := "azurerm_public_ip_prefix.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPublicIPPrefix_basic(ri, testLocation())
+	config := testAccAzureRMPublicIPPrefix_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
@@ -127,10 +127,10 @@ func TestAccAzureRMPublicIpPrefix_basic(t *testing.T) {
 func TestAccAzureRMPublicIpPrefix_prefixLength(t *testing.T) {
 	resourceName := "azurerm_public_ip_prefix.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPublicIPPrefix_prefixLength(ri, testLocation())
+	config := testAccAzureRMPublicIPPrefix_prefixLength(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
@@ -154,12 +154,12 @@ func TestAccAzureRMPublicIpPrefix_prefixLength(t *testing.T) {
 func TestAccAzureRMPublicIpPrefix_update(t *testing.T) {
 	resourceName := "azurerm_public_ip_prefix.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMPublicIPPrefix_withTags(ri, location)
 	postConfig := testAccAzureRMPublicIPPrefix_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
@@ -187,10 +187,10 @@ func TestAccAzureRMPublicIpPrefix_update(t *testing.T) {
 func TestAccAzureRMPublicIpPrefix_disappears(t *testing.T) {
 	resourceName := "azurerm_public_ip_prefix.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPublicIPPrefix_basic(ri, testLocation())
+	config := testAccAzureRMPublicIPPrefix_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{

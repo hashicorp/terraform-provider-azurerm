@@ -17,10 +17,10 @@ import (
 func TestAccAzureRMMonitorDiagnosticSetting_eventhub(t *testing.T) {
 	resourceName := "azurerm_monitor_diagnostic_setting.test"
 	ri := acctest.RandIntRange(10000, 99999)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
@@ -53,10 +53,10 @@ func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_monitor_diagnostic_setting.test"
 	ri := acctest.RandIntRange(10000, 99999)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
@@ -68,7 +68,7 @@ func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMMonitorDiagnosticSetting_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_monitor_diagnostic_setting"),
+				ExpectError: acceptance.RequiresImportError("azurerm_monitor_diagnostic_setting"),
 			},
 		},
 	})
@@ -77,10 +77,10 @@ func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
 func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
 	resourceName := "azurerm_monitor_diagnostic_setting.test"
 	ri := acctest.RandIntRange(10000, 99999)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
@@ -107,10 +107,10 @@ func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) 
 func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(t *testing.T) {
 	resourceName := "azurerm_monitor_diagnostic_setting.test"
 	ri := acctest.RandIntRange(10000, 99999)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
@@ -140,10 +140,10 @@ func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(t *te
 func TestAccAzureRMMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 	resourceName := "azurerm_monitor_diagnostic_setting.test"
 	ri := acctest.RandIntRange(10000, 99999)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{

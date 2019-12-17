@@ -16,10 +16,10 @@ func TestAccDataSourceAzureRMRedisCache_standard(t *testing.T) {
 
 	name := fmt.Sprintf("acctestRedis-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{

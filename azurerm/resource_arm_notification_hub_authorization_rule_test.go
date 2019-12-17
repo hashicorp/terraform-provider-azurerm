@@ -18,12 +18,12 @@ func TestAccAzureRMNotificationHubAuthorizationRule_listen(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMNotificationHubAuthorizationRule_listen(ri, testLocation()),
+				Config: testAzureRMNotificationHubAuthorizationRule_listen(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "manage", "false"),
@@ -52,12 +52,12 @@ func TestAccAzureRMNotificationHubAuthorizationRule_requiresImport(t *testing.T)
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMNotificationHubAuthorizationRule_listen(ri, testLocation()),
+				Config: testAzureRMNotificationHubAuthorizationRule_listen(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "manage", "false"),
@@ -68,8 +68,8 @@ func TestAccAzureRMNotificationHubAuthorizationRule_requiresImport(t *testing.T)
 				),
 			},
 			{
-				Config:      testAzureRMNotificationHubAuthorizationRule_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_notification_hub_authorization_rule"),
+				Config:      testAzureRMNotificationHubAuthorizationRule_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_notification_hub_authorization_rule"),
 			},
 		},
 	})
@@ -79,10 +79,10 @@ func TestAccAzureRMNotificationHubAuthorizationRule_manage(t *testing.T) {
 	resourceName := "azurerm_notification_hub_authorization_rule.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
@@ -110,10 +110,10 @@ func TestAccAzureRMNotificationHubAuthorizationRule_send(t *testing.T) {
 	resourceName := "azurerm_notification_hub_authorization_rule.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
@@ -143,10 +143,10 @@ func TestAccAzureRMNotificationHubAuthorizationRule_multi(t *testing.T) {
 	resourceThreeName := "azurerm_notification_hub_authorization_rule.test3"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
@@ -196,10 +196,10 @@ func TestAccAzureRMNotificationHubAuthorizationRule_updated(t *testing.T) {
 	resourceName := "azurerm_notification_hub_authorization_rule.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{

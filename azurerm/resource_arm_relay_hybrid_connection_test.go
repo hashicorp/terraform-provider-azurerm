@@ -18,12 +18,12 @@ func TestAccAzureRMRelayHybridConnection_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRelayHybridConnection_basic(ri, testLocation()),
+				Config: testAccAzureRMRelayHybridConnection_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRelayHybridConnectionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
@@ -43,12 +43,12 @@ func TestAccAzureRMRelayHybridConnection_full(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRelayHybridConnection_full(ri, testLocation()),
+				Config: testAccAzureRMRelayHybridConnection_full(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRelayHybridConnectionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
@@ -67,9 +67,9 @@ func TestAccAzureRMRelayHybridConnection_full(t *testing.T) {
 func TestAccAzureRMRelayHybridConnection_update(t *testing.T) {
 	resourceName := "azurerm_relay_hybrid_connection.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -101,20 +101,20 @@ func TestAccAzureRMRelayHybridConnection_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRelayHybridConnection_basic(ri, testLocation()),
+				Config: testAccAzureRMRelayHybridConnection_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRelayHybridConnectionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
 				),
 			},
 			{
-				Config:      testAccAzureRMRelayHybridConnection_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_relay_hybrid_connection"),
+				Config:      testAccAzureRMRelayHybridConnection_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_relay_hybrid_connection"),
 			},
 		},
 	})

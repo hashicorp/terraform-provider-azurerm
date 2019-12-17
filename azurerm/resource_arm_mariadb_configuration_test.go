@@ -17,12 +17,12 @@ func TestAccAzureRMMariaDbConfiguration_characterSetServer(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbConfiguration_characterSetServer(ri, testLocation()),
+				Config: testAccAzureRMMariaDbConfiguration_characterSetServer(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbConfigurationValue(resourceName, "hebrew"),
 				),
@@ -33,7 +33,7 @@ func TestAccAzureRMMariaDbConfiguration_characterSetServer(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMMariaDbConfiguration_empty(ri, testLocation()),
+				Config: testAccAzureRMMariaDbConfiguration_empty(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMariaDbConfigurationValueReset(ri, "character_set_server"),
@@ -48,12 +48,12 @@ func TestAccAzureRMMariaDbConfiguration_interactiveTimeout(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbConfiguration_interactiveTimeout(ri, testLocation()),
+				Config: testAccAzureRMMariaDbConfiguration_interactiveTimeout(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbConfigurationValue(resourceName, "30"),
 				),
@@ -64,7 +64,7 @@ func TestAccAzureRMMariaDbConfiguration_interactiveTimeout(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMMariaDbConfiguration_empty(ri, testLocation()),
+				Config: testAccAzureRMMariaDbConfiguration_empty(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMariaDbConfigurationValueReset(ri, "interactive_timeout"),
@@ -79,12 +79,12 @@ func TestAccAzureRMMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbConfiguration_logSlowAdminStatements(ri, testLocation()),
+				Config: testAccAzureRMMariaDbConfiguration_logSlowAdminStatements(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbConfigurationValue(resourceName, "on"),
 				),
@@ -95,7 +95,7 @@ func TestAccAzureRMMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMMariaDbConfiguration_empty(ri, testLocation()),
+				Config: testAccAzureRMMariaDbConfiguration_empty(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMariaDbConfigurationValueReset(ri, "log_slow_admin_statements"),

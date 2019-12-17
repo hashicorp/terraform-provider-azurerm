@@ -12,11 +12,11 @@ import (
 func TestAccDataSourceAutomationAccount(t *testing.T) {
 	dataSourceName := "data.azurerm_automation_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

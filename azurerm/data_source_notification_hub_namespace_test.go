@@ -12,11 +12,11 @@ import (
 func TestAccDataSourceAzureRMNotificationHubNamespace_free(t *testing.T) {
 	dataSourceName := "data.azurerm_notification_hub_namespace.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMNotificationHubNamespaceFree(rInt, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{

@@ -18,12 +18,12 @@ func TestAccAzureRMSignalRService_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSignalRService_basic(ri, testLocation()),
+				Config: testAccAzureRMSignalRService_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free_F1"),
@@ -56,12 +56,12 @@ func TestAccAzureRMSignalRService_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSignalRService_basic(ri, testLocation()),
+				Config: testAccAzureRMSignalRService_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free_F1"),
@@ -77,8 +77,8 @@ func TestAccAzureRMSignalRService_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMSignalRService_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_signalr_service"),
+				Config:      testAccAzureRMSignalRService_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_signalr_service"),
 			},
 		},
 	})
@@ -89,12 +89,12 @@ func TestAccAzureRMSignalRService_standard(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSignalRService_standardWithCapacity(ri, testLocation(), 1),
+				Config: testAccAzureRMSignalRService_standardWithCapacity(ri, acceptance.Location(), 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_S1"),
@@ -123,12 +123,12 @@ func TestAccAzureRMSignalRService_standardWithCap2(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSignalRService_standardWithCapacity(ri, testLocation(), 2),
+				Config: testAccAzureRMSignalRService_standardWithCapacity(ri, acceptance.Location(), 2),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_S1"),
@@ -155,12 +155,12 @@ func TestAccAzureRMSignalRService_standardWithCap2(t *testing.T) {
 func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 	resourceName := "azurerm_signalr_service.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	freeConfig := testAccAzureRMSignalRService_basic(ri, location)
 	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 1)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
@@ -219,12 +219,12 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 	resourceName := "azurerm_signalr_service.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 1)
 	standardCap5Config := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 5)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
@@ -283,12 +283,12 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 	resourceName := "azurerm_signalr_service.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	freeConfig := testAccAzureRMSignalRService_basic(ri, location)
 	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(ri, location, 2)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
@@ -349,12 +349,12 @@ func TestAccAzureRMSignalRService_serviceMode(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSignalRService_withServiceMode(ri, testLocation(), "Serverless"),
+				Config: testAccAzureRMSignalRService_withServiceMode(ri, acceptance.Location(), "Serverless"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "features.#", "1"),
@@ -384,12 +384,12 @@ func TestAccAzureRMSignalRService_cors(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSignalRService_withCors(ri, testLocation()),
+				Config: testAccAzureRMSignalRService_withCors(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cors.#", "1"),

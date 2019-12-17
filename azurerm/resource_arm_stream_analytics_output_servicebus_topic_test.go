@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_avro(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_servicebus_topic.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
@@ -45,10 +45,10 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_avro(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_csv(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_servicebus_topic.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
@@ -74,10 +74,10 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_csv(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_json(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_servicebus_topic.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
@@ -103,10 +103,10 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_json(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_update(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_servicebus_topic.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
@@ -143,10 +143,10 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_requiresImport(t *testin
 
 	resourceName := "azurerm_stream_analytics_output_servicebus_topic.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
@@ -158,7 +158,7 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_requiresImport(t *testin
 			},
 			{
 				Config:      testAccAzureRMStreamAnalyticsOutputServiceBusTopic_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_stream_analytics_output_servicebus_topic"),
+				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_output_servicebus_topic"),
 			},
 		},
 	})

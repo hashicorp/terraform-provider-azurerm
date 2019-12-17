@@ -19,12 +19,12 @@ func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStore_basic(ri, testLocation()),
+				Config: testAccAzureRMDataLakeStore_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tier", "Consumption"),
@@ -48,10 +48,10 @@ func TestAccAzureRMDataLakeStore_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_data_lake_store.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
@@ -63,7 +63,7 @@ func TestAccAzureRMDataLakeStore_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDataLakeStore_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_data_lake_store"),
+				ExpectError: acceptance.RequiresImportError("azurerm_data_lake_store"),
 			},
 		},
 	})
@@ -74,12 +74,12 @@ func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStore_tier(ri, testLocation()),
+				Config: testAccAzureRMDataLakeStore_tier(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tier", "Commitment_1TB"),
@@ -99,12 +99,12 @@ func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStore_encryptionDisabled(ri, testLocation()),
+				Config: testAccAzureRMDataLakeStore_encryptionDisabled(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "encryption_state", "Disabled"),
@@ -123,10 +123,10 @@ func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
 func TestAccAzureRMDataLakeStore_firewallUpdate(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
@@ -171,19 +171,19 @@ func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStore_withTags(ri, testLocation()),
+				Config: testAccAzureRMDataLakeStore_withTags(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: testAccAzureRMDataLakeStore_withTagsUpdate(ri, testLocation()),
+				Config: testAccAzureRMDataLakeStore_withTagsUpdate(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),

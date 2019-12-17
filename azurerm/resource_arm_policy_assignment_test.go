@@ -18,12 +18,12 @@ func TestAccAzureRMPolicyAssignment_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyAssignment_basic(ri, testLocation()),
+				Config: testAzureRMPolicyAssignment_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyAssignmentExists(resourceName),
 				),
@@ -47,19 +47,19 @@ func TestAccAzureRMPolicyAssignment_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyAssignment_basic(ri, testLocation()),
+				Config: testAzureRMPolicyAssignment_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyAssignmentExists(resourceName),
 				),
 			},
 			{
-				Config:      testAzureRMPolicyAssignment_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_policy_assignment"),
+				Config:      testAzureRMPolicyAssignment_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_policy_assignment"),
 			},
 		},
 	})
@@ -70,12 +70,12 @@ func TestAccAzureRMPolicyAssignment_deployIfNotExists_policy(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyAssignment_deployIfNotExists_policy(ri, testLocation()),
+				Config: testAzureRMPolicyAssignment_deployIfNotExists_policy(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyAssignmentExists(resourceName),
 				),
@@ -93,10 +93,10 @@ func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
 	resourceName := "azurerm_policy_assignment.test"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
@@ -120,10 +120,10 @@ func TestAccAzureRMPolicyAssignment_not_scopes(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{

@@ -20,12 +20,12 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDBVirtualNetworkRule_basic(ri, testLocation()),
+				Config: testAccAzureRMMariaDBVirtualNetworkRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName),
 				),
@@ -44,19 +44,19 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDBVirtualNetworkRule_basic(ri, testLocation()),
+				Config: testAccAzureRMMariaDBVirtualNetworkRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMariaDBVirtualNetworkRule_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_mariadb_virtual_network_rule"),
+				Config:      testAccAzureRMMariaDBVirtualNetworkRule_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_virtual_network_rule"),
 			},
 		},
 	})
@@ -66,15 +66,15 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_switchSubnets(t *testing.T) {
 	resourceName := "azurerm_mariadb_virtual_network_rule.test"
 	ri := tf.AccRandTimeInt()
 
-	preConfig := testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPre(ri, testLocation())
-	postConfig := testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPost(ri, testLocation())
+	preConfig := testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPre(ri, acceptance.Location())
+	postConfig := testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPost(ri, acceptance.Location())
 
 	// Create regex strings that will ensure that one subnet name exists, but not the other
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", ri, ri))  //subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", ri, ri)) //subnet 2 but not 1
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
@@ -99,10 +99,10 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_switchSubnets(t *testing.T) {
 func TestAccAzureRMMariaDBVirtualNetworkRule_disappears(t *testing.T) {
 	resourceName := "azurerm_mariadb_virtual_network_rule.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDBVirtualNetworkRule_basic(ri, testLocation())
+	config := testAccAzureRMMariaDBVirtualNetworkRule_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
@@ -123,10 +123,10 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	resourceName2 := "azurerm_mariadb_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_mariadb_virtual_network_rule.rule3"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(ri, testLocation())
+	config := testAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{

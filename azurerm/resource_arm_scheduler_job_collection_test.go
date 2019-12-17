@@ -22,12 +22,12 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 	resourceName := "azurerm_scheduler_job_collection.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), ""),
+				Config: testAccAzureRMSchedulerJobCollection_basic(ri, acceptance.Location(), ""),
 				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
 			},
 			{
@@ -49,17 +49,17 @@ func TestAccAzureRMSchedulerJobCollection_requiresImport(t *testing.T) {
 	resourceName := "azurerm_scheduler_job_collection.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), ""),
+				Config: testAccAzureRMSchedulerJobCollection_basic(ri, acceptance.Location(), ""),
 				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
 			},
 			{
-				Config:      testAccAzureRMSchedulerJobCollection_requiresImport(ri, testLocation(), ""),
-				ExpectError: testRequiresImportError("azurerm_scheduler_job_collection"),
+				Config:      testAccAzureRMSchedulerJobCollection_requiresImport(ri, acceptance.Location(), ""),
+				ExpectError: acceptance.RequiresImportError("azurerm_scheduler_job_collection"),
 			},
 		},
 	})
@@ -70,16 +70,16 @@ func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 	resourceName := "azurerm_scheduler_job_collection.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), ""),
+				Config: testAccAzureRMSchedulerJobCollection_basic(ri, acceptance.Location(), ""),
 				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
 			},
 			{
-				Config: testAccAzureRMSchedulerJobCollection_complete(ri, testLocation()),
+				Config: testAccAzureRMSchedulerJobCollection_complete(ri, acceptance.Location()),
 				Check:  checkAccAzureRMSchedulerJobCollection_complete(resourceName),
 			},
 			{

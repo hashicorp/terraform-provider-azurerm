@@ -11,7 +11,7 @@ func TestAccDataSourceAzureRMSubscriptions_basic(t *testing.T) {
 	resourceName := "data.azurerm_subscriptions.current"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

@@ -13,10 +13,10 @@ import (
 func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_diagnostic_categories.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -33,10 +33,10 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
 func TestAccDataSourceArmMonitorDiagnosticCategories_storageAccount(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_diagnostic_categories.test"
 	rs := acctest.RandString(8)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

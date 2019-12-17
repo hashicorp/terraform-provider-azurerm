@@ -11,7 +11,7 @@ import (
 func TestAccDataSourceAzureRMBuiltInRoleDefinition_contributor(t *testing.T) {
 	dataSourceName := "data.azurerm_builtin_role_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -38,7 +38,7 @@ func TestAccDataSourceAzureRMBuiltInRoleDefinition_contributor(t *testing.T) {
 func TestAccDataSourceAzureRMBuiltInRoleDefinition_owner(t *testing.T) {
 	dataSourceName := "data.azurerm_builtin_role_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -60,7 +60,7 @@ func TestAccDataSourceAzureRMBuiltInRoleDefinition_owner(t *testing.T) {
 func TestAccDataSourceAzureRMBuiltInRoleDefinition_reader(t *testing.T) {
 	dataSourceName := "data.azurerm_builtin_role_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -82,7 +82,7 @@ func TestAccDataSourceAzureRMBuiltInRoleDefinition_reader(t *testing.T) {
 func TestAccDataSourceAzureRMBuiltInRoleDefinition_virtualMachineContributor(t *testing.T) {
 	dataSourceName := "data.azurerm_builtin_role_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

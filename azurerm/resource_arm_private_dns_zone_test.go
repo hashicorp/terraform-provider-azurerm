@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMPrivateDnsZone_basic(t *testing.T) {
 	resourceName := "azurerm_private_dns_zone.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPrivateDnsZone_basic(ri, testLocation())
+	config := testAccAzureRMPrivateDnsZone_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
 		Steps: []resource.TestStep{
@@ -46,10 +46,10 @@ func TestAccAzureRMPrivateDnsZone_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_private_dns_zone.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMPrivateDnsZone_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMPrivateDnsZone_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_private_dns_zone"),
+				ExpectError: acceptance.RequiresImportError("azurerm_private_dns_zone"),
 			},
 		},
 	})
@@ -70,12 +70,12 @@ func TestAccAzureRMPrivateDnsZone_requiresImport(t *testing.T) {
 func TestAccAzureRMPrivateDnsZone_withTags(t *testing.T) {
 	resourceName := "azurerm_private_dns_zone.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMPrivateDnsZone_withTags(ri, location)
 	postConfig := testAccAzureRMPrivateDnsZone_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
 		Steps: []resource.TestStep{

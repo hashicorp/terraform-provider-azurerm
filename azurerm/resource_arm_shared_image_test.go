@@ -19,12 +19,12 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImage_basic(ri, testLocation()),
+				Config: testAccAzureRMSharedImage_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
@@ -46,10 +46,10 @@ func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_shared_image.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMSharedImage_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_shared_image"),
+				ExpectError: acceptance.RequiresImportError("azurerm_shared_image"),
 			},
 		},
 	})
@@ -73,12 +73,12 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImage_complete(ri, testLocation()),
+				Config: testAccAzureRMSharedImage_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),

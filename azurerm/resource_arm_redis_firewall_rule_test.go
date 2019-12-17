@@ -59,12 +59,12 @@ func TestAccAzureRMRedisFirewallRule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRedisFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMRedisFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisFirewallRuleExists(resourceName),
 				),
@@ -84,12 +84,12 @@ func TestAccAzureRMRedisFirewallRule_multi(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRedisFirewallRule_multi(ri, testLocation()),
+				Config: testAccAzureRMRedisFirewallRule_multi(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisFirewallRuleExists(ruleOne),
 					testCheckAzureRMRedisFirewallRuleExists(ruleTwo),
@@ -119,19 +119,19 @@ func TestAccAzureRMRedisFirewallRule_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRedisFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMRedisFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisFirewallRuleExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMRedisFirewallRule_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_redis_firewall_rule"),
+				Config:      testAccAzureRMRedisFirewallRule_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_redis_firewall_rule"),
 			},
 		},
 	})
@@ -140,11 +140,11 @@ func TestAccAzureRMRedisFirewallRule_requiresImport(t *testing.T) {
 func TestAccAzureRMRedisFirewallRule_update(t *testing.T) {
 	resourceName := "azurerm_redis_firewall_rule.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMRedisFirewallRule_basic(ri, testLocation())
-	updatedConfig := testAccAzureRMRedisFirewallRule_update(ri, testLocation())
+	config := testAccAzureRMRedisFirewallRule_basic(ri, acceptance.Location())
+	updatedConfig := testAccAzureRMRedisFirewallRule_update(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
 		Steps: []resource.TestStep{

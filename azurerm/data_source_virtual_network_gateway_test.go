@@ -11,10 +11,10 @@ import (
 
 func TestAccAzureRMDataSourceVirtualNetworkGateway_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataSourceVirtualNetworkGateway_basic(ri, testLocation())
+	config := testAccAzureRMDataSourceVirtualNetworkGateway_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{

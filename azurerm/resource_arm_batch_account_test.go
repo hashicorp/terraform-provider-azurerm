@@ -46,12 +46,12 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 	resourceName := "azurerm_batch_account.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	config := testAccAzureRMBatchAccount_basic(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
@@ -76,10 +76,10 @@ func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
@@ -91,7 +91,7 @@ func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMBatchAccount_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_batch_account"),
+				ExpectError: acceptance.RequiresImportError("azurerm_batch_account"),
 			},
 		},
 	})
@@ -101,13 +101,13 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 	resourceName := "azurerm_batch_account.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	config := testAccAzureRMBatchAccount_complete(ri, rs, location)
 	configUpdate := testAccAzureRMBatchAccount_completeUpdated(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
@@ -138,14 +138,14 @@ func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
 	resourceName := "azurerm_batch_account.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	config := testAccAzureRMBatchAccount_userSubscription(ri, rs, location, tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{

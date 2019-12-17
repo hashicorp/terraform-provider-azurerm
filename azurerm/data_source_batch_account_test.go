@@ -16,11 +16,11 @@ func TestAccDataSourceAzureRMBatchAccount_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_batch_account.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMBatchAccount_basic(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -39,11 +39,11 @@ func TestAccDataSourceAzureRMBatchAccount_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_batch_account.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMBatchAccount_complete(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -64,7 +64,7 @@ func TestAccDataSourceAzureRMBatchAccount_userSubscription(t *testing.T) {
 	dataSourceName := "data.azurerm_batch_account.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
@@ -72,7 +72,7 @@ func TestAccDataSourceAzureRMBatchAccount_userSubscription(t *testing.T) {
 	config := testAccDataSourceAzureBatchAccount_userSubscription(ri, rs, location, tenantID, subscriptionID)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

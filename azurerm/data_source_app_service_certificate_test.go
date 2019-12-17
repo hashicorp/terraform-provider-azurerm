@@ -12,10 +12,10 @@ import (
 func TestAccDataSourceAzureRMAppServiceCertificate_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service_certificate.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{

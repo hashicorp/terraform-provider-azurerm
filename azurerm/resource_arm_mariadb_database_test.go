@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMMariaDbDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_mariadb_database.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
 		Steps: []resource.TestStep{
@@ -48,10 +48,10 @@ func TestAccAzureRMMariaDbDatabase_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_mariadb_database.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
 		Steps: []resource.TestStep{
@@ -63,7 +63,7 @@ func TestAccAzureRMMariaDbDatabase_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMMariaDbDatabase_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_mariadb_database"),
+				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_database"),
 			},
 		},
 	})

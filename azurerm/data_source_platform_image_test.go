@@ -10,10 +10,10 @@ import (
 
 func TestAccDataSourceAzureRMPlatformImage_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_platform_image.test"
-	config := testAccDataSourceAzureRMPlatformImageBasic(testLocation())
+	config := testAccDataSourceAzureRMPlatformImageBasic(acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

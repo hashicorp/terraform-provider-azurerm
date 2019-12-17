@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMNetworkProfile_basic(t *testing.T) {
 	resourceName := "azurerm_network_profile.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
 		Steps: []resource.TestStep{
@@ -47,10 +47,10 @@ func TestAccAzureRMNetworkProfile_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_network_profile.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMNetworkProfile_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMNetworkProfile_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_network_profile"),
+				ExpectError: acceptance.RequiresImportError("azurerm_network_profile"),
 			},
 		},
 	})
@@ -71,10 +71,10 @@ func TestAccAzureRMNetworkProfile_requiresImport(t *testing.T) {
 func TestAccAzureRMNetworkProfile_withTags(t *testing.T) {
 	resourceName := "azurerm_network_profile.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
 		Steps: []resource.TestStep{
@@ -107,10 +107,10 @@ func TestAccAzureRMNetworkProfile_withTags(t *testing.T) {
 func TestAccAzureRMNetworkProfile_disappears(t *testing.T) {
 	resourceName := "azurerm_network_profile.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
 		Steps: []resource.TestStep{

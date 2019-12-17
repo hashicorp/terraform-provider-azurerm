@@ -12,10 +12,10 @@ import (
 func TestAccDataSourceAzureRMAutomationVariableString_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_automation_variable_string.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

@@ -19,10 +19,10 @@ func TestAccAzureRMStreamAnalyticsOutputBlob_avro(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
 		Steps: []resource.TestStep{
@@ -49,10 +49,10 @@ func TestAccAzureRMStreamAnalyticsOutputBlob_csv(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
 		Steps: []resource.TestStep{
@@ -79,10 +79,10 @@ func TestAccAzureRMStreamAnalyticsOutputBlob_json(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
 		Steps: []resource.TestStep{
@@ -109,10 +109,10 @@ func TestAccAzureRMStreamAnalyticsOutputBlob_update(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
 		Steps: []resource.TestStep{
@@ -150,10 +150,10 @@ func TestAccAzureRMStreamAnalyticsOutputBlob_requiresImport(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
 		Steps: []resource.TestStep{
@@ -165,7 +165,7 @@ func TestAccAzureRMStreamAnalyticsOutputBlob_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMStreamAnalyticsOutputBlob_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_stream_analytics_output_blob"),
+				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_output_blob"),
 			},
 		},
 	})

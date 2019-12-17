@@ -16,11 +16,11 @@ import (
 
 func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, testLocation())
+	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_channel_ms_teams.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelMsTeamsDestroy,
 		Steps: []resource.TestStep{
@@ -41,12 +41,12 @@ func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 
 func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, testLocation())
-	config2 := testAccAzureRMBotChannelMsTeams_basicUpdate(ri, testLocation())
+	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, acceptance.Location())
+	config2 := testAccAzureRMBotChannelMsTeams_basicUpdate(ri, acceptance.Location())
 	resourceName := "azurerm_bot_channel_ms_teams.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelMsTeamsDestroy,
 		Steps: []resource.TestStep{

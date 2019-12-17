@@ -15,7 +15,7 @@ func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	resourceName := "azurerm_security_center_subscription_pricing.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

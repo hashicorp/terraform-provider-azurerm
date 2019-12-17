@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMApiManagementApiVersionSet_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_api_version_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementApiVersionSetDestroy,
 		Steps: []resource.TestStep{
@@ -46,10 +46,10 @@ func TestAccAzureRMApiManagementApiVersionSet_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_api_version_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementApiVersionSetDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMApiManagementApiVersionSet_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApiManagementApiVersionSet_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_api_version_set"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_api_version_set"),
 			},
 		},
 	})
@@ -70,10 +70,10 @@ func TestAccAzureRMApiManagementApiVersionSet_requiresImport(t *testing.T) {
 func TestAccAzureRMApiManagementApiVersionSet_header(t *testing.T) {
 	resourceName := "azurerm_api_management_api_version_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementApiVersionSetDestroy,
 		Steps: []resource.TestStep{
@@ -95,10 +95,10 @@ func TestAccAzureRMApiManagementApiVersionSet_header(t *testing.T) {
 func TestAccAzureRMApiManagementApiVersionSet_query(t *testing.T) {
 	resourceName := "azurerm_api_management_api_version_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementApiVersionSetDestroy,
 		Steps: []resource.TestStep{
@@ -120,10 +120,10 @@ func TestAccAzureRMApiManagementApiVersionSet_query(t *testing.T) {
 func TestAccAzureRMApiManagementApiVersionSet_update(t *testing.T) {
 	resourceName := "azurerm_api_management_api_version_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementApiVersionSetDestroy,
 		Steps: []resource.TestStep{

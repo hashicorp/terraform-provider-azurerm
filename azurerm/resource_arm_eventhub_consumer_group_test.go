@@ -18,12 +18,12 @@ func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation()),
+				Config: testAccAzureRMEventHubConsumerGroup_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
 				),
@@ -46,10 +46,10 @@ func TestAccAzureRMEventHubConsumerGroup_requiresImport(t *testing.T) {
 	resourceName := "azurerm_eventhub_consumer_group.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMEventHubConsumerGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMEventHubConsumerGroup_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_eventhub_consumer_group"),
+				ExpectError: acceptance.RequiresImportError("azurerm_eventhub_consumer_group"),
 			},
 		},
 	})
@@ -72,12 +72,12 @@ func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation()),
+				Config: testAccAzureRMEventHubConsumerGroup_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
 				),
@@ -96,18 +96,18 @@ func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation()),
+				Config: testAccAzureRMEventHubConsumerGroup_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation()),
+				Config: testAccAzureRMEventHubConsumerGroup_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "user_metadata", "some-meta-data"),

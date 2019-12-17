@@ -19,12 +19,12 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHubNamespace_free(ri, testLocation()),
+				Config: testAccAzureRMNotificationHubNamespace_free(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
 				),
@@ -44,12 +44,12 @@ func TestAccAzureRMNotificationHubNamespace_freeClassic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHubNamespace_freeClassic(ri, testLocation()),
+				Config: testAccAzureRMNotificationHubNamespace_freeClassic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
 				),
@@ -68,12 +68,12 @@ func TestAccAzureRMNotificationHubNamespace_freeNotDefined(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMNotificationHubNamespace_freeNotDefined(ri, testLocation()),
+				Config:      testAccAzureRMNotificationHubNamespace_freeNotDefined(ri, acceptance.Location()),
 				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
 			},
 		},
@@ -90,19 +90,19 @@ func TestAccAzureRMNotificationHubNamespace_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHubNamespace_free(ri, testLocation()),
+				Config: testAccAzureRMNotificationHubNamespace_free(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMNotificationHubNamespace_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_notification_hub_namespace"),
+				Config:      testAccAzureRMNotificationHubNamespace_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_notification_hub_namespace"),
 			},
 		},
 	})

@@ -18,13 +18,13 @@ func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_basic(t *
 	resourceName := "azurerm_network_interface_application_security_group_association.test"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_basic(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(resourceName),
 				),
@@ -41,9 +41,9 @@ func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresI
 
 	resourceName := "azurerm_network_interface_application_security_group_association.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -56,7 +56,7 @@ func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresI
 			},
 			{
 				Config:      testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_network_interface_application_security_group_association"),
+				ExpectError: acceptance.RequiresImportError("azurerm_network_interface_application_security_group_association"),
 			},
 		},
 	})
@@ -65,10 +65,10 @@ func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresI
 func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_network_interface_application_security_group_association.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,

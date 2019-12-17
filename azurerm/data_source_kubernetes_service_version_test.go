@@ -13,11 +13,11 @@ const k8sVersionRX = `[0-9]+\.[0-9]+\.[0-9]*`
 
 func TestAccDataSourceAzureRMKubernetesServiceVersions_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_service_versions.test"
-	location := testLocation()
+	location := acceptance.Location()
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -35,11 +35,11 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMKubernetesServiceVersions_filtered(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_service_versions.test"
-	location := testLocation()
+	location := acceptance.Location()
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

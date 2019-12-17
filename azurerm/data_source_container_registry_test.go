@@ -16,7 +16,7 @@ func TestAccDataSourceAzureRMContainerRegistry_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_container_registry.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
@@ -42,5 +42,5 @@ data "azurerm_container_registry" "test" {
   name                = "${azurerm_container_registry.test.name}"
   resource_group_name = "${azurerm_container_registry.test.resource_group_name}"
 }
-`, testAccAzureRMContainerRegistry_basicManaged(rInt, testLocation(), "Basic"))
+`, testAccAzureRMContainerRegistry_basicManaged(rInt, acceptance.Location(), "Basic"))
 }

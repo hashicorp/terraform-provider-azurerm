@@ -13,10 +13,10 @@ import (
 func TestAccAzureRMLogicAppActionCustom_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_action_custom.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMLogicAppActionCustom_basic(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
@@ -43,9 +43,9 @@ func TestAccAzureRMLogicAppActionCustom_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_logic_app_action_custom.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
@@ -57,7 +57,7 @@ func TestAccAzureRMLogicAppActionCustom_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLogicAppActionCustom_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_logic_app_action_custom"),
+				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_action_custom"),
 			},
 		},
 	})

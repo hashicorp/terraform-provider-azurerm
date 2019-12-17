@@ -16,7 +16,7 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 	testData := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
@@ -40,7 +40,7 @@ func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
 	testData := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
@@ -59,7 +59,7 @@ func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 	testData := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
@@ -76,7 +76,7 @@ func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 	testData := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{

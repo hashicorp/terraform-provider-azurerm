@@ -40,7 +40,7 @@ func testAccAzureRMSecurityCenterContact_basic(t *testing.T) {
 	resourceName := "azurerm_security_center_contact.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
 		Steps: []resource.TestStep{
@@ -72,7 +72,7 @@ func testAccAzureRMSecurityCenterContact_requiresImport(t *testing.T) {
 	resourceName := "azurerm_security_center_contact.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
 		Steps: []resource.TestStep{
@@ -88,7 +88,7 @@ func testAccAzureRMSecurityCenterContact_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMSecurityCenterContact_requiresImportCfg("email1@example.com", "+1-555-555-5555", true, true),
-				ExpectError: testRequiresImportError("azurerm_security_center_contact"),
+				ExpectError: acceptance.RequiresImportError("azurerm_security_center_contact"),
 			},
 		},
 	})
@@ -98,7 +98,7 @@ func testAccAzureRMSecurityCenterContact_update(t *testing.T) {
 	resourceName := "azurerm_security_center_contact.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
 		Steps: []resource.TestStep{
@@ -135,7 +135,7 @@ func testAccAzureRMSecurityCenterContact_phoneOptional(t *testing.T) {
 	resourceName := "azurerm_security_center_contact.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
 		Steps: []resource.TestStep{

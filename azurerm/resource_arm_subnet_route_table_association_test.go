@@ -17,10 +17,10 @@ import (
 func TestAccAzureRMSubnetRouteTableAssociation_basic(t *testing.T) {
 	resourceName := "azurerm_subnet_route_table_association.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional since this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -47,10 +47,10 @@ func TestAccAzureRMSubnetRouteTableAssociation_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_subnet_route_table_association.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional since this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
@@ -63,7 +63,7 @@ func TestAccAzureRMSubnetRouteTableAssociation_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMSubnetRouteTableAssociation_requiresImport(ri, location),
-				ExpectError: testRequiresImportError(""),
+				ExpectError: acceptance.RequiresImportError(""),
 			},
 		},
 	})
@@ -72,10 +72,10 @@ func TestAccAzureRMSubnetRouteTableAssociation_requiresImport(t *testing.T) {
 func TestAccAzureRMSubnetRouteTableAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_subnet_route_table_association.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional since this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,

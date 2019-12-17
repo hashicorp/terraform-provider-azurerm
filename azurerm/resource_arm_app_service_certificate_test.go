@@ -15,12 +15,12 @@ import (
 func TestAccAzureRMAppServiceCertificate_Pfx(t *testing.T) {
 	resourceName := "azurerm_app_service_certificate.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	config := testAccAzureRMAppServiceCertificatePfx(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{
@@ -44,12 +44,12 @@ func TestAccAzureRMAppServiceCertificate_Pfx(t *testing.T) {
 func TestAccAzureRMAppServiceCertificate_PfxNoPassword(t *testing.T) {
 	resourceName := "azurerm_app_service_certificate.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	config := testAccAzureRMAppServiceCertificatePfxNoPassword(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{
@@ -72,12 +72,12 @@ func TestAccAzureRMAppServiceCertificate_PfxNoPassword(t *testing.T) {
 func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
 	resourceName := "azurerm_app_service_certificate.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	config := testAccAzureRMAppServiceCertificateKeyVault(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{

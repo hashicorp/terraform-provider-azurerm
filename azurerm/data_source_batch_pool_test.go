@@ -16,11 +16,11 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMBatchPool_complete(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

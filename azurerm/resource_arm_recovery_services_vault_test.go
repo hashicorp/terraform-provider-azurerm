@@ -18,12 +18,12 @@ func TestAccAzureRMRecoveryServicesVault_basic(t *testing.T) {
 	resourceName := "azurerm_recovery_services_vault.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryServicesVault_basic(ri, testLocation()),
+				Config: testAccAzureRMRecoveryServicesVault_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRecoveryServicesVaultExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -52,12 +52,12 @@ func TestAccAzureRMRecoveryServicesVault_requiresImport(t *testing.T) {
 	resourceName := "azurerm_recovery_services_vault.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryServicesVault_basic(ri, testLocation()),
+				Config: testAccAzureRMRecoveryServicesVault_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRecoveryServicesVaultExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -68,8 +68,8 @@ func TestAccAzureRMRecoveryServicesVault_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMRecoveryServicesVault_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_recovery_services_vault"),
+				Config:      testAccAzureRMRecoveryServicesVault_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_recovery_services_vault"),
 			},
 		},
 	})

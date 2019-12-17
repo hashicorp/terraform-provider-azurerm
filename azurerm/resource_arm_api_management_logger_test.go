@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMApiManagementLogger_basicEventHub(t *testing.T) {
 	resourceName := "azurerm_api_management_logger.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
@@ -51,10 +51,10 @@ func TestAccAzureRMApiManagementLogger_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_logger.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
@@ -70,7 +70,7 @@ func TestAccAzureRMApiManagementLogger_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApiManagementLogger_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_logger"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_logger"),
 			},
 		},
 	})
@@ -79,10 +79,10 @@ func TestAccAzureRMApiManagementLogger_requiresImport(t *testing.T) {
 func TestAccAzureRMApiManagementLogger_basicApplicationInsights(t *testing.T) {
 	resourceName := "azurerm_api_management_logger.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
@@ -109,10 +109,10 @@ func TestAccAzureRMApiManagementLogger_basicApplicationInsights(t *testing.T) {
 func TestAccAzureRMApiManagementLogger_complete(t *testing.T) {
 	resourceName := "azurerm_api_management_logger.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
@@ -140,10 +140,10 @@ func TestAccAzureRMApiManagementLogger_complete(t *testing.T) {
 func TestAccAzureRMApiManagementLogger_update(t *testing.T) {
 	resourceName := "azurerm_api_management_logger.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{

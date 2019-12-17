@@ -18,12 +18,12 @@ func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlElasticPool_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlElasticPool_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPoolExists(resourceName),
 				),
@@ -45,19 +45,19 @@ func TestAccAzureRMSqlElasticPool_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlElasticPool_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlElasticPool_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPoolExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMSqlElasticPool_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_sql_elasticpool"),
+				Config:      testAccAzureRMSqlElasticPool_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_sql_elasticpool"),
 			},
 		},
 	})
@@ -68,12 +68,12 @@ func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlElasticPool_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlElasticPool_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPoolExists(resourceName),
 					testCheckAzureRMSqlElasticPoolDisappears(resourceName),
@@ -87,12 +87,12 @@ func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 	resourceName := "azurerm_sql_elasticpool.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMSqlElasticPool_basic(ri, location)
 	postConfig := testAccAzureRMSqlElasticPool_resizedDtu(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{

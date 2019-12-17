@@ -20,12 +20,12 @@ func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationJobSchedule_basic(ri, acceptance.Location()),
 				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
 			},
 			{
@@ -42,12 +42,12 @@ func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationJobSchedule_complete(ri, testLocation()),
+				Config: testAccAzureRMAutomationJobSchedule_complete(ri, acceptance.Location()),
 				Check:  checkAccAzureRMAutomationJobSchedule_complete(resourceName),
 			},
 			{
@@ -64,20 +64,20 @@ func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationJobSchedule_basic(ri, acceptance.Location()),
 				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
 			},
 			{
-				Config: testAccAzureRMAutomationJobSchedule_complete(ri, testLocation()),
+				Config: testAccAzureRMAutomationJobSchedule_complete(ri, acceptance.Location()),
 				Check:  checkAccAzureRMAutomationJobSchedule_complete(resourceName),
 			},
 			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationJobSchedule_basic(ri, acceptance.Location()),
 				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
 			},
 			{
@@ -97,10 +97,10 @@ func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_automation_job_schedule.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
@@ -110,7 +110,7 @@ func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAutomationJobSchedule_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_automation_job_schedule"),
+				ExpectError: acceptance.RequiresImportError("azurerm_automation_job_schedule"),
 			},
 		},
 	})

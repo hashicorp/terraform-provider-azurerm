@@ -16,10 +16,10 @@ func TestAccDataSourceAzureRMManagedDisk_basic(t *testing.T) {
 	name := fmt.Sprintf("acctestmanageddisk-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
 
-	config := testAccDataSourceAzureRMManagedDiskBasic(name, resourceGroupName, testLocation())
+	config := testAccDataSourceAzureRMManagedDiskBasic(name, resourceGroupName, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +50,7 @@ func TestAccDataSourceAzureRMManagedDisk_basic_withUltraSSD(t *testing.T) {
 	config := testAccDataSourceAzureRMManagedDisk_basic_withUltraSSD(name, resourceGroupName, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

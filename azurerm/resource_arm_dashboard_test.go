@@ -15,10 +15,10 @@ import (
 func TestAccResourceArmDashboard_basic(t *testing.T) {
 	resourceName := "azurerm_dashboard.test"
 	ri := tf.AccRandTimeInt()
-	config := testResourceArmDashboard_basic(ri, testLocation())
+	config := testResourceArmDashboard_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDashboardDestroy,
 		Steps: []resource.TestStep{

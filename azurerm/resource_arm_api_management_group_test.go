@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAPIManagementGroup_basic(ri, testLocation())
+	config := testAccAzureRMAPIManagementGroup_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
@@ -48,10 +48,10 @@ func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_group.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
@@ -65,7 +65,7 @@ func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAPIManagementGroup_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_group"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_group"),
 			},
 		},
 	})
@@ -74,10 +74,10 @@ func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
 func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 	resourceName := "azurerm_api_management_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAPIManagementGroup_complete(ri, testLocation(), "Test Group", "A test description.")
+	config := testAccAzureRMAPIManagementGroup_complete(ri, acceptance.Location(), "Test Group", "A test description.")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
@@ -102,11 +102,11 @@ func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T) {
 	resourceName := "azurerm_api_management_group.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMAPIManagementGroup_complete(ri, testLocation(), "Original Group", "The original description.")
-	postConfig := testAccAzureRMAPIManagementGroup_complete(ri, testLocation(), "Modified Group", "A modified description.")
+	preConfig := testAccAzureRMAPIManagementGroup_complete(ri, acceptance.Location(), "Original Group", "The original description.")
+	postConfig := testAccAzureRMAPIManagementGroup_complete(ri, acceptance.Location(), "Modified Group", "A modified description.")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{

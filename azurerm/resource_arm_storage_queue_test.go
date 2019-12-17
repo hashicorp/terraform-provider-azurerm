@@ -59,10 +59,10 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	resourceName := "azurerm_storage_queue.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
@@ -90,10 +90,10 @@ func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
 	resourceName := "azurerm_storage_queue.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
@@ -105,7 +105,7 @@ func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMStorageQueue_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_storage_queue"),
+				ExpectError: acceptance.RequiresImportError("azurerm_storage_queue"),
 			},
 		},
 	})
@@ -115,10 +115,10 @@ func TestAccAzureRMStorageQueue_metaData(t *testing.T) {
 	resourceName := "azurerm_storage_queue.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{

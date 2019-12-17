@@ -18,12 +18,12 @@ func TestAccAzureRMIotDPS_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotDPS_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotDPS_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotDPSExists(resourceName),
 				),
@@ -45,10 +45,10 @@ func TestAccAzureRMIotDPS_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_iot_dps.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
@@ -60,7 +60,7 @@ func TestAccAzureRMIotDPS_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotDPS_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_iotdps"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iotdps"),
 			},
 		},
 	})
@@ -71,12 +71,12 @@ func TestAccAzureRMIotDPS_update(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotDPS_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotDPS_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotDPSExists(resourceName),
 				),
@@ -87,7 +87,7 @@ func TestAccAzureRMIotDPS_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMIotDPS_update(rInt, testLocation()),
+				Config: testAccAzureRMIotDPS_update(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotDPSExists(resourceName),
 				),
@@ -106,12 +106,12 @@ func TestAccAzureRMIotDPS_linkedHubs(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotDPS_linkedHubs(rInt, testLocation()),
+				Config: testAccAzureRMIotDPS_linkedHubs(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotDPSExists(resourceName),
 				),
@@ -122,7 +122,7 @@ func TestAccAzureRMIotDPS_linkedHubs(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMIotDPS_linkedHubsUpdated(rInt, testLocation()),
+				Config: testAccAzureRMIotDPS_linkedHubsUpdated(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotDPSExists(resourceName),
 				),

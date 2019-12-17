@@ -18,12 +18,12 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationRunbook_PSWorkflow(ri, testLocation()),
+				Config: testAccAzureRMAutomationRunbook_PSWorkflow(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationRunbookExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "runbook_type", "PowerShellWorkflow"),
@@ -47,10 +47,10 @@ func TestAccAzureRMAutomationRunbook_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_automation_runbook.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMAutomationRunbook_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAutomationRunbook_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_automation_runbook"),
+				ExpectError: acceptance.RequiresImportError("azurerm_automation_runbook"),
 			},
 		},
 	})
@@ -73,12 +73,12 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationRunbook_PSWorkflowWithHash(ri, testLocation()),
+				Config: testAccAzureRMAutomationRunbook_PSWorkflowWithHash(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationRunbookExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "runbook_type", "PowerShellWorkflow"),
@@ -99,12 +99,12 @@ func TestAccAzureRMAutomationRunbook_PSWithContent(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationRunbook_PSWithContent(ri, testLocation()),
+				Config: testAccAzureRMAutomationRunbook_PSWithContent(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationRunbookExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "runbook_type", "PowerShell"),

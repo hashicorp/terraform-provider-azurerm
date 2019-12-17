@@ -18,12 +18,12 @@ func TestAccAzureRMPostgreSQLFirewallRule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
@@ -49,12 +49,12 @@ func TestAccAzureRMPostgreSQLFirewallRule_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
@@ -62,8 +62,8 @@ func TestAccAzureRMPostgreSQLFirewallRule_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMPostgreSQLFirewallRule_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_postgresql_firewall_rule"),
+				Config:      testAccAzureRMPostgreSQLFirewallRule_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_postgresql_firewall_rule"),
 			},
 		},
 	})

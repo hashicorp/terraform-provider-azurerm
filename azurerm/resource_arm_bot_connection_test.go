@@ -15,11 +15,11 @@ import (
 
 func testAccAzureRMBotConnection_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotConnection_basicConfig(ri, testLocation())
+	config := testAccAzureRMBotConnection_basicConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_connection.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -44,12 +44,12 @@ func testAccAzureRMBotConnection_basic(t *testing.T) {
 
 func testAccAzureRMBotConnection_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotConnection_completeConfig(ri, testLocation())
-	config2 := testAccAzureRMBotConnection_completeUpdateConfig(ri, testLocation())
+	config := testAccAzureRMBotConnection_completeConfig(ri, acceptance.Location())
+	config2 := testAccAzureRMBotConnection_completeUpdateConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_connection.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotConnectionDestroy,
 		Steps: []resource.TestStep{

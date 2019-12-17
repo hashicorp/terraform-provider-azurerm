@@ -12,10 +12,10 @@ import (
 func TestAccDataSourceAzureRMDevTestLab_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_dev_test_lab.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -32,10 +32,10 @@ func TestAccDataSourceAzureRMDevTestLab_basic(t *testing.T) {
 func TestAccDataSourceAzureRMDevTestLab_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_dev_test_lab.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

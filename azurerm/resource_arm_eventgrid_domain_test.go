@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMEventGridDomain_basic(t *testing.T) {
 	resourceName := "azurerm_eventgrid_domain.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{
@@ -44,10 +44,10 @@ func TestAccAzureRMEventGridDomain_basic(t *testing.T) {
 func TestAccAzureRMEventGridDomain_mapping(t *testing.T) {
 	resourceName := "azurerm_eventgrid_domain.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{
@@ -73,10 +73,10 @@ func TestAccAzureRMEventGridDomain_mapping(t *testing.T) {
 func TestAccAzureRMEventGridDomain_basicWithTags(t *testing.T) {
 	resourceName := "azurerm_eventgrid_domain.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{

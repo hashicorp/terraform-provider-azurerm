@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_function_javascript_udf.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
 		Steps: []resource.TestStep{
@@ -46,10 +46,10 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(t *testin
 
 	resourceName := "azurerm_stream_analytics_function_javascript_udf.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(t *testin
 			},
 			{
 				Config:      testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_stream_analytics_function_javascript_udf"),
+				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_function_javascript_udf"),
 			},
 		},
 	})
@@ -70,10 +70,10 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(t *testin
 func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_inputs(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_function_javascript_udf.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
 		Steps: []resource.TestStep{

@@ -18,12 +18,12 @@ func TestAccAzureRMCosmosDbMongoDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_mongo_database.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbMongoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbMongoDatabase_basic(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName),
 				),
@@ -42,12 +42,12 @@ func TestAccAzureRMCosmosDbMongoDatabase_complete(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_mongo_database.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbMongoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoDatabase_complete(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbMongoDatabase_complete(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName),
 				),

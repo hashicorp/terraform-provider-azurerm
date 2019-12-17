@@ -19,12 +19,12 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(ri, testLocation()),
+				Config: testAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", ri)),
@@ -49,10 +49,10 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_requiresImport(t *testing.
 
 	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
 		Steps: []resource.TestStep{
@@ -67,7 +67,7 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_requiresImport(t *testing.
 			},
 			{
 				Config:      testAccAzureRMLogAnalyticsWorkspaceLinkedService_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_log_analytics_workspace_linked_service"),
+				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_workspace_linked_service"),
 			},
 		},
 	})
@@ -78,12 +78,12 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsWorkspaceLinkedService_complete(ri, testLocation()),
+				Config: testAccAzureRMLogAnalyticsWorkspaceLinkedService_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "linked_service_name", "automation"),
@@ -103,12 +103,12 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_noResourceID(t *testing.T)
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMLogAnalyticsWorkspaceLinkedService_noResourceID(ri, testLocation()),
+				Config:      testAccAzureRMLogAnalyticsWorkspaceLinkedService_noResourceID(ri, acceptance.Location()),
 				ExpectError: regexp.MustCompile("A `resource_id` must be specified either using the `resource_id` field at the top level or within the `linked_service_properties` block"),
 			},
 		},
@@ -121,12 +121,12 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_linkedServiceProperties(t 
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsWorkspaceLinkedService_linkedServiceProperties(ri, testLocation()),
+				Config: testAccAzureRMLogAnalyticsWorkspaceLinkedService_linkedServiceProperties(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(resourceName),
 				),

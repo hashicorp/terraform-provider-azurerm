@@ -53,10 +53,10 @@ func TestValidateFirewallName(t *testing.T) {
 func TestAccAzureRMFirewall_basicOld(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -88,10 +88,10 @@ func TestAccAzureRMFirewall_basicOld(t *testing.T) {
 func TestAccAzureRMFirewall_basic(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -115,10 +115,10 @@ func TestAccAzureRMFirewall_basic(t *testing.T) {
 func TestAccAzureRMFirewall_withMultiplePublicIPs(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -150,10 +150,10 @@ func TestAccAzureRMFirewall_requiresImport(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -165,7 +165,7 @@ func TestAccAzureRMFirewall_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMFirewall_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_firewall"),
+				ExpectError: acceptance.RequiresImportError("azurerm_firewall"),
 			},
 		},
 	})
@@ -174,10 +174,10 @@ func TestAccAzureRMFirewall_requiresImport(t *testing.T) {
 func TestAccAzureRMFirewall_withTags(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -210,12 +210,12 @@ func TestAccAzureRMFirewall_withTags(t *testing.T) {
 func TestAccAzureRMFirewall_withZones(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	zones := []string{"1"}
 	zonesUpdate := []string{"1", "3"}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
@@ -244,10 +244,10 @@ func TestAccAzureRMFirewall_withZones(t *testing.T) {
 func TestAccAzureRMFirewall_disappears(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{

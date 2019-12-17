@@ -19,12 +19,12 @@ func TestAccAzureRMCosmosDbSqlDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_sql_database.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbSqlDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbSqlDatabase_basic(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlDatabaseExists(resourceName),
 				),

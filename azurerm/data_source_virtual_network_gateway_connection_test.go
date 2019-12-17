@@ -15,10 +15,10 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testi
 	resourceName := "azurerm_virtual_network_gateway_connection.test"
 	ri := tf.AccRandTimeInt()
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
-	config := testAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(ri, testLocation())
+	config := testAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -41,10 +41,10 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testi
 	ri := tf.AccRandTimeInt()
 	ri2 := tf.AccRandTimeInt()
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
-	config := testAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, sharedKey, testLocation(), testAltLocation())
+	config := testAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, sharedKey, acceptance.Location(), acceptance.AltLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
@@ -67,10 +67,10 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *test
 	resourceName := "azurerm_virtual_network_gateway_connection.test"
 	ri := tf.AccRandTimeInt()
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
-	config := testAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(ri, testLocation())
+	config := testAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{

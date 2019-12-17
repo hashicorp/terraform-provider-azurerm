@@ -73,10 +73,10 @@ func TestAccAzureRMAppConfigurationName_validation(t *testing.T) {
 func TestAccAzureAppConfiguration_free(t *testing.T) {
 	rn := "azurerm_app_configuration.test"
 	ri := tf.AccRandTimeInt()
-	l := testLocation()
+	l := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureAppConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -98,10 +98,10 @@ func TestAccAzureAppConfiguration_free(t *testing.T) {
 func TestAccAzureAppConfiguration_standard(t *testing.T) {
 	rn := "azurerm_app_configuration.test"
 	ri := tf.AccRandTimeInt()
-	l := testLocation()
+	l := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureAppConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -128,10 +128,10 @@ func TestAccAzureAppConfiguration_requiresImport(t *testing.T) {
 
 	rn := "azurerm_app_configuration.test"
 	ri := tf.AccRandTimeInt()
-	l := testLocation()
+	l := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureAppConfigurationDestroy,
 		Steps: []resource.TestStep{
@@ -143,7 +143,7 @@ func TestAccAzureAppConfiguration_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureAppConfiguration_requiresImport(ri, l),
-				ExpectError: testRequiresImportError("azurerm_app_configuration"),
+				ExpectError: acceptance.RequiresImportError("azurerm_app_configuration"),
 			},
 		},
 	})
@@ -154,12 +154,12 @@ func TestAccAzureAppConfiguration_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureAppConfiguration_complete(ri, testLocation()),
+				Config: testAccAzureAppConfiguration_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureAppConfigurationExists(rn),
 				),
@@ -176,10 +176,10 @@ func TestAccAzureAppConfiguration_complete(t *testing.T) {
 func TestAccAzureAppConfiguration_update(t *testing.T) {
 	rn := "azurerm_app_configuration.test"
 	ri := tf.AccRandTimeInt()
-	l := testLocation()
+	l := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureAppConfigurationDestroy,
 		Steps: []resource.TestStep{

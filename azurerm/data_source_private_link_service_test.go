@@ -13,11 +13,11 @@ import (
 func TestAccDataSourceAzureRMPrivateLinkService_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_private_link_service.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

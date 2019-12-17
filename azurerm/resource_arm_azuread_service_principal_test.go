@@ -19,7 +19,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
 	config := testAccAzureRMActiveDirectoryServicePrincipal_basic(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
@@ -50,7 +50,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_requiresImport(t *testing.T) 
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_requiresImport(t *testing.T) 
 			},
 			{
 				Config:      testAccAzureRMActiveDirectoryServicePrincipal_requiresImport(id),
-				ExpectError: testRequiresImportError("azurerm_azuread_service_principal"),
+				ExpectError: acceptance.RequiresImportError("azurerm_azuread_service_principal"),
 			},
 		},
 	})

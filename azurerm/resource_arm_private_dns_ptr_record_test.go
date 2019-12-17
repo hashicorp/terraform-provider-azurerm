@@ -17,10 +17,10 @@ import (
 func TestAccAzureRMPrivateDnsPtrRecord_basic(t *testing.T) {
 	resourceName := "azurerm_private_dns_ptr_record.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPrivateDnsPtrRecord_basic(ri, testLocation())
+	config := testAccAzureRMPrivateDnsPtrRecord_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
@@ -47,10 +47,10 @@ func TestAccAzureRMPrivateDnsPtrRecord_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_private_dns_ptr_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
@@ -62,7 +62,7 @@ func TestAccAzureRMPrivateDnsPtrRecord_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMPrivateDnsPtrRecord_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_private_dns_ptr_record"),
+				ExpectError: acceptance.RequiresImportError("azurerm_private_dns_ptr_record"),
 			},
 		},
 	})
@@ -71,12 +71,12 @@ func TestAccAzureRMPrivateDnsPtrRecord_requiresImport(t *testing.T) {
 func TestAccAzureRMPrivateDnsPtrRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_private_dns_ptr_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMPrivateDnsPtrRecord_basic(ri, location)
 	postConfig := testAccAzureRMPrivateDnsPtrRecord_updateRecords(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
@@ -101,12 +101,12 @@ func TestAccAzureRMPrivateDnsPtrRecord_updateRecords(t *testing.T) {
 func TestAccAzureRMPrivateDnsPtrRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_private_dns_ptr_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMPrivateDnsPtrRecord_withTags(ri, location)
 	postConfig := testAccAzureRMPrivateDnsPtrRecord_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{

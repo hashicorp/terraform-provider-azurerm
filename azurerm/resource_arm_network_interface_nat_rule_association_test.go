@@ -18,13 +18,13 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_basic(t *testing.T) {
 	resourceName := "azurerm_network_interface_nat_rule_association.test"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterfaceNATRuleAssociation_basic(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterfaceNATRuleAssociation_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(resourceName),
 				),
@@ -41,9 +41,9 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(t *testing.
 
 	resourceName := "azurerm_network_interface_nat_rule_association.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
@@ -56,7 +56,7 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(t *testing.
 			},
 			{
 				Config:      testAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_network_interface_nat_rule_association"),
+				ExpectError: acceptance.RequiresImportError("azurerm_network_interface_nat_rule_association"),
 			},
 		},
 	})
@@ -65,10 +65,10 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(t *testing.
 func TestAccAzureRMNetworkInterfaceNATRuleAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_network_interface_nat_rule_association.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		// intentional as this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,

@@ -18,12 +18,12 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSearchService_basic(ri, testLocation()),
+				Config: testAccAzureRMSearchService_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -48,20 +48,20 @@ func TestAccAzureRMSearchService_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSearchService_basic(ri, testLocation()),
+				Config: testAccAzureRMSearchService_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
 			{
-				Config:      testAccAzureRMSearchService_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_search_service"),
+				Config:      testAccAzureRMSearchService_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_search_service"),
 			},
 		},
 	})
@@ -72,12 +72,12 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSearchService_complete(ri, testLocation()),
+				Config: testAccAzureRMSearchService_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -101,12 +101,12 @@ func TestAccAzureRMSearchService_tagUpdate(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSearchService_withCustomTagValue(ri, testLocation(), "staging"),
+				Config: testAccAzureRMSearchService_withCustomTagValue(ri, acceptance.Location(), "staging"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -114,7 +114,7 @@ func TestAccAzureRMSearchService_tagUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMSearchService_withCustomTagValue(ri, testLocation(), "production"),
+				Config: testAccAzureRMSearchService_withCustomTagValue(ri, acceptance.Location(), "production"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),

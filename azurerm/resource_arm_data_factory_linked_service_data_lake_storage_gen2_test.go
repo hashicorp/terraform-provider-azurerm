@@ -15,11 +15,11 @@ import (
 
 func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(ri, testLocation())
+	config := testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_linked_service_data_lake_storage_gen2.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Destroy,
 		Steps: []resource.TestStep{
@@ -43,12 +43,12 @@ func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.
 
 func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update1(ri, testLocation())
-	config2 := testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update2(ri, testLocation())
+	config := testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update1(ri, acceptance.Location())
+	config2 := testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update2(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_linked_service_data_lake_storage_gen2.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Destroy,
 		Steps: []resource.TestStep{

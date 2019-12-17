@@ -12,10 +12,10 @@ import (
 func TestAccDataSourceAzureRMServiceBusNamespace_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_servicebus_namespace.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
@@ -39,10 +39,10 @@ func TestAccDataSourceAzureRMServiceBusNamespace_basic(t *testing.T) {
 func TestAccDataSourceAzureRMServiceBusNamespace_premium(t *testing.T) {
 	dataSourceName := "data.azurerm_servicebus_namespace.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{

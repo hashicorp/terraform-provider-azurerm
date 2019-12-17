@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMVirtualHub_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_hub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
 		Steps: []resource.TestStep{
@@ -48,19 +48,19 @@ func TestAccAzureRMVirtualHub_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualHub_basic(ri, testLocation()),
+				Config: testAccAzureRMVirtualHub_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualHubExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMVirtualHub_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_virtual_hub"),
+				Config:      testAccAzureRMVirtualHub_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_virtual_hub"),
 			},
 		},
 	})
@@ -69,10 +69,10 @@ func TestAccAzureRMVirtualHub_requiresImport(t *testing.T) {
 func TestAccAzureRMVirtualHub_update(t *testing.T) {
 	resourceName := "azurerm_virtual_hub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
 		Steps: []resource.TestStep{
@@ -105,10 +105,10 @@ func TestAccAzureRMVirtualHub_update(t *testing.T) {
 func TestAccAzureRMVirtualHub_routes(t *testing.T) {
 	resourceName := "azurerm_virtual_hub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
 		Steps: []resource.TestStep{
@@ -141,10 +141,10 @@ func TestAccAzureRMVirtualHub_routes(t *testing.T) {
 func TestAccAzureRMVirtualHub_tags(t *testing.T) {
 	resourceName := "azurerm_virtual_hub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
 		Steps: []resource.TestStep{

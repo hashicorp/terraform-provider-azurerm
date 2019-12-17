@@ -19,12 +19,12 @@ func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationAccount_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationAccount_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku_name", "Basic"),
@@ -48,12 +48,12 @@ func TestAccAzureRMAutomationAccount_basicClassic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationAccount_basicClassic(ri, testLocation()),
+				Config: testAccAzureRMAutomationAccount_basicClassic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
@@ -76,12 +76,12 @@ func TestAccAzureRMAutomationAccount_basicNotDefined(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMAutomationAccount_basicNotDefined(ri, testLocation()),
+				Config:      testAccAzureRMAutomationAccount_basicNotDefined(ri, acceptance.Location()),
 				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
 			},
 		},
@@ -96,10 +96,10 @@ func TestAccAzureRMAutomationAccount_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_automation_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
 		Steps: []resource.TestStep{
@@ -111,7 +111,7 @@ func TestAccAzureRMAutomationAccount_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAutomationAccount_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_automation_account"),
+				ExpectError: acceptance.RequiresImportError("azurerm_automation_account"),
 			},
 		},
 	})
@@ -122,12 +122,12 @@ func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationAccount_complete(ri, testLocation()),
+				Config: testAccAzureRMAutomationAccount_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku_name", "Basic"),

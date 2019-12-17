@@ -16,11 +16,11 @@ import (
 func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMAutoScaleSetting_basic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
@@ -53,10 +53,10 @@ func TestAccAzureRMAutoScaleSetting_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
@@ -68,7 +68,7 @@ func TestAccAzureRMAutoScaleSetting_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAutoScaleSetting_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_autoscale_setting"),
+				ExpectError: acceptance.RequiresImportError("azurerm_autoscale_setting"),
 			},
 		},
 	})
@@ -77,11 +77,11 @@ func TestAccAzureRMAutoScaleSetting_requiresImport(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMAutoScaleSetting_multipleProfiles(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
@@ -102,10 +102,10 @@ func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_update(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
@@ -149,10 +149,10 @@ func TestAccAzureRMAutoScaleSetting_update(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
@@ -188,10 +188,10 @@ func TestAccAzureRMAutoScaleSetting_multipleRules(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
@@ -223,11 +223,11 @@ func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMAutoScaleSetting_recurrence(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
@@ -254,10 +254,10 @@ func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
@@ -294,11 +294,11 @@ func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 func TestAccAzureRMAutoScaleSetting_fixedDate(t *testing.T) {
 	resourceName := "azurerm_autoscale_setting.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMAutoScaleSetting_fixedDate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{

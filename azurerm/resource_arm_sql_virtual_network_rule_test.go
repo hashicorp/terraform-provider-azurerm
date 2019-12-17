@@ -26,12 +26,12 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlVirtualNetworkRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "false"),
@@ -43,7 +43,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMSqlVirtualNetworkRule_withUpdates(ri, testLocation()),
+				Config: testAccAzureRMSqlVirtualNetworkRule_withUpdates(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "true"),
@@ -62,20 +62,20 @@ func TestAccAzureRMSqlVirtualNetworkRule_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlVirtualNetworkRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "false"),
 				),
 			},
 			{
-				Config:      testAccAzureRMSqlVirtualNetworkRule_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_sql_virtual_network_rule"),
+				Config:      testAccAzureRMSqlVirtualNetworkRule_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_sql_virtual_network_rule"),
 			},
 		},
 	})
@@ -90,15 +90,15 @@ func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
 	ri := tf.AccRandTimeInt()
 
-	preConfig := testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(ri, testLocation())
-	postConfig := testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(ri, testLocation())
+	preConfig := testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(ri, acceptance.Location())
+	postConfig := testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(ri, acceptance.Location())
 
 	// Create regex strings that will ensure that one subnet name exists, but not the other
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", ri, ri))  //subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", ri, ri)) //subnet 2 but not 1
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
@@ -126,10 +126,10 @@ func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSqlVirtualNetworkRule_basic(ri, testLocation())
+	config := testAccAzureRMSqlVirtualNetworkRule_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
@@ -153,10 +153,10 @@ func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(ri, testLocation())
+	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
@@ -177,10 +177,10 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 */
 func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(ri, testLocation())
+	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
@@ -202,10 +202,10 @@ func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	resourceName2 := "azurerm_sql_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_sql_virtual_network_rule.rule3"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(ri, testLocation())
+	config := testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{

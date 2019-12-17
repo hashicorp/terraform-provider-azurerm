@@ -15,13 +15,13 @@ func TestAccDataSourceArmStorageAccountBlobContainerSas_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_storage_account_blob_container_sas.test"
 	rInt := tf.AccRandTimeInt()
 	rString := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	utcNow := time.Now().UTC()
 	startDate := utcNow.Format(time.RFC3339)
 	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

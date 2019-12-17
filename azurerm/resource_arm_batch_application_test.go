@@ -18,10 +18,10 @@ func TestAccAzureRMBatchApplication_basic(t *testing.T) {
 	resourceName := "azurerm_batch_application.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchApplicationDestroy,
 		Steps: []resource.TestStep{
@@ -44,11 +44,11 @@ func TestAccAzureRMBatchApplication_update(t *testing.T) {
 	resourceName := "azurerm_batch_application.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 	displayName := fmt.Sprintf("TestAccDisplayName-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchApplicationDestroy,
 		Steps: []resource.TestStep{

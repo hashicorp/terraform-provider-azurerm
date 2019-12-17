@@ -22,12 +22,12 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_basic(t *testing.T) {
 	endIP := "2.2.2.2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeAnalyticsFirewallRule_basic(ri, testLocation(), startIP, endIP),
+				Config: testAccAzureRMDataLakeAnalyticsFirewallRule_basic(ri, acceptance.Location(), startIP, endIP),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeAnalyticsFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", startIP),
@@ -51,12 +51,12 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_data_lake_analytics_firewall_rule.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy,
 		Steps: []resource.TestStep{
@@ -70,7 +70,7 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDataLakeAnalyticsFirewallRule_requiresImport(ri, location, startIP, endIP),
-				ExpectError: testRequiresImportError("azurerm_data_lake_analytics_firewall_rule"),
+				ExpectError: acceptance.RequiresImportError("azurerm_data_lake_analytics_firewall_rule"),
 			},
 		},
 	})
@@ -81,12 +81,12 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeAnalyticsFirewallRule_basic(ri, testLocation(), "1.1.1.1", "2.2.2.2"),
+				Config: testAccAzureRMDataLakeAnalyticsFirewallRule_basic(ri, acceptance.Location(), "1.1.1.1", "2.2.2.2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeAnalyticsFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "1.1.1.1"),
@@ -94,7 +94,7 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMDataLakeAnalyticsFirewallRule_basic(ri, testLocation(), "2.2.2.2", "3.3.3.3"),
+				Config: testAccAzureRMDataLakeAnalyticsFirewallRule_basic(ri, acceptance.Location(), "2.2.2.2", "3.3.3.3"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeAnalyticsFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "2.2.2.2"),
@@ -111,12 +111,12 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_azureServices(t *testing.T) {
 	azureServicesIP := "0.0.0.0"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeAnalyticsFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeAnalyticsFirewallRule_basic(ri, testLocation(), azureServicesIP, azureServicesIP),
+				Config: testAccAzureRMDataLakeAnalyticsFirewallRule_basic(ri, acceptance.Location(), azureServicesIP, azureServicesIP),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeAnalyticsFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", azureServicesIP),

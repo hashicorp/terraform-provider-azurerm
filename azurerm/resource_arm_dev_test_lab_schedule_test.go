@@ -15,11 +15,11 @@ import (
 func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 	resourceName := "azurerm_dev_test_schedule.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDevTestLabSchedule_autoShutdownBasic(ri, location)
 	postConfig := testAccAzureRMDevTestLabSchedule_autoShutdownBasicUpdate(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabScheduleDestroy,
 		Steps: []resource.TestStep{
@@ -59,11 +59,11 @@ func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 func TestAccAzureRMDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 	resourceName := "azurerm_dev_test_schedule.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDevTestLabSchedule_autoStartupBasic(ri, location)
 	postConfig := testAccAzureRMDevTestLabSchedule_autoStartupBasicUpdate(ri, location)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabScheduleDestroy,
 		Steps: []resource.TestStep{
@@ -103,10 +103,10 @@ func TestAccAzureRMDevTestLabSchedule_concurrent(t *testing.T) {
 	firstResourceName := "azurerm_dev_test_schedule.test"
 	secondResourceName := "azurerm_dev_test_schedule.test2"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDevTestLabSchedule_concurrent(ri, testLocation())
+	config := testAccAzureRMDevTestLabSchedule_concurrent(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabScheduleDestroy,
 		Steps: []resource.TestStep{

@@ -15,10 +15,10 @@ import (
 func TestAccAzureRMWebApplicationFirewallPolicy_basic(t *testing.T) {
 	resourceName := "azurerm_web_application_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWebApplicationFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -40,10 +40,10 @@ func TestAccAzureRMWebApplicationFirewallPolicy_basic(t *testing.T) {
 func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
 	resourceName := "azurerm_web_application_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWebApplicationFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
@@ -96,10 +96,10 @@ func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
 func TestAccAzureRMWebApplicationFirewallPolicy_update(t *testing.T) {
 	resourceName := "azurerm_web_application_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWebApplicationFirewallPolicyDestroy,
 		Steps: []resource.TestStep{

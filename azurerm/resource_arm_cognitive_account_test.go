@@ -17,10 +17,10 @@ import (
 func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 	resourceName := "azurerm_cognitive_account.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCognitiveAccount_basic(ri, testLocation())
+	config := testAccAzureRMCognitiveAccount_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
@@ -46,10 +46,10 @@ func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
 	resourceName := "azurerm_cognitive_account.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCognitiveAccount_speechServices(ri, testLocation())
+	config := testAccAzureRMCognitiveAccount_speechServices(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
@@ -80,10 +80,10 @@ func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_cognitive_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
@@ -95,7 +95,7 @@ func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMCognitiveAccount_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_cognitive_account"),
+				ExpectError: acceptance.RequiresImportError("azurerm_cognitive_account"),
 			},
 		},
 	})
@@ -104,10 +104,10 @@ func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
 func TestAccAzureRMCognitiveAccount_complete(t *testing.T) {
 	resourceName := "azurerm_cognitive_account.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCognitiveAccount_complete(ri, testLocation())
+	config := testAccAzureRMCognitiveAccount_complete(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
@@ -134,10 +134,10 @@ func TestAccAzureRMCognitiveAccount_complete(t *testing.T) {
 func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 	resourceName := "azurerm_cognitive_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{

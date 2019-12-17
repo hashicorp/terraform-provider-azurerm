@@ -13,11 +13,11 @@ func TestAccDataSourceAzureRMKeyVaultSecret_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_secret.test"
 
 	rString := acctest.RandString(8)
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceKeyVaultSecret_basic(rString, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -35,11 +35,11 @@ func TestAccDataSourceAzureRMKeyVaultSecret_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_secret.test"
 
 	rString := acctest.RandString(8)
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceKeyVaultSecret_complete(rString, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

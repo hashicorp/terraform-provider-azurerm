@@ -18,7 +18,7 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -48,7 +48,7 @@ func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -60,7 +60,7 @@ func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAzureRMPolicyDefinition_requiresImport(ri),
-				ExpectError: testRequiresImportError("azurerm_policy_definition"),
+				ExpectError: acceptance.RequiresImportError("azurerm_policy_definition"),
 			},
 		},
 	})
@@ -71,7 +71,7 @@ func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
@@ -96,7 +96,7 @@ func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{

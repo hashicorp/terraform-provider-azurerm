@@ -16,10 +16,10 @@ import (
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnProfile_basic(ri, testLocation())
+	config := testAccAzureRMCdnProfile_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
@@ -46,10 +46,10 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_cdn_profile.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
@@ -61,7 +61,7 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMCdnProfile_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_cdn_profile"),
+				ExpectError: acceptance.RequiresImportError("azurerm_cdn_profile"),
 			},
 		},
 	})
@@ -70,12 +70,12 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMCdnProfile_withTags(ri, location)
 	postConfig := testAccAzureRMCdnProfile_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
@@ -112,10 +112,10 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnProfileNonStandardCasing(ri, testLocation())
+	config := testAccAzureRMCdnProfileNonStandardCasing(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
@@ -137,11 +137,11 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMCdnProfile_basic(ri, testLocation())
-	postConfig := testAccAzureRMCdnProfile_standardAkamai(ri, testLocation())
+	preConfig := testAccAzureRMCdnProfile_basic(ri, acceptance.Location())
+	postConfig := testAccAzureRMCdnProfile_standardAkamai(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
@@ -166,10 +166,10 @@ func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnProfile_standardAkamai(ri, testLocation())
+	config := testAccAzureRMCdnProfile_standardAkamai(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
@@ -192,10 +192,10 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnProfile_standardMicrosoft(ri, testLocation())
+	config := testAccAzureRMCdnProfile_standardMicrosoft(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{

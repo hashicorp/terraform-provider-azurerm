@@ -13,10 +13,10 @@ import (
 func TestAccDataSourceAzureRMImage_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_image.test"
 
-	config := testAccDataSourceAzureRMImageBasic(tf.AccRandTimeInt(), acctest.RandString(4), testLocation())
+	config := testAccDataSourceAzureRMImageBasic(tf.AccRandTimeInt(), acctest.RandString(4), acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -45,10 +45,10 @@ func TestAccDataSourceAzureRMImage_localFilter(t *testing.T) {
 	descDataSourceName := "data.azurerm_image.test2"
 
 	ri := tf.AccRandTimeInt()
-	config := testAccDataSourceAzureRMImageLocalFilter(ri, acctest.RandString(4), testLocation())
+	config := testAccDataSourceAzureRMImageLocalFilter(ri, acctest.RandString(4), acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{

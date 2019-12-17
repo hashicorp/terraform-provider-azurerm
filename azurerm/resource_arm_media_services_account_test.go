@@ -20,12 +20,12 @@ func TestAccAzureRMMediaServicesAccount_basic(t *testing.T) {
 	rs := acctest.RandString(5)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMediaServicesAccount_basic(ri, rs, testLocation()),
+				Config: testAccAzureRMMediaServicesAccount_basic(ri, rs, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "storage_account.#", "1"),
 				),
@@ -43,10 +43,10 @@ func TestAccAzureRMMediaServicesAccount_multipleAccounts(t *testing.T) {
 	resourceName := "azurerm_media_services_account.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
 		Steps: []resource.TestStep{
@@ -74,12 +74,12 @@ func TestAccAzureRMMediaServicesAccount_multiplePrimaries(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMediaServicesAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMMediaServicesAccount_multiplePrimaries(ri, rs, testLocation()),
+				Config:      testAccAzureRMMediaServicesAccount_multiplePrimaries(ri, rs, acceptance.Location()),
 				ExpectError: regexp.MustCompile("Only one Storage Account can be set as Primary"),
 			},
 		},

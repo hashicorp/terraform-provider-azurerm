@@ -16,10 +16,10 @@ func TestAccAzureRMHDInsightMLServicesCluster_basic(t *testing.T) {
 	resourceName := "azurerm_hdinsight_ml_services_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_ml_services_cluster"),
 		Steps: []resource.TestStep{
@@ -61,10 +61,10 @@ func TestAccAzureRMHDInsightMLServicesCluster_requiresImport(t *testing.T) {
 	resourceName := "azurerm_hdinsight_ml_services_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_ml_services_cluster"),
 		Steps: []resource.TestStep{
@@ -79,7 +79,7 @@ func TestAccAzureRMHDInsightMLServicesCluster_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMHDInsightMLServicesCluster_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_hdinsight_ml_services_cluster"),
+				ExpectError: acceptance.RequiresImportError("azurerm_hdinsight_ml_services_cluster"),
 			},
 		},
 	})
@@ -89,10 +89,10 @@ func TestAccAzureRMHDInsightMLServicesCluster_update(t *testing.T) {
 	resourceName := "azurerm_hdinsight_ml_services_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_ml_services_cluster"),
 		Steps: []resource.TestStep{
@@ -154,10 +154,10 @@ func TestAccAzureRMHDInsightMLServicesCluster_sshKeys(t *testing.T) {
 	resourceName := "azurerm_hdinsight_ml_services_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_ml_services_cluster"),
 		Steps: []resource.TestStep{
@@ -194,10 +194,10 @@ func TestAccAzureRMHDInsightMLServicesCluster_virtualNetwork(t *testing.T) {
 	resourceName := "azurerm_hdinsight_ml_services_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_ml_services_cluster"),
 		Steps: []resource.TestStep{
@@ -234,10 +234,10 @@ func TestAccAzureRMHDInsightMLServicesCluster_complete(t *testing.T) {
 	resourceName := "azurerm_hdinsight_ml_services_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_ml_services_cluster"),
 		Steps: []resource.TestStep{

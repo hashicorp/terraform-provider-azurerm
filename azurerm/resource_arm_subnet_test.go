@@ -19,10 +19,10 @@ import (
 func TestAccAzureRMSubnet_basic(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSubnet_basic(ri, testLocation())
+	config := testAccAzureRMSubnet_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -49,10 +49,10 @@ func TestAccAzureRMSubnet_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_subnet.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -64,7 +64,7 @@ func TestAccAzureRMSubnet_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMSubnet_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_subnet"),
+				ExpectError: acceptance.RequiresImportError("azurerm_subnet"),
 			},
 		},
 	})
@@ -74,10 +74,10 @@ func TestAccAzureRMSubnet_delegation(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
 	ri := tf.AccRandTimeInt()
 
-	config := testAccAzureRMSubnet_delegation(ri, testLocation())
+	config := testAccAzureRMSubnet_delegation(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -95,12 +95,12 @@ func TestAccAzureRMSubnet_delegation(t *testing.T) {
 func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	initConfig := testAccAzureRMSubnet_routeTable(ri, location)
 	updatedConfig := testAccAzureRMSubnet_updatedRouteTable(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -124,12 +124,12 @@ func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 func TestAccAzureRMSubnet_routeTableRemove(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	initConfig := testAccAzureRMSubnet_routeTable(ri, location)
 	updatedConfig := testAccAzureRMSubnet_routeTableUnlinked(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -159,12 +159,12 @@ func TestAccAzureRMSubnet_routeTableRemove(t *testing.T) {
 func TestAccAzureRMSubnet_removeNetworkSecurityGroup(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	initConfig := testAccAzureRMSubnet_networkSecurityGroup(ri, location)
 	updatedConfig := testAccAzureRMSubnet_networkSecurityGroupDetached(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -193,10 +193,10 @@ func TestAccAzureRMSubnet_removeNetworkSecurityGroup(t *testing.T) {
 
 func TestAccAzureRMSubnet_bug7986(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	initConfig := testAccAzureRMSubnet_bug7986(ri, testLocation())
+	initConfig := testAccAzureRMSubnet_bug7986(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -214,10 +214,10 @@ func TestAccAzureRMSubnet_bug7986(t *testing.T) {
 func TestAccAzureRMSubnet_bug15204(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
 	ri := tf.AccRandTimeInt()
-	initConfig := testAccAzureRMSubnet_bug15204(ri, testLocation())
+	initConfig := testAccAzureRMSubnet_bug15204(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -234,10 +234,10 @@ func TestAccAzureRMSubnet_bug15204(t *testing.T) {
 func TestAccAzureRMSubnet_disappears(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSubnet_basic(ri, testLocation())
+	config := testAccAzureRMSubnet_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -256,10 +256,10 @@ func TestAccAzureRMSubnet_disappears(t *testing.T) {
 func TestAccAzureRMSubnet_serviceEndpoints(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSubnet_serviceEndpoints(ri, testLocation())
+	config := testAccAzureRMSubnet_serviceEndpoints(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -277,12 +277,12 @@ func TestAccAzureRMSubnet_serviceEndpoints(t *testing.T) {
 func TestAccAzureRMSubnet_serviceEndpointsVNetUpdate(t *testing.T) {
 	resourceName := "azurerm_subnet.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMSubnet_serviceEndpoints(ri, location)
 	updatedConfig := testAccAzureRMSubnet_serviceEndpointsVNetUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{

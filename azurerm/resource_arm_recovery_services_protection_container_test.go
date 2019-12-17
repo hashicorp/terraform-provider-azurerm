@@ -17,12 +17,12 @@ func TestAccAzureRMRecoveryProtectionContainer_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryProtectionContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryProtectionContainer_basic(ri, testLocation()),
+				Config: testAccAzureRMRecoveryProtectionContainer_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRecoveryProtectionContainerExists(resourceName),
 				),

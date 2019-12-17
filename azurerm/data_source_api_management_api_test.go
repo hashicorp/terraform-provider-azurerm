@@ -12,10 +12,10 @@ import (
 func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_api_management_api.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
@@ -37,10 +37,10 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 func TestAccDataSourceAzureRMApiManagementApi_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_api_management_api.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
+		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
