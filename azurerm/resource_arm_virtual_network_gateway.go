@@ -102,6 +102,19 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 				),
 			},
 
+			"generation": {
+				Type:     schema.TypeString,
+				Default:  network.VpnGatewayGenerationGeneration1,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.VpnGatewayGenerationGeneration1),
+					string(network.VpnGatewayGenerationGeneration2),
+					string(network.VpnGatewayGenerationNone),
+				}, false),
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
 			"ip_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -369,6 +382,10 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 			d.Set("vpn_type", string(gw.VpnType))
 		}
 
+		if string(gw.VpnGatewayGeneration) != "" {
+			d.Set("generation", string(gw.VpnGatewayGeneration))
+		}
+
 		if gw.GatewayDefaultSite != nil {
 			d.Set("default_local_network_gateway_id", gw.GatewayDefaultSite.ID)
 		}
@@ -420,14 +437,16 @@ func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Vir
 	vpnType := network.VpnType(d.Get("vpn_type").(string))
 	enableBgp := d.Get("enable_bgp").(bool)
 	activeActive := d.Get("active_active").(bool)
+	generation := network.VpnGatewayGeneration(d.Get("generation").(string))
 
 	props := &network.VirtualNetworkGatewayPropertiesFormat{
-		GatewayType:      gatewayType,
-		VpnType:          vpnType,
-		EnableBgp:        &enableBgp,
-		ActiveActive:     &activeActive,
-		Sku:              expandArmVirtualNetworkGatewaySku(d),
-		IPConfigurations: expandArmVirtualNetworkGatewayIPConfigurations(d),
+		GatewayType:          gatewayType,
+		VpnType:              vpnType,
+		EnableBgp:            &enableBgp,
+		ActiveActive:         &activeActive,
+		VpnGatewayGeneration: generation,
+		Sku:                  expandArmVirtualNetworkGatewaySku(d),
+		IPConfigurations:     expandArmVirtualNetworkGatewayIPConfigurations(d),
 	}
 
 	if gatewayDefaultSiteID := d.Get("default_local_network_gateway_id").(string); gatewayDefaultSiteID != "" {
