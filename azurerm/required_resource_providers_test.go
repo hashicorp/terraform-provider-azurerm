@@ -13,6 +13,7 @@ import (
 
 // NOTE: this file has to remain in the root until all resources have been migrated into
 // packages & out of the root, since it requires an empty initializer for the AzureProvider
+// this will end up in ./azurerm/internal/provider
 
 func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	config := acceptance.GetAuthConfig(t)
