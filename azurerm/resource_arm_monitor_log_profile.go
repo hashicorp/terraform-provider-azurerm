@@ -297,16 +297,6 @@ func flattenAzureRmLogProfileRetentionPolicy(input *insights.RetentionPolicy) []
 	return []interface{}{result}
 }
 
-func retryLogProfilesClientGet(ctx context.Context, client *insights.LogProfilesClient, name string, meta interface{}) func() *resource.RetryError {
-	return func() *resource.RetryError {
-		if _, err := client.Get(ctx, name); err != nil {
-			return resource.RetryableError(err)
-		}
-
-		return nil
-	}
-}
-
 func parseLogProfileNameFromID(id string) (string, error) {
 	components := strings.Split(id, "/")
 
