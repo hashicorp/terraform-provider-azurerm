@@ -2,8 +2,9 @@ package powerbidedicated
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-uuid"
 	"regexp"
+
+	"github.com/hashicorp/go-uuid"
 )
 
 func ValidateCapacityName(v interface{}, k string) (warnings []string, errors []error) {
