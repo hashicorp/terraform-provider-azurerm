@@ -385,6 +385,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_network_profile":                                                        resourceArmNetworkProfile(),
 		"azurerm_network_security_group":                                                 resourceArmNetworkSecurityGroup(),
 		"azurerm_network_security_rule":                                                  resourceArmNetworkSecurityRule(),
+		"azurerm_network_watcher_flow_log":                                               resourceArmNetworkWatcherFlowLog(),
 		"azurerm_network_watcher":                                                        resourceArmNetworkWatcher(),
 		"azurerm_netapp_account":                                                         resourceArmNetAppAccount(),
 		"azurerm_netapp_pool":                                                            resourceArmNetAppPool(),
