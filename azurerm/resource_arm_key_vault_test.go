@@ -86,7 +86,6 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "sku_name", "premium"),
 				),
 			},
@@ -132,7 +131,6 @@ func TestAccAzureRMKeyVault_basicClassic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "premium"),
 				),
 			},
@@ -164,7 +162,6 @@ func TestAccAzureRMKeyVault_requiresImport(t *testing.T) {
 				Config: testAccAzureRMKeyVault_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.#", "0"),
 				),
 			},
 			{
@@ -189,23 +186,48 @@ func TestAccAzureRMKeyVault_networkAcls(t *testing.T) {
 				Config: testAccAzureRMKeyVault_networkAcls(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.bypass", "None"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.default_action", "Deny"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.ip_rules.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.virtual_network_subnet_ids.#", "2"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMKeyVault_networkAclsUpdated(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.bypass", "AzureServices"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.default_action", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.ip_rules.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.virtual_network_subnet_ids.#", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_networkAclsAllowed(t *testing.T) {
+	resourceName := "azurerm_key_vault.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_networkAclsAllowed(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -675,6 +697,40 @@ resource "azurerm_key_vault" "test" {
     bypass                     = "AzureServices"
     ip_rules                   = ["10.0.0.102/32"]
     virtual_network_subnet_ids = ["${azurerm_subnet.test_a.id}"]
+  }
+}
+`, template, rInt)
+}
+
+func testAccAzureRMKeyVault_networkAclsAllowed(rInt int, location string) string {
+	template := testAccAzureRMKeyVault_networkAclsTemplate(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku_name = "premium"
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.client_id}"
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
+  }
+
+  network_acls {
+    default_action = "Allow"
+    bypass         = "AzureServices"
   }
 }
 `, template, rInt)
