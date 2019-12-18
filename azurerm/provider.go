@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -106,6 +107,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_nat_gateway":                               dataSourceArmNatGateway(),
 		"azurerm_netapp_account":                            dataSourceArmNetAppAccount(),
 		"azurerm_netapp_pool":                               dataSourceArmNetAppPool(),
+		"azurerm_netapp_volume":                             dataSourceArmNetAppVolume(),
 		"azurerm_network_ddos_protection_plan":              dataSourceNetworkDDoSProtectionPlan(),
 		"azurerm_network_interface":                         dataSourceArmNetworkInterface(),
 		"azurerm_network_security_group":                    dataSourceArmNetworkSecurityGroup(),
@@ -116,6 +118,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_policy_definition":                         dataSourceArmPolicyDefinition(),
 		"azurerm_postgresql_server":                         dataSourcePostgreSqlServer(),
 		"azurerm_private_link_endpoint_connection":          dataSourceArmPrivateLinkEndpointConnection(),
+		"azurerm_private_endpoint_connection":               dataSourceArmPrivateEndpointConnection(),
 		"azurerm_private_link_service":                      dataSourceArmPrivateLinkService(),
 		"azurerm_private_link_service_endpoint_connections": dataSourceArmPrivateLinkServiceEndpointConnections(),
 		"azurerm_proximity_placement_group":                 dataSourceArmProximityPlacementGroup(),
@@ -156,6 +159,7 @@ func Provider() terraform.ResourceProvider {
 	}
 
 	resources := map[string]*schema.Resource{
+		"azurerm_advanced_threat_protection":                            resourceArmAdvancedThreatProtection(),
 		"azurerm_analysis_services_server":                              resourceArmAnalysisServicesServer(),
 		"azurerm_api_management":                                        resourceArmApiManagementService(),
 		"azurerm_api_management_api":                                    resourceArmApiManagementApi(),
@@ -194,6 +198,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_application_insights_web_test":                         resourceArmApplicationInsightsWebTests(),
 		"azurerm_application_security_group":                            resourceArmApplicationSecurityGroup(),
 		"azurerm_automation_account":                                    resourceArmAutomationAccount(),
+		"azurerm_automation_certificate":                                resourceArmAutomationCertificate(),
 		"azurerm_automation_credential":                                 resourceArmAutomationCredential(),
 		"azurerm_automation_dsc_configuration":                          resourceArmAutomationDscConfiguration(),
 		"azurerm_automation_dsc_nodeconfiguration":                      resourceArmAutomationDscNodeConfiguration(),
@@ -305,6 +310,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_iot_dps_certificate":                                   resourceArmIotDPSCertificate(),
 		"azurerm_iothub_dps":                                            resourceArmIotHubDPS(),
 		"azurerm_iothub_dps_certificate":                                resourceArmIotHubDPSCertificate(),
+		"azurerm_iothub_dps_shared_access_policy":                       resourceArmIotHubDPSSharedAccessPolicy(),
 		"azurerm_iothub_consumer_group":                                 resourceArmIotHubConsumerGroup(),
 		"azurerm_iothub":                                                resourceArmIotHub(),
 		"azurerm_iothub_fallback_route":                                 resourceArmIotHubFallbackRoute(),
@@ -382,9 +388,11 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_network_profile":                                                        resourceArmNetworkProfile(),
 		"azurerm_network_security_group":                                                 resourceArmNetworkSecurityGroup(),
 		"azurerm_network_security_rule":                                                  resourceArmNetworkSecurityRule(),
+		"azurerm_network_watcher_flow_log":                                               resourceArmNetworkWatcherFlowLog(),
 		"azurerm_network_watcher":                                                        resourceArmNetworkWatcher(),
 		"azurerm_netapp_account":                                                         resourceArmNetAppAccount(),
 		"azurerm_netapp_pool":                                                            resourceArmNetAppPool(),
+		"azurerm_netapp_volume":                                                          resourceArmNetAppVolume(),
 		"azurerm_notification_hub_authorization_rule":                                    resourceArmNotificationHubAuthorizationRule(),
 		"azurerm_notification_hub_namespace":                                             resourceArmNotificationHubNamespace(),
 		"azurerm_notification_hub":                                                       resourceArmNotificationHub(),
@@ -407,6 +415,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_private_dns_srv_record":                                                 resourceArmPrivateDnsSrvRecord(),
 		"azurerm_private_dns_zone_virtual_network_link":                                  resourceArmPrivateDnsZoneVirtualNetworkLink(),
 		"azurerm_private_link_endpoint":                                                  resourceArmPrivateLinkEndpoint(),
+		"azurerm_private_endpoint":                                                       resourceArmPrivateEndpoint(),
 		"azurerm_private_link_service":                                                   resourceArmPrivateLinkService(),
 		"azurerm_proximity_placement_group":                                              resourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
@@ -474,6 +483,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_stream_analytics_output_eventhub":                                       resourceArmStreamAnalyticsOutputEventHub(),
 		"azurerm_stream_analytics_output_servicebus_queue":                               resourceArmStreamAnalyticsOutputServiceBusQueue(),
 		"azurerm_stream_analytics_output_servicebus_topic":                               resourceArmStreamAnalyticsOutputServiceBusTopic(),
+		"azurerm_stream_analytics_reference_input_blob":                                  resourceArmStreamAnalyticsReferenceInputBlob(),
 		"azurerm_stream_analytics_stream_input_blob":                                     resourceArmStreamAnalyticsStreamInputBlob(),
 		"azurerm_stream_analytics_stream_input_eventhub":                                 resourceArmStreamAnalyticsStreamInputEventHub(),
 		"azurerm_stream_analytics_stream_input_iothub":                                   resourceArmStreamAnalyticsStreamInputIoTHub(),
@@ -720,13 +730,13 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		}
 
 		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
-		clientBuilder := armClientBuilder{
-			authConfig:                  config,
-			skipProviderRegistration:    skipProviderRegistration,
-			terraformVersion:            terraformVersion,
-			partnerId:                   d.Get("partner_id").(string),
-			disableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
-			disableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
+		clientBuilder := clients.ClientBuilder{
+			AuthConfig:                  config,
+			SkipProviderRegistration:    skipProviderRegistration,
+			TerraformVersion:            terraformVersion,
+			PartnerId:                   d.Get("partner_id").(string),
+			DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
+			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
 		}
 		client, err := getArmClient(p.StopContext(), clientBuilder)
 		if err != nil {
@@ -735,7 +745,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		// TODO: clean this up when ArmClient is removed
 		client.StopContext = p.StopContext()
-		client.Client.StopContext = p.StopContext()
 
 		// replaces the context between tests
 		p.MetaReset = func() error {

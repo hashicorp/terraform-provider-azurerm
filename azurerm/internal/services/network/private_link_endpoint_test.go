@@ -17,7 +17,7 @@ func TestValidatePrivateLinkSubResourceName(t *testing.T) {
 		},
 		{
 			Name:  "Whitespace",
-			Input: " ",
+			Input: "    ",
 			Valid: false,
 		},
 		{
@@ -26,33 +26,98 @@ func TestValidatePrivateLinkSubResourceName(t *testing.T) {
 			Valid: true,
 		},
 		{
-			Name:  "Sql Server All Stop",
+			Name:  "Sql Full Stop Server",
 			Input: "sql.Server",
 			Valid: true,
 		},
 		{
-			Name:  "Blob Secondary",
+			Name:  "Blob Underscore Secondary",
 			Input: "blob_secondary",
 			Valid: true,
 		},
 		{
-			Name:  "Blob Secondary Invalid",
+			Name:  "Blob Dash Secondary",
 			Input: "blob-secondary",
-			Valid: false,
+			Valid: true,
 		},
 		{
-			Name:  "Blob Secondary Space",
+			Name:  "Blob Full Stop Secondary",
+			Input: "blob.secondary",
+			Valid: true,
+		},
+		{
+			Name:  "Blob Space Secondary",
 			Input: "blob secondary",
 			Valid: false,
 		},
 		{
 			Name:  "Minimum Value Valid",
-			Input: "A",
+			Input: "dfs",
 			Valid: true,
 		},
 		{
 			Name:  "Minimum Value Invalid",
-			Input: "~",
+			Input: "~~~",
+			Valid: false,
+		},
+		{
+			Name:  "Too Short",
+			Input: "AB",
+			Valid: false,
+		},
+		{
+			Name:  "Minimum Full Stop",
+			Input: "S.S",
+			Valid: true,
+		},
+		{
+			Name:  "Minimum Underscore",
+			Input: "S_S",
+			Valid: true,
+		},
+		{
+			Name:  "Minimum Dash",
+			Input: "S-S",
+			Valid: true,
+		},
+		{
+			Name:  "Max Length",
+			Input: "123456789012345678901234567890123456789012345678901234567890123",
+			Valid: true,
+		},
+		{
+			Name:  "Too Long",
+			Input: "the-name-of-this-subresource-is-way-too-looong-for-this-resource",
+			Valid: false,
+		},
+		{
+			Name:  "Start With Dash",
+			Input: "-SqlServer",
+			Valid: false,
+		},
+		{
+			Name:  "Start With Underscore",
+			Input: "_SqlServer",
+			Valid: false,
+		},
+		{
+			Name:  "Start Full Stop",
+			Input: ".SqlServer",
+			Valid: false,
+		},
+		{
+			Name:  "End With Dash",
+			Input: "SqlServer-",
+			Valid: false,
+		},
+		{
+			Name:  "End With Underscore",
+			Input: "SqlServer_",
+			Valid: false,
+		},
+		{
+			Name:  "End Full Stop",
+			Input: "SqlServer.",
 			Valid: false,
 		},
 	}

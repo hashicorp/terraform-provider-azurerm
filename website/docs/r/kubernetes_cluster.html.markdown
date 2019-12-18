@@ -122,6 +122,8 @@ resource "azurerm_subnet" "virtual" {
 
 * `linux_profile` - (Optional) A `linux_profile` block as defined below.
 
+* `managed_cluster_identity` - (Optional) A `managed_cluster_identity` block as defined below. Changing this forces a new resource to be created.
+
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
 -> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
@@ -171,6 +173,8 @@ A `agent_pool_profile` block supports the following:
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
 
 * `availability_zones` - (Optional) Availability zones for nodes. The property `type` of the `agent_pool_profile` must be set to `VirtualMachineScaleSets` in order to use availability zones.
+
+-> **NOTE:** To configure Availability Zones the `load_balancer_sku` must be set to `Standard`
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Note that auto scaling feature requires the that the `type` is set to `VirtualMachineScaleSets`
 
@@ -225,7 +229,7 @@ A `default_node_pool` block supports the following:
 
 * `availability_zones` - (Optional) A list of Availability Zones across which the Node Pool should be spread.
 
--> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets`.
+-> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets` and that `load_balancer_sku` is set to `Standard`.
 
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
 
@@ -282,6 +286,12 @@ A `linux_profile` block supports the following:
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
 * `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed. Changing this forces a new resource to be created.
+
+---
+
+A `managed_cluster_identity` block supports the following:
+
+* `type` - The type of identity used for the managed cluster. Valid values are `SystemAssigned` or `None`. 
 
 ---
 
@@ -378,7 +388,7 @@ A `http_application_routing` block exports the following:
 
 ---
 
-The `kube_admin_config` and `kube_config` blocks export the following::
+The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
 
@@ -404,6 +414,14 @@ provider "kubernetes" {
   cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
 }
 ```
+
+---
+
+The `managed_cluster_identity` block exports the following: 
+
+* `principal_id` - The principal id of the system assigned identity which is used by master components.
+
+* `tenant_id` - The tenant id of the system assigned identity which is used by master components.
 
 ## Import
 

@@ -21,6 +21,7 @@ func resourceArmNetworkWatcher() *schema.Resource {
 		Read:   resourceArmNetworkWatcherRead,
 		Update: resourceArmNetworkWatcherCreateUpdate,
 		Delete: resourceArmNetworkWatcherDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},

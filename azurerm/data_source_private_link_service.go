@@ -38,6 +38,11 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
+			"enable_proxy_protocol": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"visibility_subscription_ids": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -122,6 +127,8 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		d.Set("alias", props.Alias)
+		d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+
 		if props.AutoApproval.Subscriptions != nil {
 			if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(props.AutoApproval.Subscriptions)); err != nil {
 				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
@@ -132,12 +139,7 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 			}
 		}
-		// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
-		// if props.Fqdns != nil {
-		// 	if err := d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns)); err != nil {
-		// 		return fmt.Errorf("Error setting `fqdns`: %+v", err)
-		// 	}
-		// }
+
 		if props.IPConfigurations != nil {
 			if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
 				return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)

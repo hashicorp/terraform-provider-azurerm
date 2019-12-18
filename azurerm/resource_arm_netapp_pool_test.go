@@ -200,7 +200,7 @@ resource "azurerm_netapp_pool" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   service_level       = "Premium"
-  size_in_tb          = "4"
+  size_in_tb          = 4
 }
 `, rInt, location, rInt, rInt)
 }
@@ -236,7 +236,7 @@ resource "azurerm_netapp_pool" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   service_level       = "Standard"
-  size_in_tb          = "15"
+  size_in_tb          = 15
 }
 `, rInt, location, rInt, rInt)
 }

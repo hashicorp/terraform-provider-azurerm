@@ -156,7 +156,7 @@ func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	appServiceName := id.AppServiceName
 	hostname := id.Name
 
@@ -193,7 +193,7 @@ func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, me
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	appServiceName := id.AppServiceName
 	hostname := id.Name
 

@@ -19,6 +19,13 @@ import (
 
 func resourceArmPrivateLinkEndpoint() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `The 'azurerm_private_link_endpoint' resource is being deprecated in favour of the renamed version 'azurerm_private_endpoint'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+
+As such the existing 'azurerm_private_link_endpoint' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
+
 		Create: resourceArmPrivateLinkEndpointCreateUpdate,
 		Read:   resourceArmPrivateLinkEndpointRead,
 		Update: resourceArmPrivateLinkEndpointCreateUpdate,
@@ -108,7 +115,7 @@ func resourceArmPrivateLinkEndpointCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if err := aznet.ValidatePrivateLinkEndpointSettings(d); err != nil {
+	if err := aznet.ValidatePrivateEndpointSettings(d); err != nil {
 		return fmt.Errorf("Error validating the configuration for the Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -232,103 +239,4 @@ func resourceArmPrivateLinkEndpointDelete(d *schema.ResourceData, meta interface
 	}
 
 	return nil
-}
-
-func expandArmPrivateLinkEndpointServiceConnection(input []interface{}, parseManual bool) *[]network.PrivateLinkServiceConnection {
-	results := make([]network.PrivateLinkServiceConnection, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		privateConnectonResourceId := v["private_connection_resource_id"].(string)
-		subresourceNames := v["subresource_names"].([]interface{})
-		requestMessage := v["request_message"].(string)
-		isManual := v["is_manual_connection"].(bool)
-		name := v["name"].(string)
-
-		if isManual == parseManual {
-			result := network.PrivateLinkServiceConnection{
-				Name: utils.String(name),
-				PrivateLinkServiceConnectionProperties: &network.PrivateLinkServiceConnectionProperties{
-					GroupIds:             utils.ExpandStringSlice(subresourceNames),
-					PrivateLinkServiceID: utils.String(privateConnectonResourceId),
-				},
-			}
-
-			if requestMessage != "" {
-				result.PrivateLinkServiceConnectionProperties.RequestMessage = utils.String(requestMessage)
-			}
-
-			results = append(results, result)
-		}
-	}
-
-	return &results
-}
-
-func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection) []interface{} {
-	results := make([]interface{}, 0)
-	if serviceConnections == nil && manualServiceConnections == nil {
-		return results
-	}
-
-	if serviceConnections != nil {
-		for _, item := range *serviceConnections {
-			name := ""
-			if item.Name != nil {
-				name = *item.Name
-			}
-
-			privateConnectionId := ""
-			subResourceNames := make([]interface{}, 0)
-
-			if props := item.PrivateLinkServiceConnectionProperties; props != nil {
-				if v := props.GroupIds; v != nil {
-					subResourceNames = utils.FlattenStringSlice(v)
-				}
-				if props.PrivateLinkServiceID != nil {
-					privateConnectionId = *props.PrivateLinkServiceID
-				}
-			}
-			results = append(results, map[string]interface{}{
-				"name":                           name,
-				"is_manual_connection":           false,
-				"private_connection_resource_id": privateConnectionId,
-				"subresource_names":              subResourceNames,
-			})
-		}
-	}
-
-	if manualServiceConnections != nil {
-		for _, item := range *manualServiceConnections {
-			name := ""
-			if item.Name != nil {
-				name = *item.Name
-			}
-
-			privateConnectionId := ""
-			requestMessage := ""
-			subResourceNames := make([]interface{}, 0)
-
-			if props := item.PrivateLinkServiceConnectionProperties; props != nil {
-				if v := props.GroupIds; v != nil {
-					subResourceNames = utils.FlattenStringSlice(v)
-				}
-				if props.PrivateLinkServiceID != nil {
-					privateConnectionId = *props.PrivateLinkServiceID
-				}
-				if props.RequestMessage != nil {
-					requestMessage = *props.RequestMessage
-				}
-			}
-
-			results = append(results, map[string]interface{}{
-				"name":                           name,
-				"is_manual_connection":           true,
-				"private_connection_resource_id": privateConnectionId,
-				"request_message":                requestMessage,
-				"subresource_names":              subResourceNames,
-			})
-		}
-	}
-
-	return results
 }

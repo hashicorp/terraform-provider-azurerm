@@ -35,5 +35,5 @@ data "azurerm_private_link_endpoint_connection" "test" {
   name                = azurerm_private_link_endpoint.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, testAccAzureRMPrivateEndpoint_basic(rInt, location))
+`, testAccAzureRMPrivateLinkEndpoint_basic(rInt, location))
 }

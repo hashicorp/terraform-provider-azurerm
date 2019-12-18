@@ -157,6 +157,7 @@ func resourceArmKeyVault() *schema.Resource {
 			"network_acls": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -471,7 +472,14 @@ func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
 
 func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	if input == nil {
-		return []interface{}{}
+		return []interface{}{
+			map[string]interface{}{
+				"bypass":                     string(keyvault.AzureServices),
+				"default_action":             string(keyvault.Allow),
+				"ip_rules":                   schema.NewSet(schema.HashString, []interface{}{}),
+				"virtual_network_subnet_ids": schema.NewSet(schema.HashString, []interface{}{}),
+			},
+		}
 	}
 
 	output := make(map[string]interface{})

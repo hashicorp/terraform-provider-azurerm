@@ -136,7 +136,11 @@ type Client struct {
 	Web              *web.Client
 }
 
-func (client *Client) Build(o *common.ClientOptions) error {
+// NOTE: it should be possible for this method to become Private once the top level Client's removed
+
+func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error {
+	client.StopContext = ctx
+
 	client.AnalysisServices = analysisServices.NewClient(o)
 	client.ApiManagement = apiManagement.NewClient(o)
 	client.AppConfiguration = appConfiguration.NewClient(o)

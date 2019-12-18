@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,6 +34,35 @@ func TestAccAzureRMPrivateLinkService_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPrivateLinkService_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_private_link_service.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPrivateLinkService_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateLinkServiceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMPrivateLinkService_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_private_link_service"),
 			},
 		},
 	})
@@ -185,6 +215,56 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPrivateLinkService_enableProxyProtocol(t *testing.T) {
+	resourceName := "azurerm_private_link_service.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Enable
+				Config: testAccAzureRMPrivateLinkService_enableProxyProtocol(ri, location, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateLinkServiceExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// Disable
+				Config: testAccAzureRMPrivateLinkService_enableProxyProtocol(ri, location, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateLinkServiceExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// Enable
+				Config: testAccAzureRMPrivateLinkService_enableProxyProtocol(ri, location, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateLinkServiceExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPrivateLinkService_complete(t *testing.T) {
 	resourceName := "azurerm_private_link_service.test"
 	ri := tf.AccRandTimeInt()
@@ -269,6 +349,7 @@ func testCheckAzureRMPrivateLinkServiceDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMPrivateLinkService_basic(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -296,7 +377,7 @@ resource "azurerm_private_link_service" "test" {
     azurerm_lb.test.frontend_ip_configuration.0.id
   ]
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt)
+`, template, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_basicIp(rInt int, location string) string {
@@ -329,10 +410,67 @@ resource "azurerm_private_link_service" "test" {
     azurerm_lb.test.frontend_ip_configuration.0.id
   ]
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt)
+`, testAccAzureRMPrivateLinkService_template(rInt, location), rInt, rInt, rInt)
+}
+
+func testAccAzureRMPrivateLinkService_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_link_service" "import" {
+  name                           = azurerm_private_link_service.test.name
+  location                       = azurerm_private_link_service.test.location
+  resource_group_name            = azurerm_private_link_service.test.name
+
+  nat_ip_configuration {
+    name                         = "primaryIpConfiguration-%d"
+    subnet_id                    = azurerm_subnet.test.id
+    primary                      = true
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, template, rInt)
+}
+
+func testAccAzureRMPrivateLinkService_enableProxyProtocol(rInt int, location string, enabled bool) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                                  = "acctestsnet-basic-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  virtual_network_name                  = azurerm_virtual_network.test.name
+  address_prefix                        = "10.5.4.0/24"
+
+  enforce_private_link_service_network_policies = true
+}
+
+resource "azurerm_private_link_service" "test" {
+  name                           = "acctestPLS-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  enable_proxy_protocol          = %t
+
+  nat_ip_configuration {
+    name                         = "primaryIpConfiguration-%d"
+    subnet_id                    = azurerm_subnet.test.id
+    primary                      = true
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, template, rInt, rInt, enabled, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_update(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -392,10 +530,11 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt, rInt, rInt, rInt)
+`, template, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_moveSetup(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -431,10 +570,11 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt)
+`, template, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_moveAdd(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -494,10 +634,11 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt, rInt, rInt, rInt)
+`, template, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_moveChangeOne(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -557,10 +698,11 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt, rInt, rInt, rInt)
+`, template, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_moveChangeTwo(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -620,10 +762,11 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt, rInt, rInt, rInt)
+`, template, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_moveChangeThree(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -683,10 +826,11 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt, rInt, rInt, rInt)
+`, template, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_complete(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -730,10 +874,10 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt, rInt)
+`, template, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMPrivateLinkServiceTemplate(rInt int, location string) string {
+func testAccAzureRMPrivateLinkService_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "current" {}
 

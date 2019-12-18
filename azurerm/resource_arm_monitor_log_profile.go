@@ -152,9 +152,19 @@ func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{})
 			duration = d.Timeout(schema.TimeoutUpdate)
 		}
 	}
-	// Wait for Log Profile to become available
-	if err := resource.Retry(duration, retryLogProfilesClientGet(ctx, client, name, meta)); err != nil {
-		return fmt.Errorf("Error waiting for Log Profile %q to become available: %+v", name, err)
+
+	log.Printf("[DEBUG] Waiting for Log Profile %q to be provisioned", name)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"NotFound"},
+		Target:                    []string{"Available"},
+		Refresh:                   logProfilesCreateRefreshFunc(ctx, client, name),
+		Timeout:                   duration,
+		MinTimeout:                15 * time.Second,
+		ContinuousTargetOccurence: 5,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Log Profile %q to become available: %s", name, err)
 	}
 
 	read, err := client.Get(ctx, name)
@@ -287,16 +297,6 @@ func flattenAzureRmLogProfileRetentionPolicy(input *insights.RetentionPolicy) []
 	return []interface{}{result}
 }
 
-func retryLogProfilesClientGet(ctx context.Context, client *insights.LogProfilesClient, name string, meta interface{}) func() *resource.RetryError {
-	return func() *resource.RetryError {
-		if _, err := client.Get(ctx, name); err != nil {
-			return resource.RetryableError(err)
-		}
-
-		return nil
-	}
-}
-
 func parseLogProfileNameFromID(id string) (string, error) {
 	components := strings.Split(id, "/")
 
@@ -309,4 +309,17 @@ func parseLogProfileNameFromID(id string) (string, error) {
 	}
 
 	return components[6], nil
+}
+
+func logProfilesCreateRefreshFunc(ctx context.Context, client *insights.LogProfilesClient, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		logProfile, err := client.Get(ctx, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(logProfile.Response) {
+				return nil, "NotFound", nil
+			}
+			return nil, "", fmt.Errorf("Error issuing read request in logProfilesCreateRefreshFunc for Log profile %q: %s", name, err)
+		}
+		return "Available", "Available", nil
+	}
 }
