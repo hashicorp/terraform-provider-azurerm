@@ -366,6 +366,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_mssql_database_vulnerability_assessment_rule_baseline": resourceArmMssqlDatabaseVulnerabilityAssessmentRuleBaseline(),
 		"azurerm_mssql_server_security_alert_policy":                    resourceArmMssqlServerSecurityAlertPolicy(),
 		"azurerm_mssql_server_vulnerability_assessment":                 resourceArmMssqlServerVulnerabilityAssessment(),
+		"azurerm_mssql_virtual_machines":                                resourceArmSqlVirtualMachine(),
 		"azurerm_mysql_configuration":                                   resourceArmMySQLConfiguration(),
 		"azurerm_mysql_database":                                        resourceArmMySqlDatabase(),
 		"azurerm_mysql_firewall_rule":                                   resourceArmMySqlFirewallRule(),
@@ -457,6 +458,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_sql_failover_group":                                                     resourceArmSqlFailoverGroup(),
 		"azurerm_sql_firewall_rule":                                                      resourceArmSqlFirewallRule(),
 		"azurerm_sql_server":                                                             resourceArmSqlServer(),
+
 		"azurerm_sql_virtual_network_rule":                                               resourceArmSqlVirtualNetworkRule(),
 		"azurerm_storage_account":                                                        resourceArmStorageAccount(),
 		"azurerm_storage_account_network_rules":                                          resourceArmStorageAccountNetworkRules(),
