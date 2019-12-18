@@ -695,7 +695,7 @@ resource "azurerm_key_vault" "test" {
   network_acls {
     default_action             = "Allow"
     bypass                     = "AzureServices"
-    ip_rules                   = ["10.0.0.102/32"]
+    ip_rules                   = ["123.0.0.102/32"]
     virtual_network_subnet_ids = ["${azurerm_subnet.test_a.id}"]
   }
 }
