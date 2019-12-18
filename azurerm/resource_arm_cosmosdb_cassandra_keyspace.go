@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	`strconv`
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -93,6 +94,12 @@ func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta int
 			},
 			Options: map[string]*string{},
 		},
+	}
+
+	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
+		db.CassandraKeyspaceCreateUpdateProperties.Options = map[string]*string{
+			"throughput": utils.String(strconv.Itoa(throughput.(int))),
+		}
 	}
 
 	future, err := client.CreateUpdateCassandraKeyspace(ctx, resourceGroup, account, name, db)
