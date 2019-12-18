@@ -176,9 +176,10 @@ func resourceArmStorageAccount() *schema.Resource {
 
 			// TODO remove this in 2.0 for the dedicated resource
 			"enable_advanced_threat_protection": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This property has been deprecated in favour of the new 'azurerm_advanced_threat_protection' resource and will be removed in version 2.0 of the provider",
 			},
 
 			"network_rules": {

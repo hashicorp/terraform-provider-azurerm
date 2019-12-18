@@ -3,12 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -47,35 +49,25 @@ func resourceArmAdvancedThreatProtection() *schema.Resource {
 	}
 }
 
-type AdvancedThreatProtectionResourceID struct {
-	Base azure.ResourceID
-
-	TargetResourceID string
-}
-
-func parseAdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionResourceID, error) {
-	id, err := azure.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Advanced Threat Protection Set ID %q: %+v", input, err)
-	}
-
-	parts := strings.Split(input, "/providers/Microsoft.Security/advancedThreatProtectionSettings/")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("Error determining target resource ID, resource ID in unexpected format: %q", id)
-	}
-
-	return &AdvancedThreatProtectionResourceID{
-		Base:             *id,
-		TargetResourceID: parts[0],
-	}, nil
-}
-
 func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
 	resourceID := d.Get("target_resource_id").(string)
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		server, err := client.Get(ctx, "target_resource_id")
+		if err != nil {
+			if !utils.ResponseWasNotFound(server.Response) {
+				return fmt.Errorf("Error checking for presence of existing Advanced Threat Protection for resource %q: %+v", resourceID, err)
+			}
+		}
+
+		if server.ID != nil && *server.ID != "" {
+			return tf.ImportAsExistsError("azurerm_advanced_threat_protection", *server.ID)
+		}
+	}
 
 	setting := security.AdvancedThreatProtectionSetting{
 		AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
@@ -101,7 +93,7 @@ func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := parseAdvancedThreatProtectionID(d.Id())
+	id, err := securitycenter.ParseAdvancedThreatProtectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -130,7 +122,7 @@ func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := parseAdvancedThreatProtectionID(d.Id())
+	id, err := securitycenter.ParseAdvancedThreatProtectionID(d.Id())
 	if err != nil {
 		return err
 	}
