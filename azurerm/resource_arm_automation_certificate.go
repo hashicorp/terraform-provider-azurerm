@@ -43,7 +43,7 @@ func resourceArmAutomationCertificate() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"account_name": {
+			"automation_account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -63,7 +63,7 @@ func resourceArmAutomationCertificate() *schema.Resource {
 				ValidateFunc: validate.Base64String(),
 			},
 
-			"is_exportable": {
+			"exportable": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -85,7 +85,7 @@ func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta i
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
+	accountName := d.Get("automation_account_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, name)
@@ -103,10 +103,10 @@ func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta i
 	description := d.Get("description").(string)
 
 	parameters := automation.CertificateCreateOrUpdateParameters{
+		Name: &name,
 		CertificateCreateOrUpdateProperties: &automation.CertificateCreateOrUpdateProperties{
 			Description: &description,
 		},
-		Name: &name,
 	}
 
 	if v, ok := d.GetOk("base64"); ok {
@@ -115,16 +115,16 @@ func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, parameters); err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Certificate '%s' (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("ID was nil for Automation Certificate %q (Automation Account %q / Resource Group %q)", name, accountName, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -152,15 +152,15 @@ func resourceArmAutomationCertificateRead(d *schema.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Certificate '%s': %+v", name, err)
+		return fmt.Errorf("Error retrieving Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("account_name", accountName)
+	d.Set("automation_account_name", accountName)
 
 	if props := resp.CertificateProperties; props != nil {
-		d.Set("is_exportable", props.IsExportable)
+		d.Set("exportable", props.IsExportable)
 		d.Set("thumbprint", props.Thumbprint)
 		d.Set("description", props.Description)
 	}
@@ -183,11 +183,9 @@ func resourceArmAutomationCertificateDelete(d *schema.ResourceData, meta interfa
 
 	resp, err := client.Delete(ctx, resourceGroup, accountName, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
+		if !utils.ResponseWasNotFound(resp) {
+			return fmt.Errorf("Error deleting Certificate %q (Automation Account %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 		}
-
-		return fmt.Errorf("Error issuing AzureRM delete request for Automation Certificate '%s': %+v", name, err)
 	}
 
 	return nil

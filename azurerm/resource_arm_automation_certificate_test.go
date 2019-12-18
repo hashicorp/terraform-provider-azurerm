@@ -18,7 +18,6 @@ import (
 var testCertThumbprintRaw, _ = ioutil.ReadFile(filepath.Join("testdata", "automation_certificate_test.thumb"))
 var testCertRaw, _ = ioutil.ReadFile(filepath.Join("testdata", "automation_certificate_test.pfx"))
 
-var testCertThumbprint = strings.TrimSpace(string(testCertThumbprintRaw))
 var testCertBase64 = base64.StdEncoding.EncodeToString(testCertRaw)
 
 func TestAccAzureRMAutomationCertificate_basic(t *testing.T) {
@@ -78,6 +77,7 @@ func TestAccAzureRMAutomationCertificate_requiresImport(t *testing.T) {
 func TestAccAzureRMAutomationCertificate_complete(t *testing.T) {
 	resourceName := "azurerm_automation_certificate.test"
 	ri := tf.AccRandTimeInt()
+	testCertThumbprint := strings.TrimSpace(string(testCertThumbprintRaw))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -90,42 +90,6 @@ func TestAccAzureRMAutomationCertificate_complete(t *testing.T) {
 					testCheckAzureRMAutomationCertificateExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "base64", testCertBase64),
 					resource.TestCheckResourceAttr(resourceName, "thumbprint", testCertThumbprint),
-					resource.TestCheckResourceAttr(resourceName, "is_exportable", "false"),
-					resource.TestCheckResourceAttr(resourceName, "description", "This is a test certificate for terraform acceptance test"),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"base64"},
-			},
-		},
-	})
-}
-
-func TestAccAzureRMAutomationCertificate_rename(t *testing.T) {
-	resourceName := "azurerm_automation_certificate.test"
-	ri := tf.AccRandTimeInt()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAutomationCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationCertificate_basic(ri, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationCertificateExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
-				),
-			},
-			{
-				Config: testAccAzureRMAutomationCertificate_rename(ri, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationCertificateExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d-updated", ri)),
-					resource.TestCheckResourceAttr(resourceName, "description", "This is a test certificate for terraform acceptance test"),
 				),
 			},
 			{
@@ -181,12 +145,8 @@ func testCheckAzureRMAutomationCertificateDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["account_name"]
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Automation Certificate: '%s'", name)
-		}
+		accName := rs.Primary.Attributes["automation_account_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 
@@ -213,12 +173,8 @@ func testCheckAzureRMAutomationCertificateExists(resourceName string) resource.T
 		}
 
 		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["account_name"]
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Automation Certificate: '%s'", name)
-		}
+		accName := rs.Primary.Attributes["automation_account_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		conn := testAccProvider.Meta().(*ArmClient).Automation.CertificateClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -246,17 +202,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
 
 resource "azurerm_automation_certificate" "test" {
-  name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_automation_account.test.name}"
-  base64              = "%s"
+  name                    = "acctest-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  base64                  = "%s"
 }
 `, rInt, location, rInt, rInt, testCertBase64)
 }
@@ -267,12 +222,11 @@ func testAccAzureRMAutomationCertificate_requiresImport(rInt int, location strin
 %s
 
 resource "azurerm_automation_certificate" "import" {
-  name                = "${azurerm_automation_certificate.test.name}"
-  resource_group_name = "${azurerm_automation_certificate.test.resource_group_name}"
-  account_name        = "${azurerm_automation_certificate.test.account_name}"
-  base64              = "${azurerm_automation_certificate.test.base64}"
-  is_exportable       = "${azurerm_automation_certificate.test.is_exportable}"
-  thumbprint          = "${azurerm_automation_certificate.test.username}"
+  name                    = azurerm_automation_certificate.test.name
+  resource_group_name     = azurerm_automation_certificate.test.resource_group_name
+  automation_account_name = azurerm_automation_certificate.test.account_name
+  base64                  = azurerm_automation_certificate.test.base64
+  thumbprint              = azurerm_automation_certificate.test.thumbprint
 }
 `, template)
 }
@@ -286,43 +240,17 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
 
 resource "azurerm_automation_certificate" "test" {
-  name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_automation_account.test.name}"
-  base64              = "%s"
-  description         = "This is a test certificate for terraform acceptance test"
-}
-`, rInt, location, rInt, rInt, testCertBase64)
-}
-
-func testAccAzureRMAutomationCertificate_rename(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_automation_account" "test" {
-  name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku_name            = "Basic"
-}
-
-resource "azurerm_automation_certificate" "test" {
-  name                = "acctest-%d-updated"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_automation_account.test.name}"
-  base64              = "%s"
-  description         = "This is a test certificate for terraform acceptance test"
+  name                    = "acctest-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  base64                  = "%s"
+  description             = "This is a test certificate for terraform acceptance test"
 }
 `, rInt, location, rInt, rInt, testCertBase64)
 }
@@ -336,18 +264,17 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
 
 resource "azurerm_automation_certificate" "test" {
-  name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_automation_account.test.name}"
-  base64              = "%s"
-  description         = "This is a test certificate for terraform acceptance test"
+  name                    = "acctest-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  base64                  = "%s"
+  description             = "This is a test certificate for terraform acceptance test"
 }
 `, rInt, location, rInt, rInt, testCertBase64)
 }
