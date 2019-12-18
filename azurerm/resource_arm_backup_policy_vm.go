@@ -311,7 +311,7 @@ func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, met
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_backup_protection_policy_vm", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_backup_policy_vm", *existing.ID)
 		}
 	}
 

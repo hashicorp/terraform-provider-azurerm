@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAzureRMBackupProtectionPolicyVM_basicDaily(t *testing.T) {
-	resourceName := "azurerm_backup_protection_policy_vm.test"
+	resourceName := "azurerm_backup_policy_vm.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -40,7 +40,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_backup_protection_policy_vm.test"
+	resourceName := "azurerm_backup_policy_vm.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -54,14 +54,14 @@ func TestAccAzureRMBackupProtectionPolicyVM_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMBackupProtectionPolicyVM_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_backup_protection_policy_vm"),
+				ExpectError: testRequiresImportError("azurerm_backup_policy_vm"),
 			},
 		},
 	})
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_basicWeekly(t *testing.T) {
-	resourceName := "azurerm_backup_protection_policy_vm.test"
+	resourceName := "azurerm_backup_policy_vm.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -83,7 +83,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicWeekly(t *testing.T) {
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_completeDaily(t *testing.T) {
-	resourceName := "azurerm_backup_protection_policy_vm.test"
+	resourceName := "azurerm_backup_policy_vm.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -105,7 +105,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_completeDaily(t *testing.T) {
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_completeWeekly(t *testing.T) {
-	resourceName := "azurerm_backup_protection_policy_vm.test"
+	resourceName := "azurerm_backup_policy_vm.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -127,7 +127,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_completeWeekly(t *testing.T) {
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_updateDaily(t *testing.T) {
-	resourceName := "azurerm_backup_protection_policy_vm.test"
+	resourceName := "azurerm_backup_policy_vm.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -153,7 +153,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateDaily(t *testing.T) {
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_updateWeekly(t *testing.T) {
-	resourceName := "azurerm_backup_protection_policy_vm.test"
+	resourceName := "azurerm_backup_policy_vm.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -179,7 +179,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeekly(t *testing.T) {
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_updateDailyToWeekly(t *testing.T) {
-	resourceName := "azurerm_backup_protection_policy_vm.test"
+	resourceName := "azurerm_backup_policy_vm.test"
 	ri := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -204,7 +204,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateDailyToWeekly(t *testing.T) {
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToDaily(t *testing.T) {
-	resourceName := "azurerm_backup_protection_policy_vm.test"
+	resourceName := "azurerm_backup_policy_vm.test"
 	ri := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -229,7 +229,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToDaily(t *testing.T) {
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) {
-	resourceName := "azurerm_backup_protection_policy_vm.test"
+	resourceName := "azurerm_backup_policy_vm.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -259,7 +259,7 @@ func testCheckAzureRMBackupProtectionPolicyVmDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_backup_protection_policy_vm" {
+		if rs.Type != "azurerm_backup_policy_vm" {
 			continue
 		}
 
@@ -333,7 +333,7 @@ func testAccAzureRMBackupProtectionPolicyVM_basicDaily(rInt int, location string
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protection_policy_vm" "test" {
+resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
@@ -354,10 +354,10 @@ func testAccAzureRMBackupProtectionPolicyVM_requiresImport(rInt int, location st
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protection_policy_vm" "import" {
-  name                = "${azurerm_backup_protection_policy_vm.test.name}"
-  resource_group_name = "${azurerm_backup_protection_policy_vm.test.resource_group_name}"
-  recovery_vault_name = "${azurerm_backup_protection_policy_vm.test.recovery_vault_name}"
+resource "azurerm_backup_policy_vm" "import" {
+  name                = "${azurerm_backup_policy_vm.test.name}"
+  resource_group_name = "${azurerm_backup_policy_vm.test.resource_group_name}"
+  recovery_vault_name = "${azurerm_backup_policy_vm.test.recovery_vault_name}"
 
   backup {
     frequency = "Daily"
@@ -387,7 +387,7 @@ func testAccAzureRMBackupProtectionPolicyVM_basicWeekly(rInt int, location strin
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protection_policy_vm" "test" {
+resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
@@ -423,7 +423,7 @@ func testAccAzureRMBackupProtectionPolicyVM_completeDaily(rInt int, location str
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protection_policy_vm" "test" {
+resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
@@ -483,7 +483,7 @@ func testAccAzureRMBackupProtectionPolicyVM_completeWeekly(rInt int, location st
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protection_policy_vm" "test" {
+resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
@@ -540,7 +540,7 @@ func testAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(rInt int, loca
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protection_policy_vm" "test" {
+resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
