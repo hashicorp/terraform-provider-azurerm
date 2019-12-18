@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 )
 
@@ -105,6 +106,44 @@ func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAdvancedThreatProtection_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	rn := "azurerm_advanced_threat_protection.test"
+	ri := tf.AccRandTimeInt()
+	var id securitycenter.AdvancedThreatProtectionResourceID
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAdvancedThreatProtectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(ri, testLocation(), true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdvancedThreatProtectionExists(rn, &id),
+					resource.TestCheckResourceAttr(rn, "enabled", "true"),
+				),
+			},
+			{
+				ResourceName:      rn,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMAdvancedThreatProtection_requiresImport(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdvancedThreatProtectionExists(rn, &id),
+					resource.TestCheckResourceAttr(rn, "enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAdvancedThreatProtectionExists(resourceName string, idToReturn *securitycenter.AdvancedThreatProtectionResourceID) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure resource group exists in API
@@ -184,6 +223,31 @@ func testCheckAzureRMAdvancedThreatProtectionDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccAzureRMAdvancedThreatProtection_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-ATP-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "acctest%[4]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+`, testAccAzureRMAdvancedThreatProtection_storageAccount(rInt, testLocation(), true, true), rInt, location, rInt/10)
 }
 
 func testAccAzureRMAdvancedThreatProtection_storageAccount(rInt int, location string, hasResource, enabled bool) string {
