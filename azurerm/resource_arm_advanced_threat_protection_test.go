@@ -134,11 +134,8 @@ func TestAccAzureRMAdvancedThreatProtection_requiresImport(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMAdvancedThreatProtection_requiresImport(ri, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAdvancedThreatProtectionExists(rn, &id),
-					resource.TestCheckResourceAttr(rn, "enabled", "false"),
-				),
+				Config:      testAccAzureRMAdvancedThreatProtection_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_api_management_api_policy"),
 			},
 		},
 	})
@@ -229,25 +226,11 @@ func testAccAzureRMAdvancedThreatProtection_requiresImport(rInt int, location st
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ATP-%[2]d"
-  location = "%[3]s"
+resource "azurerm_advanced_threat_protection" "requireimport" {
+  target_resource_id = "${azurerm_advanced_threat_protection.requireimport.id}"
+  enabled            = "${azurerm_advanced_threat_protection.requireimport.enabled}"
 }
-
-resource "azurerm_storage_account" "test" {
-  name                = "acctest%[4]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "production"
-  }
-}
-
-`, testAccAzureRMAdvancedThreatProtection_storageAccount(rInt, testLocation(), true, true), rInt, location, rInt/10)
+`, testAccAzureRMAdvancedThreatProtection_storageAccount(rInt, testLocation(), true, true))
 }
 
 func testAccAzureRMAdvancedThreatProtection_storageAccount(rInt int, location string, hasResource, enabled bool) string {
