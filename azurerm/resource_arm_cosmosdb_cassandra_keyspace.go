@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	`strconv`
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"

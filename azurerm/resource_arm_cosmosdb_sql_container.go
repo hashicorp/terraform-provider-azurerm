@@ -295,7 +295,7 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 	} else {
 		d.Set("throughput", throughputResp.Throughput)
 	}
-	
+
 	return nil
 }
 
