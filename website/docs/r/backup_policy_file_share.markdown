@@ -1,13 +1,13 @@
 ---
 subcategory: "Recovery Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_backup_protection_policy_file_share"
-sidebar_current: "docs-azurerm-backup-protection-policy-file-share"
+page_title: "Azure Resource Manager: azurerm_backup_policy_file_share"
+sidebar_current: "docs-azurerm-backup-policy-file-share"
 description: |-
   Manages an Azure File Share Backup Policy.
 ---
 
-# azurerm_backup_protection_policy_file_share
+# azurerm_backup_policy_file_share
 
 Manages an Azure File Share Backup Policy within a Recovery Services vault.
 
@@ -28,7 +28,7 @@ resource "azurerm_recovery_services_vault" "vault" {
   sku                 = "Standard"
 }
 
-resource "azurerm_backup_protection_policy_file_share" "policy" {
+resource "azurerm_backup_policy_file_share" "policy" {
   name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
@@ -91,5 +91,5 @@ The following attributes are exported:
 Azure File Share Backup Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_backup_protection_policy_file_share.policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupPolicies/policy1
+terraform import azurerm_backup_policy_file_share.policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupPolicies/policy1
 ```

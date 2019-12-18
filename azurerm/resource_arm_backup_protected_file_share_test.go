@@ -78,8 +78,8 @@ func TestAccAzureRMBackupProtectedFileShare_requiresImport(t *testing.T) {
 
 func TestAccAzureRMBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
 	protectedFileShareResourceName := "azurerm_backup_protected_file_share.test"
-	fBackupPolicyResourceName := "azurerm_backup_protection_policy_file_share.test1"
-	sBackupPolicyResourceName := "azurerm_backup_protection_policy_file_share.test2"
+	fBackupPolicyResourceName := "azurerm_backup_policy_file_share.test1"
+	sBackupPolicyResourceName := "azurerm_backup_policy_file_share.test2"
 
 	ri := tf.AccRandTimeInt()
 
@@ -228,7 +228,7 @@ resource "azurerm_recovery_services_vault" "test" {
   sku                 = "Standard"
 }
 
-resource "azurerm_backup_protection_policy_file_share" "test1" {
+resource "azurerm_backup_policy_file_share" "test1" {
   name                = "acctest-%[1]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
@@ -260,7 +260,7 @@ resource "azurerm_backup_protected_file_share" "test" {
   recovery_vault_name       = "${azurerm_recovery_services_vault.test.name}"
   source_storage_account_id = "${azurerm_backup_protection_container_storage_account.test.storage_account_id}"
   source_file_share_name    = "${azurerm_storage_share.test.name}"
-  backup_policy_id          = "${azurerm_backup_protection_policy_file_share.test1.id}"
+  backup_policy_id          = "${azurerm_backup_policy_file_share.test1.id}"
 }
 `, testAccAzureRMBackupProtectedFileShare_base(rInt, location))
 }
@@ -269,7 +269,7 @@ func testAccAzureRMBackupProtectedFileShare_updatePolicy(rInt int, location stri
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protection_policy_file_share" "test2" {
+resource "azurerm_backup_policy_file_share" "test2" {
   name                = "acctest-%d-secondary"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
@@ -295,7 +295,7 @@ resource "azurerm_backup_protected_file_share" "test" {
   recovery_vault_name       = "${azurerm_recovery_services_vault.test.name}"
   source_storage_account_id = "${azurerm_backup_protection_container_storage_account.test.storage_account_id}"
   source_file_share_name    = "${azurerm_storage_share.test.name}"
-  backup_policy_id          = "${azurerm_backup_protection_policy_file_share.test2.id}"
+  backup_policy_id          = "${azurerm_backup_policy_file_share.test2.id}"
 }
 `, testAccAzureRMBackupProtectedFileShare_base(rInt, location), rInt)
 }
@@ -309,7 +309,7 @@ resource "azurerm_backup_protected_file_share" "test_import" {
   recovery_vault_name       = "${azurerm_recovery_services_vault.test.name}"
   source_storage_account_id = "${azurerm_storage_account.test.id}"
   source_file_share_name    = "${azurerm_storage_share.test.name}"
-  backup_policy_id          = "${azurerm_backup_protection_policy_file_share.test1.id}"
+  backup_policy_id          = "${azurerm_backup_policy_file_share.test1.id}"
 }
 `, testAccAzureRMBackupProtectedFileShare_basic(rInt, location))
 }

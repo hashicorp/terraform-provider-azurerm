@@ -214,7 +214,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_backup_protection_container_storage_account":           resourceArmBackupProtectionContainerStorageAccount(),
 		"azurerm_bastion_host":                                          resourceArmBastionHost(),
 		"azurerm_backup_protected_file_share":                           resourceArmBackupProtectedFileShare(),
-		"azurerm_backup_protection_policy_file_share":                   resourceArmBackupProtectionPolicyFileShare(),
+		"azurerm_backup_policy_file_share":                   resourceArmBackupProtectionPolicyFileShare(),
 		"azurerm_batch_account":                                         resourceArmBatchAccount(),
 		"azurerm_batch_application":                                     resourceArmBatchApplication(),
 		"azurerm_batch_certificate":                                     resourceArmBatchCertificate(),

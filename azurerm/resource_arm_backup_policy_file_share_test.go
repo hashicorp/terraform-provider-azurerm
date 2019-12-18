@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAzureRMBackupProtectionPolicyFileShare_basicDaily(t *testing.T) {
-	resourceName := "azurerm_backup_protection_policy_file_share.test"
+	resourceName := "azurerm_backup_policy_file_share.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -40,7 +40,7 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_requiresImport(t *testing.T) 
 		return
 	}
 
-	resourceName := "azurerm_backup_protection_policy_file_share.test"
+	resourceName := "azurerm_backup_policy_file_share.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -54,14 +54,14 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_requiresImport(t *testing.T) 
 			},
 			{
 				Config:      testAccAzureRMBackupProtectionPolicyFileShare_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_backup_protection_policy_file_share"),
+				ExpectError: testRequiresImportError("azurerm_backup_policy_file_share"),
 			},
 		},
 	})
 }
 
 func TestAccAzureRMBackupProtectionPolicyFileShare_updateDaily(t *testing.T) {
-	resourceName := "azurerm_backup_protection_policy_file_share.test"
+	resourceName := "azurerm_backup_policy_file_share.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -91,7 +91,7 @@ func testCheckAzureRMBackupProtectionPolicyFileShareDestroy(s *terraform.State) 
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_backup_protection_policy_file_share" {
+		if rs.Type != "azurerm_backup_policy_file_share" {
 			continue
 		}
 
@@ -165,7 +165,7 @@ func testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(rInt int, location
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protection_policy_file_share" "test" {
+resource "azurerm_backup_policy_file_share" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
@@ -186,7 +186,7 @@ func testAccAzureRMBackupProtectionPolicyFileShare_updateDaily(rInt int, locatio
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protection_policy_file_share" "test" {
+resource "azurerm_backup_policy_file_share" "test" {
   name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
@@ -207,10 +207,10 @@ func testAccAzureRMBackupProtectionPolicyFileShare_requiresImport(rInt int, loca
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protection_policy_file_share" "import" {
-  name                = "${azurerm_backup_protection_policy_file_share.test.name}"
-  resource_group_name = "${azurerm_backup_protection_policy_file_share.test.resource_group_name}"
-  recovery_vault_name = "${azurerm_backup_protection_policy_file_share.test.recovery_vault_name}"
+resource "azurerm_backup_policy_file_share" "import" {
+  name                = "${azurerm_backup_policy_file_share.test.name}"
+  resource_group_name = "${azurerm_backup_policy_file_share.test.resource_group_name}"
+  recovery_vault_name = "${azurerm_backup_policy_file_share.test.recovery_vault_name}"
 
   backup {
     frequency = "Daily"

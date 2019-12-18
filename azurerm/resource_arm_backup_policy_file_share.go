@@ -140,7 +140,7 @@ func resourceArmBackupProtectionPolicyFileShareCreateUpdate(d *schema.ResourceDa
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_backup_protection_policy_file_share", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_backup_policy_file_share", *existing.ID)
 		}
 	}
 
@@ -238,7 +238,7 @@ func resourceArmBackupProtectionPolicyFileShareDelete(d *schema.ResourceData, me
 	resourceGroup := id.ResourceGroup
 	vaultName := id.Path["vaults"]
 
-	log.Printf("[DEBUG] Deleting Recovery Service Protected Item %q (resource group %q)", policyName, resourceGroup)
+	log.Printf("[DEBUG] Deleting Recovery Service Protection Policy %q (resource group %q)", policyName, resourceGroup)
 
 	resp, err := client.Delete(ctx, vaultName, resourceGroup, policyName)
 	if err != nil {
@@ -334,7 +334,7 @@ func resourceArmBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context
 
 	resp, err := state.WaitForState()
 	if err != nil {
-		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Recovery Service Protection Policy %q to be true (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
+		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Recovery Service Protection Policy %q to update (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectionPolicyResource), nil
@@ -357,7 +357,7 @@ func resourceArmBackupProtectionPolicyFileShareWaitForDeletion(ctx context.Conte
 
 	resp, err := state.WaitForState()
 	if err != nil {
-		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Recovery Service Protection Policy %q to be false (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
+		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Recovery Service Protection Policy %q to be missing (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectionPolicyResource), nil
