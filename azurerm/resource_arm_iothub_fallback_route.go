@@ -2,12 +2,14 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -21,6 +23,13 @@ func resourceArmIotHubFallbackRoute() *schema.Resource {
 		Delete: resourceArmIotHubFallbackRouteDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -87,7 +96,7 @@ func resourceArmIotHubFallbackRouteCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	resourceId := fmt.Sprintf("%s/FallbackRoute/defined", *iothub.ID)
-	if d.IsNewResource() && routing.FallbackRoute != nil && requireResourcesToBeImported {
+	if d.IsNewResource() && routing.FallbackRoute != nil && features.ShouldResourcesBeImported() {
 		return tf.ImportAsExistsError("azurerm_iothub_fallback_route", resourceId)
 	}
 
@@ -117,7 +126,7 @@ func resourceArmIotHubFallbackRouteRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
+	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -151,7 +160,7 @@ func resourceArmIotHubFallbackRouteDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
+	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
 
 	if err != nil {
 		return err

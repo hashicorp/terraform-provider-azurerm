@@ -3,11 +3,32 @@ package network
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func ValidatePrivateEndpointSettings(d *schema.ResourceData) error {
+	privateServiceConnections := d.Get("private_service_connection").([]interface{})
+
+	for _, psc := range privateServiceConnections {
+		privateServiceConnection := psc.(map[string]interface{})
+		name := privateServiceConnection["name"].(string)
+
+		// If this is not a manual connection and the message is set return an error since this does not make sense.
+		if !privateServiceConnection["is_manual_connection"].(bool) && privateServiceConnection["request_message"].(string) != "" {
+			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`, name)
+		}
+
+		// If this is a manual connection and the message isn't set return an error.
+		if privateServiceConnection["is_manual_connection"].(bool) && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
+			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
+		}
+	}
+
+	return nil
+}
 
 func ValidatePrivateLinkNatIpConfiguration(d *schema.ResourceDiff) error {
 	name := d.Get("name").(string)
@@ -39,7 +60,7 @@ func ValidatePrivateLinkNatIpConfiguration(d *schema.ResourceDiff) error {
 	return nil
 }
 
-func ValidatePrivateLinkServiceName(i interface{}, k string) (_ []string, errors []error) {
+func ValidatePrivateLinkName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, append(errors, fmt.Errorf("expected type of %s to be string", k))
@@ -59,41 +80,7 @@ func ValidatePrivateLinkServiceName(i interface{}, k string) (_ []string, errors
 		}
 	} else {
 		if m, _ := validate.RegExHelper(i, k, `^([a-zA-Z\d])([a-zA-Z\d-\_\.]{0,78})([a-zA-Z\d\_])$`); !m {
-			errors = append(errors, fmt.Errorf("%s must be between 1 - 80 characters long, begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens", k))
-		}
-	}
-
-	return nil, errors
-}
-
-func ValidatePrivateLinkServiceSubsciptionFqdn(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, append(errors, fmt.Errorf("expected type of %q to be string", k))
-	}
-
-	if m, _ := validate.RegExHelper(i, k, `^(([a-zA-Z\d]|[a-zA-Z\d][a-zA-Z\d\-]*[a-zA-Z\d])\.){1,}([a-zA-Z\d]|[a-zA-Z\d][a-zA-Z\d\-]*[a-zA-Z\d\.]){1,}$`); !m {
-		errors = append(errors, fmt.Errorf(`%q is an invalid FQDN`, v))
-	}
-
-	// I use 255 here because the string contains the upto three . characters in it
-	if len(v) > 255 {
-		errors = append(errors, fmt.Errorf(`FQDNs can not be longer than 255 characters in length, got %d characters`, len(v)))
-	}
-
-	segments := utils.SplitRemoveEmptyEntries(v, ".", false)
-	index := 0
-
-	for _, label := range segments {
-		index++
-		if index == len(segments) {
-			if len(label) < 2 {
-				errors = append(errors, fmt.Errorf(`the last label of an FQDN must be at least 2 characters, got 1 character`))
-			}
-		} else {
-			if len(label) > 63 {
-				errors = append(errors, fmt.Errorf(`FQDN labels must not be longer than 63 characters, got %d characters`, len(label)))
-			}
+			errors = append(errors, fmt.Errorf("%s must be between 1 - 80 characters long, begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, periods, hyphens or underscores", k))
 		}
 	}
 
@@ -108,4 +95,49 @@ func ValidateVirtualHubName(v interface{}, k string) (warnings []string, errors 
 	}
 
 	return warnings, errors
+}
+
+func ValidateNatGatewayName(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return warnings, errors
+	}
+
+	// The name attribute rules per the Nat Gateway service team are (Friday, October 18, 2019 4:20 PM):
+	// 1. Must not be empty.
+	// 2. Must be between 1 and 80 characters.
+	// 3. The attribute must:
+	//    a) begin with a letter or number
+	//    b) end with a letter, number or underscore
+	//    c) may contain only letters, numbers, underscores, periods, or hyphens.
+
+	if len(v) == 1 {
+		if matched := regexp.MustCompile(`^([a-zA-Z\d])`).Match([]byte(v)); !matched {
+			errors = append(errors, fmt.Errorf("%s must begin with a letter or number", k))
+		}
+	} else {
+		if matched := regexp.MustCompile(`^([a-zA-Z\d])([a-zA-Z\d-\_\.]{0,78})([a-zA-Z\d\_])$`).Match([]byte(v)); !matched {
+			errors = append(errors, fmt.Errorf("%s must be between 1 - 80 characters long, begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens", k))
+		}
+	}
+
+	return warnings, errors
+}
+
+func ValidatePrivateLinkSubResourceName(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, append(errors, fmt.Errorf("expected type of %s to be string", k))
+	}
+
+	if len(strings.TrimSpace(v)) >= 3 {
+		if m, _ := validate.RegExHelper(i, k, `^([a-zA-Z0-9])([\w\.-]{1,61})([a-zA-Z0-9])$`); !m {
+			errors = append(errors, fmt.Errorf("%s must begin and end with a alphanumeric character, be between 3 and 63 characters in length, only contain letters, numbers, underscores, periods, and dashes", k))
+		}
+	} else {
+		errors = append(errors, fmt.Errorf("%s must be at least 3 character in length", k))
+	}
+
+	return nil, errors
 }

@@ -72,6 +72,7 @@ The `record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS MX Record ID.
+* `fqdn` - The FQDN of the DNS MX Record.
 
 ## Import
 

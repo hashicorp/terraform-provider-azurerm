@@ -4,13 +4,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_pool"
 sidebar_current: "docs-azurerm-resource-netapp-pool"
 description: |-
-  Manages a NetApp Pool.
+  Manages a Pool within a NetApp Account.
 ---
 
 # azurerm_netapp_pool
 
-Manages a NetApp Pool.
-
+Manages a Pool within a NetApp Account.
 
 ## NetApp Pool Usage
 
@@ -22,15 +21,15 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_netapp_account" "example" {
   name                = "example-netappaccount"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_netapp_pool" "example" {
   name                = "example-netapppool"
-  account_name        = "${azurerm_netapp_account.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  account_name        = azurerm_netapp_account.example.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   service_level       = "Premium"
   size_in_tb          = "4"
 }

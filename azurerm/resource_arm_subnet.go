@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -140,10 +140,18 @@ func resourceArmSubnet() *schema.Resource {
 				},
 			},
 
+			"enforce_private_link_endpoint_network_policies": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"enforce_private_link_service_network_policies"},
+				Default:       false,
+			},
+
 			"enforce_private_link_service_network_policies": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ConflictsWith: []string{"enforce_private_link_endpoint_network_policies"},
+				Default:       false,
 			},
 		},
 	}
@@ -197,7 +205,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			ID: &nsgId,
 		}
 
-		parsedNsgId, err := networksvc.ParseNetworkSecurityGroupResourceID(nsgId)
+		parsedNsgId, err := networksvc.ParseNetworkSecurityGroupID(nsgId)
 		if err != nil {
 			return err
 		}
@@ -214,7 +222,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			ID: &rtId,
 		}
 
-		parsedRouteTableId, err := networksvc.ParseRouteTableResourceID(rtId)
+		parsedRouteTableId, err := networksvc.ParseRouteTableID(rtId)
 		if err != nil {
 			return err
 		}
@@ -223,6 +231,19 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
 	} else {
 		properties.RouteTable = nil
+	}
+
+	if v, ok := d.GetOk("enforce_private_link_endpoint_network_policies"); ok {
+		// This is strange logic, but to get the schema to make sense for the end user
+		// I exposed it with the same name that the Azure CLI does to be consistent
+		// between the tool sets, which means true == Disabled.
+		//
+		// To enable private endpoints you must disable the network policies for the
+		// subnet because Network policies like network security groups are not
+		// supported by private endpoints.
+		if v.(bool) {
+			properties.PrivateEndpointNetworkPolicies = utils.String("Disabled")
+		}
 	}
 
 	serviceEndpoints := expandSubnetServiceEndpoints(d)
@@ -318,6 +339,17 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
+		// This is strange logic, but to get the schema to make sense for the end user
+		// I exposed it with the same name that the Azure CLI does to be consistent
+		// between the tool sets, which means true == Disabled.
+		//
+		// To enable private endpoints you must disable the network policies for the
+		// subnet because Network policies like network security groups are not
+		// supported by private endpoints.
+		if privateEndpointNetworkPolicies := props.PrivateEndpointNetworkPolicies; privateEndpointNetworkPolicies != nil {
+			d.Set("enforce_private_link_endpoint_network_policies", *privateEndpointNetworkPolicies == "Disabled")
+		}
+
 		delegation := flattenSubnetDelegation(props.Delegations)
 		if err := d.Set("delegation", delegation); err != nil {
 			return fmt.Errorf("Error flattening `delegation`: %+v", err)
@@ -342,7 +374,7 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		networkSecurityGroupId := v.(string)
-		parsedNetworkSecurityGroupId, err2 := networksvc.ParseNetworkSecurityGroupResourceID(networkSecurityGroupId)
+		parsedNetworkSecurityGroupId, err2 := networksvc.ParseNetworkSecurityGroupID(networkSecurityGroupId)
 		if err2 != nil {
 			return err2
 		}
@@ -353,7 +385,7 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("route_table_id"); ok {
 		rtId := v.(string)
-		parsedRouteTableId, err2 := networksvc.ParseRouteTableResourceID(rtId)
+		parsedRouteTableId, err2 := networksvc.ParseRouteTableID(rtId)
 		if err2 != nil {
 			return err2
 		}

@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resources"
 sidebar_current: "docs-azurerm-datasource-resources"

@@ -58,6 +58,11 @@ func resourceArmDnsPtrRecord() *schema.Resource {
 				Required: true,
 			},
 
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -145,6 +150,7 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
+	d.Set("fqdn", resp.Fqdn)
 
 	if err := d.Set("records", flattenAzureRmDnsPtrRecords(resp.PtrRecords)); err != nil {
 		return err

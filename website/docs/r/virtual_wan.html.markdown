@@ -39,8 +39,6 @@ The following arguments are supported:
 
 * `disable_vpn_encryption` - (Optional) Boolean flag to specify whether VPN encryption is disabled. Defaults to `false`.
 
-* `security_provider_name` - (Optional) The name of the Security Provider.
-
 * `allow_branch_to_branch_traffic` - (Optional) Boolean flag to specify whether branch to branch traffic is allowed. Defaults to `true`.
 
 * `allow_vnet_to_vnet_traffic` - (Optional) Boolean flag to specify whether VNet to VNet traffic is allowed. Defaults to `false`.

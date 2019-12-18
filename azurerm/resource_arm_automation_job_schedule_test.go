@@ -7,7 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	uuid "github.com/satori/go.uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -86,7 +88,7 @@ func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -121,7 +123,7 @@ func testCheckAzureRMAutomationJobScheduleDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parseAzureResourceID(rs.Primary.Attributes["id"])
+		id, err := azure.ParseAzureResourceID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}
@@ -161,7 +163,7 @@ func testCheckAzureRMAutomationJobScheduleExists(resourceName string) resource.T
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parseAzureResourceID(rs.Primary.Attributes["id"])
+		id, err := azure.ParseAzureResourceID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}

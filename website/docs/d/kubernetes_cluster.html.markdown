@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
 sidebar_current: "docs-azurerm-data-source-kubernetes-cluster"

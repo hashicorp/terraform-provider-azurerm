@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2019-09-16/healthcareapis"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -10,7 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +26,13 @@ func resourceArmHealthcareService() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -143,14 +153,15 @@ func resourceArmHealthcareService() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Healthcare.HealthcareServiceClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).HealthCare.HealthcareServiceClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Healthcare Service creation.")
 
@@ -158,13 +169,12 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 	resGroup := d.Get("resource_group_name").(string)
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
 
 	kind := d.Get("kind").(string)
 	cdba := int32(d.Get("cosmosdb_throughput").(int))
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -179,7 +189,7 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 
 	healthcareServiceDescription := healthcareapis.ServicesDescription{
 		Location: utils.String(location),
-		Tags:     expandedTags,
+		Tags:     tags.Expand(t),
 		Kind:     healthcareapis.Kind(kind),
 		Properties: &healthcareapis.ServicesProperties{
 			AccessPolicies: expandAzureRMhealthcareapisAccessPolicyEntries(d),
@@ -214,10 +224,11 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Healthcare.HealthcareServiceClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).HealthCare.HealthcareServiceClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -265,16 +276,15 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Healthcare.HealthcareServiceClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).HealthCare.HealthcareServiceClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}

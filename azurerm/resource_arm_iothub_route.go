@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -11,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -24,6 +26,13 @@ func resourceArmIotHubRoute() *schema.Resource {
 		Delete: resourceArmIotHubRouteDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -135,7 +144,7 @@ func resourceArmIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}
 	for _, existingRoute := range *routing.Routes {
 		if existingRoute.Name != nil {
 			if strings.EqualFold(*existingRoute.Name, routeName) {
-				if d.IsNewResource() && requireResourcesToBeImported {
+				if d.IsNewResource() && features.ShouldResourcesBeImported() {
 					return tf.ImportAsExistsError("azurerm_iothub_route", resourceId)
 				}
 				routes = append(routes, route)
@@ -173,7 +182,7 @@ func resourceArmIotHubRouteRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
+	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -216,7 +225,7 @@ func resourceArmIotHubRouteDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
+	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

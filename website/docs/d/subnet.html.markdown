@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet"
 sidebar_current: "docs-azurerm-datasource-subnet"
@@ -40,3 +40,5 @@ output "subnet_id" {
 * `route_table_id` - The ID of the Route Table associated with this subnet.
 * `ip_configurations` - The collection of IP Configurations with IPs within this subnet.
 * `service_endpoints` - A list of Service Endpoints within this subnet.
+* `enforce_private_link_endpoint_network_policies` - Enable or Disable network policies for the private link endpoint on the subnet.
+* `enforce_private_link_service_network_policies` - Enable or Disable network policies for the private link service on the subnet.

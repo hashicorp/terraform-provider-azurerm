@@ -2,11 +2,14 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -14,11 +17,15 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmPrivateLinkServiceRead,
 
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: aznet.ValidatePrivateLinkServiceName,
+				ValidateFunc: aznet.ValidatePrivateLinkName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -26,27 +33,21 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"auto_approval_subscription_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+			},
+
+			"enable_proxy_protocol": {
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 
 			"visibility_subscription_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
-
-			// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
-			// "fqdns": {
-			// 	Type:     schema.TypeList,
-			// 	Computed: true,
-			// 	Elem: &schema.Schema{
-			// 		Type: schema.TypeString,
-			// 	},
-			// },
 
 			"nat_ip_configuration": {
 				Type:     schema.TypeList,
@@ -79,10 +80,9 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 			},
 
 			"load_balancer_frontend_ip_configuration_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
 
 			"alias": {
@@ -91,10 +91,10 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 			},
 
 			"network_interface_ids": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Type:       schema.TypeList,
+				Computed:   true,
+				Deprecated: "This field has been deprecated and will be removed in version 2.0 of the Azure Provider",
+				Elem:       &schema.Schema{Type: schema.TypeString},
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -104,7 +104,8 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 
 func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.PrivateLinkServiceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -126,6 +127,8 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		d.Set("alias", props.Alias)
+		d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+
 		if props.AutoApproval.Subscriptions != nil {
 			if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(props.AutoApproval.Subscriptions)); err != nil {
 				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
@@ -136,24 +139,19 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 			}
 		}
-		// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
-		// if props.Fqdns != nil {
-		// 	if err := d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns)); err != nil {
-		// 		return fmt.Errorf("Error setting `fqdns`: %+v", err)
-		// 	}
-		// }
+
 		if props.IPConfigurations != nil {
 			if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
 				return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 			}
 		}
 		if props.LoadBalancerFrontendIPConfigurations != nil {
-			if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
+			if err := d.Set("load_balancer_frontend_ip_configuration_ids", dataSourceFlattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
 				return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 			}
 		}
 		if props.NetworkInterfaces != nil {
-			if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
+			if err := d.Set("network_interface_ids", dataSourceFlattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
 				return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 			}
 		}
@@ -165,4 +163,34 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 	d.SetId(*resp.ID)
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func dataSourceFlattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) []string {
+	results := make([]string, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		if id := item.ID; id != nil {
+			results = append(results, *id)
+		}
+	}
+
+	return results
+}
+
+func dataSourceFlattenArmPrivateLinkServiceInterface(input *[]network.Interface) []string {
+	results := make([]string, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		if id := item.ID; id != nil {
+			results = append(results, *id)
+		}
+	}
+
+	return results
 }

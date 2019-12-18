@@ -26,10 +26,6 @@ func TestAccAzureRMVirtualWan_basic(t *testing.T) {
 				Config: testAccAzureRMVirtualWan_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualWanExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "disable_vpn_encryption"),
-					resource.TestCheckResourceAttrSet(resourceName, "allow_branch_to_branch_traffic"),
-					resource.TestCheckResourceAttrSet(resourceName, "allow_vnet_to_vnet_traffic"),
-					resource.TestCheckResourceAttrSet(resourceName, "office365_local_breakout_category"),
 				),
 			},
 			{
@@ -40,6 +36,7 @@ func TestAccAzureRMVirtualWan_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMVirtualWan_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -57,11 +54,6 @@ func TestAccAzureRMVirtualWan_requiresImport(t *testing.T) {
 				Config: testAccAzureRMVirtualWan_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualWanExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "disable_vpn_encryption"),
-					resource.TestCheckResourceAttrSet(resourceName, "security_provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "allow_branch_to_branch_traffic"),
-					resource.TestCheckResourceAttrSet(resourceName, "allow_vnet_to_vnet_traffic"),
-					resource.TestCheckResourceAttrSet(resourceName, "office365_local_breakout_category"),
 				),
 			},
 			{
@@ -85,14 +77,6 @@ func TestAccAzureRMVirtualWan_complete(t *testing.T) {
 				Config: testAccAzureRMVirtualWan_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualWanExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "disable_vpn_encryption", "false"),
-					resource.TestCheckResourceAttr(resourceName, "security_provider_name", ""),
-					resource.TestCheckResourceAttr(resourceName, "allow_branch_to_branch_traffic", "true"),
-					resource.TestCheckResourceAttr(resourceName, "allow_vnet_to_vnet_traffic", "true"),
-					resource.TestCheckResourceAttr(resourceName, "office365_local_breakout_category", "All"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Hello", "There"),
-					resource.TestCheckResourceAttr(resourceName, "tags.World", "Example"),
 				),
 			},
 			{
@@ -171,22 +155,21 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_wan" "test" {
   name                = "acctestvwan%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 `, rInt, location, rInt)
 }
 
 func testAccAzureRMVirtualWan_requiresImport(rInt int, location string) string {
 	template := testAccAzureRMVirtualWan_basic(rInt, location)
-
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_virtual_wan" "import" {
-  name                = "${azurerm_virtual_wan.test.name}"
-  resource_group_name = "${azurerm_virtual_wan.test.resource_group_name}"
-  location            = "${azurerm_virtual_wan.test.location}"
+  name                = azurerm_virtual_wan.test.name
+  resource_group_name = azurerm_virtual_wan.test.resource_group_name
+  location            = azurerm_virtual_wan.test.location
 }
 `, template)
 }
@@ -200,14 +183,12 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_wan" "test" {
   name                = "acctestvwan%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
-  disable_vpn_encryption = false
-
-  allow_branch_to_branch_traffic = true
-  allow_vnet_to_vnet_traffic     = true
-
+  disable_vpn_encryption            = false
+  allow_branch_to_branch_traffic    = true
+  allow_vnet_to_vnet_traffic        = true
   office365_local_breakout_category = "All"
 
   tags = {

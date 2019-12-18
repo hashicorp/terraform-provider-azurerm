@@ -78,7 +78,7 @@ func testCheckAzureRMMySQLFirewallRuleExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Firewall Rule: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Mysql.FirewallRulesClient
+		client := testAccProvider.Meta().(*ArmClient).MySQL.FirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -94,7 +94,7 @@ func testCheckAzureRMMySQLFirewallRuleExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMMySQLFirewallRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Mysql.DatabasesClient
+	client := testAccProvider.Meta().(*ArmClient).MySQL.DatabasesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

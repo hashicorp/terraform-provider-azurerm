@@ -88,6 +88,7 @@ The `record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS CAA Record ID.
+* `fqdn` - The FQDN of the DNS CAA Record.
 
 ## Import
 

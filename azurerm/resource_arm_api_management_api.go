@@ -202,6 +202,12 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	revision := d.Get("revision").(string)
 	path := d.Get("path").(string)
 	apiId := fmt.Sprintf("%s;rev=%s", name, revision)
+	version := d.Get("version").(string)
+	versionSetId := d.Get("version_set_id").(string)
+
+	if version != "" && versionSetId == "" {
+		return fmt.Errorf("Error setting `version` without the required `version_set_id`")
+	}
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId)
@@ -230,6 +236,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 				ContentFormat: apimanagement.ContentFormat(contentFormat),
 				ContentValue:  utils.String(contentValue),
 				Path:          utils.String(path),
+				APIVersion:    utils.String(version),
 			},
 		}
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
@@ -244,6 +251,10 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 			}
 		}
 
+		if versionSetId != "" {
+			apiParams.APICreateOrUpdateProperties.APIVersionSetID = utils.String(versionSetId)
+		}
+
 		if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, apiParams, ""); err != nil {
 			return fmt.Errorf("Error creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -252,13 +263,6 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	description := d.Get("description").(string)
 	displayName := d.Get("display_name").(string)
 	serviceUrl := d.Get("service_url").(string)
-
-	version := d.Get("version").(string)
-	versionSetId := d.Get("version_set_id").(string)
-
-	if version != "" && versionSetId == "" {
-		return fmt.Errorf("Error setting `version` without the required `version_set_id`")
-	}
 
 	protocolsRaw := d.Get("protocols").(*schema.Set).List()
 	protocols := expandApiManagementApiProtocols(protocolsRaw)

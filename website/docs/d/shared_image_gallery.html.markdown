@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image_gallery"
 sidebar_current: "docs-azurerm-datasource-shared-image-gallery"
