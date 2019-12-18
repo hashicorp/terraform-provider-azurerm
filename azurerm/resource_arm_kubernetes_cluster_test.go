@@ -79,6 +79,8 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"upgradeConfig":          testAccAzureRMKubernetesCluster_upgrade,
 			"tags":                   testAccAzureRMKubernetesCluster_tags,
 			"windowsProfile":         testAccAzureRMKubernetesCluster_windowsProfile,
+			"privateLinkOn":          testAccAzureRMKubernetesCluster_privateLinkOn,
+			"updatePublicRangesOff":  testAccAzureRMKubernetesCluster_privateLinkOff,
 			"managedClusterIdentity": testAccAzureRMKubernetesCluster_managedClusterIdentiy,
 		},
 		"scaling": {
@@ -109,6 +111,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"autoscalingWithAvailabilityZones":            testAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones,
 			"nodeTaints":                                  testAccDataSourceAzureRMKubernetesCluster_nodeTaints,
 			"enableNodePublicIP":                          testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP,
+			"privateLink":                                 testAccDataSourceAzureRMKubernetesCluster_privateLink,
 		},
 	}
 

@@ -90,6 +90,89 @@ func testAccAzureRMKubernetesCluster_basicVMSS(t *testing.T) {
 	})
 }
 
+func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+
+	initialPrivateIpAddressCdir := "10.0.0.0/8"
+	modifiedPrivateIpAddressCdir := "10.230.0.0/16"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, initialPrivateIpAddressCdir, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "private_fqdn"),
+					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "private_link_enabled", "true"),
+				),
+			},
+			{
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, modifiedPrivateIpAddressCdir, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "private_fqdn"),
+					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "private_link_enabled", "true"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
+			},
+		},
+	})
+}
+
+func testAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+
+	initialPrivateIpAddressCdir := "10.0.0.0/8"
+	modifiedPrivateIpAddressCdir := "10.230.0.0/16"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, initialPrivateIpAddressCdir, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "private_link_enabled", "false"),
+				),
+			},
+			{
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, modifiedPrivateIpAddressCdir, false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "private_link_enabled", "false"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
+			},
+		},
+	})
+}
+
 func testAccAzureRMKubernetesCluster_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -404,6 +487,49 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, rInt, location, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_privateLinkConfig(rInt int, clientId string, clientSecret string, location string, cdir string, enablePrivateLink bool) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+  
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+  
+  api_server_authorized_ip_ranges = [ "%s"]
+  private_link_enabled            = %t
+}
+`, rInt, location, rInt, rInt, rInt, clientId, clientSecret, cdir, enablePrivateLink)
 }
 
 func testAccAzureRMKubernetesCluster_requiresImportConfig(rInt int, clientId, clientSecret, location string) string {
