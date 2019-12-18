@@ -1,5 +1,6 @@
 ## 1.40.0 (Unreleased)
 
+* **New Data Souce:** `azurerm_advanced_threat_protection` [GH-4848]
 * **New Data Souce:** `azurerm_network_watcher_flow_log` [GH-5059]
 * **New Data Souce:** `azurerm_netapp_volume` [GH-4933]
 * **New Resource:** `azurerm_netapp_volume` [GH-4933]
