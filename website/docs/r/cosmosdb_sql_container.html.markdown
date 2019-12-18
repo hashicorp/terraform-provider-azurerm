@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `unique_key` - (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 
-* `throughput` - (Optional) The throughput of SQL container (RU/s). Must be set in increments of `100`. The default and minimum value is `400`.
+* `throughput` - (Optional) The throughput of SQL container (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
 ---
 A `unique_key` block supports the following:

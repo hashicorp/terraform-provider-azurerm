@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `account_name` - (Required) The name of the Cosmos DB Cassandra KeySpace to create the table within. Changing this forces a new resource to be created.
 
-* `throughput` - (Optional) The throughput of Cassandra keyspace (RU/s). Must be set in increments of `100`. The default and minimum value is `400`.
+* `throughput` - (Optional) The throughput of Cassandra keyspace (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
 
 ## Attributes Reference
