@@ -2,22 +2,31 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAppServiceVirtualNetworkAssociation() *schema.Resource {
+func resourceArmAppServiceVirtualNetworkSwiftConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceVirtualNetworkAssociationCreateUpdate,
-		Read:   resourceArmAppServiceVirtualNetworkAssociationRead,
-		Update: resourceArmAppServiceVirtualNetworkAssociationCreateUpdate,
-		Delete: resourceArmAppServiceVirtualNetworkAssociationDelete,
+		Create: resourceArmAppServiceVirtualNetworkSwiftConnectionCreateUpdate,
+		Read:   resourceArmAppServiceVirtualNetworkSwiftConnectionRead,
+		Update: resourceArmAppServiceVirtualNetworkSwiftConnectionCreateUpdate,
+		Delete: resourceArmAppServiceVirtualNetworkSwiftConnectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -37,9 +46,10 @@ func resourceArmAppServiceVirtualNetworkAssociation() *schema.Resource {
 	}
 }
 
-func resourceArmAppServiceVirtualNetworkAssociationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Get("app_service_id").(string))
 	if err != nil {
@@ -73,21 +83,23 @@ func resourceArmAppServiceVirtualNetworkAssociationCreateUpdate(d *schema.Resour
 			SubnetResourceID: utils.String(d.Get("subnet_id").(string)),
 		},
 	}
-	_, err = client.CreateOrUpdateSwiftVirtualNetworkConnection(ctx, resourceGroup, name, connectionEnvelope)
-	if err != nil {
+	if _, err = client.CreateOrUpdateSwiftVirtualNetworkConnection(ctx, resourceGroup, name, connectionEnvelope); err != nil {
 		return fmt.Errorf("Error creating/updating App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
 	}
+
 	read, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
 	}
 	d.SetId(*read.ID)
-	return resourceArmAppServiceVirtualNetworkAssociationRead(d, meta)
+
+	return resourceArmAppServiceVirtualNetworkSwiftConnectionRead(d, meta)
 }
 
-func resourceArmAppServiceVirtualNetworkAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceVirtualNetworkSwiftConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -127,9 +139,10 @@ func resourceArmAppServiceVirtualNetworkAssociationRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmAppServiceVirtualNetworkAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceVirtualNetworkSwiftConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Get("app_service_id").(string))
 	if err != nil {
@@ -150,20 +163,8 @@ func resourceArmAppServiceVirtualNetworkAssociationDelete(d *schema.ResourceData
 	locks.ByName(subnetName, subnetResourceName)
 	defer locks.UnlockByName(subnetName, subnetResourceName)
 
-	appService, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		if utils.ResponseWasNotFound(appService.Response) {
-			// assume deleted
-			return nil
-		}
-		return err
-	}
 	read, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
-			// assume deleted
-			return nil
-		}
 		return fmt.Errorf("Error making read request on virtual network properties (App Service %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.SwiftVirtualNetworkProperties == nil {
