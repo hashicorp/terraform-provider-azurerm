@@ -1,4 +1,5 @@
 ---
+subcategory: "Azure Active Directory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_azuread_service_principal_password"
 sidebar_current: "docs-azurerm-resource-azuread-service-principal-password"
@@ -18,7 +19,7 @@ Manages a Password associated with a Service Principal within Azure Active Direc
 ## Example Usage
 
 ```hcl
-resource "azurerm_azuread_application" "test" {
+resource "azurerm_azuread_application" "example" {
   name                       = "example"
   homepage                   = "https://homepage"
   identifier_uris            = ["https://uri"]
@@ -27,12 +28,12 @@ resource "azurerm_azuread_application" "test" {
   oauth2_allow_implicit_flow = true
 }
 
-resource "azurerm_azuread_service_principal" "test" {
-  application_id = "${azurerm_azuread_application.test.application_id}"
+resource "azurerm_azuread_service_principal" "example" {
+  application_id = "${azurerm_azuread_application.example.application_id}"
 }
 
-resource "azurerm_azuread_service_principal_password" "test" {
-  service_principal_id = "${azurerm_azuread_service_principal.test.id}"
+resource "azurerm_azuread_service_principal_password" "example" {
+  service_principal_id = "${azurerm_azuread_service_principal.example.id}"
   value                = "VT=uSgbTanZhyz@%nL9Hpd+Tfay_MRV#"
   end_date             = "2020-01-01T01:02:03Z"
 }
@@ -64,7 +65,7 @@ The following attributes are exported:
 Service Principal Passwords can be imported using the `object id`, e.g.
 
 ```shell
-terraform import azurerm_azuread_service_principal_password.test 00000000-0000-0000-0000-000000000000/11111111-1111-1111-1111-111111111111
+terraform import azurerm_azuread_service_principal_password.example 00000000-0000-0000-0000-000000000000/11111111-1111-1111-1111-111111111111
 ```
 
 -> **NOTE:** This ID format is unique to Terraform and is composed of the Service Principal's Object ID and the Service Principal Password's Key ID in the format `{ServicePrincipalObjectId}/{ServicePrincipalPasswordKeyId}`.

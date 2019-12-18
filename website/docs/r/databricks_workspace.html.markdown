@@ -1,4 +1,5 @@
 ---
+subcategory: "Databricks"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_databricks_workspace"
 sidebar_current: "docs-azurerm-resource-databricks-workspace"
@@ -13,15 +14,15 @@ Manages a Databricks Workspace
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West US"
 }
 
-resource "azurerm_databricks_workspace" "test" {
+resource "azurerm_databricks_workspace" "example" {
   name                = "databricks-test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   sku                 = "standard"
 
   tags = {

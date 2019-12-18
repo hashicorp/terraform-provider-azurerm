@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -21,6 +22,13 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 		Delete: resourceArmApplicationInsightsAPIKeyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -70,7 +78,7 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 }
 
 func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AppInsights.APIKeyClient
+	client := meta.(*ArmClient).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -125,7 +133,7 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 }
 
 func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AppInsights.APIKeyClient
+	client := meta.(*ArmClient).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -166,7 +174,7 @@ func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmApplicationInsightsAPIKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AppInsights.APIKeyClient
+	client := meta.(*ArmClient).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

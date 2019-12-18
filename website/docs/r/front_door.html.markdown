@@ -1,4 +1,5 @@
 ---
+subcategory: "Front Door"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor"
 sidebar_current: "docs-azurerm-resource-front-door"
@@ -27,14 +28,14 @@ resource "azurerm_frontdoor" "example" {
   enforce_backend_pools_certificate_name_check = false
 
   routing_rule {
-      name                    = "exampleRoutingRule1"
-      accepted_protocols      = ["Http", "Https"]
-      patterns_to_match       = ["/*"]
-      frontend_endpoints      = ["exampleFrontendEndpoint1"]
-      forwarding_configuration {
-        forwarding_protocol   = "MatchRequest"
-        backend_pool_name     = "exampleBackendBing"
-      }
+    name               = "exampleRoutingRule1"
+    accepted_protocols = ["Http", "Https"]
+    patterns_to_match  = ["/*"]
+    frontend_endpoints = ["exampleFrontendEndpoint1"]
+    forwarding_configuration {
+      forwarding_protocol = "MatchRequest"
+      backend_pool_name   = "exampleBackendBing"
+    }
   }
 
   backend_pool_load_balancing {
@@ -46,16 +47,16 @@ resource "azurerm_frontdoor" "example" {
   }
 
   backend_pool {
-      name            = "exampleBackendBing"
-      backend {
-          host_header = "www.bing.com"
-          address     = "www.bing.com"
-          http_port   = 80
-          https_port  = 443
-      }
+    name = "exampleBackendBing"
+    backend {
+      host_header = "www.bing.com"
+      address     = "www.bing.com"
+      http_port   = 80
+      https_port  = 443
+    }
 
-      load_balancing_name = "exampleLoadBalancingSettings1"
-      health_probe_name   = "exampleHealthProbeSetting1"
+    load_balancing_name = "exampleLoadBalancingSettings1"
+    health_probe_name   = "exampleHealthProbeSetting1"
   }
 
   frontend_endpoint {
@@ -130,11 +131,11 @@ The `frontend_endpoint` block supports the following:
 
 * `host_name` - (Required) The host name of the Frontend Endpoint. Must be a domain name.
 
+* `custom_https_provisioning_enabled` - (Required) Whether to allow HTTPS protocol for a custom domain that's associated with Front Door to ensure sensitive data is delivered securely via TLS/SSL encryption when sent across the internet. Valid options are `true` or `false`.
+
 * `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Valid options are `true` or `false` Defaults to `false`.
 
 * `session_affinity_ttl_seconds` - (Optional) The TTL to use in seconds for session affinity, if applicable. Defaults to `0`.
-
-* `enable_custom_https_provisioning` - (Required) Name of the Frontend Endpoint.
 
 * `web_application_firewall_policy_link_id` - (Optional) Defines the Web Application Firewall policy `ID` for each host.
 
@@ -178,6 +179,8 @@ The `routing_rule` block supports the following:
 
 * `forwarding_configuration` - (Optional) A `forwarding_configuration` block as defined below.
 
+* `redirect_configuration`   - (Optional) A `redirect_configuration` block as defined below.
+
 ---
 
 The `forwarding_configuration` block supports the following:
@@ -190,7 +193,23 @@ The `forwarding_configuration` block supports the following:
 
 * `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behavior preserves the URL path.
 
-* `forwarding_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HTTPOnly`, `HTTPSOnly`, or `MatchRequest`. Defaults to `MatchRequest`.
+* `forwarding_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`.
+
+---
+
+The `redirect_configuration` block supports the following:
+
+* `custom_host` - (Optional)  Set this to change the URL for the redirection. 
+
+* `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, `MatchRequest`. Defaults to `MatchRequest`
+
+* `redirect_type` - (Optional) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`. Defaults to `Found`
+
+* `custom_fragment` - (Optional) The destination fragment in the portion of URL after '#'. Set this to add a fragment to the redirect URL.
+
+* `custom_path` - (Optional) The path to retain as per the incoming request, or update in the URL for the redirection.
+
+* `custom_query_string` - (Optional) Replace any existing query string from the incoming request URL.
 
 ---
 
@@ -259,5 +278,5 @@ The following attributes are exported:
 Front Doors can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_frontdoor.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1
+terraform import azurerm_frontdoor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1
 ```

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -27,6 +28,13 @@ func resourceArmMySqlServer() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -131,6 +139,7 @@ func resourceArmMySqlServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.FiveFullStopSix),
 					string(mysql.FiveFullStopSeven),
+					"8.0", //TODO: Update to EightFullStopZero ServerVersion constant when available in Azure Go SDK https://github.com/Azure/azure-rest-api-specs/pull/7864
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ForceNew:         true,
@@ -206,7 +215,7 @@ func resourceArmMySqlServer() *schema.Resource {
 }
 
 func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.ServersClient
+	client := meta.(*ArmClient).MySQL.ServersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -277,7 +286,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.ServersClient
+	client := meta.(*ArmClient).MySQL.ServersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -328,7 +337,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.ServersClient
+	client := meta.(*ArmClient).MySQL.ServersClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -375,7 +384,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.ServersClient
+	client := meta.(*ArmClient).MySQL.ServersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

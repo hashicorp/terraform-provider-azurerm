@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -48,6 +49,13 @@ func resourceArmHDInsightStormCluster() *schema.Resource {
 		Delete: hdinsightClusterDelete("Storm"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -129,7 +137,7 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
-	storageAccounts, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw)
+	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
 	if err != nil {
 		return fmt.Errorf("Error expanding `storage_account`: %s", err)
 	}
@@ -176,7 +184,8 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 				Roles: roles,
 			},
 		},
-		Tags: tags.Expand(t),
+		Tags:     tags.Expand(t),
+		Identity: identity,
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {

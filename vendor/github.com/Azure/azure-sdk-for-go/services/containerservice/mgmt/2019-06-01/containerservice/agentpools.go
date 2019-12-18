@@ -64,14 +64,7 @@ func (client AgentPoolsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}},
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.ManagedClusterAgentPoolProfileProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.ManagedClusterAgentPoolProfileProperties.Count", Name: validation.Null, Rule: true,
-					Chain: []validation.Constraint{{Target: "parameters.ManagedClusterAgentPoolProfileProperties.Count", Name: validation.InclusiveMaximum, Rule: int64(100), Chain: nil},
-						{Target: "parameters.ManagedClusterAgentPoolProfileProperties.Count", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
-					}},
-				}}}}}); err != nil {
+				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("containerservice.AgentPoolsClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -321,8 +314,7 @@ func (client AgentPoolsClient) GetResponder(resp *http.Response) (result AgentPo
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
-// agentPoolName - the name of the agent pool.
-func (client AgentPoolsClient) GetAvailableAgentPoolVersions(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string) (result AgentPoolAvailableVersions, err error) {
+func (client AgentPoolsClient) GetAvailableAgentPoolVersions(ctx context.Context, resourceGroupName string, resourceName string) (result AgentPoolAvailableVersions, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AgentPoolsClient.GetAvailableAgentPoolVersions")
 		defer func() {
@@ -343,7 +335,7 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersions(ctx context.Context
 		return result, validation.NewError("containerservice.AgentPoolsClient", "GetAvailableAgentPoolVersions", err.Error())
 	}
 
-	req, err := client.GetAvailableAgentPoolVersionsPreparer(ctx, resourceGroupName, resourceName, agentPoolName)
+	req, err := client.GetAvailableAgentPoolVersionsPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "GetAvailableAgentPoolVersions", nil, "Failure preparing request")
 		return
@@ -365,9 +357,8 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersions(ctx context.Context
 }
 
 // GetAvailableAgentPoolVersionsPreparer prepares the GetAvailableAgentPoolVersions request.
-func (client AgentPoolsClient) GetAvailableAgentPoolVersionsPreparer(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string) (*http.Request, error) {
+func (client AgentPoolsClient) GetAvailableAgentPoolVersionsPreparer(ctx context.Context, resourceGroupName string, resourceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"agentPoolName":     autorest.Encode("path", agentPoolName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
@@ -381,7 +372,7 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersionsPreparer(ctx context
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}/agentPools/{agentPoolName}/availableAgentPoolVersions", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}/availableAgentPoolVersions", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

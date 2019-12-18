@@ -156,6 +156,7 @@ POLICY_DEFINITIONS
 
 func testAzureRMPolicySetDefinition_requiresImport(ri int) string {
 	return fmt.Sprintf(`
+
 %s 
 
 resource "azurerm_policy_set_definition" "import" {

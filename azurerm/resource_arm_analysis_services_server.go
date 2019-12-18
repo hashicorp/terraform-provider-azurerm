@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -23,6 +24,13 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 		Read:   resourceArmAnalysisServicesServerRead,
 		Update: resourceArmAnalysisServicesServerUpdate,
 		Delete: resourceArmAnalysisServicesServerDelete,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,

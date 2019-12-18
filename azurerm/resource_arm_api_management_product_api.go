@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -19,6 +20,13 @@ func resourceArmApiManagementProductApi() *schema.Resource {
 		Delete: resourceArmApiManagementProductApiDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -52,7 +60,7 @@ func resourceArmApiManagementProductApiCreate(d *schema.ResourceData, meta inter
 		}
 
 		if !utils.ResponseWasNotFound(resp) {
-			subscriptionId := meta.(*ArmClient).subscriptionId
+			subscriptionId := meta.(*ArmClient).Account.SubscriptionId
 			resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/products/%s/apis/%s", subscriptionId, resourceGroup, serviceName, productId, apiName)
 			return tf.ImportAsExistsError("azurerm_api_management_product_api", resourceId)
 		}
@@ -92,6 +100,14 @@ func resourceArmApiManagementProductApiRead(d *schema.ResourceData, meta interfa
 		}
 
 		return fmt.Errorf("Error retrieving API %q / Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
+	}
+
+	// This can be removed once updated to apimanagement API to 2019-01-01
+	// https://github.com/Azure/azure-sdk-for-go/blob/master/services/apimanagement/mgmt/2019-01-01/apimanagement/productapi.go#L134
+	if utils.ResponseWasNotFound(resp) {
+		log.Printf("[DEBUG] API %q was not found in Product  %q (API Management Service %q / Resource Group %q) was not found - removing from state!", apiName, productId, serviceName, resourceGroup)
+		d.SetId("")
+		return nil
 	}
 
 	d.Set("api_name", apiName)

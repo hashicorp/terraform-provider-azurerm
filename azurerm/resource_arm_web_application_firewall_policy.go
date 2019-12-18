@@ -3,12 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -26,6 +27,13 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -318,8 +326,8 @@ func expandArmWebApplicationFirewallPolicyPolicySettings(input []interface{}) *n
 	mode := v["mode"].(string)
 
 	result := network.PolicySettings{
-		EnabledState: enabled,
-		Mode:         network.WebApplicationFirewallMode(mode),
+		State: enabled,
+		Mode:  network.WebApplicationFirewallMode(mode),
 	}
 	return &result
 }
@@ -394,7 +402,7 @@ func flattenArmWebApplicationFirewallPolicyPolicySettings(input *network.PolicyS
 
 	result := make(map[string]interface{})
 
-	result["enabled"] = input.EnabledState == network.WebApplicationFirewallEnabledStateDisabled
+	result["enabled"] = input.State == network.WebApplicationFirewallEnabledStateDisabled
 	result["mode"] = string(input.Mode)
 
 	return []interface{}{result}

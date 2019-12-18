@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -44,6 +44,13 @@ func resourceArmKeyVault() *schema.Resource {
 
 		MigrateState:  resourceAzureRMKeyVaultMigrateState,
 		SchemaVersion: 1,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -86,7 +93,8 @@ func resourceArmKeyVault() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.Standard),
 					string(keyvault.Premium),
-				}, false),
+					// TODO: revert this in 2.0
+				}, true),
 			},
 
 			"vault_uri": {
@@ -309,10 +317,15 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 					Pending:                   []string{"pending"},
 					Target:                    []string{"available"},
 					Refresh:                   keyVaultRefreshFunc(*vault),
-					Timeout:                   30 * time.Minute,
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,
+				}
+
+				if features.SupportsCustomTimeouts() {
+					stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+				} else {
+					stateConf.Timeout = 30 * time.Minute
 				}
 
 				if _, err := stateConf.WaitForState(); err != nil {

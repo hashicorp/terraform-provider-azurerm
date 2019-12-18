@@ -6,15 +6,16 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -40,6 +41,13 @@ func resourceArmStorageAccount() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -617,6 +625,9 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	storageAccountName := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 
+	locks.ByName(storageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
+
 	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 		if err != nil {
@@ -727,6 +738,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
 	d.SetId(*account.ID)
 
+	// TODO: deprecate & split this out into it's own resource in 2.0
 	// as this is not available in all regions, and presumably off by default
 	// lets only try to set this value when true
 	// TODO in 2.0 switch to guarding this with d.GetOkExists() ?
@@ -743,7 +755,16 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("queue_properties"); ok {
-		queueClient, err := meta.(*ArmClient).Storage.QueuesClient(ctx, resourceGroupName, storageAccountName)
+		storageClient := meta.(*ArmClient).Storage
+		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
+		}
+
+		queueClient, err := storageClient.QueuesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Queues Client: %s", err)
 		}
@@ -776,6 +797,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
+
+	locks.ByName(storageAccountName, iothubResourceName)
+	defer locks.UnlockByName(storageAccountName, iothubResourceName)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -937,7 +961,16 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("queue_properties") {
-		queueClient, err := meta.(*ArmClient).Storage.QueuesClient(ctx, resourceGroupName, storageAccountName)
+		storageClient := meta.(*ArmClient).Storage
+		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
+		}
+
+		queueClient, err := storageClient.QueuesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Queues Client: %s", err)
 		}
@@ -961,7 +994,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Storage.AccountsClient
 	advancedThreatProtectionClient := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
-	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
+	endpointSuffix := meta.(*ArmClient).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -989,7 +1022,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("primary_access_key", "")
 	d.Set("secondary_access_key", "")
 
-	keys, err := client.ListKeys(ctx, resGroup, name)
+	keys, err := client.ListKeys(ctx, resGroup, name, storage.Kerb)
 	if err != nil {
 		// the API returns a 200 with an inner error of a 409..
 		var hasWriteLock bool
@@ -1107,7 +1140,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	atp, err := advancedThreatProtectionClient.Get(ctx, d.Id())
 	if err != nil {
 		msg := err.Error()
-		if msg != "The resource namespace 'Microsoft.Security' is invalid." {
+		if !strings.Contains(msg, "The resource namespace 'Microsoft.Security' is invalid.") {
 			if !strings.Contains(msg, "No registered resource provider found for location '") {
 				if !strings.Contains(msg, "' and API version '2017-08-01-preview' for type ") {
 					return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
@@ -1120,7 +1153,16 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	queueClient, err := meta.(*ArmClient).Storage.QueuesClient(ctx, resGroup, name)
+	storageClient := meta.(*ArmClient).Storage
+	account, err := storageClient.FindAccount(ctx, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Account %q: %s", name, err)
+	}
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", name)
+	}
+
+	queueClient, err := storageClient.QueuesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Queues Client: %s", err)
 	}
@@ -1152,6 +1194,9 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["storageAccounts"]
 	resourceGroup := id.ResourceGroup
 
+	locks.ByName(name, storageAccountResourceName)
+	defer locks.UnlockByName(name, storageAccountResourceName)
+
 	read, err := client.GetProperties(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
@@ -1177,6 +1222,11 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 					}
 
 					networkName := id.Path["virtualNetworks"]
+					for _, virtualNetworkName := range virtualNetworkNames {
+						if networkName == virtualNetworkName {
+							continue
+						}
+					}
 					virtualNetworkNames = append(virtualNetworkNames, networkName)
 				}
 			}
@@ -1194,7 +1244,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// remove this from the cache
-	storageClient.ClearFromCache(resourceGroup, name)
+	storageClient.RemoveAccountFromCache(name)
 
 	return nil
 }
@@ -1549,7 +1599,7 @@ func validateArmStorageAccountName(v interface{}, _ string) (warnings []string, 
 	input := v.(string)
 
 	if !regexp.MustCompile(`\A([a-z0-9]{3,24})\z`).MatchString(input) {
-		errors = append(errors, fmt.Errorf("name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long"))
+		errors = append(errors, fmt.Errorf("name (%q) can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long", input))
 	}
 
 	return warnings, errors

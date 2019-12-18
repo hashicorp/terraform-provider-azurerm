@@ -1,12 +1,13 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -26,6 +27,13 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 		Delete: resourceArmLogProfileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -136,8 +144,16 @@ func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error Creating/Updating Log Profile %q: %+v", name, err)
 	}
 
+	duration := 600 * time.Second
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			duration = d.Timeout(schema.TimeoutCreate)
+		} else {
+			duration = d.Timeout(schema.TimeoutUpdate)
+		}
+	}
 	// Wait for Log Profile to become available
-	if err := resource.Retry(600*time.Second, retryLogProfilesClientGet(name, meta)); err != nil {
+	if err := resource.Retry(duration, retryLogProfilesClientGet(ctx, client, name, meta)); err != nil {
 		return fmt.Errorf("Error waiting for Log Profile %q to become available: %+v", name, err)
 	}
 
@@ -271,11 +287,8 @@ func flattenAzureRmLogProfileRetentionPolicy(input *insights.RetentionPolicy) []
 	return []interface{}{result}
 }
 
-func retryLogProfilesClientGet(name string, meta interface{}) func() *resource.RetryError {
+func retryLogProfilesClientGet(ctx context.Context, client *insights.LogProfilesClient, name string, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		client := meta.(*ArmClient).Monitor.LogProfilesClient
-		ctx := meta.(*ArmClient).StopContext
-
 		if _, err := client.Get(ctx, name); err != nil {
 			return resource.RetryableError(err)
 		}

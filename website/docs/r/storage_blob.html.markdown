@@ -1,4 +1,5 @@
 ---
+subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_blob"
 sidebar_current: "docs-azurerm-resource-storage-blob"
@@ -13,32 +14,32 @@ Manages a Blob within a Storage Container.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "examplestoracc"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_container" "test" {
+resource "azurerm_storage_container" "example" {
   name                  = "content"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  storage_account_name  = "${azurerm_storage_account.example.name}"
   container_access_type = "private"
 }
 
-resource "azurerm_storage_blob" "test" {
+resource "azurerm_storage_blob" "example" {
   name                   = "my-awesome-content.zip"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "blob"
+  resource_group_name    = "${azurerm_resource_group.example.name}"
+  storage_account_name   = "${azurerm_storage_account.example.name}"
+  storage_container_name = "${azurerm_storage_container.example.name}"
+  type                   = "Block"
   source                 = "some-local-file.zip"
 }
 ```
@@ -62,7 +63,7 @@ The following arguments are supported:
 
 * `content_type` - (Optional) The content type of the storage blob. Cannot be defined if `source_uri` is defined. Defaults to `application/octet-stream`.
 
-* `source` - (Optional) An absolute path to a file on the local system. This field cannot be specified for Append blobs and annot be specified if `source_content` or `source_uri` is specified.
+* `source` - (Optional) An absolute path to a file on the local system. This field cannot be specified for Append blobs and cannot be specified if `source_content` or `source_uri` is specified.
 
 * `source_content` - (Optional) The content for this blob which should be defined inline. This field can only be specified for Block blobs and cannot be specified if `source` or `source_uri` is specified.
 

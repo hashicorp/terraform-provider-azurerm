@@ -3,8 +3,9 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -43,6 +44,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 		Delete: resourceArmApplicationGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(90 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(90 * time.Minute),
+			Delete: schema.DefaultTimeout(90 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -625,12 +633,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"min_capacity": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntBetween(2, 10),
+							ValidateFunc: validation.IntBetween(0, 100),
 						},
 						"max_capacity": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(2, 100),
+							ValidateFunc: validation.IntBetween(2, 125),
 						},
 					},
 				},
@@ -1369,7 +1377,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	// Gateway ID is needed to link sub-resources together in expand functions
 	gatewayIDFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s"
-	gatewayID := fmt.Sprintf(gatewayIDFmt, armClient.subscriptionId, resGroup, name)
+	gatewayID := fmt.Sprintf(gatewayIDFmt, armClient.Account.SubscriptionId, resGroup, name)
 
 	trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
 	if err != nil {
@@ -2611,18 +2619,20 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 
 		matchConfigs := v["match"].([]interface{})
 		if len(matchConfigs) > 0 {
-			match := matchConfigs[0].(map[string]interface{})
-			matchBody := match["body"].(string)
+			matchBody := ""
+			outputMatch := &network.ApplicationGatewayProbeHealthResponseMatch{}
+			if matchConfigs[0] != nil {
+				match := matchConfigs[0].(map[string]interface{})
+				matchBody = match["body"].(string)
 
-			statusCodes := make([]string, 0)
-			for _, statusCode := range match["status_code"].([]interface{}) {
-				statusCodes = append(statusCodes, statusCode.(string))
+				statusCodes := make([]string, 0)
+				for _, statusCode := range match["status_code"].([]interface{}) {
+					statusCodes = append(statusCodes, statusCode.(string))
+				}
+				outputMatch.StatusCodes = &statusCodes
 			}
-
-			output.ApplicationGatewayProbePropertiesFormat.Match = &network.ApplicationGatewayProbeHealthResponseMatch{
-				Body:        utils.String(matchBody),
-				StatusCodes: &statusCodes,
-			}
+			outputMatch.Body = utils.String(matchBody)
+			output.ApplicationGatewayProbePropertiesFormat.Match = outputMatch
 		}
 
 		results = append(results, output)

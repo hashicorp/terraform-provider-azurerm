@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -22,6 +23,13 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 		Delete: resourceArmDnsCNameRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -53,6 +61,11 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 			"ttl": {
 				Type:     schema.TypeInt,
 				Required: true,
+			},
+
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -144,6 +157,7 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
+	d.Set("fqdn", resp.Fqdn)
 
 	if props := resp.RecordSetProperties; props != nil {
 		if record := props.CnameRecord; record != nil {

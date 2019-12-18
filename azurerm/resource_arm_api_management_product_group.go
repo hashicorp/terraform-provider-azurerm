@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -19,6 +20,13 @@ func resourceArmApiManagementProductGroup() *schema.Resource {
 		Delete: resourceArmApiManagementProductGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -52,7 +60,7 @@ func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta int
 		}
 
 		if !utils.ResponseWasNotFound(resp) {
-			subscriptionId := meta.(*ArmClient).subscriptionId
+			subscriptionId := meta.(*ArmClient).Account.SubscriptionId
 			resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/products/%s/groups/%s", subscriptionId, resourceGroup, serviceName, groupName, productId)
 			return tf.ImportAsExistsError("azurerm_api_management_product_group", resourceId)
 		}

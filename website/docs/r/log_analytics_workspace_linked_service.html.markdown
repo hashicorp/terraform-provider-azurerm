@@ -1,4 +1,5 @@
 ---
+subcategory: "Log Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_workspace_linked_service"
 sidebar_current: "docs-azurerm-log-analytics-workspace-linked-service"
@@ -16,15 +17,15 @@ Links a Log Analytics (formally Operational Insights) Workspace to another resou
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "resourcegroup-01"
   location = "West Europe"
 }
 
-resource "azurerm_automation_account" "test" {
+resource "azurerm_automation_account" "example" {
   name                = "automation-01"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     name = "Basic"
@@ -35,18 +36,18 @@ resource "azurerm_automation_account" "test" {
   }
 }
 
-resource "azurerm_log_analytics_workspace" "test" {
+resource "azurerm_log_analytics_workspace" "example" {
   name                = "workspace-01"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
 
-resource "azurerm_log_analytics_workspace_linked_service" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
-  resource_id         = "${azurerm_automation_account.test.id}"
+resource "azurerm_log_analytics_workspace_linked_service" "example" {
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  workspace_name      = "${azurerm_log_analytics_workspace.example.name}"
+  resource_id         = "${azurerm_automation_account.example.id}"
 }
 ```
 
@@ -85,5 +86,5 @@ The following attributes are exported:
 Log Analytics Workspaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_log_analytics_workspace_linked_service.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedservices/automation
+terraform import azurerm_log_analytics_workspace_linked_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedservices/automation
 ```

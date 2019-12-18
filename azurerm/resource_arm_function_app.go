@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -13,7 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,8 +29,16 @@ func resourceArmFunctionApp() *schema.Resource {
 		Read:   resourceArmFunctionAppRead,
 		Update: resourceArmFunctionAppUpdate,
 		Delete: resourceArmFunctionAppDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := webSvc.ParseAppServiceID(id)
+			return err
+		}),
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -209,6 +220,31 @@ func resourceArmFunctionApp() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"http2_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"min_tls_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.OneFullStopZero),
+								string(web.OneFullStopOne),
+								string(web.OneFullStopTwo),
+							}, false),
+						},
+						"ftps_state": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.AllAllowed),
+								string(web.Disabled),
+								string(web.FtpsOnly),
+							}, false),
+						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
@@ -349,13 +385,13 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := webSvc.ParseAppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["sites"]
+	name := id.Name
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := "functionapp"
@@ -457,13 +493,13 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := webSvc.ParseAppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["sites"]
+	name := id.Name
 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
@@ -578,12 +614,13 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := webSvc.ParseAppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
+
 	resGroup := id.ResourceGroup
-	name := id.Path["sites"]
+	name := id.Name
 
 	log.Printf("[DEBUG] Deleting Function App %q (resource group %q)", name, resGroup)
 
@@ -637,15 +674,15 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 }
 
 func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
-	id, err := azure.ParseAzureResourceID(appServicePlanId)
+	id, err := webSvc.ParseAppServicePlanID(appServicePlanId)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving App Server Plan %s", id.Path["serverfarms"])
+	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.Name, id.ResourceGroup)
 
 	appServicePlansClient := meta.(*ArmClient).Web.AppServicePlansClient
-	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Path["serverfarms"])
+	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
@@ -705,6 +742,18 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.VnetName = utils.String(v.(string))
 	}
 
+	if v, ok := config["http2_enabled"]; ok {
+		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["min_tls_version"]; ok {
+		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
+	}
+
+	if v, ok := config["ftps_state"]; ok {
+		siteConfig.FtpsState = web.FtpsState(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -736,6 +785,13 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	if input.VnetName != nil {
 		result["virtual_network_name"] = *input.VnetName
 	}
+
+	if input.HTTP20Enabled != nil {
+		result["http2_enabled"] = *input.HTTP20Enabled
+	}
+
+	result["min_tls_version"] = string(input.MinTLSVersion)
+	result["ftps_state"] = string(input.FtpsState)
 
 	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
 

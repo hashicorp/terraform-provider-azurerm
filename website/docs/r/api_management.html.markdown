@@ -1,4 +1,5 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management"
 sidebar_current: "docs-azurerm-resource-api-management-x"
@@ -13,19 +14,30 @@ Manages an API Management Service.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_api_management" "test" {
+resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
   sku_name = "Developer_1"
+
+  policy {
+    xml_content = <<XML
+    <policies>
+      <inbound />
+      <backend />
+      <outbound />
+      <on-error />
+    </policies>
+XML
+  }
 }
 ```
 
@@ -288,5 +300,5 @@ An `identity` block exports the following:
 API Management Services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1
+terraform import azurerm_api_management.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1
 ```

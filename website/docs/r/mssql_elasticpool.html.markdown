@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_elasticpool"
 sidebar_current: "docs-azurerm-resource-database-mssql-elasticpool"
@@ -13,25 +14,25 @@ Allows you to manage an Azure SQL Elastic Pool via the `2017-10-01-preview` API 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "my-resource-group"
   location = "westeurope"
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_sql_server" "example" {
   name                         = "my-sql-server"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.example.name}"
+  location                     = "${azurerm_resource_group.example.location}"
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
-resource "azurerm_mssql_elasticpool" "test" {
+resource "azurerm_mssql_elasticpool" "example" {
   name                = "test-epool"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  server_name         = "${azurerm_sql_server.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  server_name         = "${azurerm_sql_server.example.name}"
   max_size_gb         = 756
 
   sku {
@@ -105,5 +106,5 @@ The following attributes are exported:
 SQL Elastic Pool can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mssql_elasticpool.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/elasticPools/myelasticpoolname
+terraform import azurerm_mssql_elasticpool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/elasticPools/myelasticpoolname
 ```

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -49,6 +50,13 @@ func resourceArmHDInsightInteractiveQueryCluster() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaHDInsightName(),
 
@@ -78,6 +86,8 @@ func resourceArmHDInsightInteractiveQueryCluster() *schema.Resource {
 			"gateway": azure.SchemaHDInsightsGateway(),
 
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
+
+			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
 
 			"roles": {
 				Type:     schema.TypeList,
@@ -128,7 +138,8 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
-	storageAccounts, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw)
+	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
+	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
 		return fmt.Errorf("Error expanding `storage_account`: %s", err)
 	}
@@ -175,7 +186,8 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 				Roles: roles,
 			},
 		},
-		Tags: tags.Expand(t),
+		Tags:     tags.Expand(t),
+		Identity: identity,
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {

@@ -3,12 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -21,20 +23,27 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 		Read:   resourceArmAppServiceSourceControlTokenRead,
 		Update: resourceArmAppServiceSourceControlTokenCreateUpdate,
 		Delete: resourceArmAppServiceSourceControlTokenDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := webSvc.ValidateAppServiceSourceControlTokenName()(id, "id")
+			if len(err) > 0 {
+				return fmt.Errorf("%s", err)
+			}
+
+			return nil
+		}),
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
 			"type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"BitBucket",
-					"Dropbox",
-					"GitHub",
-					"OneDrive",
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: webSvc.ValidateAppServiceSourceControlTokenName(),
 			},
 
 			"token": {

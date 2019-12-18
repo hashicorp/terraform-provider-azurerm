@@ -2,9 +2,11 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -170,7 +172,7 @@ func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMTemplateDeployment_withError(ri, testLocation()),
-				ExpectError: regexp.MustCompile("Code=\"DeploymentFailed\""),
+				ExpectError: regexp.MustCompile("Error validating Template for Deployment"),
 			},
 		},
 	})
@@ -227,7 +229,20 @@ func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.
 			return fmt.Errorf("Failed deleting Deployment %q (Resource Group %q): %+v", deploymentName, resourceGroup, err)
 		}
 
-		return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, deploymentName)
+		// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
+		log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", deploymentName, resourceGroup)
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{"200"},
+			Target:  []string{"404"},
+			Timeout: 40 * time.Minute,
+			Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, resourceGroup, deploymentName),
+		}
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", deploymentName, resourceGroup, err)
+		}
+
+		return nil
 	}
 }
 
@@ -478,6 +493,7 @@ resource "azurerm_key_vault" "test-kv" {
     object_id       = "${data.azurerm_client_config.current.service_principal_object_id}"
 
     secret_permissions = [
+      "delete",
       "get",
       "list",
       "set",
@@ -584,7 +600,7 @@ resource "azurerm_template_deployment" "test" {
 DEPLOY
 
   parameters_body = "${local.templated-file}"
-  deployment_mode = "Complete"
+  deployment_mode = "Incremental"
   depends_on      = ["azurerm_key_vault_secret.test-secret"]
 }
 `, rInt, location, location, rInt, rInt, rInt, rInt)

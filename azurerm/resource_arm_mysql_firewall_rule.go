@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -22,6 +23,13 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -54,7 +62,7 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 }
 
 func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.FirewallRulesClient
+	client := meta.(*ArmClient).MySQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -109,7 +117,7 @@ func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.FirewallRulesClient
+	client := meta.(*ArmClient).MySQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -140,7 +148,7 @@ func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmMySqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.FirewallRulesClient
+	client := meta.(*ArmClient).MySQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

@@ -1,4 +1,5 @@
 ---
+subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_mongo_database"
 sidebar_current: "docs-azurerm-resource-cosmosdb-mongo-database"
@@ -36,7 +37,7 @@ The following arguments are supported:
 
 * `account_name` - (Required) The name of the Cosmos DB Mongo Database to create the table within. Changing this forces a new resource to be created.
 
-* `throughput` - (Optional) The throughput of MongoDB database (RU/s). Must be set in increments of `100`. The default and minimum value is `400`.
+* `throughput` - (Optional) The throughput of the MongoDB collection (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
 
 ## Attributes Reference

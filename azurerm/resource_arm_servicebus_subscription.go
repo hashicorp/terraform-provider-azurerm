@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -21,6 +22,13 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 		Delete: resourceArmServiceBusSubscriptionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -94,6 +102,11 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				Optional: true,
 			},
 
+			"forward_dead_lettered_messages_to": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			// TODO: remove in the next major version
 			"dead_lettering_on_filter_evaluation_exceptions": {
 				Type:       schema.TypeBool,
@@ -154,6 +167,10 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 		parameters.SBSubscriptionProperties.ForwardTo = &forwardTo
 	}
 
+	if forwardDeadLetteredMessagesTo := d.Get("forward_dead_lettered_messages_to").(string); forwardDeadLetteredMessagesTo != "" {
+		parameters.SBSubscriptionProperties.ForwardDeadLetteredMessagesTo = &forwardDeadLetteredMessagesTo
+	}
+
 	if defaultMessageTtl := d.Get("default_message_ttl").(string); defaultMessageTtl != "" {
 		parameters.DefaultMessageTimeToLive = &defaultMessageTtl
 	}
@@ -211,6 +228,7 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("forward_to", props.ForwardTo)
+		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 
 		if count := props.MaxDeliveryCount; count != nil {
 			d.Set("max_delivery_count", int(*count))

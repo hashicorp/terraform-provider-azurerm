@@ -3,8 +3,9 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -22,6 +23,13 @@ func resourceArmSubnetNetworkSecurityGroupAssociation() *schema.Resource {
 		Delete: resourceArmSubnetNetworkSecurityGroupAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -57,7 +65,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 		return err
 	}
 
-	parsedNetworkSecurityGroupId, err := networkSvc.ParseNetworkSecurityGroupResourceID(networkSecurityGroupId)
+	parsedNetworkSecurityGroupId, err := networkSvc.ParseNetworkSecurityGroupID(networkSecurityGroupId)
 	if err != nil {
 		return err
 	}
@@ -195,7 +203,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceDa
 	}
 
 	// once we have the network security group id to lock on, lock on that
-	parsedNetworkSecurityGroupId, err := networkSvc.ParseNetworkSecurityGroupResourceID(*props.NetworkSecurityGroup.ID)
+	parsedNetworkSecurityGroupId, err := networkSvc.ParseNetworkSecurityGroupID(*props.NetworkSecurityGroup.ID)
 	if err != nil {
 		return err
 	}

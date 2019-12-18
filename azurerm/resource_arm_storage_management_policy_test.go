@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
@@ -263,7 +264,7 @@ func testCheckAzureRMStorageAccountManagementPolicyExists(resourceName string) r
 }
 
 func testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccountID string) (bool, error) {
-	rid, err := parseAzureResourceID(storageAccountID)
+	rid, err := azure.ParseAzureResourceID(storageAccountID)
 	if err != nil {
 		return false, fmt.Errorf("Bad: Failed to parse ID (id: %s): %+v", storageAccountID, err)
 	}
@@ -288,41 +289,41 @@ func testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccount
 func testAccAzureRMStorageManagementPolicy_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-	name     = "acctestAzureRMSA-%d"
-	location = "%s"
+  name     = "acctestRG-storage-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-	name                = "unlikely23exst2acct%s"
-	resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-	location                 = "${azurerm_resource_group.testrg.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
-	account_kind             = "BlobStorage"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "testpolicy" {
-	storage_account_id = "${azurerm_storage_account.testsa.id}"
+  storage_account_id = "${azurerm_storage_account.testsa.id}"
 
-	rule {
-		name    = "rule1"
-		enabled = true
-		filters {
-			prefix_match = [ "container1/prefix1" ]
-			blob_types   = [ "blockBlob" ]
-		}
-		actions {
-			base_blob {
-				tier_to_cool_after_days_since_modification_greater_than    = 10
-				tier_to_archive_after_days_since_modification_greater_than = 50
-				delete_after_days_since_modification_greater_than          = 100
-			}
-			snapshot {
-				delete_after_days_since_creation_greater_than = 30
-			}
-		}
-	}
+  rule {
+    name    = "rule1"
+    enabled = true
+    filters {
+      prefix_match = ["container1/prefix1"]
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than    = 10
+        tier_to_archive_after_days_since_modification_greater_than = 50
+        delete_after_days_since_modification_greater_than          = 100
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 30
+      }
+    }
+  }
 }
 `, rInt, location, rString)
 }
@@ -330,59 +331,59 @@ resource "azurerm_storage_management_policy" "testpolicy" {
 func testAccAzureRMStorageManagementPolicy_multipleRule(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-	name     = "acctestAzureRMSA-%d"
-	location = "%s"
+  name     = "acctestRG-storage-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-	name                = "unlikely23exst2acct%s"
-	resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-	location                 = "${azurerm_resource_group.testrg.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
-	account_kind             = "BlobStorage"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "testpolicy" {
-	storage_account_id = "${azurerm_storage_account.testsa.id}"
+  storage_account_id = "${azurerm_storage_account.testsa.id}"
 
-	rule {
-		name    = "rule1"
-		enabled = true
-		filters {
-			prefix_match = [ "container1/prefix1" ]
-			blob_types   = [ "blockBlob" ]
-		}
-		actions {
-			base_blob {
-				tier_to_cool_after_days_since_modification_greater_than    = 10
-				tier_to_archive_after_days_since_modification_greater_than = 50
-				delete_after_days_since_modification_greater_than          = 100
-			}
-			snapshot {
-				delete_after_days_since_creation_greater_than = 30
-			}
-		}
-	}
-	rule {
-		name    = "rule2"
-		enabled = false
-		filters {
-		  prefix_match = [ "container2/prefix1", "container2/prefix2" ]
-		  blob_types   = [ "blockBlob" ]
-		}
-		actions {
-  		base_blob {
-				tier_to_cool_after_days_since_modification_greater_than    = 11
-				tier_to_archive_after_days_since_modification_greater_than = 51
-				delete_after_days_since_modification_greater_than          = 101
-			}
-			snapshot {
-				delete_after_days_since_creation_greater_than = 31
-			}
-		}
-	}
+  rule {
+    name    = "rule1"
+    enabled = true
+    filters {
+      prefix_match = ["container1/prefix1"]
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than    = 10
+        tier_to_archive_after_days_since_modification_greater_than = 50
+        delete_after_days_since_modification_greater_than          = 100
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 30
+      }
+    }
+  }
+  rule {
+    name    = "rule2"
+    enabled = false
+    filters {
+      prefix_match = ["container2/prefix1", "container2/prefix2"]
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than    = 11
+        tier_to_archive_after_days_since_modification_greater_than = 51
+        delete_after_days_since_modification_greater_than          = 101
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 31
+      }
+    }
+  }
 }
 `, rInt, location, rString)
 }
@@ -390,59 +391,59 @@ resource "azurerm_storage_management_policy" "testpolicy" {
 func testAccAzureRMStorageManagementPolicy_multipleRuleUpdated(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-	name     = "acctestAzureRMSA-%d"
-	location = "%s"
+  name     = "acctestRG-storage-%d"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "testsa" {
-	name                = "unlikely23exst2acct%s"
-	resource_group_name = "${azurerm_resource_group.testrg.name}"
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
 
-	location                 = "${azurerm_resource_group.testrg.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
-	account_kind             = "BlobStorage"
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_management_policy" "testpolicy" {
-	storage_account_id = "${azurerm_storage_account.testsa.id}"
+  storage_account_id = "${azurerm_storage_account.testsa.id}"
 
-	rule {
-		name    = "rule1"
-		enabled = true
-		filters {
-			prefix_match = [ "container1/prefix1" ]
-			blob_types   = [ "blockBlob" ]
-		}
-		actions {
-			base_blob {
-				tier_to_cool_after_days_since_modification_greater_than    = 10
-				tier_to_archive_after_days_since_modification_greater_than = 50
-				delete_after_days_since_modification_greater_than          = 100
-			}
-			snapshot {
-				delete_after_days_since_creation_greater_than = 30
-			}
-		}
-	}
-	rule {
-		name    = "rule2"
-		enabled = true
-		filters {
-		  prefix_match = [ "container2/prefix1", "container2/prefix2" ]
-		  blob_types   = [ "blockBlob" ]
-		}
-		actions {
-  		base_blob {
-				tier_to_cool_after_days_since_modification_greater_than    = 12
-				tier_to_archive_after_days_since_modification_greater_than = 52
-				delete_after_days_since_modification_greater_than          = 102
-			}
-			snapshot {
-				delete_after_days_since_creation_greater_than = 32
-			}
-		}
-	}
+  rule {
+    name    = "rule1"
+    enabled = true
+    filters {
+      prefix_match = ["container1/prefix1"]
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than    = 10
+        tier_to_archive_after_days_since_modification_greater_than = 50
+        delete_after_days_since_modification_greater_than          = 100
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 30
+      }
+    }
+  }
+  rule {
+    name    = "rule2"
+    enabled = true
+    filters {
+      prefix_match = ["container2/prefix1", "container2/prefix2"]
+      blob_types   = ["blockBlob"]
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than    = 12
+        tier_to_archive_after_days_since_modification_greater_than = 52
+        delete_after_days_since_modification_greater_than          = 102
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 32
+      }
+    }
+  }
 }
 `, rInt, location, rString)
 }

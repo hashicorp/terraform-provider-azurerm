@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_authorization_rule"
 sidebar_current: "docs-azurerm-resource-messaging-eventhub-authorization-rule"
@@ -13,15 +14,15 @@ Manages a Event Hubs authorization Rule within an Event Hub.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_eventhub_namespace" "test" {
+resource "azurerm_eventhub_namespace" "example" {
   name                = "acceptanceTestEventHubNamespace"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "Basic"
   capacity            = 2
 
@@ -30,19 +31,19 @@ resource "azurerm_eventhub_namespace" "test" {
   }
 }
 
-resource "azurerm_eventhub" "test" {
+resource "azurerm_eventhub" "example" {
   name                = "acceptanceTestEventHub"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   partition_count     = 2
   message_retention   = 2
 }
 
-resource "azurerm_eventhub_authorization_rule" "test" {
+resource "azurerm_eventhub_authorization_rule" "example" {
   name                = "navi"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  eventhub_name       = "${azurerm_eventhub.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
+  eventhub_name       = "${azurerm_eventhub.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   listen              = true
   send                = false
   manage              = false

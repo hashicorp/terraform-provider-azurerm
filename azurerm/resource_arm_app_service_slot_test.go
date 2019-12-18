@@ -1341,6 +1341,52 @@ func TestAccAzureRMAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceSlot_windowsJava7Minor(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.7.0_80", "TOMCAT", "9.0")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.7.0_80"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_windowsJava8Minor(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.8.0_181", "TOMCAT", "9.0")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8.0_181"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
@@ -1355,7 +1401,7 @@ func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.php_version", "7.2"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.php_version", "7.3"),
 				),
 			},
 		},
@@ -1530,6 +1576,32 @@ func TestAccAzureRMAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "logs.0.http_logs.0.azure_blob_storage.0.sas_url", "https://example.com/"),
 					resource.TestCheckResourceAttr(resourceName, "logs.0.http_logs.0.azure_blob_storage.0.retention_in_days", "3"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_autoSwap(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_autoSwap(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.auto_swap_slot_name", "production"),
 				),
 			},
 			{
@@ -2005,8 +2077,8 @@ resource "azurerm_app_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  
-    site_config {
+
+  site_config {
     always_on = true
   }
 }
@@ -2080,7 +2152,7 @@ resource "azurerm_app_service_slot" "test" {
   auth_settings {
     enabled = true
     issuer  = "https://sts.windows.net/%s"
-          
+
     allowed_external_redirect_urls = [
       "https://terra.form"
     ]
@@ -2137,8 +2209,8 @@ resource "azurerm_app_service_slot" "test" {
   }
 
   auth_settings {
-    enabled = true
-    issuer  = "https://sts.windows.net/%s"
+    enabled         = true
+    issuer          = "https://sts.windows.net/%s"
     runtime_version = "1.0"
 
     active_directory {
@@ -2193,8 +2265,8 @@ resource "azurerm_app_service_slot" "test" {
   }
 
   auth_settings {
-    enabled = true
-    issuer  = "https://sts.windows.net/%s"
+    enabled                       = true
+    issuer                        = "https://sts.windows.net/%s"
     token_refresh_extension_hours = 75
 
     active_directory {
@@ -2243,14 +2315,14 @@ resource "azurerm_app_service_slot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
-  
+
   site_config {
     always_on = true
   }
 
   auth_settings {
-    enabled = true
-    issuer  = "https://sts.windows.net/%s"
+    enabled             = true
+    issuer              = "https://sts.windows.net/%s"
     token_store_enabled = true
 
     active_directory {
@@ -2305,8 +2377,8 @@ resource "azurerm_app_service_slot" "test" {
   }
 
   auth_settings {
-    enabled = true
-    issuer  = "https://sts.windows.net/%s"
+    enabled                       = true
+    issuer                        = "https://sts.windows.net/%s"
     unauthenticated_client_action = "RedirectToLoginPage"
 
     active_directory {
@@ -2576,8 +2648,8 @@ resource "azurerm_app_service_slot" "test" {
   auth_settings {
     enabled = true
     twitter {
-      consumer_key     = "twitterconsumerkey"
-      consumer_secret  = "twitterconsumersecret"
+      consumer_key    = "twitterconsumerkey"
+      consumer_secret = "twitterconsumersecret"
     }
   }
 }
@@ -2635,7 +2707,7 @@ resource "azurerm_app_service_slot" "test" {
         "activedirectorytokenaudiences",
       ]
     }
-    
+
     microsoft {
       client_id     = "microsoftclientid"
       client_secret = "microsoftclientsecret"
@@ -3422,7 +3494,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = "${azurerm_app_service.test.name}"
 
   site_config {
-    php_version = "7.2"
+    php_version = "7.3"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -3804,6 +3876,45 @@ resource "azurerm_app_service_slot" "test" {
         retention_in_days = 3
       }
     }
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_autoSwap(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    auto_swap_slot_name = "production"
   }
 }
 `, rInt, location, rInt, rInt, rInt)

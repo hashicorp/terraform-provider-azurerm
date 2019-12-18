@@ -743,10 +743,10 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-	maxmemory_reserved = 2
-	maxfragmentationmemory_reserved = 2
-    maxmemory_delta    = 2
-    maxmemory_policy   = "allkeys-lru"
+    maxmemory_reserved              = 2
+    maxfragmentationmemory_reserved = 2
+    maxmemory_delta                 = 2
+    maxmemory_policy                = "allkeys-lru"
   }
 }
 `, rInt, location, rInt)
@@ -770,10 +770,10 @@ resource "azurerm_redis_cache" "test" {
   shard_count         = 3
 
   redis_configuration {
-    maxmemory_reserved = 2
-	maxfragmentationmemory_reserved = 2
-    maxmemory_delta    = 2
-    maxmemory_policy   = "allkeys-lru"
+    maxmemory_reserved              = 2
+    maxfragmentationmemory_reserved = 2
+    maxmemory_delta                 = 2
+    maxmemory_policy                = "allkeys-lru"
   }
 }
 `, rInt, location, rInt)
@@ -797,10 +797,10 @@ resource "azurerm_redis_cache" "test" {
   shard_count         = 3
 
   redis_configuration {
-    maxmemory_reserved = 2
-	maxfragmentationmemory_reserved = 2
-    maxmemory_delta    = 2
-    maxmemory_policy   = "allkeys-lru"
+    maxmemory_reserved              = 2
+    maxfragmentationmemory_reserved = 2
+    maxmemory_delta                 = 2
+    maxmemory_policy                = "allkeys-lru"
   }
 }
 `, rInt, location, rInt)
@@ -1113,7 +1113,7 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
   subnet_id           = "${azurerm_subnet.test.id}"
   redis_configuration {}
-  zones               = ["1"]
+  zones = ["1"]
 }
 `, ri, location, ri, ri)
 }
@@ -1149,8 +1149,8 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
   subnet_id           = "${azurerm_subnet.test.id}"
   redis_configuration {
-		enable_authentication = false
-	}
+    enable_authentication = false
+  }
 }
 `, ri, location, ri, ri)
 }

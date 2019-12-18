@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -25,6 +26,13 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 		Delete: resourceArmDevTestVirtualNetworkDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -118,7 +126,7 @@ func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interfa
 	description := d.Get("description").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	subscriptionId := meta.(*ArmClient).subscriptionId
+	subscriptionId := meta.(*ArmClient).Account.SubscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
 	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
 
@@ -210,7 +218,7 @@ func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interfa
 	description := d.Get("description").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	subscriptionId := meta.(*ArmClient).subscriptionId
+	subscriptionId := meta.(*ArmClient).Account.SubscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
 	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
 

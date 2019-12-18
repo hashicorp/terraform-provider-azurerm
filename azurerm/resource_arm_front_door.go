@@ -3,12 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-04-01/frontdoor"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	afd "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
@@ -26,6 +27,13 @@ func resourceArmFrontDoor() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(6 * time.Hour),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(6 * time.Hour),
+			Delete: schema.DefaultTimeout(6 * time.Hour),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -121,7 +129,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									},
 									"custom_host": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 									},
 									"custom_path": {
 										Type:     schema.TypeString,
@@ -443,9 +451,9 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	subscriptionId := meta.(*ArmClient).subscriptionId
+	subscriptionId := meta.(*ArmClient).Account.SubscriptionId
 
-	if features.ShouldResourcesBeImported() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -588,7 +596,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -660,7 +668,7 @@ func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -1018,6 +1026,9 @@ func expandArmFrontDoorRedirectConfiguration(input []interface{}) frontdoor.Redi
 
 	// The way the API works is if you don't include the attribute in the structure
 	// it is treated as Preserve instead of Replace...
+	if customHost != "" {
+		redirectConfiguration.CustomHost = utils.String(customHost)
+	}
 	if customPath != "" {
 		redirectConfiguration.CustomPath = utils.String(customPath)
 	}
@@ -1352,10 +1363,6 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 								c["cache_use_dynamic_compression"] = true
 							}
 						}
-					} else {
-						// Set Defaults
-						c["cache_query_parameter_strip_directive"] = string(frontdoor.StripNone)
-						c["cache_use_dynamic_compression"] = false
 					}
 
 					rc = append(rc, c)
@@ -1402,7 +1409,7 @@ func flattenArmFrontDoorSubResource(input *frontdoor.SubResource, resourceType s
 	name := ""
 
 	if id := input.ID; id != nil {
-		aid, err := parseAzureResourceID(*id)
+		aid, err := azure.ParseAzureResourceID(*id)
 		if err != nil {
 			return ""
 		}

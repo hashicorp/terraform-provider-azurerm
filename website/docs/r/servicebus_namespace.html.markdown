@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace"
 sidebar_current: "docs-azurerm-resource-messaging-servicebus-namespace-x"
@@ -44,7 +45,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Defines which tier to use. Options are basic, standard or premium.
 
-* `capacity` - (Optional) Specifies the capacity. When `sku` is `Premium` can be `1`, `2` or `4`. When `sku` is `Basic` or `Standard` can be `0` only.
+* `capacity` - (Optional) Specifies the capacity. When `sku` is `Premium`, capacity can be `1`, `2`, `4` or `8`. When `sku` is `Basic` or `Standard`, capacity can be `0` only.
 
 * `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Defaults to `false`.
 
@@ -74,5 +75,5 @@ The following attributes are exported only if there is an authorization rule nam
 Service Bus Namespace can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_servicebus_namespace.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1
+terraform import azurerm_servicebus_namespace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1
 ```

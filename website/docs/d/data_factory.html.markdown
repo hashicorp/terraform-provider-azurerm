@@ -1,4 +1,5 @@
 ---
+subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory"
 sidebar_current: "docs-azurerm-datasource-data-factory-x"
@@ -15,7 +16,7 @@ Use this data source to access information about an existing Azure Data Factory 
 ```hcl
 
 data "azurerm_data_factory" "example" {
-  name            = "${azurerm_data_factory.example.name}"
+  name                = "${azurerm_data_factory.example.name}"
   resource_group_name = "${azurerm_data_factory.example.resource_group_name}"
 }
 

@@ -9,10 +9,11 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -28,6 +29,13 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 		SchemaVersion: 1,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -85,7 +93,11 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("error opening file %q: %+v", localFilePath, err)
 	}
-	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Data Lake Store File %q", localFilePath))
+	defer func(c io.Closer) {
+		if err := c.Close(); err != nil {
+			log.Printf("[DEBUG] Error closing Data Lake Store File %q: %+v", localFilePath, err)
+		}
+	}(file)
 
 	if _, err = client.Create(ctx, accountName, remoteFilePath, nil, nil, filesystem.DATA, nil, nil); err != nil {
 		return fmt.Errorf("Error issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)

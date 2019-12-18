@@ -27,6 +27,13 @@ func resourceArmAutomationModule() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -39,7 +46,7 @@ func resourceArmAutomationModule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -135,7 +142,6 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 		Target: []string{
 			string(automation.ModuleProvisioningStateSucceeded),
 		},
-		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, resGroup, accName, name)
@@ -149,6 +155,15 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 
 			return resp, "Unknown", nil
 		},
+	}
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
+	} else {
+		stateConf.Timeout = 30 * time.Minute
 	}
 
 	_, err := stateConf.WaitForState()

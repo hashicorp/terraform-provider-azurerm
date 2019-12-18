@@ -627,7 +627,7 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_proximity_placement_group" "test" {
-	name 								= "accPPG-%[1]d"
+  name                = "accPPG-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }

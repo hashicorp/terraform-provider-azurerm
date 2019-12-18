@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -12,7 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,8 +26,16 @@ func resourceArmAppService() *schema.Resource {
 		Read:   resourceArmAppServiceRead,
 		Update: resourceArmAppServiceUpdate,
 		Delete: resourceArmAppServiceDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := webSvc.ParseAppServiceID(id)
+			return err
+		}),
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -239,7 +250,8 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentity := azure.ExpandAppServiceIdentity(d)
+		appServiceIdentityRaw := d.Get("identity").([]interface{})
+		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -310,13 +322,13 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := webSvc.ParseAppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["sites"]
+	name := id.Name
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
@@ -447,7 +459,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("storage_account") {
-		storageAccounts := azure.ExpandAppServiceStorageAccounts(d)
+		storageAccountsRaw := d.Get("storage_account").(*schema.Set).List()
+		storageAccounts := azure.ExpandAppServiceStorageAccounts(storageAccountsRaw)
 		properties := web.AzureStoragePropertyDictionaryResource{
 			Properties: storageAccounts,
 		}
@@ -475,7 +488,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("Error getting configuration for App Service %q: %+v", name, err)
 		}
 
-		appServiceIdentity := azure.ExpandAppServiceIdentity(d)
+		appServiceIdentityRaw := d.Get("identity").([]interface{})
+		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
 		site.Identity = appServiceIdentity
 
 		future, err := client.CreateOrUpdate(ctx, resGroup, name, site)
@@ -497,13 +511,13 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := webSvc.ParseAppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["sites"]
+	name := id.Name
 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
@@ -659,12 +673,13 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := webSvc.ParseAppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
+
 	resGroup := id.ResourceGroup
-	name := id.Path["sites"]
+	name := id.Name
 
 	log.Printf("[DEBUG] Deleting App Service %q (resource group %q)", name, resGroup)
 

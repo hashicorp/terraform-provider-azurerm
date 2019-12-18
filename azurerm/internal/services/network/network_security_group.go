@@ -7,24 +7,26 @@ import (
 )
 
 type NetworkSecurityGroupResourceID struct {
-	Base azure.ResourceID
-
-	Name string
+	ResourceGroup string
+	Name          string
 }
 
-func ParseNetworkSecurityGroupResourceID(input string) (*NetworkSecurityGroupResourceID, error) {
+func ParseNetworkSecurityGroupID(input string) (*NetworkSecurityGroupResourceID, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Network Security Group ID %q: %+v", input, err)
 	}
 
 	networkSecurityGroup := NetworkSecurityGroupResourceID{
-		Base: *id,
-		Name: id.Path["networkSecurityGroups"],
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if networkSecurityGroup.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `networkSecurityGroups` element")
+	if networkSecurityGroup.Name, err = id.PopSegment("networkSecurityGroups"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
 	return &networkSecurityGroup, nil

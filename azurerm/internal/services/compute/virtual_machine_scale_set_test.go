@@ -2,8 +2,6 @@ package compute
 
 import (
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestParseVirtualMachineScaleSetID(t *testing.T) {
@@ -31,10 +29,8 @@ func TestParseVirtualMachineScaleSetID(t *testing.T) {
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualMachineScaleSets/example",
 			Expected: &VirtualMachineScaleSetResourceID{
-				Name: "example",
-				Base: azure.ResourceID{
-					ResourceGroup: "foo",
-				},
+				Name:          "example",
+				ResourceGroup: "foo",
 			},
 		},
 	}
@@ -42,7 +38,7 @@ func TestParseVirtualMachineScaleSetID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseVirtualMachineScaleSetResourceID(v.Input)
+		actual, err := ParseVirtualMachineScaleSetID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -55,8 +51,8 @@ func TestParseVirtualMachineScaleSetID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
-		if actual.Base.ResourceGroup != v.Expected.Base.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.Base.ResourceGroup, actual.Base.ResourceGroup)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
 }

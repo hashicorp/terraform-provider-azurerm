@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -26,6 +27,13 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 		Delete: resourceArmMsSqlElasticPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -196,7 +204,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 }
 
 func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mssql.ElasticPoolsClient
+	client := meta.(*ArmClient).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -271,7 +279,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mssql.ElasticPoolsClient
+	client := meta.(*ArmClient).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -327,7 +335,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mssql.ElasticPoolsClient
+	client := meta.(*ArmClient).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -379,22 +387,26 @@ func expandAzureRmMsSqlElasticPoolSku(d *schema.ResourceData) *sql.Sku {
 	}
 }
 
-func flattenAzureRmMsSqlElasticPoolSku(resp *sql.Sku) []interface{} {
+func flattenAzureRmMsSqlElasticPoolSku(input *sql.Sku) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	values := map[string]interface{}{}
 
-	if name := resp.Name; name != nil {
+	if name := input.Name; name != nil {
 		values["name"] = *name
 	}
 
-	if tier := resp.Tier; tier != nil {
+	if tier := input.Tier; tier != nil {
 		values["tier"] = *tier
 	}
 
-	if family := resp.Family; family != nil {
+	if family := input.Family; family != nil {
 		values["family"] = *family
 	}
 
-	if capacity := resp.Capacity; capacity != nil {
+	if capacity := input.Capacity; capacity != nil {
 		values["capacity"] = *capacity
 	}
 

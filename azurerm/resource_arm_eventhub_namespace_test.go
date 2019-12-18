@@ -66,31 +66,6 @@ func TestAccAzureRMEventHubNamespace_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_KafkaEnabled(t *testing.T) {
-	resourceName := "azurerm_eventhub_namespace.test"
-	ri := tf.AccRandTimeInt()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_KafkaEnabled(ri, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kafka_enabled", "true"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func TestAccAzureRMEventHubNamespace_standard(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := tf.AccRandTimeInt()
@@ -476,23 +451,6 @@ resource "azurerm_eventhub_namespace" "import" {
   sku                 = "${azurerm_eventhub_namespace.test.sku}"
 }
 `, template)
-}
-
-func testAccAzureRMEventHubNamespace_KafkaEnabled(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-  kafka_enabled       = true
-}
-`, rInt, location, rInt)
 }
 
 func testAccAzureRMEventHubNamespace_standard(rInt int, location string) string {

@@ -34,6 +34,13 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -186,9 +193,18 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
 		Refresh:                   policySetDefinitionRefreshFunc(ctx, client, name, managementGroupID),
-		Timeout:                   5 * time.Minute,
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
+	}
+
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
+	} else {
+		stateConf.Timeout = 5 * time.Minute
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {

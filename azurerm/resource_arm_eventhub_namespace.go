@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -33,6 +33,13 @@ func resourceArmEventHubNamespace() *schema.Resource {
 		Delete: resourceArmEventHubNamespaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -71,10 +78,10 @@ func resourceArmEventHubNamespace() *schema.Resource {
 			},
 
 			"kafka_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This field is now automatically set depending on the SKU used - as such it's no longer used and will be removed in 2.0 of the Azure Provider",
 			},
 
 			"maximum_throughput_units": {
@@ -209,7 +216,6 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 	capacity := int32(d.Get("capacity").(int))
 	t := d.Get("tags").(map[string]interface{})
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
-	kafkaEnabled := d.Get("kafka_enabled").(bool)
 
 	parameters := eventhub.EHNamespace{
 		Location: &location,
@@ -220,7 +226,6 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 		},
 		EHNamespaceProperties: &eventhub.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
-			KafkaEnabled:         utils.Bool(kafkaEnabled),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -307,8 +312,10 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 
 	if props := resp.EHNamespaceProperties; props != nil {
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
-		d.Set("kafka_enabled", props.KafkaEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
+
+		// TODO: remove me in 2.0
+		d.Set("kafka_enabled", props.KafkaEnabled)
 	}
 
 	ruleset, err := client.GetNetworkRuleSet(ctx, resGroup, name)
@@ -353,18 +360,24 @@ func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error issuing delete request of EventHub Namespace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	return waitForEventHubNamespaceToBeDeleted(ctx, client, resGroup, name)
+	return waitForEventHubNamespaceToBeDeleted(ctx, client, resGroup, name, d)
 }
 
-func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *eventhub.NamespacesClient, resourceGroup, name string) error {
+func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *eventhub.NamespacesClient, resourceGroup, name string, d *schema.ResourceData) error {
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for EventHub Namespace (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200"},
 		Target:  []string{"404"},
 		Refresh: eventHubNamespaceStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: 40 * time.Minute,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		stateConf.Timeout = 40 * time.Minute
+	}
+
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for EventHub NameSpace (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}

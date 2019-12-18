@@ -3,11 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -17,13 +20,21 @@ import (
 
 func resourceArmCosmosDbMongoDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbMongoDatabaseCreateUpdate,
+		Create: resourceArmCosmosDbMongoDatabaseCreate,
+		Update: resourceArmCosmosDbMongoDatabaseUpdate,
 		Read:   resourceArmCosmosDbMongoDatabaseRead,
 		Update: resourceArmCosmosDbMongoDatabaseCreateUpdate,
 		Delete: resourceArmCosmosDbMongoDatabaseDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -46,7 +57,7 @@ func resourceArmCosmosDbMongoDatabase() *schema.Resource {
 			"throughput": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Default:      400,
+				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
 			},
 		},
@@ -63,7 +74,7 @@ func resourceArmCosmosDbMongoDatabaseCreateUpdate(d *schema.ResourceData, meta i
 	account := d.Get("account_name").(string)
 	throughput := d.Get("throughput").(int)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -86,6 +97,12 @@ func resourceArmCosmosDbMongoDatabaseCreateUpdate(d *schema.ResourceData, meta i
 			},
 			Options: map[string]*string{},
 		},
+	}
+
+	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
+		db.MongoDBDatabaseCreateUpdateProperties.Options = map[string]*string{
+			"throughput": utils.String(strconv.Itoa(throughput.(int))),
+		}
 	}
 
 	future, err := client.CreateUpdateMongoDBDatabase(ctx, resourceGroup, account, name, db)
@@ -128,6 +145,65 @@ func resourceArmCosmosDbMongoDatabaseCreateUpdate(d *schema.ResourceData, meta i
 	return resourceArmCosmosDbMongoDatabaseRead(d, meta)
 }
 
+func resourceArmCosmosDbMongoDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseCosmosDatabaseID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	db := documentdb.MongoDBDatabaseCreateUpdateParameters{
+		MongoDBDatabaseCreateUpdateProperties: &documentdb.MongoDBDatabaseCreateUpdateProperties{
+			Resource: &documentdb.MongoDBDatabaseResource{
+				ID: &id.Database,
+			},
+			Options: map[string]*string{},
+		},
+	}
+
+	future, err := client.CreateUpdateMongoDBDatabase(ctx, id.ResourceGroup, id.Account, id.Database, db)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for Cosmos Mongo Database %s (Account %s): %+v", id.Database, id.Account, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Database %s (Account %s): %+v", id.Database, id.Account, err)
+	}
+
+	if d.HasChange("throughput") {
+		throughputParameters := documentdb.ThroughputUpdateParameters{
+			ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
+				Resource: &documentdb.ThroughputResource{
+					Throughput: utils.Int32(int32(d.Get("throughput").(int))),
+				},
+			},
+		}
+
+		throughputFuture, err := client.UpdateMongoDBDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Database, throughputParameters)
+		if err != nil {
+			if throughputFuture.Response().StatusCode == http.StatusNotFound {
+				d.Set("throughput", nil)
+				return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Database %s (Account %s): %+v - "+
+					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Database, id.Account, err)
+			}
+		}
+
+		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Mongo Database %s (Account %s, Database %s): %+v", id.Database, id.Account, id.Database, err)
+		}
+	}
+
+	_, err = client.GetMongoDBDatabase(ctx, id.ResourceGroup, id.Account, id.Database)
+	if err != nil {
+		return fmt.Errorf("Error making get request for Cosmos Mongo Database %s (Account %s): %+v", id.Database, id.Account, err)
+	}
+
+	return resourceArmCosmosDbMongoDatabaseRead(d, meta)
+}
+
 func resourceArmCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
@@ -157,11 +233,13 @@ func resourceArmCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface
 
 	throughputResp, err := client.GetMongoDBDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Database)
 	if err != nil {
-		return fmt.Errorf("Error reading Throughput on Cosmos Mongo Database %s (Account %s): %+v", id.Database, id.Account, err)
-	}
-
-	if throughput := throughputResp.Throughput; throughput != nil {
-		d.Set("throughput", int(*throughput))
+		if !utils.ResponseWasNotFound(throughputResp.Response) {
+			return fmt.Errorf("Error reading Throughput on Cosmos Mongo Database %s (Account %s): %+v", id.Database, id.Account, err)
+		} else {
+			d.Set("throughput", nil)
+		}
+	} else {
+		d.Set("throughput", throughputResp.Throughput)
 	}
 
 	return nil

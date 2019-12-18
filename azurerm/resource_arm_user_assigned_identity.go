@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -23,6 +24,13 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 		Delete: resourceArmUserAssignedIdentityDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -53,7 +61,7 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 }
 
 func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
+	client := meta.(*ArmClient).MSI.UserAssignedIdentitiesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -102,7 +110,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
+	client := meta.(*ArmClient).MSI.UserAssignedIdentitiesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -140,7 +148,7 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmUserAssignedIdentityDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
+	client := meta.(*ArmClient).MSI.UserAssignedIdentitiesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

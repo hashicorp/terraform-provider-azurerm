@@ -58,11 +58,11 @@ func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) err
 	defer cancel()
 
 	var servicePrincipal *graphrbac.ServicePrincipal
-	if client.usingServicePrincipal {
+	if client.Account.AuthenticatedAsAServicePrincipal {
 		spClient := client.Graph.ServicePrincipalsClient
 		// Application & Service Principal is 1:1 per tenant. Since we know the appId (client_id)
 		// here, we can query for the Service Principal whose appId matches.
-		filter := fmt.Sprintf("appId eq '%s'", client.clientId)
+		filter := fmt.Sprintf("appId eq '%s'", client.Account.ClientId)
 		listResult, listErr := spClient.List(ctx, filter)
 
 		if listErr != nil {
@@ -77,23 +77,17 @@ func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	d.SetId(time.Now().UTC().String())
-	d.Set("client_id", client.clientId)
-	d.Set("tenant_id", client.tenantId)
-	d.Set("subscription_id", client.subscriptionId)
+	d.Set("client_id", client.Account.ClientId)
+	d.Set("object_id", client.Account.ObjectId)
+	d.Set("subscription_id", client.Account.SubscriptionId)
+	d.Set("tenant_id", client.Account.TenantId)
 
 	if principal := servicePrincipal; principal != nil {
-		d.Set("service_principal_application_id", client.clientId)
+		d.Set("service_principal_application_id", client.Account.ClientId)
 		d.Set("service_principal_object_id", principal.ObjectID)
 	} else {
 		d.Set("service_principal_application_id", "")
 		d.Set("service_principal_object_id", "")
-	}
-
-	d.Set("object_id", "")
-	if v, err := client.getAuthenticatedObjectID(ctx); err != nil {
-		return fmt.Errorf("Error getting authenticated object ID: %v", err)
-	} else {
-		d.Set("object_id", v)
 	}
 
 	return nil
