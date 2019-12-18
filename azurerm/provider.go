@@ -159,6 +159,7 @@ func Provider() terraform.ResourceProvider {
 	}
 
 	resources := map[string]*schema.Resource{
+		"azurerm_advanced_threat_protection":                            resourceArmAdvancedThreatProtection(),
 		"azurerm_analysis_services_server":                              resourceArmAnalysisServicesServer(),
 		"azurerm_api_management":                                        resourceArmApiManagementService(),
 		"azurerm_api_management_api":                                    resourceArmApiManagementApi(),
