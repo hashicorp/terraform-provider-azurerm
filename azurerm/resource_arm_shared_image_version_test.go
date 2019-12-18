@@ -92,7 +92,6 @@ func TestAccAzureRMSharedImageVersion_storageAccountTypeLrs(t *testing.T) {
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
 					resource.TestCheckResourceAttr(resourceName, "target_region.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "target_region.0.storage_account_type", "Standard_LRS"),
 				),
 			},
 			{
@@ -134,7 +133,6 @@ func TestAccAzureRMSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
 					resource.TestCheckResourceAttr(resourceName, "target_region.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "target_region.0.storage_account_type", "Standard_ZRS"),
 				),
 			},
 			{

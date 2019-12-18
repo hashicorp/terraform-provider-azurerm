@@ -86,6 +86,7 @@ func resourceArmSharedImageVersion() *schema.Resource {
 						"storage_account_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 						},
 					},
