@@ -57,14 +57,14 @@ func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, met
 	resourceID := d.Get("target_resource_id").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		server, err := client.Get(ctx, "target_resource_id")
+		server, err := client.Get(ctx, resourceID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
 				return fmt.Errorf("Error checking for presence of existing Advanced Threat Protection for resource %q: %+v", resourceID, err)
 			}
 		}
 
-		if server.ID != nil && *server.ID != "" {
+		if server.ID != nil && *server.ID != "" && server.IsEnabled != nil && *server.IsEnabled {
 			return tf.ImportAsExistsError("azurerm_advanced_threat_protection", *server.ID)
 		}
 	}
