@@ -212,7 +212,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_azuread_service_principal_password":                    resourceArmActiveDirectoryServicePrincipalPassword(),
 		"azurerm_azuread_service_principal":                             resourceArmActiveDirectoryServicePrincipal(),
 		"azurerm_backup_protected_vm":                                   resourceArmRecoveryServicesBackupProtectedVM(),
-		"azurerm_backup_policy_vm":                           resourceArmBackupProtectionPolicyVM(),
+		"azurerm_backup_policy_vm":                                      resourceArmBackupProtectionPolicyVM(),
 		"azurerm_bastion_host":                                          resourceArmBastionHost(),
 		"azurerm_batch_account":                                         resourceArmBatchAccount(),
 		"azurerm_batch_application":                                     resourceArmBatchApplication(),
