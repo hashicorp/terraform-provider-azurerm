@@ -2,6 +2,8 @@ package azurerm
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -11,10 +13,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+const ArmAccCapacityAdminEmail = "ARM_ACCTEST_CAPACITY_ADMIN_EMAIL"
+const ArmAccCapacityAdminServicePrincipal = "ARM_ACCTEST_ADMIN_SERVICE_PRINCIPAL"
+
 func TestAccAzureRMPowerBIDedicatedCapacity_basic(t *testing.T) {
 	resourceName := "azurerm_powerbi_dedicated_capacity.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
+	capacityAdminEmail := os.Getenv(ArmAccCapacityAdminEmail)
+	if capacityAdminEmail == "" {
+		t.Skip(fmt.Sprintf("Acceptance test skipped unless env '%s' set", ArmAccCapacityAdminEmail))
+		return
+	}
+	capacityAdmins := []string{capacityAdminEmail}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +33,7 @@ func TestAccAzureRMPowerBIDedicatedCapacity_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPowerBIDedicatedCapacityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIDedicatedCapacity_basic(ri, location),
+				Config: testAccAzureRMPowerBIDedicatedCapacity_basic(ri, location, capacityAdmins),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPowerBIDedicatedCapacityExists(resourceName),
 				),
@@ -45,6 +56,12 @@ func TestAccAzureRMPowerBIDedicatedCapacity_requiresImport(t *testing.T) {
 	resourceName := "azurerm_powerbi_dedicated_capacity.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
+	capacityAdminEmail := os.Getenv(ArmAccCapacityAdminEmail)
+	if capacityAdminEmail == "" {
+		t.Skip(fmt.Sprintf("Acceptance test skipped unless env '%s' set", ArmAccCapacityAdminEmail))
+		return
+	}
+	capacityAdmins := []string{capacityAdminEmail}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -52,13 +69,13 @@ func TestAccAzureRMPowerBIDedicatedCapacity_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPowerBIDedicatedCapacityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIDedicatedCapacity_basic(ri, location),
+				Config: testAccAzureRMPowerBIDedicatedCapacity_basic(ri, location, capacityAdmins),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPowerBIDedicatedCapacityExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMPowerBIDedicatedCapacity_requiresImport(ri, location),
+				Config:      testAccAzureRMPowerBIDedicatedCapacity_requiresImport(ri, location, capacityAdmins),
 				ExpectError: testRequiresImportError("azurerm_powerbi_dedicated_capacity"),
 			},
 		},
@@ -69,6 +86,12 @@ func TestAccAzureRMPowerBIDedicatedCapacity_complete(t *testing.T) {
 	resourceName := "azurerm_powerbi_dedicated_capacity.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
+	capacityAdminServicePrincipal := os.Getenv(ArmAccCapacityAdminServicePrincipal)
+	if capacityAdminServicePrincipal == "" {
+		t.Skip(fmt.Sprintf("Acceptance test skipped unless env '%s' set", ArmAccCapacityAdminServicePrincipal))
+		return
+	}
+	capacityAdmins := []string{capacityAdminServicePrincipal}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -76,11 +99,11 @@ func TestAccAzureRMPowerBIDedicatedCapacity_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPowerBIDedicatedCapacityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIDedicatedCapacity_complete(ri, location),
+				Config: testAccAzureRMPowerBIDedicatedCapacity_complete(ri, location, capacityAdmins),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPowerBIDedicatedCapacityExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku_name", "A2"),
-					resource.TestCheckResourceAttr(resourceName, "administrators.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "administrators.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.ENV", "Test"),
 				),
 			},
@@ -97,6 +120,14 @@ func TestAccAzureRMPowerBIDedicatedCapacity_update(t *testing.T) {
 	resourceName := "azurerm_powerbi_dedicated_capacity.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
+	capacityAdminEmail := os.Getenv(ArmAccCapacityAdminEmail)
+	capacityAdminServicePrincipal := os.Getenv(ArmAccCapacityAdminServicePrincipal)
+	if capacityAdminEmail == "" || capacityAdminServicePrincipal == "" {
+		t.Skip(fmt.Sprintf("Acceptance test skipped unless env '%s' and '%s' set", ArmAccCapacityAdminEmail, ArmAccCapacityAdminServicePrincipal))
+		return
+	}
+	preCapacityAdmins := []string{capacityAdminEmail, capacityAdminServicePrincipal}
+	postCapacityAdmins := []string{capacityAdminEmail}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -104,11 +135,11 @@ func TestAccAzureRMPowerBIDedicatedCapacity_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPowerBIDedicatedCapacityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPowerBIDedicatedCapacity_basic(ri, location),
+				Config: testAccAzureRMPowerBIDedicatedCapacity_basic(ri, location, preCapacityAdmins),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPowerBIDedicatedCapacityExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku_name", "A1"),
-					resource.TestCheckResourceAttr(resourceName, "administrators.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "administrators.#", "2"),
 				),
 			},
 			{
@@ -117,11 +148,11 @@ func TestAccAzureRMPowerBIDedicatedCapacity_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMPowerBIDedicatedCapacity_complete(ri, location),
+				Config: testAccAzureRMPowerBIDedicatedCapacity_complete(ri, location, postCapacityAdmins),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPowerBIDedicatedCapacityExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku_name", "A2"),
-					resource.TestCheckResourceAttr(resourceName, "administrators.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "administrators.#", "1"),
 				),
 			},
 			{
@@ -181,7 +212,7 @@ func testCheckAzureRMPowerBIDedicatedCapacityDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMPowerBIDedicatedCapacity_basic(rInt int, location string) string {
+func testAccAzureRMPowerBIDedicatedCapacity_basic(rInt int, location string, capacityAdmins []string) string {
 	template := testAccAzureRMPowerBIDedicatedCapacity_template(rInt, location)
 	return fmt.Sprintf(`
 %s
@@ -191,12 +222,12 @@ resource "azurerm_powerbi_dedicated_capacity" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku_name            = "A1"
-  administrators      = ["test2@microsoft.onmicrosoft.com"]
+  administrators      = ["%s"]
 }
-`, template, rInt)
+`, template, rInt, strings.Join(capacityAdmins, "\", \""))
 }
 
-func testAccAzureRMPowerBIDedicatedCapacity_requiresImport(rInt int, location string) string {
+func testAccAzureRMPowerBIDedicatedCapacity_requiresImport(rInt int, location string, capacityAdmins []string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -205,10 +236,10 @@ resource "azurerm_powerbi_dedicated_capacity" "import" {
   location            = "${azurerm_powerbi_dedicated_capacity.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, testAccAzureRMPowerBIDedicatedCapacity_basic(rInt, location))
+`, testAccAzureRMPowerBIDedicatedCapacity_basic(rInt, location, capacityAdmins))
 }
 
-func testAccAzureRMPowerBIDedicatedCapacity_complete(rInt int, location string) string {
+func testAccAzureRMPowerBIDedicatedCapacity_complete(rInt int, location string, capacityAdmins []string) string {
 	template := testAccAzureRMPowerBIDedicatedCapacity_template(rInt, location)
 	return fmt.Sprintf(`
 %s
@@ -218,13 +249,13 @@ resource "azurerm_powerbi_dedicated_capacity" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku_name            = "A2"
-  administrators      = ["test2@microsoft.onmicrosoft.com", "b1b1f3bc-050d-401c-857a-b872ce501819"]
+  administrators      = ["%s"]
 
   tags = {
     ENV = "Test"
   }
 }
-`, template, rInt)
+`, template, rInt, strings.Join(capacityAdmins, "\", \""))
 }
 
 func testAccAzureRMPowerBIDedicatedCapacity_template(rInt int, location string) string {
