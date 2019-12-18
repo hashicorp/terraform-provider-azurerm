@@ -40,7 +40,7 @@ resource "azurerm_api_management_diagnostic" "test" {
 
 The following arguments are supported:
 
-* `identifier` - (Required) The diagnostic identifier for the API Management Service. Allowed values are `applicationinsights`.
+* `identifier` - (Required) The diagnostic identifier for the API Management Service. At this time the only supported value is `applicationinsights`. Changing this forces a new resource to be created.
 
 * `api_management_name` - (Required) The Name of the API Management Service where this Diagnostic should be created. Changing this forces a new resource to be created.
 
@@ -58,7 +58,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-API Management Diagnostics can be imported using their `resource id`, e.g.
+API Management Diagnostics can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_api_management_diagnostic.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/diagnostics/applicationinsights

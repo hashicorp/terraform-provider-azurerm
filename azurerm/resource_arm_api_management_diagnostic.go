@@ -36,6 +36,7 @@ func resourceArmApiManagementDiagnostic() *schema.Resource {
 			"identifier": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"applicationinsights",
 				}, false),
