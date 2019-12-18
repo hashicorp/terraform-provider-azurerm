@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -17,11 +19,11 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_avro(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_reference_input_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -47,11 +49,11 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_csv(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_reference_input_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -77,11 +79,11 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_json(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_reference_input_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -107,11 +109,11 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_update(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_reference_input_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -148,11 +150,11 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_requiresImport(t *testing.T
 	resourceName := "azurerm_stream_analytics_reference_input_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -163,7 +165,7 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_requiresImport(t *testing.T
 			},
 			{
 				Config:      testAccAzureRMStreamAnalyticsReferenceInputBlob_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_stream_analytics_reference_input_blob"),
+				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_reference_input_blob"),
 			},
 		},
 	})
@@ -181,8 +183,8 @@ func testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName string
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.InputsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.InputsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on streamAnalyticsInputsClient: %+v", err)
@@ -197,7 +199,7 @@ func testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName string
 }
 
 func testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.InputsClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.InputsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_reference_input_blob" {
@@ -207,7 +209,7 @@ func testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy(s *terraform.State
 		name := rs.Primary.Attributes["name"]
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return nil

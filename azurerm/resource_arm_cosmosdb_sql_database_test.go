@@ -43,13 +43,13 @@ func TestAccAzureRMCosmosDbSqlDatabase_update(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_sql_database.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbSqlDatabase_throughput(ri, testLocation(), 700),
+				Config: testAccAzureRMCosmosDbSqlDatabase_throughput(ri, acceptance.Location(), 700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "700"),
@@ -62,7 +62,7 @@ func TestAccAzureRMCosmosDbSqlDatabase_update(t *testing.T) {
 			},
 			{
 
-				Config: testAccAzureRMCosmosDbSqlDatabase_throughput(ri, testLocation(), 1700),
+				Config: testAccAzureRMCosmosDbSqlDatabase_throughput(ri, acceptance.Location(), 1700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "1700"),

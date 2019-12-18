@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -53,9 +54,9 @@ func resourceArmBackupProtectionContainerStorageAccount() *schema.Resource {
 }
 
 func resourceArmBackupProtectionContainerStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).RecoveryServices.BackupProtectionContainersClient
-	opStatusClient := meta.(*ArmClient).RecoveryServices.BackupOperationStatusesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
+	opStatusClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resGroup := d.Get("resource_group_name").(string)
@@ -138,8 +139,8 @@ func resourceArmBackupProtectionContainerStorageAccountRead(d *schema.ResourceDa
 	fabricName := id.Path["backupFabrics"]
 	containerName := id.Path["protectionContainers"]
 
-	client := meta.(*ArmClient).RecoveryServices.BackupProtectionContainersClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resp, err := client.Get(ctx, vaultName, resGroup, fabricName, containerName)
@@ -172,9 +173,9 @@ func resourceArmBackupProtectionContainerStorageAccountDelete(d *schema.Resource
 	fabricName := id.Path["backupFabrics"]
 	containerName := id.Path["protectionContainers"]
 
-	client := meta.(*ArmClient).RecoveryServices.BackupProtectionContainersClient
-	opClient := meta.(*ArmClient).RecoveryServices.BackupOperationStatusesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
+	opClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resp, err := client.Unregister(ctx, vaultName, resGroup, fabricName, containerName)

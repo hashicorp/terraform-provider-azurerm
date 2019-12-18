@@ -212,7 +212,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("secondary_key", adminKeysResp.SecondaryKey)
 	}
 
-	queryKeysClient := meta.(*ArmClient).Search.QueryKeysClient
+	queryKeysClient := meta.(*clients.Client).Search.QueryKeysClient
 	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, resourceGroup, name, nil)
 	if err == nil {
 		d.Set("query_keys", flattenSearchQueryKeys(queryKeysResp.Value))

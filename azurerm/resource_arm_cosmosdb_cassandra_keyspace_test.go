@@ -42,12 +42,12 @@ func TestAccAzureRMCosmosDbCassandraKeyspace_complete(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_cassandra_keyspace.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbCassandraKeyspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbCassandraKeyspace_throughput(ri, testLocation(), 700),
+				Config: testAccAzureRMCosmosDbCassandraKeyspace_throughput(ri, acceptance.Location(), 700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "700"),
@@ -67,12 +67,12 @@ func TestAccAzureRMCosmosDbCassandraKeyspace_update(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_cassandra_keyspace.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbCassandraKeyspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbCassandraKeyspace_throughput(ri, testLocation(), 700),
+				Config: testAccAzureRMCosmosDbCassandraKeyspace_throughput(ri, acceptance.Location(), 700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "700"),
@@ -84,7 +84,7 @@ func TestAccAzureRMCosmosDbCassandraKeyspace_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMCosmosDbCassandraKeyspace_throughput(ri, testLocation(), 1700),
+				Config: testAccAzureRMCosmosDbCassandraKeyspace_throughput(ri, acceptance.Location(), 1700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "1700"),

@@ -43,11 +43,11 @@ func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 func TestAccAzureRMDnsMxRecord_rootrecord(t *testing.T) {
 	resourceName := "azurerm_dns_mx_record.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsMxRecord_rootrecord(ri, testLocation())
+	config := testAccAzureRMDnsMxRecord_rootrecord(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{

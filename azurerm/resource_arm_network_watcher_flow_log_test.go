@@ -8,16 +8,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,11 +48,11 @@ func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
 func testAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -75,11 +77,11 @@ func testAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
 func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -122,11 +124,11 @@ func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -174,11 +176,11 @@ func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -226,11 +228,11 @@ func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -311,8 +313,8 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 
 func testCheckAzureRMNetworkWatcherFlowLogExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Network.WatcherClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]

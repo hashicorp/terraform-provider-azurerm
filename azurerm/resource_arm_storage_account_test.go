@@ -754,13 +754,13 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMStorageAccount_blobProperties(ri, rs, location)
 	postConfig := testAccAzureRMStorageAccount_blobPropertiesUpdated(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{

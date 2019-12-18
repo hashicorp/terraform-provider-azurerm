@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMApiManagementDiagnostic_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_diagnostic.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagementDiagnostic_basic(ri, testLocation())
+	config := testAccAzureRMApiManagementDiagnostic_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDiagnosticDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,11 +46,11 @@ func TestAccAzureRMApiManagementDiagnostic_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_diagnostic.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,14 +61,14 @@ func TestAccAzureRMApiManagementDiagnostic_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApiManagementDiagnostic_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_diagnostic"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_diagnostic"),
 			},
 		},
 	})
 }
 
 func testCheckAzureRMApiManagementDiagnosticDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).ApiManagement.DiagnosticClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.DiagnosticClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_diagnostic" {
 			continue
@@ -76,7 +78,7 @@ func testCheckAzureRMApiManagementDiagnosticDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, identifier)
 
 		if err != nil {
@@ -101,8 +103,8 @@ func testCheckAzureRMApiManagementDiagnosticExists(resourceName string) resource
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).ApiManagement.DiagnosticClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.DiagnosticClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, identifier)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

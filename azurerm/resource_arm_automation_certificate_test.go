@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,12 +27,12 @@ func TestAccAzureRMAutomationCertificate_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationCertificate_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationCertificate_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationCertificateExists(resourceName),
 				),
@@ -53,11 +55,11 @@ func TestAccAzureRMAutomationCertificate_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_automation_certificate.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -68,7 +70,7 @@ func TestAccAzureRMAutomationCertificate_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAutomationCertificate_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_automation_certificate"),
+				ExpectError: acceptance.RequiresImportError("azurerm_automation_certificate"),
 			},
 		},
 	})
@@ -80,12 +82,12 @@ func TestAccAzureRMAutomationCertificate_complete(t *testing.T) {
 	testCertThumbprint := strings.TrimSpace(string(testCertThumbprintRaw))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationCertificate_complete(ri, testLocation()),
+				Config: testAccAzureRMAutomationCertificate_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationCertificateExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "base64", testCertBase64),
@@ -107,12 +109,12 @@ func TestAccAzureRMAutomationCertificate_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationCertificate_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationCertificate_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationCertificateExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
@@ -125,7 +127,7 @@ func TestAccAzureRMAutomationCertificate_update(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"base64"},
 			},
 			{
-				Config: testAccAzureRMAutomationCertificate_update(ri, testLocation()),
+				Config: testAccAzureRMAutomationCertificate_update(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationCertificateExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", "This is a test certificate for terraform acceptance test"),
@@ -142,8 +144,8 @@ func TestAccAzureRMAutomationCertificate_update(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationCertificateDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Automation.CertificateClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.CertificateClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_automation_certificate" {
@@ -182,8 +184,8 @@ func testCheckAzureRMAutomationCertificateExists(resourceName string) resource.T
 		accName := rs.Primary.Attributes["automation_account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).Automation.CertificateClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.CertificateClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 

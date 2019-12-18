@@ -30,8 +30,8 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS", "")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -65,7 +65,7 @@ func TestAccAzureRMImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "LRS")
 	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS", "V2")
 

@@ -175,8 +175,8 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Cosmos.DatabaseClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseCosmosDatabaseContainerID(d.Id())

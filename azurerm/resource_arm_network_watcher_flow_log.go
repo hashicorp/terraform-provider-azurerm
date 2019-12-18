@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -161,8 +162,8 @@ func azureRMSuppressFlowLogRetentionPolicyDaysDiff(k, old, new string, d *schema
 }
 
 func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.WatcherClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.WatcherClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	networkWatcherName := d.Get("network_watcher_name").(string)
@@ -207,8 +208,8 @@ func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.WatcherClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.WatcherClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := ParseNetworkWatcherFlowLogID(d.Id())
@@ -268,8 +269,8 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.WatcherClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.WatcherClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := ParseNetworkWatcherFlowLogID(d.Id())

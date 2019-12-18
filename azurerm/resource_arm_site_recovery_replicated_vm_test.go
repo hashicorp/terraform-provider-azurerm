@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMSiteRecoveryReplicatedVm_basic(t *testing.T) {
@@ -15,12 +17,12 @@ func TestAccAzureRMSiteRecoveryReplicatedVm_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSiteRecoveryReplicatedVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSiteRecoveryReplicatedVm_basic(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMSiteRecoveryReplicatedVm_basic(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSiteRecoveryReplicatedVmExists(replicationName),
 				),
@@ -225,8 +227,8 @@ func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceName string) resourc
 		protectionContainerName := state.Primary.Attributes["source_recovery_protection_container_name"]
 		replicationName := state.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, replicationName)
 		if err != nil {
@@ -253,8 +255,8 @@ func testCheckAzureRMSiteRecoveryReplicatedVmDestroy(s *terraform.State) error {
 		protectionContainerName := rs.Primary.Attributes["source_recovery_protection_container_name"]
 		replicationName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, replicationName)
 		if err != nil {

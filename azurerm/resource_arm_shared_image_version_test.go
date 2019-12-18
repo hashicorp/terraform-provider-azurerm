@@ -75,21 +75,21 @@ func TestAccAzureRMSharedImageVersion_storageAccountTypeLrs(t *testing.T) {
 	sshPort := "22"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMSharedImageVersion_setup(ri, testLocation(), userName, password, hostName),
+				Config:  testAccAzureRMSharedImageVersion_setup(ri, acceptance.Location(), userName, password, hostName),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, testLocation()),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, acceptance.Location()),
 				),
 			},
 			{
-				Config: testAccAzureRMSharedImageVersion_imageVersionStorageAccountType(ri, testLocation(), userName, password, hostName, "Standard_LRS"),
+				Config: testAccAzureRMSharedImageVersion_imageVersionStorageAccountType(ri, acceptance.Location(), userName, password, hostName, "Standard_LRS"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
@@ -116,21 +116,21 @@ func TestAccAzureRMSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 	sshPort := "22"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMSharedImageVersion_setup(ri, testLocation(), userName, password, hostName),
+				Config:  testAccAzureRMSharedImageVersion_setup(ri, acceptance.Location(), userName, password, hostName),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, testLocation()),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, acceptance.Location()),
 				),
 			},
 			{
-				Config: testAccAzureRMSharedImageVersion_imageVersionStorageAccountType(ri, testLocation(), userName, password, hostName, "Standard_ZRS"),
+				Config: testAccAzureRMSharedImageVersion_imageVersionStorageAccountType(ri, acceptance.Location(), userName, password, hostName, "Standard_ZRS"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),

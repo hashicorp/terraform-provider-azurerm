@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -19,12 +21,12 @@ func TestAccAzureRMBackupProtectedFileShare_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectedFileShare_basic(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedFileShare_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBackupProtectedFileShareExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
@@ -36,7 +38,7 @@ func TestAccAzureRMBackupProtectedFileShare_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{ //vault cannot be deleted unless we unregister all backups
-				Config: testAccAzureRMBackupProtectedFileShare_base(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedFileShare_base(ri, acceptance.Location()),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -53,23 +55,23 @@ func TestAccAzureRMBackupProtectedFileShare_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectedFileShare_basic(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedFileShare_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBackupProtectedFileShareExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
 				),
 			},
 			{
-				Config:      testAccAzureRMBackupProtectedFileShare_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_backup_protected_file_share"),
+				Config:      testAccAzureRMBackupProtectedFileShare_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_backup_protected_file_share"),
 			},
 			{ //vault cannot be deleted unless we unregister all backups
-				Config: testAccAzureRMBackupProtectedFileShare_base(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedFileShare_base(ri, acceptance.Location()),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -84,25 +86,25 @@ func TestAccAzureRMBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
 		Steps: []resource.TestStep{
 			{ // Create resources and link first backup policy id
-				Config: testAccAzureRMBackupProtectedFileShare_basic(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedFileShare_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(protectedFileShareResourceName, "backup_policy_id", fBackupPolicyResourceName, "id"),
 				),
 			},
 			{ // Modify backup policy id to the second one
 				// Set Destroy false to prevent error from cleaning up dangling resource
-				Config: testAccAzureRMBackupProtectedFileShare_updatePolicy(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedFileShare_updatePolicy(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(protectedFileShareResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
 				),
 			},
 			{ // Remove protected items first before the associated policies are deleted
-				Config: testAccAzureRMBackupProtectedFileShare_base(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedFileShare_base(ri, acceptance.Location()),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -132,8 +134,8 @@ func testCheckAzureRMBackupProtectedFileShareDestroy(s *terraform.State) error {
 		protectedItemName := fmt.Sprintf("AzureFileShare;%s", fileShareName)
 		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageID.ResourceGroup, accountName)
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectedItemsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {
@@ -179,8 +181,8 @@ func testCheckAzureRMBackupProtectedFileShareExists(resourceName string) resourc
 		protectedItemName := fmt.Sprintf("AzureFileShare;%s", fileShareName)
 		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageID.ResourceGroup, accountName)
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectedItemsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {

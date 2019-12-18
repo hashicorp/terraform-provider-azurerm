@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -15,11 +17,11 @@ import (
 func TestAccAzureRMNetAppVolume_basic(t *testing.T) {
 	resourceName := "azurerm_netapp_volume.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -47,19 +49,19 @@ func TestAccAzureRMNetAppVolume_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppVolume_basic(ri, testLocation()),
+				Config: testAccAzureRMNetAppVolume_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMNetAppVolume_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_netapp_volume"),
+				Config:      testAccAzureRMNetAppVolume_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_netapp_volume"),
 			},
 		},
 	})
@@ -68,11 +70,11 @@ func TestAccAzureRMNetAppVolume_requiresImport(t *testing.T) {
 func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
 	resourceName := "azurerm_netapp_volume.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -96,11 +98,11 @@ func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
 func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 	resourceName := "azurerm_netapp_volume.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -149,7 +151,7 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 func TestAccAzureRMNetAppVolume_updateSubnet(t *testing.T) {
 	resourceName := "azurerm_netapp_volume.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resourceGroupName := fmt.Sprintf("acctestRG-netapp-%d", ri)
 	oldVNetName := fmt.Sprintf("acctest-VirtualNetwork-%d", ri)
 	oldSubnetName := fmt.Sprintf("acctest-Subnet-%d", ri)
@@ -162,8 +164,8 @@ func TestAccAzureRMNetAppVolume_updateSubnet(t *testing.T) {
 	newSubnetId := fmt.Sprintf(uriTemplate, subscriptionID, resourceGroupName, newVNetName, newSubnetName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -197,11 +199,11 @@ func TestAccAzureRMNetAppVolume_updateSubnet(t *testing.T) {
 func TestAccAzureRMNetAppVolume_updateExportPolicyRule(t *testing.T) {
 	resourceName := "azurerm_netapp_volume.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -244,8 +246,8 @@ func testCheckAzureRMNetAppVolumeExists(resourceName string) resource.TestCheckF
 		poolName := rs.Primary.Attributes["pool_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).NetApp.VolumeClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.VolumeClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, accountName, poolName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -259,8 +261,8 @@ func testCheckAzureRMNetAppVolumeExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMNetAppVolumeDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).NetApp.VolumeClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.VolumeClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_netapp_volume" {

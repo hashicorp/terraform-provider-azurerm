@@ -19,8 +19,8 @@ func TestAccAzureRMHealthCareService_basic(t *testing.T) {
 	location := "westus2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -49,8 +49,8 @@ func TestAccAzureRMHealthCareService_requiresImport(t *testing.T) {
 	location := "westus2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +61,7 @@ func TestAccAzureRMHealthCareService_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMHealthCareService_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_healthcare_service"),
+				ExpectError: acceptance.RequiresImportError("azurerm_healthcare_service"),
 			},
 		},
 	})
@@ -75,7 +75,7 @@ func TestAccAzureRMHealthCareService_complete(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHealthcareServiceDestroy,
+		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHealthCareService_complete(ri, location),

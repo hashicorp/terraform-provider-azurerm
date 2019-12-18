@@ -112,8 +112,8 @@ func testCheckAzureRMRecoveryNetworkMappingExists(resourceName string) resource.
 		}
 		networkName := id.Path["virtualNetworks"]
 
-		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// TODO Fix Bad: networkMapping error
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
@@ -147,14 +147,8 @@ func testCheckAzureRMRecoveryNetworkMappingDestroy(s *terraform.State) error {
 		}
 		networkName := id.Path["virtualNetworks"]
 
-<<<<<<< HEAD
-		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
-=======
-		// Ensure mapping exists in API
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
->>>>>>> refactor: switching to use the provider in the acceptance package
 
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
 		if err != nil {

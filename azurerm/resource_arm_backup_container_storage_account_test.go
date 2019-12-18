@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMBackupProtectionContainerStorageAccount_basic(t *testing.T) {
@@ -18,12 +20,12 @@ func TestAccAzureRMBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectionContainerStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionContainerStorageAccount_basic(ri, rs, testLocation()),
+				Config: testAccAzureRMBackupProtectionContainerStorageAccount_basic(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBackupProtectionContainerStorageAccountExists(resourceName),
 				),
@@ -92,8 +94,8 @@ func testCheckAzureRMBackupProtectionContainerStorageAccountExists(resourceName 
 		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
 
 		// Ensure container exists in API
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.BackupProtectionContainersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.BackupProtectionContainersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroupName, "Azure", containerName)
 		if err != nil {
@@ -130,8 +132,8 @@ func testCheckAzureRMBackupProtectionContainerStorageAccountDestroy(s *terraform
 		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
 
 		// Ensure container exists in API
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.BackupProtectionContainersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.BackupProtectionContainersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroupName, "Azure", containerName)
 		if err != nil {

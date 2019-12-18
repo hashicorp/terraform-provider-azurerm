@@ -786,7 +786,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	if val, ok := d.GetOk("blob_properties"); ok {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
-			blobClient := meta.(*ArmClient).Storage.BlobServicesClient
+			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 
 			blobProperties := expandBlobProperties(val.([]interface{}))
 
@@ -1007,7 +1007,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("blob_properties") {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
-			blobClient := meta.(*ArmClient).Storage.BlobServicesClient
+			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 			blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
 
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {

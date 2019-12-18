@@ -198,11 +198,11 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw3(t *testing.T) {
 func TestAccAzureRMVirtualNetworkGateway_generation(t *testing.T) {
 	resourceName := "azurerm_virtual_network_gateway.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkGateway_generation(ri, testLocation(), "Generation2")
+	config := testAccAzureRMVirtualNetworkGateway_generation(ri, acceptance.Location(), "Generation2")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{

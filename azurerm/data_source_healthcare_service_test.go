@@ -18,7 +18,7 @@ func TestAccAzureRMDataSourceHealthCareService_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHealthcareServiceDestroy,
+		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceHealthcareService_basic(ri, location),

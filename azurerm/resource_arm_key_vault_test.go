@@ -213,11 +213,11 @@ func TestAccAzureRMKeyVault_networkAcls(t *testing.T) {
 func TestAccAzureRMKeyVault_networkAclsAllowed(t *testing.T) {
 	resourceName := "azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{

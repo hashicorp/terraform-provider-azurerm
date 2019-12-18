@@ -127,8 +127,8 @@ func resourceArmCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmCosmosDbTableUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Cosmos.DatabaseClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseCosmosTableID(d.Id())

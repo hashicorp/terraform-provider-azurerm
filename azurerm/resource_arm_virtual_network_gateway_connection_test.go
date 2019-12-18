@@ -118,11 +118,11 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(t *testing
 	resourceName := "azurerm_virtual_network_gateway_connection.test"
 
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{

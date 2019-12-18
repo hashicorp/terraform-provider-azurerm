@@ -8,17 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(t *testing.T) {
 	resourceName := "azurerm_app_service_virtual_network_swift_connection.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -40,11 +42,11 @@ func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(t *testing.T) {
 func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_update(t *testing.T) {
 	resourceName := "azurerm_app_service_virtual_network_swift_connection.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -68,11 +70,11 @@ func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_update(t *testing.T) 
 func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_disappears(t *testing.T) {
 	resourceName := "azurerm_app_service_virtual_network_swift_connection.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -104,8 +106,8 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(resourceName 
 		name := parsedID.Path["sites"]
 		resourceGroup := parsedID.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -135,8 +137,8 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDisappears(resourceN
 		name := parsedID.Path["sites"]
 		resourceGroup := parsedID.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.DeleteSwiftVirtualNetwork(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
@@ -149,7 +151,7 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDisappears(resourceN
 }
 
 func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_virtual_network_swift_connection" {
@@ -164,7 +166,7 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy(s *terraform
 		name := parsedID.Path["sites"]
 		resourceGroup := parsedID.ResourceGroup
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
 
 		if err != nil {
