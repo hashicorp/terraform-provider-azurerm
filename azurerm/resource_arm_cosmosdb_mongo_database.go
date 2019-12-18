@@ -70,7 +70,6 @@ func resourceArmCosmosDbMongoDatabaseCreate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	account := d.Get("account_name").(string)
-	throughput := d.Get("throughput").(int)
 
 	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
