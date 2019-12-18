@@ -135,7 +135,7 @@ func TestAccAzureRMAdvancedThreatProtection_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAdvancedThreatProtection_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_api_management_api_policy"),
+				ExpectError: testRequiresImportError("azurerm_advanced_threat_protection"),
 			},
 		},
 	})
@@ -227,7 +227,7 @@ func testAccAzureRMAdvancedThreatProtection_requiresImport(rInt int, location st
 %[1]s
 
 resource "azurerm_advanced_threat_protection" "requireimport" {
-  target_resource_id = "${azurerm_advanced_threat_protection.test.id}"
+  target_resource_id = "${azurerm_advanced_threat_protection.test.target_resource_id}"
   enabled            = "${azurerm_advanced_threat_protection.test.enabled}"
 }
 `, testAccAzureRMAdvancedThreatProtection_storageAccount(rInt, location, true, true))
