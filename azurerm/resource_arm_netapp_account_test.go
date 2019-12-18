@@ -166,7 +166,7 @@ func testCheckAzureRMNetAppAccountExists(resourceName string) resource.TestCheck
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Netapp.AccountClient
+		client := testAccProvider.Meta().(*ArmClient).NetApp.AccountClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
@@ -181,7 +181,7 @@ func testCheckAzureRMNetAppAccountExists(resourceName string) resource.TestCheck
 }
 
 func testCheckAzureRMNetAppAccountDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Netapp.AccountClient
+	client := testAccProvider.Meta().(*ArmClient).NetApp.AccountClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -204,7 +204,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 }
 
 func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mssql.ElasticPoolsClient
+	client := meta.(*ArmClient).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -279,7 +279,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mssql.ElasticPoolsClient
+	client := meta.(*ArmClient).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -335,7 +335,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mssql.ElasticPoolsClient
+	client := meta.(*ArmClient).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

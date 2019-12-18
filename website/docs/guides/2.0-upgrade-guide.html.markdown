@@ -23,7 +23,7 @@ We recommend pinning the version of each Provider you use in Terraform - you can
 
 ```hcl
 provider "azurerm" {
-  version = "=1.36.0"
+  version = "=1.38.0"
 }
 ```
 
@@ -163,6 +163,10 @@ The deprecated block `agent_pool_profile` will be removed. This has been replace
 ### Data Source: `azurerm_network_interface`
 
 The deprecated field `internal_fqdn` will be removed.
+
+### Data Source: `azurerm_private_link_service`
+
+The deprecated field `network_interface_ids` will be removed.
 
 ### Data Source: `azurerm_scheduler_job_collection`
 
@@ -353,6 +357,14 @@ The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block 
 ### Resource: `azurerm_packet_capture`
 
 The `azurerm_packet_capture` resource will be deprecated in favour of a new resources `azurerm_network_packet_capture`.
+
+### Resource: `azurerm_private_link_endpoint`
+
+This resource has been renamed to `azurerm_private_endpoint` which is available from v1.39 of the AzureRM Provider - instructions on [how to migrate are available in this guide](https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html). As such this resource will be removed.
+
+### Resource: `azurerm_private_link_service`
+
+The deprecated `network_interface_ids` field will be removed.
 
 ### Resource: `azurerm_public_ip`
 

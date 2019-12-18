@@ -31,6 +31,7 @@ fmt:
 # Currently required by tf-deploy compile, duplicated by linters
 fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
+	@sh "$(CURDIR)/scripts/timeouts.sh"
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."

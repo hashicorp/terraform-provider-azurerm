@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -12,6 +13,7 @@ func TestAccDataSourceAzureRMPrivateLinkService_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_private_link_service.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
+	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -25,7 +27,10 @@ func TestAccDataSourceAzureRMPrivateLinkService_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.0.private_ip_address_version", "IPv4"),
 					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.41"),
 					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.1.private_ip_address_version", "IPv4"),
+					resource.TestCheckResourceAttr(dataSourceName, "auto_approval_subscription_ids.0", subscriptionId),
+					resource.TestCheckResourceAttr(dataSourceName, "visibility_subscription_ids.0", subscriptionId),
 					resource.TestCheckResourceAttr(dataSourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "load_balancer_frontend_ip_configuration_ids.0"),
 				),
 			},
 		},

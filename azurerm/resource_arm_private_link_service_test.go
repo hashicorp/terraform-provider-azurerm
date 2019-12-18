@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,6 +34,35 @@ func TestAccAzureRMPrivateLinkService_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPrivateLinkService_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_private_link_service.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPrivateLinkService_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateLinkServiceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMPrivateLinkService_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_private_link_service"),
 			},
 		},
 	})
@@ -109,7 +139,7 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.2.17"),
 				),
 			},
 			{
@@ -122,10 +152,10 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "4"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.18"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.2.private_ip_address", "10.5.1.19"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.3.private_ip_address", "10.5.1.20"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.2.17"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.2.18"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.2.private_ip_address", "10.5.2.19"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.3.private_ip_address", "10.5.2.20"),
 				),
 			},
 			{
@@ -138,10 +168,10 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "4"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.18"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.2.private_ip_address", "10.5.1.19"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.3.private_ip_address", "10.5.1.21"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.2.17"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.2.18"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.2.private_ip_address", "10.5.2.19"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.3.private_ip_address", "10.5.2.21"),
 				),
 			},
 			{
@@ -154,10 +184,10 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "4"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.20"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.2.private_ip_address", "10.5.1.19"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.3.private_ip_address", "10.5.1.21"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.2.17"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.2.20"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.2.private_ip_address", "10.5.2.19"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.3.private_ip_address", "10.5.2.21"),
 				),
 			},
 			{
@@ -170,10 +200,60 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "4"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.20"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.2.private_ip_address", "10.5.1.19"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.3.private_ip_address", "10.5.1.18"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.2.17"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.2.20"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.2.private_ip_address", "10.5.2.19"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.3.private_ip_address", "10.5.2.18"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPrivateLinkService_enableProxyProtocol(t *testing.T) {
+	resourceName := "azurerm_private_link_service.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Enable
+				Config: testAccAzureRMPrivateLinkService_enableProxyProtocol(ri, location, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateLinkServiceExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// Disable
+				Config: testAccAzureRMPrivateLinkService_enableProxyProtocol(ri, location, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateLinkServiceExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				// Enable
+				Config: testAccAzureRMPrivateLinkService_enableProxyProtocol(ri, location, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 				),
 			},
 			{
@@ -269,8 +349,18 @@ func testCheckAzureRMPrivateLinkServiceDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMPrivateLinkService_basic(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_subnet" "test" {
+  name                                  = "acctestsnet-basic-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  virtual_network_name                  = azurerm_virtual_network.test.name
+  address_prefix                        = "10.5.4.0/24"
+
+  enforce_private_link_service_network_policies = true
+}
 
 resource "azurerm_private_link_service" "test" {
   name                           = "acctestPLS-%d"
@@ -287,13 +377,22 @@ resource "azurerm_private_link_service" "test" {
     azurerm_lb.test.frontend_ip_configuration.0.id
   ]
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt)
+`, template, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_basicIp(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_subnet" "test" {
+  name                                  = "acctestsnet-update-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  virtual_network_name                  = azurerm_virtual_network.test.name
+  address_prefix                        = "10.5.3.0/24"
+
+  enforce_private_link_service_network_policies = true
+}
+
 resource "azurerm_private_link_service" "test" {
   name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
@@ -302,7 +401,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.30"
+    private_ip_address           = "10.5.3.30"
     private_ip_address_version   = "IPv4"
     primary                      = true
   }
@@ -311,12 +410,78 @@ resource "azurerm_private_link_service" "test" {
     azurerm_lb.test.frontend_ip_configuration.0.id
   ]
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt)
+`, testAccAzureRMPrivateLinkService_template(rInt, location), rInt, rInt, rInt)
+}
+
+func testAccAzureRMPrivateLinkService_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_link_service" "import" {
+  name                           = azurerm_private_link_service.test.name
+  location                       = azurerm_private_link_service.test.location
+  resource_group_name            = azurerm_private_link_service.test.name
+
+  nat_ip_configuration {
+    name                         = "primaryIpConfiguration-%d"
+    subnet_id                    = azurerm_subnet.test.id
+    primary                      = true
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, template, rInt)
+}
+
+func testAccAzureRMPrivateLinkService_enableProxyProtocol(rInt int, location string, enabled bool) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                                  = "acctestsnet-basic-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  virtual_network_name                  = azurerm_virtual_network.test.name
+  address_prefix                        = "10.5.4.0/24"
+
+  enforce_private_link_service_network_policies = true
+}
+
+resource "azurerm_private_link_service" "test" {
+  name                           = "acctestPLS-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  enable_proxy_protocol          = %t
+
+  nat_ip_configuration {
+    name                         = "primaryIpConfiguration-%d"
+    subnet_id                    = azurerm_subnet.test.id
+    primary                      = true
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, template, rInt, rInt, enabled, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_update(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_subnet" "test" {
+  name                                  = "acctestsnet-update-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  virtual_network_name                  = azurerm_virtual_network.test.name
+  address_prefix                        = "10.5.3.0/24"
+
+  enforce_private_link_service_network_policies = true
+}
 
 resource "azurerm_private_link_service" "test" {
   name                           = "acctestPLS-%d"
@@ -328,7 +493,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.30"
+    private_ip_address           = "10.5.3.30"
     private_ip_address_version   = "IPv4"
     primary                      = true
   }
@@ -336,7 +501,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "secondaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.22"
+    private_ip_address           = "10.5.3.22"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -344,7 +509,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "thirdaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.23"
+    private_ip_address           = "10.5.3.23"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -352,7 +517,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "fourtharyIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.24"
+    private_ip_address           = "10.5.3.24"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -365,12 +530,22 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt, rInt, rInt)
+`, template, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_moveSetup(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_subnet" "test" {
+  name                                  = "acctestsnet-move-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  virtual_network_name                  = azurerm_virtual_network.test.name
+  address_prefix                        = "10.5.2.0/24"
+
+  enforce_private_link_service_network_policies = true
+}
 
 resource "azurerm_private_link_service" "test" {
   name                           = "acctestPLS-%d"
@@ -382,7 +557,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.17"
+    private_ip_address           = "10.5.2.17"
     private_ip_address_version   = "IPv4"
     primary                      = true
   }
@@ -395,12 +570,22 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt)
+`, template, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_moveAdd(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_subnet" "test" {
+  name                                  = "acctestsnet-move-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  virtual_network_name                  = azurerm_virtual_network.test.name
+  address_prefix                        = "10.5.2.0/24"
+
+  enforce_private_link_service_network_policies = true
+}
 
 resource "azurerm_private_link_service" "test" {
   name                           = "acctestPLS-%d"
@@ -412,7 +597,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.17"
+    private_ip_address           = "10.5.2.17"
     private_ip_address_version   = "IPv4"
     primary                      = true
   }
@@ -420,7 +605,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "secondaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.18"
+    private_ip_address           = "10.5.2.18"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -428,7 +613,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "thirdaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.19"
+    private_ip_address           = "10.5.2.19"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -436,7 +621,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "fourtharyIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.20"
+    private_ip_address           = "10.5.2.20"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -449,12 +634,22 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt, rInt, rInt)
+`, template, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_moveChangeOne(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_subnet" "test" {
+  name                                  = "acctestsnet-move-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  virtual_network_name                  = azurerm_virtual_network.test.name
+  address_prefix                        = "10.5.2.0/24"
+
+  enforce_private_link_service_network_policies = true
+}
 
 resource "azurerm_private_link_service" "test" {
   name                           = "acctestPLS-%d"
@@ -466,7 +661,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.17"
+    private_ip_address           = "10.5.2.17"
     private_ip_address_version   = "IPv4"
     primary                      = true
   }
@@ -474,7 +669,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "secondaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.18"
+    private_ip_address           = "10.5.2.18"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -482,7 +677,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "thirdaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.19"
+    private_ip_address           = "10.5.2.19"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -490,7 +685,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "fourtharyIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.21"
+    private_ip_address           = "10.5.2.21"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -503,12 +698,22 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt, rInt, rInt)
+`, template, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_moveChangeTwo(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_subnet" "test" {
+  name                                  = "acctestsnet-move-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  virtual_network_name                  = azurerm_virtual_network.test.name
+  address_prefix                        = "10.5.2.0/24"
+
+  enforce_private_link_service_network_policies = true
+}
 
 resource "azurerm_private_link_service" "test" {
   name                           = "acctestPLS-%d"
@@ -520,7 +725,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.17"
+    private_ip_address           = "10.5.2.17"
     private_ip_address_version   = "IPv4"
     primary                      = true
   }
@@ -528,7 +733,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "secondaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.20"
+    private_ip_address           = "10.5.2.20"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -536,7 +741,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "thirdaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.19"
+    private_ip_address           = "10.5.2.19"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -544,7 +749,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "fourtharyIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.21"
+    private_ip_address           = "10.5.2.21"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -557,12 +762,22 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt, rInt, rInt)
+`, template, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_moveChangeThree(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_subnet" "test" {
+  name                                  = "acctestsnet-move-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  virtual_network_name                  = azurerm_virtual_network.test.name
+  address_prefix                        = "10.5.2.0/24"
+
+  enforce_private_link_service_network_policies = true
+}
 
 resource "azurerm_private_link_service" "test" {
   name                           = "acctestPLS-%d"
@@ -574,7 +789,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.17"
+    private_ip_address           = "10.5.2.17"
     private_ip_address_version   = "IPv4"
     primary                      = true
   }
@@ -582,7 +797,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "secondaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.20"
+    private_ip_address           = "10.5.2.20"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -590,7 +805,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "thirdaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.19"
+    private_ip_address           = "10.5.2.19"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -598,7 +813,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "fourtharyIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.18"
+    private_ip_address           = "10.5.2.18"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -611,12 +826,22 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt, rInt, rInt)
+`, template, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_complete(rInt int, location string) string {
+	template := testAccAzureRMPrivateLinkService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_subnet" "test" {
+  name                                  = "acctestsnet-complete-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  virtual_network_name                  = azurerm_virtual_network.test.name
+  address_prefix                        = "10.5.1.0/24"
+
+  enforce_private_link_service_network_policies = true
+}
 
 resource "azurerm_private_link_service" "test" {
   name                           = "acctestPLS-%d"
@@ -649,10 +874,10 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt)
+`, template, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMPrivateLinkServiceTemplate(rInt int, location string) string {
+func testAccAzureRMPrivateLinkService_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "current" {}
 
@@ -666,15 +891,6 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.5.0.0/16"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                                  = "acctestsnet-%d"
-  resource_group_name                   = azurerm_resource_group.test.name
-  virtual_network_name                  = azurerm_virtual_network.test.name
-  address_prefix                        = "10.5.1.0/24"
-
-  enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_public_ip" "test" {
@@ -696,5 +912,5 @@ resource "azurerm_lb" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt)
 }

@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-06-01/netapp"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -105,7 +105,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 }
 
 func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.AccountClient
+	client := meta.(*ArmClient).NetApp.AccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -155,7 +155,7 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.AccountClient
+	client := meta.(*ArmClient).NetApp.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -186,7 +186,7 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.AccountClient
+	client := meta.(*ArmClient).NetApp.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

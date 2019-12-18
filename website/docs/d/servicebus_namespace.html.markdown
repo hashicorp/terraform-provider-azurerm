@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace"
 sidebar_current: "docs-azurerm-datasource-servicebus-namespace"

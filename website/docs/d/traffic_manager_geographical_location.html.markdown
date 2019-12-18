@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_geographical_location"
 sidebar_current: "docs-azurerm-datasource-traffic-manager-geographical-location"

@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Authorization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_builtin_role_definition"
 sidebar_current: "docs-azurerm-datasource-builtin-role-definition"

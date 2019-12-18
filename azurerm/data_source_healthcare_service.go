@@ -116,7 +116,7 @@ func dataSourceArmHealthcareService() *schema.Resource {
 }
 
 func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Healthcare.HealthcareServiceClient
+	client := meta.(*ArmClient).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

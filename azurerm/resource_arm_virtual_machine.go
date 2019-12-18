@@ -20,7 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -1033,6 +1033,10 @@ func resourceArmVirtualMachineDeleteVhd(ctx context.Context, storageClient *intS
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q (Disk %q)!", id.AccountName, uri)
+	}
+
+	if err != nil {
+		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
 
 	blobsClient, err := storageClient.BlobsClient(ctx, *account)

@@ -36,7 +36,7 @@ func dataSourceArmNetAppAccount() *schema.Resource {
 }
 
 func dataSourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.AccountClient
+	client := meta.(*ArmClient).NetApp.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

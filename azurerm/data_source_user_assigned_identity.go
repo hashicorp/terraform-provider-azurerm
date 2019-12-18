@@ -48,7 +48,7 @@ func dataSourceArmUserAssignedIdentity() *schema.Resource {
 }
 
 func dataSourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
+	client := meta.(*ArmClient).MSI.UserAssignedIdentitiesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

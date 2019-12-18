@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy_vm"
 sidebar_current: "docs-azurerm-datasource-recovery-services-protection-policy-vm"

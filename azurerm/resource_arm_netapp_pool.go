@@ -75,7 +75,7 @@ func resourceArmNetAppPool() *schema.Resource {
 }
 
 func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.PoolClient
+	client := meta.(*ArmClient).NetApp.PoolClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -130,7 +130,7 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.PoolClient
+	client := meta.(*ArmClient).NetApp.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -174,7 +174,7 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.PoolClient
+	client := meta.(*ArmClient).NetApp.PoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

@@ -14,8 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -75,12 +75,12 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
-		return fmt.Errorf("Error creating resource group: %+v", err)
+		return fmt.Errorf("Error creating Resource Group %q: %+v", name, err)
 	}
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving resource group: %+v", err)
+		return fmt.Errorf("Error retrieving Resource Group %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -93,12 +93,12 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := resource.ParseResourceGroupID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
+		return err
 	}
 
-	name := id.ResourceGroup
+	name := id.Name
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
@@ -123,12 +123,12 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := resource.ParseResourceGroupID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
+		return err
 	}
 
-	name := id.ResourceGroup
+	name := id.Name
 
 	deleteFuture, err := client.Delete(ctx, name)
 	if err != nil {

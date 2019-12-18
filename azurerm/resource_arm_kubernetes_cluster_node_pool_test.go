@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 )
 
-func TestAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster_node_pool.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -28,7 +28,7 @@ func TestAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Enabled
-				Config: testAccAzureRMKubernetesClusterNodePool_autoScale(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -40,7 +40,7 @@ func TestAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 			},
 			{
 				// Disabled
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScale(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -52,7 +52,7 @@ func TestAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 			},
 			{
 				// Enabled
-				Config: testAccAzureRMKubernetesClusterNodePool_autoScale(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -66,7 +66,7 @@ func TestAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster_node_pool.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -79,7 +79,7 @@ func TestAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleNodeCount(ri, clientId, clientSecret, location, 1, 3),
+				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleNodeCountConfig(ri, clientId, clientSecret, location, 1, 3),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -90,7 +90,7 @@ func TestAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleNodeCount(ri, clientId, clientSecret, location, 3, 5),
+				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleNodeCountConfig(ri, clientId, clientSecret, location, 3, 5),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -101,7 +101,7 @@ func TestAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleNodeCount(ri, clientId, clientSecret, location, 1, 3),
+				Config: testAccAzureRMKubernetesClusterNodePool_autoScaleNodeCountConfig(ri, clientId, clientSecret, location, 1, 3),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -115,7 +115,7 @@ func TestAccAzureRMKubernetesClusterNodePool_autoScaleUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_availabilityZones(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_availabilityZones(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster_node_pool.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -128,7 +128,7 @@ func TestAccAzureRMKubernetesClusterNodePool_availabilityZones(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_availabilityZones(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_availabilityZonesConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -142,7 +142,7 @@ func TestAccAzureRMKubernetesClusterNodePool_availabilityZones(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -154,14 +154,14 @@ func TestAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet(t *testing.
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMKubernetesClusterNodePool_availabilitySet(ri, clientId, clientSecret, location),
+				Config:      testAccAzureRMKubernetesClusterNodePool_availabilitySetConfig(ri, clientId, clientSecret, location),
 				ExpectError: regexp.MustCompile("must be a VirtualMachineScaleSet to attach multiple node pools"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_multiplePools(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_multiplePools(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -173,7 +173,7 @@ func TestAccAzureRMKubernetesClusterNodePool_multiplePools(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_multiplePools(ri, clientId, clientSecret, location, 3),
+				Config: testAccAzureRMKubernetesClusterNodePool_multiplePoolsConfig(ri, clientId, clientSecret, location, 3),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.autoscale"),
 					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.manual"),
@@ -193,7 +193,7 @@ func TestAccAzureRMKubernetesClusterNodePool_multiplePools(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_manualScale(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_manualScale(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster_node_pool.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -206,7 +206,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScale(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScale(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -220,7 +220,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScale(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -232,7 +232,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(t *testing
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.first"),
 					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.second"),
@@ -252,7 +252,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(t *testing
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -264,7 +264,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *t
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsNodeCount(ri, clientId, clientSecret, location, 1),
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsNodeCountConfig(ri, clientId, clientSecret, location, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.first"),
 					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.second"),
@@ -281,7 +281,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *t
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsNodeCount(ri, clientId, clientSecret, location, 2),
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsNodeCountConfig(ri, clientId, clientSecret, location, 2),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.first"),
 					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.second"),
@@ -301,7 +301,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate(t *t
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster_node_pool.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -314,7 +314,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleNodeCount(ri, clientId, clientSecret, location, 1),
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleNodeCountConfig(ri, clientId, clientSecret, location, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -326,7 +326,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 			},
 			{
 				// up
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleNodeCount(ri, clientId, clientSecret, location, 3),
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleNodeCountConfig(ri, clientId, clientSecret, location, 3),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -337,7 +337,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 			},
 			{
 				// and down
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleNodeCount(ri, clientId, clientSecret, location, 1),
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleNodeCountConfig(ri, clientId, clientSecret, location, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -351,7 +351,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScaleUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster_node_pool.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -364,7 +364,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(ri, clientId, clientSecret, location, "Standard_F2s_v2"),
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleVMSkuConfig(ri, clientId, clientSecret, location, "Standard_F2s_v2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -375,7 +375,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(ri, clientId, clientSecret, location, "Standard_F4s_v2"),
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleVMSkuConfig(ri, clientId, clientSecret, location, "Standard_F4s_v2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -389,7 +389,7 @@ func TestAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster_node_pool.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -402,7 +402,7 @@ func TestAccAzureRMKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_nodePublicIP(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_nodePublicIPConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -416,7 +416,7 @@ func TestAccAzureRMKubernetesClusterNodePool_nodePublicIP(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_nodeTaints(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster_node_pool.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -429,7 +429,7 @@ func TestAccAzureRMKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_nodeTaints(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_nodeTaintsConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -443,7 +443,7 @@ func TestAccAzureRMKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
@@ -461,20 +461,20 @@ func TestAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_manualScale(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMKubernetesClusterNodePool_requiresImport(ri, clientId, clientSecret, location),
+				Config:      testAccAzureRMKubernetesClusterNodePool_requiresImportConfig(ri, clientId, clientSecret, location),
 				ExpectError: testRequiresImportError("azurerm_kubernetes_cluster_node_pool"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster_node_pool.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -487,7 +487,7 @@ func TestAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_osDiskSizeGBConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -501,7 +501,7 @@ func TestAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster_node_pool.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -514,7 +514,7 @@ func TestAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomaticConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -528,7 +528,7 @@ func TestAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(t *testing.
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster_node_pool.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -541,7 +541,7 @@ func TestAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) 
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_virtualNetworkManualConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -555,7 +555,7 @@ func TestAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_windows(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_windows(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster_node_pool.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -568,7 +568,7 @@ func TestAccAzureRMKubernetesClusterNodePool_windows(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_windows(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_windowsConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(resourceName),
 				),
@@ -582,7 +582,7 @@ func TestAccAzureRMKubernetesClusterNodePool_windows(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -594,7 +594,7 @@ func TestAccAzureRMKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_windowsAndLinux(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesClusterNodePool_windowsAndLinuxConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.linux"),
 					testCheckAzureRMKubernetesNodePoolExists("azurerm_kubernetes_cluster_node_pool.windows"),
@@ -674,8 +674,8 @@ func testCheckAzureRMKubernetesNodePoolExists(resourceName string) resource.Test
 	}
 }
 
-func testAccAzureRMKubernetesClusterNodePool_autoScale(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_template(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_autoScaleConfig(rInt int, clientId, clientSecret, location string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -690,8 +690,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_autoScaleNodeCount(rInt int, clientId, clientSecret, location string, min int, max int) string {
-	template := testAccAzureRMKubernetesClusterNodePool_template(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_autoScaleNodeCountConfig(rInt int, clientId, clientSecret, location string, min int, max int) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -706,7 +706,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template, min, max)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_availabilitySet(rInt int, clientId, clientSecret, location string) string {
+func testAccAzureRMKubernetesClusterNodePool_availabilitySetConfig(rInt int, clientId, clientSecret, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -741,7 +741,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, rInt, location, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_availabilityZones(rInt int, clientId, clientSecret, location string) string {
+func testAccAzureRMKubernetesClusterNodePool_availabilityZonesConfig(rInt int, clientId, clientSecret, location string) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
@@ -798,8 +798,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScale(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_template(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(rInt int, clientId, clientSecret, location string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -812,8 +812,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_template(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsConfig(rInt int, clientId, clientSecret, location string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -833,8 +833,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "second" {
 `, template)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsNodeCount(rInt int, clientId, clientSecret, location string, numberOfAgents int) string {
-	template := testAccAzureRMKubernetesClusterNodePool_template(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsNodeCountConfig(rInt int, clientId, clientSecret, location string, numberOfAgents int) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -854,8 +854,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "second" {
 `, template, numberOfAgents, numberOfAgents)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleNodeCount(rInt int, clientId, clientSecret, location string, numberOfAgents int) string {
-	template := testAccAzureRMKubernetesClusterNodePool_template(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_manualScaleNodeCountConfig(rInt int, clientId, clientSecret, location string, numberOfAgents int) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -868,8 +868,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template, numberOfAgents)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku(rInt int, clientId, clientSecret, location, sku string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_template(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_manualScaleVMSkuConfig(rInt int, clientId, clientSecret, location, sku string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -882,8 +882,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template, sku)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_multiplePools(rInt int, clientId, clientSecret, location string, numberOfAgents int) string {
-	template := testAccAzureRMKubernetesClusterNodePool_template(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_multiplePoolsConfig(rInt int, clientId, clientSecret, location string, numberOfAgents int) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -905,8 +905,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "manual" {
 `, template, numberOfAgents)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_nodePublicIP(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_template(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_nodePublicIPConfig(rInt int, clientId, clientSecret, location string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -920,8 +920,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_nodeTaints(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_template(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_nodeTaintsConfig(rInt int, clientId, clientSecret, location string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -937,8 +937,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_requiresImport(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_manualScale(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_requiresImportConfig(rInt int, clientId, clientSecret, location string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_manualScaleConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -951,8 +951,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "import" {
 `, template)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_template(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_osDiskSizeGBConfig(rInt int, clientId, clientSecret, location string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -966,8 +966,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateVirtualNetwork(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomaticConfig(rInt int, clientId, clientSecret, location string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateVirtualNetworkConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -983,8 +983,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateVirtualNetwork(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_virtualNetworkManualConfig(rInt int, clientId, clientSecret, location string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateVirtualNetworkConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -998,8 +998,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_windows(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateWindows(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_windowsConfig(rInt int, clientId, clientSecret, location string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateWindowsConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -1013,8 +1013,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_windowsAndLinux(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateWindows(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesClusterNodePool_windowsAndLinuxConfig(rInt int, clientId, clientSecret, location string) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateWindowsConfig(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
@@ -1035,7 +1035,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "windows" {
 `, template)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_template(rInt int, clientId, clientSecret, location string) string {
+func testAccAzureRMKubernetesClusterNodePool_templateConfig(rInt int, clientId, clientSecret, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1062,7 +1062,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_templateVirtualNetwork(rInt int, clientId, clientSecret, location string) string {
+func testAccAzureRMKubernetesClusterNodePool_templateVirtualNetworkConfig(rInt int, clientId, clientSecret, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1127,7 +1127,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_templateWindows(rInt int, clientId, clientSecret, location string) string {
+func testAccAzureRMKubernetesClusterNodePool_templateWindowsConfig(rInt int, clientId, clientSecret, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

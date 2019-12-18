@@ -451,7 +451,7 @@ func testCheckAzureRMEventHubExists(resourceName string) resource.TestCheckFunc 
 func testAccAzureRMEventHub_basic(rInt int, location string, partitionCount int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eventhub-%d"
   location = "%s"
 }
 
@@ -490,7 +490,7 @@ resource "azurerm_eventhub" "import" {
 func testAccAzureRMEventHub_partitionCountUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eventhub-%d"
   location = "%s"
 }
 
@@ -514,19 +514,19 @@ resource "azurerm_eventhub" "test" {
 func testAccAzureRMEventHub_standard(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eventhub-%d"
   location = "%s"
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
+  name                = "acctest-EHN-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
+  name                = "acctest-EH-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   partition_count     = 2
@@ -539,7 +539,7 @@ func testAccAzureRMEventHub_captureDescription(rInt int, rString string, locatio
 	enabledString := strconv.FormatBool(enabled)
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eventhub-%d"
   location = "%s"
 }
 
@@ -552,21 +552,21 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                  = "example"
+  name                  = "acctest"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctestehn%d"
+  name                = "acctest-EHN%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteh%d"
+  name                = "acctest-EH%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   partition_count     = 2
@@ -593,19 +593,19 @@ resource "azurerm_eventhub" "test" {
 func testAccAzureRMEventHub_messageRetentionUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eventhub-%d"
   location = "%s"
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
+  name                = "acctest-EHN-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
+  name                = "acctest-EH-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   partition_count     = 2

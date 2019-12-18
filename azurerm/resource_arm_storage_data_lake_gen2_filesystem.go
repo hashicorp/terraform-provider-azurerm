@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -10,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
@@ -25,7 +27,8 @@ func resourceArmStorageDataLakeGen2FileSystem() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				storageClients := meta.(*ArmClient).Storage
-				ctx := meta.(*ArmClient).StopContext
+				ctx, cancel := context.WithTimeout(meta.(*ArmClient).StopContext, 5*time.Minute)
+				defer cancel()
 
 				id, err := filesystems.ParseResourceID(d.Id())
 				if err != nil {
@@ -75,7 +78,7 @@ func resourceArmStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	storageID, err := storage.ParseAccountID(d.Get("storage_account_id").(string))
+	storageID, err := parsers.ParseAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -132,7 +135,7 @@ func resourceArmStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta
 		return err
 	}
 
-	storageID, err := storage.ParseAccountID(d.Get("storage_account_id").(string))
+	storageID, err := parsers.ParseAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}

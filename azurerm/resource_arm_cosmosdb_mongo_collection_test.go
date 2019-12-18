@@ -24,6 +24,7 @@ func TestAccAzureRMCosmosDbMongoCollection_basic(t *testing.T) {
 				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),
 				),
 			},
 			{
@@ -48,10 +49,8 @@ func TestAccAzureRMCosmosDbMongoCollection_complete(t *testing.T) {
 				Config: testAccAzureRMCosmosDbMongoCollection_complete(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "shard_key", "day"),
+					resource.TestCheckResourceAttr(resourceName, "shard_key", "seven"),
 					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "707"),
-					resource.TestCheckResourceAttr(resourceName, "indexes.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "throughput", "600"),
 				),
 			},
 			{
@@ -82,10 +81,8 @@ func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 				Config: testAccAzureRMCosmosDbMongoCollection_complete(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "shard_key", "day"),
+					resource.TestCheckResourceAttr(resourceName, "shard_key", "seven"),
 					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "707"),
-					resource.TestCheckResourceAttr(resourceName, "indexes.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "throughput", "600"),
 				),
 			},
 			{
@@ -98,8 +95,52 @@ func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "70707"),
-					resource.TestCheckResourceAttr(resourceName, "indexes.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDbMongoCollection_throughput(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_cosmosdb_mongo_collection.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDbMongoCollection_throughput(ri, testLocation(), 700),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMCosmosDbMongoCollection_throughput(ri, testLocation(), 1400),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 				),
 			},
 			{
@@ -192,19 +233,8 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   account_name        = "${azurerm_cosmosdb_mongo_database.test.account_name}"
   database_name       = "${azurerm_cosmosdb_mongo_database.test.name}"
 
+  shard_key           = "seven"
   default_ttl_seconds = 707
-  shard_key           = "day"
-  throughput          = 600
-
-  indexes {
-    key    = "seven"
-    unique = false
-  }
-
-  indexes {
-    key    = "day"
-    unique = true
-  }
 }
 `, testAccAzureRMCosmosDbMongoDatabase_basic(rInt, location), rInt)
 }
@@ -219,23 +249,23 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   account_name        = "${azurerm_cosmosdb_mongo_database.test.account_name}"
   database_name       = "${azurerm_cosmosdb_mongo_database.test.name}"
 
+  shard_key           = "seven"
   default_ttl_seconds = 70707
-  throughput          = 400
-
-  indexes {
-    key    = "seven"
-    unique = true
-  }
-
-  indexes {
-    key    = "day"
-    unique = false
-  }
-
-  indexes {
-    key    = "fool"
-    unique = false
-  }
 }
 `, testAccAzureRMCosmosDbMongoDatabase_basic(rInt, location), rInt)
+}
+
+func testAccAzureRMCosmosDbMongoCollection_throughput(rInt int, location string, throughput int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = "${azurerm_cosmosdb_mongo_database.test.resource_group_name}"
+  account_name        = "${azurerm_cosmosdb_mongo_database.test.account_name}"
+  database_name       = "${azurerm_cosmosdb_mongo_database.test.name}"
+
+  throughput = %[3]d
+}
+`, testAccAzureRMCosmosDbMongoDatabase_basic(rInt, location), rInt, throughput)
 }

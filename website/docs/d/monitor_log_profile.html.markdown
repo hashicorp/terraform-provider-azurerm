@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_log_profile"
 sidebar_current: "docs-azurerm-datasource-monitor-log-profile"
