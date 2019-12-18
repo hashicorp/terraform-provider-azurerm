@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -158,8 +157,7 @@ func resourceArmCosmosDbCassandraKeyspaceUpdate(d *schema.ResourceData, meta int
 
 		throughputFuture, err := client.UpdateCassandraKeyspaceThroughput(ctx, id.ResourceGroup, id.Account, id.Keyspace, throughputParameters)
 		if err != nil {
-			if throughputFuture.Response().StatusCode == http.StatusNotFound {
-				d.Set("throughput", nil)
+			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos Cassandra Keyspace %s (Account %s): %+v - "+
 					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Keyspace, id.Account, err)
 			}

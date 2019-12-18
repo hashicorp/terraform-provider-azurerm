@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -165,8 +164,7 @@ func resourceArmCosmosDbSQLDatabaseUpdate(d *schema.ResourceData, meta interface
 
 		throughputFuture, err := client.UpdateSQLDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Database, throughputParameters)
 		if err != nil {
-			if throughputFuture.Response().StatusCode == http.StatusNotFound {
-				d.Set("throughput", nil)
+			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos SQL Database %s (Account %s) %+v - "+
 					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Database, id.Account, err)
 			}
