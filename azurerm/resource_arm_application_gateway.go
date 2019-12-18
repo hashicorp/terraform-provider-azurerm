@@ -246,6 +246,15 @@ func resourceArmApplicationGateway() *schema.Resource {
 							},
 						},
 
+						"trusted_root_certificate_names": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+						},
+
 						"connection_draining": {
 							Type:     schema.TypeList,
 							MaxItems: 1,
@@ -2011,6 +2020,23 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates = &authCertSubResources
 		}
 
+		if v["trusted_root_certificate_names"] != nil {
+			trustedRootCertNames := v["trusted_root_certificate_names"].([]interface{})
+			trustedRootCertSubResources := make([]network.SubResource, 0)
+
+			for _, rawTrustedRootCertName := range trustedRootCertNames {
+				trustedRootCertName := rawTrustedRootCertName.(string)
+				trustedRootCertID := fmt.Sprintf("%s/trustedRootCertificates/%s", gatewayID, trustedRootCertName)
+				trustedRootCertSubResource := network.SubResource{
+					ID: utils.String(trustedRootCertID),
+				}
+
+				trustedRootCertSubResources = append(trustedRootCertSubResources, trustedRootCertSubResource)
+			}
+
+			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.TrustedRootCertificates = &trustedRootCertSubResources
+		}
+
 		probeName := v["probe_name"].(string)
 		if probeName != "" {
 			probeID := fmt.Sprintf("%s/probes/%s", gatewayID, probeName)
@@ -2093,6 +2119,24 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 				}
 			}
 			output["authentication_certificate"] = authenticationCertificates
+
+			trustedRootCertificateNames := make([]interface{}, 0)
+			if certs := props.TrustedRootCertificates; certs != nil {
+				for _, cert := range *certs {
+					if cert.ID == nil {
+						continue
+					}
+
+					certId, err := azure.ParseAzureResourceID(*cert.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					certName := certId.Path["trustedRootCertificates"]
+					trustedRootCertificateNames = append(trustedRootCertificateNames, certName)
+				}
+			}
+			output["trusted_root_certificate_names"] = trustedRootCertificateNames
 
 			if probe := props.Probe; probe != nil {
 				if probe.ID != nil {
