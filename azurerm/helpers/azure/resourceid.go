@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// TargetResourceID represents a parsed long-form Azure Resource Manager ID
+// ResourceID represents a parsed long-form Azure Resource Manager ID
 // with the Subscription ID, Resource Group and the Provider as top-
 // level fields, and other key-value pairs available via a map in the
 // Path field.
