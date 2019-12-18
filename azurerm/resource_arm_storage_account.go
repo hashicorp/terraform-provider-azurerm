@@ -1177,10 +1177,8 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 		}
 
-		if networkRules := props.NetworkRuleSet; networkRules != nil {
-			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
-				return fmt.Errorf("Error setting `network_rules`: %+v", err)
-			}
+		if err := d.Set("network_rules", flattenStorageAccountNetworkRules(props.NetworkRuleSet)); err != nil {
+			return fmt.Errorf("Error setting `network_rules`: %+v", err)
 		}
 	}
 
@@ -1547,9 +1545,10 @@ func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
 }
 
 func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
-	if len(*input.IPRules) == 0 && len(*input.VirtualNetworkRules) == 0 {
+	if input == nil {
 		return []interface{}{}
 	}
+
 	networkRules := make(map[string]interface{})
 
 	networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
@@ -1561,23 +1560,34 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 }
 
 func flattenStorageAccountIPRules(input *[]storage.IPRule) []interface{} {
-	ipRules := make([]interface{}, len(*input))
-	if input != nil {
-		for i, ipRule := range *input {
-			ipRules[i] = *ipRule.IPAddressOrRange
+	if input == nil {
+		return []interface{}{}
+	}
+
+	ipRules := make([]interface{}, 0)
+	for _, ipRule := range *input {
+		if ipRule.IPAddressOrRange == nil {
+			continue
 		}
+
+		ipRules = append(ipRules, *ipRule.IPAddressOrRange)
 	}
 
 	return ipRules
 }
 
 func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) []interface{} {
-	virtualNetworks := make([]interface{}, len(*input))
+	if input == nil {
+		return []interface{}{}
+	}
 
-	if input != nil {
-		for i, virtualNetwork := range *input {
-			virtualNetworks[i] = *virtualNetwork.VirtualNetworkResourceID
+	virtualNetworks := make([]interface{}, 0)
+	for _, virtualNetwork := range *input {
+		if virtualNetwork.VirtualNetworkResourceID == nil {
+			continue
 		}
+
+		virtualNetworks = append(virtualNetworks, *virtualNetwork.VirtualNetworkResourceID)
 	}
 
 	return virtualNetworks
