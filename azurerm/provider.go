@@ -198,6 +198,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_application_insights_web_test":                         resourceArmApplicationInsightsWebTests(),
 		"azurerm_application_security_group":                            resourceArmApplicationSecurityGroup(),
 		"azurerm_automation_account":                                    resourceArmAutomationAccount(),
+		"azurerm_automation_certificate":                                resourceArmAutomationCertificate(),
 		"azurerm_automation_credential":                                 resourceArmAutomationCredential(),
 		"azurerm_automation_dsc_configuration":                          resourceArmAutomationDscConfiguration(),
 		"azurerm_automation_dsc_nodeconfiguration":                      resourceArmAutomationDscNodeConfiguration(),

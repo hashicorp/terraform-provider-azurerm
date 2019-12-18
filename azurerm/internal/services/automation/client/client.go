@@ -8,6 +8,7 @@ import (
 type Client struct {
 	AccountClient               *automation.AccountClient
 	AgentRegistrationInfoClient *automation.AgentRegistrationInformationClient
+	CertificateClient           *automation.CertificateClient
 	CredentialClient            *automation.CredentialClient
 	DscConfigurationClient      *automation.DscConfigurationClient
 	DscNodeConfigurationClient  *automation.DscNodeConfigurationClient
@@ -25,6 +26,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	agentRegistrationInfoClient := automation.NewAgentRegistrationInformationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&agentRegistrationInfoClient.Client, o.ResourceManagerAuthorizer)
+
+	certificateClient := automation.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&certificateClient.Client, o.ResourceManagerAuthorizer)
 
 	credentialClient := automation.NewCredentialClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&credentialClient.Client, o.ResourceManagerAuthorizer)
@@ -56,6 +60,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		AccountClient:               &accountClient,
 		AgentRegistrationInfoClient: &agentRegistrationInfoClient,
+		CertificateClient:           &certificateClient,
 		CredentialClient:            &credentialClient,
 		DscConfigurationClient:      &dscConfigurationClient,
 		DscNodeConfigurationClient:  &dscNodeConfigurationClient,
