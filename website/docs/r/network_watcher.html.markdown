@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_watcher"
 sidebar_current: "docs-azurerm-resource-network-watcher"
@@ -14,15 +15,15 @@ Manages a Network Watcher.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "production-nwwatcher"
   location = "West US"
 }
 
-resource "azurerm_network_watcher" "test" {
+resource "azurerm_network_watcher" "example" {
   name                = "production-nwwatcher"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 ```
 

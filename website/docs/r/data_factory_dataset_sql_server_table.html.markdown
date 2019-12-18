@@ -1,4 +1,5 @@
 ---
+subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_dataset_sql_server_table"
 sidebar_current: "docs-azurerm-resource-data-factory-dataset-sql-server-table"
@@ -35,7 +36,7 @@ resource "azurerm_data_factory_dataset_sql_server_table" "example" {
   name                = "example"
   resource_group_name = "${azurerm_resource_group.example.name}"
   data_factory_name   = "${azurerm_data_factory.example.name}"
-  linked_service_name = "${azurerm_data_factory_linked_service_sql_server.test.name}"
+  linked_service_name = "${azurerm_data_factory_linked_service_sql_server.example.name}"
 }
 ```
 

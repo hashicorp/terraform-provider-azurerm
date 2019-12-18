@@ -1,4 +1,5 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_function_app"
 sidebar_current: "docs-azurerm-resource-app-service-function-app"
@@ -14,23 +15,23 @@ Manages a Function App.
 ## Example Usage (with App Service Plan)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "azure-functions-test-rg"
   location = "westus2"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "functionsapptestsa"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "azure-functions-test-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     tier = "Standard"
@@ -38,34 +39,34 @@ resource "azurerm_app_service_plan" "test" {
   }
 }
 
-resource "azurerm_function_app" "test" {
+resource "azurerm_function_app" "example" {
   name                      = "test-azure-functions"
-  location                  = "${azurerm_resource_group.test.location}"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  location                  = "${azurerm_resource_group.example.location}"
+  resource_group_name       = "${azurerm_resource_group.example.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.example.id}"
+  storage_connection_string = "${azurerm_storage_account.example.primary_connection_string}"
 }
 ```
 ## Example Usage (in a Consumption Plan)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "azure-functions-cptest-rg"
   location = "westus2"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "functionsapptestsa"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "azure-functions-test-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   kind                = "FunctionApp"
 
   sku {
@@ -74,12 +75,12 @@ resource "azurerm_app_service_plan" "test" {
   }
 }
 
-resource "azurerm_function_app" "test" {
+resource "azurerm_function_app" "example" {
   name                      = "test-azure-functions"
-  location                  = "${azurerm_resource_group.test.location}"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  location                  = "${azurerm_resource_group.example.location}"
+  resource_group_name       = "${azurerm_resource_group.example.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.example.id}"
+  storage_connection_string = "${azurerm_storage_account.example.primary_connection_string}"
 }
 ```
 
@@ -148,6 +149,10 @@ The following arguments are supported:
 
 * `http2_enabled` - (Optional) Specifies whether or not the http2 protocol should be enabled. Defaults to `false`.
 
+* `min_tls_version` - (Optional) The minimum supported TLS version for the function app. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new function apps.
+
+* `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
+
 * `cors` - (Optional) A `cors` block as defined below.
 
 ---
@@ -178,7 +183,7 @@ An `auth_settings` block supports the following:
 
 * `default_provider` - (Optional) The default provider to use when multiple providers have been set up. Possible values are `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount` and `Twitter`.
 
-~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work. 
+~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work.
 
 * `facebook` - (Optional) A `facebook` block as defined below.
 

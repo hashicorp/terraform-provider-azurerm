@@ -1,4 +1,5 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_availability_set"
 sidebar_current: "docs-azurerm-resource-compute-availability-set"
@@ -14,15 +15,15 @@ Manages an availability set for virtual machines.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_availability_set" "test" {
+resource "azurerm_availability_set" "example" {
   name                = "acceptanceTestAvailabilitySet1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   tags = {
     environment = "Production"

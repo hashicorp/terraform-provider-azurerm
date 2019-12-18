@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_notification_hub"
 sidebar_current: "docs-azurerm-resource-messaging-notification-hub-x"
@@ -14,25 +15,25 @@ Manages a Notification Hub within a Notification Hub Namespace.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "notificationhub-resources"
   location = "Australia East"
 }
 
-resource "azurerm_notification_hub_namespace" "test" {
+resource "azurerm_notification_hub_namespace" "example" {
   name                = "myappnamespace"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   namespace_type      = "NotificationHub"
 
   sku_name = "Free"
 }
 
-resource "azurerm_notification_hub" "test" {
+resource "azurerm_notification_hub" "example" {
   name                = "mynotificationhub"
-  namespace_name      = "${azurerm_notification_hub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  namespace_name      = "${azurerm_notification_hub_namespace.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 }
 ```
 

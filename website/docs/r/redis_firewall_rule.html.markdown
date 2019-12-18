@@ -1,4 +1,5 @@
 ---
+subcategory: "Redis"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_redis_firewall_rule"
 sidebar_current: "docs-azurerm-redis-firewall-rule"
@@ -22,15 +23,15 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "redis-resourcegroup"
   location = "West Europe"
 }
 
-resource "azurerm_redis_cache" "test" {
+resource "azurerm_redis_cache" "example" {
   name                = "redis${random_id.server.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -44,10 +45,10 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 
-resource "azurerm_redis_firewall_rule" "test" {
+resource "azurerm_redis_firewall_rule" "example" {
   name                = "someIPrange"
-  redis_cache_name    = "${azurerm_redis_cache.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  redis_cache_name    = "${azurerm_redis_cache.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   start_ip            = "1.2.3.4"
   end_ip              = "2.3.4.5"
 }

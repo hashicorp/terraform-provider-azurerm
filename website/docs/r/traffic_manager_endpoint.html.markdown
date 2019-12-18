@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_endpoint"
 sidebar_current: "docs-azurerm-resource-network-traffic-manager-endpoint"
@@ -21,14 +22,14 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "trafficmanagerendpointTest"
   location = "West US"
 }
 
-resource "azurerm_traffic_manager_profile" "test" {
+resource "azurerm_traffic_manager_profile" "example" {
   name                = "${random_id.server.hex}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   traffic_routing_method = "Weighted"
 
@@ -51,10 +52,10 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 }
 
-resource "azurerm_traffic_manager_endpoint" "test" {
+resource "azurerm_traffic_manager_endpoint" "example" {
   name                = "${random_id.server.hex}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  profile_name        = "${azurerm_traffic_manager_profile.example.name}"
   target              = "terraform.io"
   type                = "externalEndpoints"
   weight              = 100
@@ -145,5 +146,5 @@ The following attributes are exported:
 Traffic Manager Endpoints can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_traffic_manager_endpoint.testEndpoints /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1/azureEndpoints/mytrafficmanagerendpoint
+terraform import azurerm_traffic_manager_endpoint.exampleEndpoints /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1/azureEndpoints/mytrafficmanagerendpoint
 ```

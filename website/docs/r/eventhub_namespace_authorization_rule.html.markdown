@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace_authorization_rule"
 sidebar_current: "docs-azurerm-resource-messaging-eventhub-namespace-authorization-rule"
@@ -20,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_eventhub_namespace" "example" {
   name                = "acceptanceTestEventHubNamespace"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "Basic"
   capacity            = 2
 
@@ -32,8 +33,8 @@ resource "azurerm_eventhub_namespace" "example" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "example" {
   name                = "navi"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   listen = true
   send   = false

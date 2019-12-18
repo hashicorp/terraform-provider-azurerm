@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -323,7 +323,10 @@ func resourceArmContainerGroup() *schema.Resource {
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
 						},
 
 						"volume": {
@@ -658,10 +661,16 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 			Pending:                   []string{"Attached"},
 			Target:                    []string{"Detached"},
 			Refresh:                   containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx, networkProfileClient, networkProfileResourceGroup, networkProfileName, resourceGroup, name),
-			Timeout:                   10 * time.Minute,
 			MinTimeout:                15 * time.Second,
 			ContinuousTargetOccurence: 5,
 		}
+
+		if features.SupportsCustomTimeouts() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+		} else {
+			stateConf.Timeout = 10 * time.Minute
+		}
+
 		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("Error waiting for Container Group %q (Resource Group %q) to finish deleting: %s", name, resourceGroup, err)
 		}

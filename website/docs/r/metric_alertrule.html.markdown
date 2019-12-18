@@ -1,4 +1,5 @@
 ---
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_metric_alertrule"
 sidebar_current: "docs-azurerm-resource-monitor-metric-alertrule"
@@ -16,16 +17,16 @@ Manages a [metric-based alert rule](https://docs.microsoft.com/en-us/azure/monit
 ## Example Usage (CPU Percentage of a virtual machine)
 
 ```hcl
-resource "azurerm_metric_alertrule" "test" {
-  name                = "${azurerm_virtual_machine.test.name}-cpu"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_metric_alertrule" "example" {
+  name                = "${azurerm_virtual_machine.example.name}-cpu"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   description = "An alert rule to watch the metric Percentage CPU"
 
   enabled = true
 
-  resource_id = "${azurerm_virtual_machine.test.id}"
+  resource_id = "${azurerm_virtual_machine.example.id}"
   metric_name = "Percentage CPU"
   operator    = "GreaterThan"
   threshold   = 75
@@ -54,16 +55,16 @@ resource "azurerm_metric_alertrule" "test" {
 ## Example Usage (Storage usage of a SQL Database)
 
 ```hcl
-resource "azurerm_metric_alertrule" "test" {
-  name                = "${azurerm_sql_database.test.name}-storage"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_metric_alertrule" "example" {
+  name                = "${azurerm_sql_database.example.name}-storage"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   description = "An alert rule to watch the metric Storage"
 
   enabled = true
 
-  resource_id = "${azurerm_sql_database.test.id}"
+  resource_id = "${azurerm_sql_database.example.id}"
   metric_name = "storage"
   operator    = "GreaterThan"
   threshold   = 1073741824

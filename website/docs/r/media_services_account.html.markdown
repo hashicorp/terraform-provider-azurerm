@@ -1,4 +1,5 @@
 ---
+subcategory: "Media"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_media_services_account"
 sidebar_current: "docs-azurerm-resource-media-media-services-account"
@@ -13,26 +14,26 @@ Manages a Media Services Account.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "media-resources"
   location = "West Europe"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "examplestoracc"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
 
-resource "azurerm_media_services_account" "test" {
+resource "azurerm_media_services_account" "example" {
   name                = "examplemediaacc"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   storage_account {
-    id         = "${azurerm_storage_account.test.id}"
+    id         = "${azurerm_storage_account.example.id}"
     is_primary = true
   }
 }

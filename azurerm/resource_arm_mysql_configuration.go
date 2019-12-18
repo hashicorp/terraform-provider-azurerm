@@ -55,7 +55,7 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 }
 
 func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.ConfigurationsClient
+	client := meta.(*ArmClient).MySQL.ConfigurationsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -95,7 +95,7 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.ConfigurationsClient
+	client := meta.(*ArmClient).MySQL.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -127,7 +127,7 @@ func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmMySQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.ConfigurationsClient
+	client := meta.(*ArmClient).MySQL.ConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

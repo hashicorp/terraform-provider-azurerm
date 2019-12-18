@@ -139,7 +139,7 @@ func resourceArmStorageManagementPolicyCreateOrUpdate(d *schema.ResourceData, me
 
 	storageAccountId := d.Get("storage_account_id").(string)
 
-	rid, err := parseAzureResourceID(storageAccountId)
+	rid, err := azure.ParseAzureResourceID(storageAccountId)
 	if err != nil {
 		return err
 	}
@@ -186,7 +186,7 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 
 	id := d.Id()
 
-	rid, err := parseAzureResourceID(id)
+	rid, err := azure.ParseAzureResourceID(id)
 	if err != nil {
 		return err
 	}
@@ -198,6 +198,7 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 		return err
 	}
 
+	// TODO: switch this to look up the account and use that, rather than building this up
 	storageAccountID := "/subscriptions/" + rid.SubscriptionID + "/resourceGroups/" + rid.ResourceGroup + "/providers/" + rid.Provider + "/storageAccounts/" + storageAccountName
 	d.Set("storage_account_id", storageAccountID)
 
@@ -220,7 +221,7 @@ func resourceArmStorageManagementPolicyDelete(d *schema.ResourceData, meta inter
 
 	id := d.Id()
 
-	rid, err := parseAzureResourceID(id)
+	rid, err := azure.ParseAzureResourceID(id)
 	if err != nil {
 		return err
 	}

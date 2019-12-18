@@ -1,4 +1,5 @@
 ---
+subcategory: "Log Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_solution"
 sidebar_current: "docs-azurerm-log-analytics-solution"
@@ -13,7 +14,7 @@ Manages a Log Analytics (formally Operational Insights) Solution.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "k8s-log-analytics-test"
   location = "westeurope"
 }
@@ -21,25 +22,25 @@ resource "azurerm_resource_group" "test" {
 resource "random_id" "workspace" {
   keepers = {
     # Generate a new id each time we switch to a new resource group
-    group_name = "${azurerm_resource_group.test.name}"
+    group_name = "${azurerm_resource_group.example.name}"
   }
 
   byte_length = 8
 }
 
-resource "azurerm_log_analytics_workspace" "test" {
+resource "azurerm_log_analytics_workspace" "example" {
   name                = "k8s-workspace-${random_id.workspace.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
+resource "azurerm_log_analytics_solution" "example" {
   solution_name         = "ContainerInsights"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+  location              = "${azurerm_resource_group.example.location}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  workspace_resource_id = "${azurerm_log_analytics_workspace.example.id}"
+  workspace_name        = "${azurerm_log_analytics_workspace.example.name}"
 
   plan {
     publisher = "Microsoft"

@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_relay_namespace"
 sidebar_current: "docs-azurerm-resource-messaging-relay-namespace"
@@ -14,15 +15,15 @@ Manages an Azure Relay Namespace.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_relay_namespace" "test" {
+resource "azurerm_relay_namespace" "example" {
   name                = "example-relay"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku_name = "Standard"
 

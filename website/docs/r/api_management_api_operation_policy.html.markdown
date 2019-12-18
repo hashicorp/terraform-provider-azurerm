@@ -1,4 +1,5 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api_operation_policy"
 sidebar_current: "docs-azurerm-resource-api-management-api-operation-policy"

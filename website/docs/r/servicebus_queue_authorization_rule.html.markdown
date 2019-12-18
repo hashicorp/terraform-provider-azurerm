@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_queue_authorization_rule"
 sidebar_current: "docs-azurerm-resource-messaging-servicebus-queue-authorization-rule"

@@ -41,7 +41,7 @@ func TestAccAzureRMRecoveryNetworkMapping_basic(t *testing.T) {
 func testAccAzureRMRecoveryNetworkMapping_basic(rInt int, location string, altLocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG1-%d"
+  name     = "acctestRG-recovery1-%d"
   location = "%s"
 }
 

@@ -121,7 +121,7 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("Error creating/updating Recovery Service Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
 	}
 
-	resp, err := resourceArmRecoveryServicesProtectedVmWaitForState(client, ctx, true, vaultName, resourceGroup, containerName, protectedItemName, policyId, d.IsNewResource())
+	resp, err := resourceArmRecoveryServicesProtectedVmWaitForStateCreateUpdate(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, d)
 	if err != nil {
 		return err
 	}
@@ -199,60 +199,92 @@ func resourceArmRecoveryServicesProtectedVmDelete(d *schema.ResourceData, meta i
 		}
 	}
 
-	if _, err := resourceArmRecoveryServicesProtectedVmWaitForState(client, ctx, false, vaultName, resourceGroup, containerName, protectedItemName, "", false); err != nil {
+	if _, err := resourceArmRecoveryServicesProtectedVmWaitForDeletion(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, "", d); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func resourceArmRecoveryServicesProtectedVmWaitForState(client *backup.ProtectedItemsClient, ctx context.Context, found bool, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, newResource bool) (backup.ProtectedItemResource, error) {
+func resourceArmRecoveryServicesProtectedVmWaitForStateCreateUpdate(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, d *schema.ResourceData) (backup.ProtectedItemResource, error) {
 	state := &resource.StateChangeConf{
-		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
-			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
-					return resp, "NotFound", nil
-				}
-
-				return resp, "Error", fmt.Errorf("Error making Read request on Recovery Service Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
-			} else if !newResource && policyId != "" {
-				if properties := resp.Properties; properties != nil {
-					if vm, ok := properties.AsAzureIaaSComputeVMProtectedItem(); ok {
-						if v := vm.PolicyID; v != nil {
-							if strings.Replace(*v, "Subscriptions", "subscriptions", 1) != policyId {
-								return resp, "NotFound", nil
-							}
-						} else {
-							return resp, "Error", fmt.Errorf("Error reading policy ID attribute nil on Recovery Service Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
-						}
-					} else {
-						return resp, "Error", fmt.Errorf("Error reading properties on Recovery Service Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
-					}
-				} else {
-					return resp, "Error", fmt.Errorf("Error reading properties on empty Recovery Service Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
-				}
-			}
-			return resp, "Found", nil
-		},
+		Pending:    []string{"NotFound"},
+		Target:     []string{"Found"},
+		Refresh:    resourceArmRecoveryServicesProtectedVmRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, true),
 	}
 
-	if found {
-		state.Pending = []string{"NotFound"}
-		state.Target = []string{"Found"}
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			state.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			state.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
 	} else {
-		state.Pending = []string{"Found"}
-		state.Target = []string{"NotFound"}
+		state.Timeout = 30 * time.Minute
 	}
 
 	resp, err := state.WaitForState()
 	if err != nil {
 		i, _ := resp.(backup.ProtectedItemResource)
-		return i, fmt.Errorf("Error waiting for the Recovery Service Protected VM %q to be %t (Resource Group %q) to provision: %+v", protectedItemName, found, resourceGroup, err)
+		return i, fmt.Errorf("Error waiting for the Recovery Service Protected VM %q to be true (Resource Group %q) to provision: %+v", protectedItemName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectedItemResource), nil
+}
+
+func resourceArmRecoveryServicesProtectedVmWaitForDeletion(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, d *schema.ResourceData) (backup.ProtectedItemResource, error) {
+	state := &resource.StateChangeConf{
+		MinTimeout: 30 * time.Second,
+		Delay:      10 * time.Second,
+		Pending:    []string{"Found"},
+		Target:     []string{"NotFound"},
+		Refresh:    resourceArmRecoveryServicesProtectedVmRefreshFunc(ctx, client, vaultName, resourceGroup, containerName, protectedItemName, policyId, false),
+	}
+
+	if features.SupportsCustomTimeouts() {
+		state.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		state.Timeout = 30 * time.Minute
+	}
+
+	resp, err := state.WaitForState()
+	if err != nil {
+		i, _ := resp.(backup.ProtectedItemResource)
+		return i, fmt.Errorf("Error waiting for the Recovery Service Protected VM %q to be false (Resource Group %q) to provision: %+v", protectedItemName, resourceGroup, err)
+	}
+
+	return resp.(backup.ProtectedItemResource), nil
+}
+
+func resourceArmRecoveryServicesProtectedVmRefreshFunc(ctx context.Context, client *backup.ProtectedItemsClient, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, newResource bool) resource.StateRefreshFunc {
+	// TODO: split this into two functions
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return resp, "NotFound", nil
+			}
+
+			return resp, "Error", fmt.Errorf("Error making Read request on Recovery Service Protected VM %q (Resource Group %q): %+v", protectedItemName, resourceGroup, err)
+		} else if !newResource && policyId != "" {
+			if properties := resp.Properties; properties != nil {
+				if vm, ok := properties.AsAzureIaaSComputeVMProtectedItem(); ok {
+					if v := vm.PolicyID; v != nil {
+						if strings.Replace(*v, "Subscriptions", "subscriptions", 1) != policyId {
+							return resp, "NotFound", nil
+						}
+					} else {
+						return resp, "Error", fmt.Errorf("Error reading policy ID attribute nil on Recovery Service Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
+					}
+				} else {
+					return resp, "Error", fmt.Errorf("Error reading properties on Recovery Service Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
+				}
+			} else {
+				return resp, "Error", fmt.Errorf("Error reading properties on empty Recovery Service Protected VM %q (Resource Group %q)", protectedItemName, resourceGroup)
+			}
+		}
+		return resp, "Found", nil
+	}
 }

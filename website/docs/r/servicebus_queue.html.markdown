@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_queue"
 sidebar_current: "docs-azurerm-resource-messaging-servicebus-queue-x"
@@ -107,5 +108,5 @@ The following attributes are exported:
 Service Bus Queue can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_servicebus_queue.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/queues/snqueue1
+terraform import azurerm_servicebus_queue.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/queues/snqueue1
 ```

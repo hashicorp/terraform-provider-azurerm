@@ -56,9 +56,8 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -421,9 +420,15 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			Pending:    []string{"Provisioning"},
 			Target:     []string{"Ready"},
 			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, keyVaultBaseUrl, name),
-			Timeout:    60 * time.Minute,
 			MinTimeout: 15 * time.Second,
 		}
+
+		if features.SupportsCustomTimeouts() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = 60 * time.Minute
+		}
+
 		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, keyVaultBaseUrl, err)
 		}

@@ -1,4 +1,5 @@
 ---
+subcategory: "Load Balancer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_backend_address_pool"
 sidebar_current: "docs-azurerm-resource-loadbalancer-backend-address-pool"
@@ -15,32 +16,32 @@ Manages a Load Balancer Backend Address Pool.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "LoadBalancerRG"
   location = "West US"
 }
 
-resource "azurerm_public_ip" "test" {
+resource "azurerm_public_ip" "example" {
   name                = "PublicIPForLB"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   allocation_method   = "Static"
 }
 
-resource "azurerm_lb" "test" {
+resource "azurerm_lb" "example" {
   name                = "TestLoadBalancer"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.example.id}"
   }
 }
 
-resource "azurerm_lb_backend_address_pool" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+resource "azurerm_lb_backend_address_pool" "example" {
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  loadbalancer_id     = "${azurerm_lb.example.id}"
   name                = "BackEndAddressPool"
 }
 ```
@@ -68,5 +69,5 @@ The following attributes are exported:
 Load Balancer Backend Address Pools can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_lb_backend_address_pool.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/backendAddressPools/pool1
+terraform import azurerm_lb_backend_address_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/backendAddressPools/pool1
 ```

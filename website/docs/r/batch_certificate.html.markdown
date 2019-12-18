@@ -1,4 +1,5 @@
 ---
+subcategory: "Batch"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_certificate"
 sidebar_current: "docs-azurerm-resource-batch-certificate"
@@ -14,34 +15,34 @@ Manages a certificate in an Azure Batch account.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "testbatch"
   location = "westeurope"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "teststorage"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_batch_account" "test" {
+resource "azurerm_batch_account" "example" {
   name                 = "testbatchaccount"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  location             = "${azurerm_resource_group.example.location}"
   pool_allocation_mode = "BatchService"
-  storage_account_id   = "${azurerm_storage_account.test.id}"
+  storage_account_id   = "${azurerm_storage_account.example.id}"
 
   tags = {
     env = "test"
   }
 }
 
-resource "azurerm_batch_certificate" "test" {
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  account_name         = "${azurerm_batch_account.test.name}"
+resource "azurerm_batch_certificate" "example" {
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  account_name         = "${azurerm_batch_account.example.name}"
   certificate          = "${filebase64("certificate.pfx")}"
   format               = "Pfx"
   password             = "terraform"

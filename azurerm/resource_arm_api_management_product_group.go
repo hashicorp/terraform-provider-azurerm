@@ -60,7 +60,7 @@ func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta int
 		}
 
 		if !utils.ResponseWasNotFound(resp) {
-			subscriptionId := meta.(*ArmClient).subscriptionId
+			subscriptionId := meta.(*ArmClient).Account.SubscriptionId
 			resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/products/%s/groups/%s", subscriptionId, resourceGroup, serviceName, groupName, productId)
 			return tf.ImportAsExistsError("azurerm_api_management_product_group", resourceId)
 		}

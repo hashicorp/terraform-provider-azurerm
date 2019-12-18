@@ -1,4 +1,5 @@
 ---
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_group"
 sidebar_current: "docs-azurerm-resource-container-group"
@@ -203,7 +204,7 @@ The `readiness_probe` block supports:
 
 * `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
 
-* `httpget` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+* `http_get` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
 
 * `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
 
@@ -221,7 +222,7 @@ The `liveness_probe` block supports:
 
 * `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
 
-* `httpget` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+* `http_get` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
 
 * `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
 
@@ -235,7 +236,7 @@ The `liveness_probe` block supports:
 
 ---
 
-The `httpget` block supports:
+The `http_get` block supports:
 
 * `path` - (Optional) Path to access on the HTTP server. Changing this forces a new resource to be created.
 

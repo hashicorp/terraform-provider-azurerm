@@ -1,4 +1,5 @@
 ---
+subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_set_definition"
 sidebar_current: "docs-azurerm-resource-policy-set-definition"
@@ -15,7 +16,7 @@ Manages a policy set definition.
 ## Example Usage
 
 ```hcl
-resource "azurerm_policy_set_definition" "test" {
+resource "azurerm_policy_set_definition" "example" {
   name         = "testPolicySet"
   policy_type  = "Custom"
   display_name = "Test Policy Set"
@@ -81,9 +82,9 @@ The following attributes are exported:
 Policy Set Definitions can be imported using the Resource ID, e.g.
 
 ```shell
-terraform import azurerm_policy_set_definition.test  /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
+terraform import azurerm_policy_set_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
 ```
 or
 ```shell
-terraform import azurerm_policy_set_definition.test /providers/Microsoft.Management/managementgroups/my-mgmt-group-id/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
+terraform import azurerm_policy_set_definition.example/providers/Microsoft.Management/managementgroups/my-mgmt-group-id/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
 ```

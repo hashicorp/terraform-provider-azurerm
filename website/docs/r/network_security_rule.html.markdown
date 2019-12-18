@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_security_rule"
 sidebar_current: "docs-azurerm-resource-network-security-rule"
@@ -18,18 +19,18 @@ At this time you cannot use a Network Security Group with in-line Network Securi
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_network_security_group" "test" {
+resource "azurerm_network_security_group" "example" {
   name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_network_security_rule" "test" {
+resource "azurerm_network_security_rule" "example" {
   name                        = "test123"
   priority                    = 100
   direction                   = "Outbound"
@@ -39,8 +40,8 @@ resource "azurerm_network_security_rule" "test" {
   destination_port_range      = "*"
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  network_security_group_name = "${azurerm_network_security_group.test.name}"
+  resource_group_name         = "${azurerm_resource_group.example.name}"
+  network_security_group_name = "${azurerm_network_security_group.example.name}"
 }
 ```
 

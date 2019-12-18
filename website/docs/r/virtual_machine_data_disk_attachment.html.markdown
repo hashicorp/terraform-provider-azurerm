@@ -1,4 +1,5 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_data_disk_attachment"
 sidebar_current: "docs-azurerm-resource-compute-virtual-machine-data-disk-attachment"
@@ -56,7 +57,7 @@ resource "azurerm_network_interface" "main" {
   }
 }
 
-resource "azurerm_virtual_machine" "test" {
+resource "azurerm_virtual_machine" "example" {
   name                  = "${local.vm_name}"
   location              = "${azurerm_resource_group.main.location}"
   resource_group_name   = "${azurerm_resource_group.main.name}"
@@ -88,7 +89,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 }
 
-resource "azurerm_managed_disk" "test" {
+resource "azurerm_managed_disk" "example" {
   name                 = "${local.vm_name}-disk1"
   location             = "${azurerm_resource_group.main.location}"
   resource_group_name  = "${azurerm_resource_group.main.name}"
@@ -97,9 +98,9 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = 10
 }
 
-resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  managed_disk_id    = "${azurerm_managed_disk.test.id}"
-  virtual_machine_id = "${azurerm_virtual_machine.test.id}"
+resource "azurerm_virtual_machine_data_disk_attachment" "example" {
+  managed_disk_id    = "${azurerm_managed_disk.example.id}"
+  virtual_machine_id = "${azurerm_virtual_machine.example.id}"
   lun                = "10"
   caching            = "ReadWrite"
 }
@@ -132,7 +133,7 @@ The following attributes are exported:
 Virtual Machines Data Disk Attachments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_virtual_machine_data_disk_attachment.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/virtualMachines/machine1/dataDisks/disk1
+terraform import azurerm_virtual_machine_data_disk_attachment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/virtualMachines/machine1/dataDisks/disk1
 ```
 
 -> **Please Note:** This is a Terraform Unique ID matching the format: `{virtualMachineID}/dataDisks/{diskName}`

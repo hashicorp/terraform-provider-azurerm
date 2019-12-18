@@ -1,4 +1,5 @@
 ---
+subcategory: "Data Lake"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store_file"
 sidebar_current: "docs-azurerm-resource-data-lake-store-file"
@@ -49,5 +50,5 @@ The following arguments are supported:
 Date Lake Store File's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_lake_store_file.test example.azuredatalakestore.net/test/example.txt
+terraform import azurerm_data_lake_store_file.exampleexample.azuredatalakestore.net/test/example.txt
 ```

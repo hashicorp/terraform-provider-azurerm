@@ -1,4 +1,5 @@
 ---
+subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_sql_server"
 sidebar_current: "docs-azurerm-resource-data-factory-linked-service-sql-server"
@@ -28,8 +29,8 @@ resource "azurerm_data_factory" "example" {
 
 resource "azurerm_data_factory_linked_service_sql_server" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  data_factory_name   = "${azurerm_data_factory.example.name}"
   connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
 }
 ```

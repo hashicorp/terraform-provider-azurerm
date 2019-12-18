@@ -78,7 +78,7 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 }
 
 func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AppInsights.APIKeyClient
+	client := meta.(*ArmClient).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -133,7 +133,7 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 }
 
 func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AppInsights.APIKeyClient
+	client := meta.(*ArmClient).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -174,7 +174,7 @@ func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmApplicationInsightsAPIKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AppInsights.APIKeyClient
+	client := meta.(*ArmClient).AppInsights.APIKeysClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

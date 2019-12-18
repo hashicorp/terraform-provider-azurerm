@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_virtual_network_rule"
 sidebar_current: "docs-azurerm-resource-database-postgresql-virtual-network-rule"
@@ -15,30 +16,30 @@ Manages a PostgreSQL Virtual Network Rule.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West US"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "example-vnet"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
 resource "azurerm_subnet" "internal" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
-resource "azurerm_postgresql_server" "test" {
+resource "azurerm_postgresql_server" "example" {
   name                = "postgresql-server-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     name     = "GP_Gen5_2"
@@ -59,10 +60,10 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 
-resource "azurerm_postgresql_virtual_network_rule" "test" {
+resource "azurerm_postgresql_virtual_network_rule" "example" {
   name                                 = "postgresql-vnet-rule"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
-  server_name                          = "${azurerm_postgresql_server.test.name}"
+  resource_group_name                  = "${azurerm_resource_group.example.name}"
+  server_name                          = "${azurerm_postgresql_server.example.name}"
   subnet_id                            = "${azurerm_subnet.internal.id}"
   ignore_missing_vnet_service_endpoint = true
 }

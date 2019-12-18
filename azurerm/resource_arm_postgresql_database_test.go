@@ -62,6 +62,27 @@ func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLDatabase_collationWithHyphen(t *testing.T) {
+	resourceName := "azurerm_postgresql_database.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLDatabase_collationWithHyphen(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
+					resource.TestCheckResourceAttr(resourceName, "collation", "En-US"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 	resourceName := "azurerm_postgresql_database.test"
 	ri := tf.AccRandTimeInt()
@@ -216,6 +237,47 @@ resource "azurerm_postgresql_database" "import" {
   collation           = "${azurerm_postgresql_database.test.collation}"
 }
 `, testAccAzureRMPostgreSQLDatabase_basic(rInt, location))
+}
+
+func testAccAzureRMPostgreSQLDatabase_collationWithHyphen(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "GP_Gen5_2"
+    capacity = 2
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "9.6"
+  ssl_enforcement              = "Enabled"
+}
+
+resource "azurerm_postgresql_database" "test" {
+  name                = "acctestdb_%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_postgresql_server.test.name}"
+  charset             = "UTF8"
+  collation           = "En-US"
+}
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMPostgreSQLDatabase_charsetLowercase(rInt int, location string) string {

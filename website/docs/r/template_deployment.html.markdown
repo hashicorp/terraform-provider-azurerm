@@ -1,4 +1,5 @@
 ---
+subcategory: "Template"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_template_deployment"
 sidebar_current: "docs-azurerm-resource-template-deployment"
@@ -19,14 +20,14 @@ One workaround for this is to use a unique Resource Group for each ARM Template 
 ~> **Note:** This example uses [Storage Accounts](storage_account.html) and [Public IP's](public_ip.html) which are natively supported by Terraform - we'd highly recommend using the Native Resources where possible instead rather than an ARM Template, for the reasons outlined above.
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctestRG-01"
   location = "West US"
 }
 
-resource "azurerm_template_deployment" "test" {
+resource "azurerm_template_deployment" "example" {
   name                = "acctesttemplate-01"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   template_body = <<DEPLOY
 {
@@ -95,7 +96,7 @@ DEPLOY
 }
 
 output "storageAccountName" {
-  value = "${lookup(azurerm_template_deployment.test.outputs, "storageAccountName")}"
+  value = "${lookup(azurerm_template_deployment.example.outputs, "storageAccountName")}"
 }
 ```
 

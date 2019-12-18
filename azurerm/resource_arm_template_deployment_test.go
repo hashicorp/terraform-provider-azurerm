@@ -2,9 +2,11 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -227,7 +229,20 @@ func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.
 			return fmt.Errorf("Failed deleting Deployment %q (Resource Group %q): %+v", deploymentName, resourceGroup, err)
 		}
 
-		return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, deploymentName)
+		// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
+		log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", deploymentName, resourceGroup)
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{"200"},
+			Target:  []string{"404"},
+			Timeout: 40 * time.Minute,
+			Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, resourceGroup, deploymentName),
+		}
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", deploymentName, resourceGroup, err)
+		}
+
+		return nil
 	}
 }
 

@@ -23,7 +23,7 @@ We recommend pinning the version of each Provider you use in Terraform - you can
 
 ```hcl
 provider "azurerm" {
-  version = "=1.36.0"
+  version = "=1.38.0"
 }
 ```
 
@@ -85,7 +85,7 @@ Prior to version 2.0 the Azure Provider has a default value set for resource tim
 This is useful for resources which can take a long time to delete - for example deleting the `azurerm_resource_group` resource will delete any resources within it, which can take time. Within Terraform your Terraform Configuration this could be represented like so:
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resource-group"
   location = "West Europe"
 
@@ -158,11 +158,15 @@ The deprecated field `zone_type` will be removed. Private DNS Zones are now a se
 
 ### Data Source: `azurerm_kubernetes_cluster`
 
-The deprecated field `dns_prefix` within the `agent_pool_profile` block will be removed.
+The deprecated block `agent_pool_profile` will be removed. This has been replaced by the `default_node_pool` block.
 
 ### Data Source: `azurerm_network_interface`
 
 The deprecated field `internal_fqdn` will be removed.
+
+### Data Source: `azurerm_private_link_service`
+
+The deprecated field `network_interface_ids` will be removed.
 
 ### Data Source: `azurerm_scheduler_job_collection`
 
@@ -288,6 +292,14 @@ The deprecated `location` field will be removed, since this is no longer used.
 
 The deprecated `internal_public_ip_address_id` field in the `ip_configuration` block will be removed. This field has been replaced by the `public_ip_address_id` field in the `ip_configuration` block.
 
+### Resource: `azurerm_iot_dps`
+
+This resource has been renamed to `azurerm_iothub_dps` which is available from v1.37 of the AzureRM Provider - instructions on [how to migrate are available in this guide](https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html). As such this resource will be removed.
+
+### Resource: `azurerm_iot_dps_certificate`
+
+This resource has been renamed to `azurerm_iothub_dps_certificate` which is available from v1.37 of the AzureRM Provider - instructions on [how to migrate are available in this guide](https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html). As such this resource will be removed.
+
 ### Resource: `azurerm_kubernetes_cluster`
 
 The deprecated `dns_prefix` field in the `agent_pool_profile` block will be removed. This field has been removed by Azure and is no longer used.
@@ -320,11 +332,13 @@ The deprecated `location` field will be removed, since this is no longer used.
 
 The `resource_id` field has been moved from the `linked_service_properties` block to the top-level.
 
-The `linked_service_properties` block will be removed, since it's no longer required.
+The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
 
 ### Resource: `azurerm_log_analytics_workspace_linked_service`
 
 This resource has been renamed to `azurerm_log_analytics_linked_service` which is available from v1.22 of the AzureRM Provider - instructions on [how to migrate are available in this guide](https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html). As such this resource will be removed.
+
+The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
 
 ### Resource: `azurerm_mssql_elasticpool`
 
@@ -343,6 +357,14 @@ The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block 
 ### Resource: `azurerm_packet_capture`
 
 The `azurerm_packet_capture` resource will be deprecated in favour of a new resources `azurerm_network_packet_capture`.
+
+### Resource: `azurerm_private_link_endpoint`
+
+This resource has been renamed to `azurerm_private_endpoint` which is available from v1.39 of the AzureRM Provider - instructions on [how to migrate are available in this guide](https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html). As such this resource will be removed.
+
+### Resource: `azurerm_private_link_service`
+
+The deprecated `network_interface_ids` field will be removed.
 
 ### Resource: `azurerm_public_ip`
 
@@ -426,13 +448,9 @@ Splitting the Virtual Machine Scale Set resource in two allows us to both provid
 
 The existing `azurerm_virtual_machine_scale_set` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
 
-### Resource: `azurerm_log_analytics_linked_service`
+### Resource: `azurerm_virtual_wan`
 
-The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
-
-### Resource: `azurerm_log_analytics_workspace_linked_service`
-
-The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
+The deprecated `security_provider_name` field will be removed, since this option is no longer supported by Azure.
 
 ---
 

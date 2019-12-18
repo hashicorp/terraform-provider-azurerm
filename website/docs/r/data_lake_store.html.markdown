@@ -1,4 +1,5 @@
 ---
+subcategory: "Data Lake"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store"
 sidebar_current: "docs-azurerm-resource-data-lake-store-x"
@@ -64,5 +65,5 @@ The following attributes are exported:
 Date Lake Store can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_lake_store.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DataLakeStore/accounts/mydatalakeaccount
+terraform import azurerm_data_lake_store.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DataLakeStore/accounts/mydatalakeaccount
 ```

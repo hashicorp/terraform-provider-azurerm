@@ -1,4 +1,5 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_product"
 sidebar_current: "docs-azurerm-resource-api-management-product-x"
@@ -13,25 +14,25 @@ Manages an API Management Product.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_api_management" "test" {
+resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
   sku_name = "Developer_1"
 }
 
-resource "azurerm_api_management_product" "test" {
+resource "azurerm_api_management_product" "example" {
   product_id            = "test-product"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  api_management_name   = "${azurerm_api_management.example.name}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
   display_name          = "Test Product"
   subscription_required = true
   approval_required     = true
@@ -80,5 +81,5 @@ In addition to all arguments above, the following attributes are exported:
 API Management Products can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_product.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/products/myproduct
+terraform import azurerm_api_management_product.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/products/myproduct
 ```

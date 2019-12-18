@@ -1,4 +1,5 @@
 ---
+subcategory: "Service Fabric"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_service_fabric_cluster"
 sidebar_current: "docs-azurerm-resource-service-fabric-cluster"
@@ -13,18 +14,18 @@ Manages a Service Fabric Cluster.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_service_fabric_cluster" "test" {
+resource "azurerm_service_fabric_cluster" "example" {
   name                 = "example-servicefabric"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  location             = "${azurerm_resource_group.example.location}"
   reliability_level    = "Bronze"
   upgrade_mode         = "Manual"
-  cluster_code_version = "6.3.176.9494"
+  cluster_code_version = "6.5.639.9590"
   vm_image             = "Windows"
   management_endpoint  = "https://example:80"
 

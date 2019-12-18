@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventgrid_topic"
 sidebar_current: "docs-azurerm-resource-messaging-eventgrid-topic"
@@ -16,15 +17,15 @@ Manages an EventGrid Topic
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West US 2"
 }
 
-resource "azurerm_eventgrid_topic" "test" {
+resource "azurerm_eventgrid_topic" "example" {
   name                = "my-eventgrid-topic"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   tags = {
     environment = "Production"

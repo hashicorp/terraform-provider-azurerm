@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -143,8 +144,16 @@ func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error Creating/Updating Log Profile %q: %+v", name, err)
 	}
 
+	duration := 600 * time.Second
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			duration = d.Timeout(schema.TimeoutCreate)
+		} else {
+			duration = d.Timeout(schema.TimeoutUpdate)
+		}
+	}
 	// Wait for Log Profile to become available
-	if err := resource.Retry(600*time.Second, retryLogProfilesClientGet(name, meta)); err != nil {
+	if err := resource.Retry(duration, retryLogProfilesClientGet(ctx, client, name, meta)); err != nil {
 		return fmt.Errorf("Error waiting for Log Profile %q to become available: %+v", name, err)
 	}
 
@@ -278,11 +287,8 @@ func flattenAzureRmLogProfileRetentionPolicy(input *insights.RetentionPolicy) []
 	return []interface{}{result}
 }
 
-func retryLogProfilesClientGet(name string, meta interface{}) func() *resource.RetryError {
+func retryLogProfilesClientGet(ctx context.Context, client *insights.LogProfilesClient, name string, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		client := meta.(*ArmClient).Monitor.LogProfilesClient
-		ctx := meta.(*ArmClient).StopContext
-
 		if _, err := client.Get(ctx, name); err != nil {
 			return resource.RetryableError(err)
 		}

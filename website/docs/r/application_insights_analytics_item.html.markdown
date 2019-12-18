@@ -1,4 +1,5 @@
 ---
+subcategory: "Application Insights"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_insights_analytics_item"
 sidebar_current: "docs-azurerm-resource-application-insights-x"
@@ -13,21 +14,21 @@ Manages an Application Insights Analytics Item component.
 ## Example Usage
 
 ```terraform
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "tf-test"
   location = "West Europe"
 }
 
-resource "azurerm_application_insights" "test" {
+resource "azurerm_application_insights" "example" {
   name                = "tf-test-appinsights"
   location            = "West Europe"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   application_type    = "web"
 }
 
-resource "azurerm_application_insights_analytics_item" "test" {
+resource "azurerm_application_insights_analytics_item" "example" {
   name                    = "testquery"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = "${azurerm_application_insights.example.id}"
   content                 = "requests //simple example query"
   scope                   = "shared"
   type                    = "query"
@@ -67,7 +68,7 @@ The following attributes are exported:
 Application Insights Analytics Items can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_application_insights_analytics_item.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.insights/components/analyticsItems/11111111-1111-1111-1111-111111111111
+terraform import azurerm_application_insights_analytics_item.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.insights/components/analyticsItems/11111111-1111-1111-1111-111111111111
 ```
 
 -> **Please Note:** This is a Terraform Unique ID matching the format: `{appInsightsID}/analyticsItems/{itemId}` for items with `scope` set to `shared`, or  `{appInsightsID}/myanalyticsItems/{itemId}` for items with `scope` set to `user`

@@ -109,9 +109,14 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
 		Refresh:                   storageShareDirectoryRefreshFunc(ctx, client, accountName, shareName, directoryName),
-		Timeout:                   5 * time.Minute,
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 5,
+	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+	} else {
+		stateConf.Timeout = 5 * time.Minute
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
