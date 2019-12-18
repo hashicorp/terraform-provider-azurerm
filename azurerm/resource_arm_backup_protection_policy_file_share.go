@@ -17,7 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -109,8 +108,6 @@ func resourceArmBackupProtectionPolicyFileShare() *schema.Resource {
 					},
 				},
 			},
-
-			"tags": tags.Schema(),
 		},
 	}
 }
@@ -123,7 +120,6 @@ func resourceArmBackupProtectionPolicyFileShareCreateUpdate(d *schema.ResourceDa
 	policyName := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[DEBUG] Creating/updating Recovery Service Protection Policy %s (resource group %q)", policyName, resourceGroup)
 
@@ -149,7 +145,6 @@ func resourceArmBackupProtectionPolicyFileShareCreateUpdate(d *schema.ResourceDa
 	}
 
 	policy := backup.ProtectionPolicyResource{
-		Tags: tags.Expand(t),
 		Properties: &backup.AzureFileShareProtectionPolicy{
 			TimeZone:             utils.String(d.Get("timezone").(string)),
 			BackupManagementType: backup.BackupManagementTypeAzureStorage,
@@ -226,7 +221,7 @@ func resourceArmBackupProtectionPolicyFileShareRead(d *schema.ResourceData, meta
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmBackupProtectionPolicyFileShareDelete(d *schema.ResourceData, meta interface{}) error {
