@@ -9,7 +9,7 @@ description: |-
 
 # azurerm_advanced_threat_protection
 
-Manages a resources Advanced Threat Protection setting..
+Manages a resources Advanced Threat Protection setting.
 
 ## Example Usage
 
@@ -43,9 +43,9 @@ resource "azurerm_advanced_threat_protection" "example" {
 
 The following arguments are supported:
 
-* `target_resource_id` - (Required) The azure resource ID of the resource to enable the setting on. Changing this forces a new resource to be created.
+* `target_resource_id` - (Required) The ID of the Azure Resource which to enable Advanced Threat Protection on. Changing this forces a new resource to be created.
 
-* `enabled` - (Required) Whether to enable or disable Advanced Threat Protection on this resource.
+* `enabled` - (Required) Should Advanced Threat Protection be enabled on this resource?
 
 
 ## Attributes Reference
@@ -57,7 +57,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Analysis Services Server can be imported using the `resource id`, e.g.
+Advanced Threat Protection can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_advanced_threat_protection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/exampleResourceGroup/providers/Microsoft.Storage/storageAccounts/exampleaccount/providers/Microsoft.Security/advancedThreatProtectionSettings/default

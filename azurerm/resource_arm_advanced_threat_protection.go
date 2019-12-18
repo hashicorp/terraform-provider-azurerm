@@ -61,7 +61,7 @@ func parseAdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionRes
 
 	parts := strings.Split(input, "/providers/Microsoft.Security/advancedThreatProtectionSettings/")
 	if len(parts) != 2 {
-		return nil, fmt.Errorf("Error determining target resource ID, resource ID in unexacpted format: %q", id)
+		return nil, fmt.Errorf("Error determining target resource ID, resource ID in unexpected format: %q", id)
 	}
 
 	return &AdvancedThreatProtectionResourceID{
@@ -72,7 +72,7 @@ func parseAdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionRes
 
 func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
 	resourceID := d.Get("target_resource_id").(string)
@@ -127,7 +127,7 @@ func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interf
 
 func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
 	id, err := parseAdvancedThreatProtectionID(d.Id())

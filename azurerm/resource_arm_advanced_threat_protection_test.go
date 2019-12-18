@@ -61,7 +61,7 @@ func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 	var id AdvancedThreatProtectionResourceID
 
 	// the API errors on deleting the cosmos DB account some of the time so lets skip this test for now
-	// remove once this is fixed: https://github.com/Azure/azure-sdk-for-go/issues/6310
+	// TODO: remove once this is fixed: https://github.com/Azure/azure-sdk-for-go/issues/6310
 	// run it multiple times in a row as it only fails 50% of the time
 	t.Skip()
 
