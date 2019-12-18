@@ -65,7 +65,6 @@ func resourceArmBackupProtectedFileShare() *schema.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-
 		},
 	}
 }
