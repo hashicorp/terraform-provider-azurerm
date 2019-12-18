@@ -101,6 +101,33 @@ func resourceArmVirtualMachine() *schema.Resource {
 				},
 			},
 
+			"priority": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(compute.Regular),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Low),
+					string(compute.Regular),
+					string(compute.Spot),
+				}, false),
+			},
+
+			"max_price": {
+				Type:     schema.TypeFloat,
+				Optional: true,
+				Default:  -1,
+			},
+
+			"eviction_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Deallocate),
+					string(compute.Delete),
+				}, false),
+			},
 			"availability_set_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -674,6 +701,8 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 		storageProfile.DataDisks = &dataDisks
 	}
 
+	priority := d.Get("priority").(string)
+	evictionPolicy := d.Get("eviction_policy").(string)
 	networkProfile := expandAzureRmVirtualMachineNetworkProfile(d)
 	vmSize := d.Get("vm_size").(string)
 	properties := compute.VirtualMachineProperties{
@@ -682,8 +711,18 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 			VMSize: compute.VirtualMachineSizeTypes(vmSize),
 		},
 		StorageProfile: &storageProfile,
+		Priority:       compute.VirtualMachinePriorityTypes(priority),
 	}
 
+	if strings.EqualFold(priority, string(compute.Spot)) {
+		properties.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicy)
+	}
+
+	if v, ok := d.Get("max_price").(float64); ok && v > 0 {
+		properties.BillingProfile = &compute.BillingProfile{
+			MaxPrice: utils.Float(v),
+		}
+	}
 	if v, ok := d.GetOk("license_type"); ok {
 		license := v.(string)
 		properties.LicenseType = &license

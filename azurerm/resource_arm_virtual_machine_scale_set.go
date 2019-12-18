@@ -209,7 +209,14 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.Low),
 					string(compute.Regular),
+					string(compute.Spot),
 				}, true),
+			},
+
+			"max_price": {
+				Type:     schema.TypeFloat,
+				Optional: true,
+				Default:  -1,
 			},
 
 			"eviction_policy": {
@@ -882,6 +889,12 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 		scaleSetProps.VirtualMachineProfile.DiagnosticsProfile = &diagnosticProfile
 	}
 
+	if v, ok := d.Get("max_price").(float64); ok && v > 0 {
+		scaleSetProps.VirtualMachineProfile.BillingProfile = &compute.BillingProfile{
+			MaxPrice: utils.Float(v),
+		}
+	}
+
 	if v, ok := d.GetOk("health_probe_id"); ok {
 		scaleSetProps.VirtualMachineProfile.NetworkProfile.HealthProbe = &compute.APIEntityReference{
 			ID: utils.String(v.(string)),
@@ -1004,6 +1017,13 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 			d.Set("license_type", profile.LicenseType)
 			d.Set("priority", string(profile.Priority))
 			d.Set("eviction_policy", string(profile.EvictionPolicy))
+
+			// defaulted since BillingProfile isn't returned if it's unset
+			maxPrice := float64(-1.0)
+			if profile.BillingProfile != nil && profile.BillingProfile.MaxPrice != nil {
+				maxPrice = *profile.BillingProfile.MaxPrice
+			}
+			d.Set("max_price", maxPrice)
 
 			osProfile := flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)
 			if err := d.Set("os_profile", osProfile); err != nil {
