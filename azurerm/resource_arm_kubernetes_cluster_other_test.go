@@ -323,6 +323,34 @@ func testAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 	})
 }
 
+func testAccAzureRMKubernetesCluster_managedClusterIdentiy(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_managedClusterIdentityConfig(ri, clientId, clientSecret, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
+			},
+		},
+	})
+}
+
 func testAccAzureRMKubernetesCluster_basicAvailabilitySetConfig(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -641,4 +669,36 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_managedClusterIdentityConfig(rInt int, clientId string, clientSecret string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+  	type       = "AvailabilitySet"
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+
+  managed_cluster_identity {
+    type = "SystemAssigned"
+  }
+}
+`, rInt, location, rInt, rInt, clientId, clientSecret)
 }

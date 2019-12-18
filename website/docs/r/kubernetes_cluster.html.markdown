@@ -122,6 +122,8 @@ resource "azurerm_subnet" "virtual" {
 
 * `linux_profile` - (Optional) A `linux_profile` block as defined below.
 
+* `managed_cluster_identity` - (Optional) A `managed_cluster_identity` block as defined below. Changing this forces a new resource to be created.
+
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
 -> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
@@ -283,6 +285,12 @@ A `linux_profile` block supports the following:
 
 ---
 
+A `managed_cluster_identity` block supports the following:
+
+* `type` - The type of identity used for the managed cluster. Valid values are `SystemAssigned` or `None`. 
+
+---
+
 A `network_profile` block supports the following:
 
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure` and `kubenet`. Changing this forces a new resource to be created.
@@ -372,7 +380,7 @@ A `http_application_routing` block exports the following:
 
 ---
 
-The `kube_admin_config` and `kube_config` blocks export the following::
+The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
 
@@ -398,6 +406,14 @@ provider "kubernetes" {
   cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
 }
 ```
+
+---
+
+The `managed_cluster_identity` block exports the following: 
+
+* `principal_id` - The principal id of the system assigned identity which is used by master components.
+
+* `tenant_id` - The tenant id of the system assigned identity which is used by master components.
 
 ## Import
 

@@ -563,6 +563,34 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"managed_cluster_identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.None),
+								string(containerservice.SystemAssigned),
+							}, false),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -643,6 +671,9 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
 
+	managedClusterIdentityRaw := d.Get("managed_cluster_identity").([]interface{})
+	managedClusterIdentity := expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
+
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
 		Location: &location,
@@ -661,7 +692,8 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			NodeResourceGroup:           utils.String(nodeResourceGroup),
 			EnablePodSecurityPolicy:     utils.Bool(enablePodSecurityPolicy),
 		},
-		Tags: tags.Expand(t),
+		Identity: managedClusterIdentity,
+		Tags:     tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -793,6 +825,12 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		windowsProfileRaw := d.Get("windows_profile").([]interface{})
 		windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 		existing.ManagedClusterProperties.WindowsProfile = windowsProfile
+	}
+
+	if d.HasChange("managed_cluster_identity") {
+		updateCluster = true
+		managedClusterIdentityRaw := d.Get("managed_cluster_identity").([]interface{})
+		existing.Identity = expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
 	}
 
 	if updateCluster {
@@ -975,6 +1013,10 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			d.Set("kube_admin_config_raw", "")
 			d.Set("kube_admin_config", []interface{}{})
 		}
+	}
+
+	if err := d.Set("managed_cluster_identity", flattenKubernetesClusterManagedClusterIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `managed_cluster_identity`: %+v", err)
 	}
 
 	kubeConfigRaw, kubeConfig := flattenKubernetesClusterAccessProfile(profile)
@@ -1406,6 +1448,17 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 	return rbacEnabled, aad
 }
 
+func expandKubernetesClusterManagedClusterIdentity(input []interface{}) *containerservice.ManagedClusterIdentity {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	values := input[0].(map[string]interface{})
+
+	return &containerservice.ManagedClusterIdentity{
+		Type: containerservice.ResourceIdentityType(values["type"].(string)),
+	}
+}
+
 func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.ManagedClusterProperties, d *schema.ResourceData) []interface{} {
 	rbacEnabled := false
 	if input.EnableRBAC != nil {
@@ -1531,4 +1584,26 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 			"username":               name,
 		},
 	}
+}
+
+func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	identity := make(map[string]interface{})
+
+	identity["principal_id"] = ""
+	if input.PrincipalID != nil {
+		identity["principal_id"] = *input.PrincipalID
+	}
+
+	identity["tenant_id"] = ""
+	if input.TenantID != nil {
+		identity["tenant_id"] = *input.TenantID
+	}
+
+	identity["type"] = string(input.Type)
+
+	return []interface{}{identity}
 }
