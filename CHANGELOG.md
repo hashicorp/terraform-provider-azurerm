@@ -20,6 +20,7 @@ IMPROVEMENTS:
 * `azurerm_function_app` - support for the `ftps_state` property [GH-5169]
 * `azurerm_image` - support for configuring `hyper_v_generation` [GH-4453]
 * `azurerm_key_vault`: the `network_acls` property is now computed [GH-5207]
+* `azurerm_kubernetes_cluster` - support for the `managed_cluster_identity` property [GH-5168]
 * `azurerm_private_link_service` - support for the `enable_proxy_protocol` property  [GH-5178]
 * `azurerm_search_service` - exposing the `query_keys` [GH-5029]
 * `azurerm_storage_account`  - exposing the `blob_properties` block [GH-3807]
