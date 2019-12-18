@@ -20,6 +20,7 @@ BUG FIXES:
 * `azurerm_api_management_api` - working around a behavioural change in the API detecting deleted resources [GH-5054]
 * `azurerm_healthcare_service` - making rhe `cors_configuration` block computed [GH-5046]
 * `azurerm_monitor_log_profile` - polling until the log profile is repeatedly available [GH-5194]
+* `azurerm_storage_account_network_rules` - matching the validation used for `ip_rules ` with the validation used by `ip_rules ` in the `network_rules` block of `azurerm_storage_account` [GH-5201]
 * `azurerm_subnet` - allowing both `enforce_private_link_endpoint_network_policies` and `enforce_private_link_service_network_policies` to be set together [GH-5200]
 
 ## 1.39.0 (December 16, 2019)
