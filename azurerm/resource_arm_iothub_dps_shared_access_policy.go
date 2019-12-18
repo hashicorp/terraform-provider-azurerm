@@ -97,38 +97,7 @@ func resourceArmIotHubDPSSharedAccessPolicy() *schema.Resource {
 				Computed:  true,
 			},
 		},
-		CustomizeDiff: iothubDpsSharedAccessPolicyCustomizeDiff,
 	}
-}
-
-func iothubDpsSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}) (err error) {
-	enrollmentRead, hasDeviceEnrollmentRead := d.GetOk("enrollment_read")
-	enrollmentWrite, hasEnrollmentWrite := d.GetOk("enrollment_write")
-	registrationRead, hasRegistrationRead := d.GetOk("registration_read")
-	registrationWrite, hasRegistrationWrite := d.GetOk("registration_write")
-	serviceConfig, hasServiceConfig := d.GetOk("service_config")
-
-	if !hasDeviceEnrollmentRead && !hasEnrollmentWrite && !hasRegistrationRead && !hasRegistrationWrite && !hasServiceConfig {
-		return fmt.Errorf("One of `enrollment_read`, `enrollment_write`, `registration_read`, `registration_write` , or `service_config` properties must be set")
-	}
-
-	if !enrollmentRead.(bool) && !enrollmentWrite.(bool) && !registrationRead.(bool) && !registrationWrite.(bool) && !serviceConfig.(bool) {
-		err = multierror.Append(err, fmt.Errorf("At least one of `enrollment_read`, `enrollment_write`, `registration_read`, `registration_write` , or `service_config` properties must be set to true"))
-	}
-
-	if enrollmentRead.(bool) && !registrationRead.(bool) {
-		err = multierror.Append(err, fmt.Errorf("If `enrollment_read` is set to true, `registration_read` must also be set to true"))
-	}
-
-	if registrationWrite.(bool) && !registrationRead.(bool) {
-		err = multierror.Append(err, fmt.Errorf("If `registration_write` is set to true, `registration_read` must also be set to true"))
-	}
-
-	if enrollmentWrite.(bool) && !enrollmentRead.(bool) && !registrationRead.(bool) && !registrationWrite.(bool) {
-		err = multierror.Append(err, fmt.Errorf("If `enrollment_write` is set to true, `enrollment_read`, `registration_read`, and `registration_write` must also be set to true"))
-	}
-
-	return
 }
 
 func resourceArmIotHubDPSSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -148,16 +117,31 @@ func resourceArmIotHubDPSSharedAccessPolicyCreateUpdate(d *schema.ResourceData, 
 			return fmt.Errorf("IotHub DPS %q (Resource Group %q) was not found", iothubDpsName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error loading IotHub DPS %q (Resource Group %q): %+v", iothubDpsName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving IotHub DPS %q (Resource Group %q): %+v", iothubDpsName, resourceGroup, err)
+	}
+
+	if iothubDps.ID == nil || *iothubDps.ID == "" {
+		return fmt.Errorf("Error retrieving IotHub DPS %q (Resource Group %q): ID was nil", iothubDpsName, resourceGroup)
 	}
 
 	keyName := d.Get("name").(string)
-
 	resourceID := fmt.Sprintf("%s/keys/%s", *iothubDps.ID, keyName)
+
+	accessRights := dpsAccessRights{
+		enrollmentRead:    d.Get("enrollment_read").(bool),
+		enrollmentWrite:   d.Get("enrollment_write").(bool),
+		registrationRead:  d.Get("registration_read").(bool),
+		registrationWrite: d.Get("registration_write").(bool),
+		serviceConfig:     d.Get("service_config").(bool),
+	}
+
+	if err := accessRights.validate(); err != nil {
+		return fmt.Errorf("Error building Access Rights: %s", err)
+	}
 
 	expandedAccessPolicy := iothub.SharedAccessSignatureAuthorizationRuleAccessRightsDescription{
 		KeyName: &keyName,
-		Rights:  iothub.AccessRightsDescription(expandDpsAccessRights(d)),
+		Rights:  iothub.AccessRightsDescription(expandDpsAccessRights(accessRights)),
 	}
 
 	accessPolicies := make([]iothub.SharedAccessSignatureAuthorizationRuleAccessRightsDescription, 0)
@@ -207,15 +191,14 @@ func resourceArmIotHubDPSSharedAccessPolicyRead(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIotHubDpsSAPId, err := azure.ParseAzureResourceID(d.Id())
-
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIotHubDpsSAPId.ResourceGroup
-	iothubDpsName := parsedIotHubDpsSAPId.Path["provisioningServices"]
-	keyName := parsedIotHubDpsSAPId.Path["keys"]
+	resourceGroup := id.ResourceGroup
+	iothubDpsName := id.Path["provisioningServices"]
+	keyName := id.Path["keys"]
 
 	accessPolicy, err := client.ListKeysForKeyName(ctx, iothubDpsName, keyName, resourceGroup)
 	if err != nil {
@@ -225,7 +208,7 @@ func resourceArmIotHubDPSSharedAccessPolicyRead(d *schema.ResourceData, meta int
 			return nil
 		}
 
-		return fmt.Errorf("Error loading IotHub Shared Access Policy %q (Resource Group %q): %+v", iothubDpsName, resourceGroup, err)
+		return fmt.Errorf("Error loading Shared Access Policy %q (IotHub DPS %q / Resource Group %q): %+v", keyName, iothubDpsName, resourceGroup, err)
 	}
 
 	d.Set("name", keyName)
@@ -248,15 +231,14 @@ func resourceArmIotHubDPSSharedAccessPolicyDelete(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIotHubDpsSAPId, err := azure.ParseAzureResourceID(d.Id())
-
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := parsedIotHubDpsSAPId.ResourceGroup
-	iothubDpsName := parsedIotHubDpsSAPId.Path["provisioningServices"]
-	keyName := parsedIotHubDpsSAPId.Path["keys"]
+	resourceGroup := id.ResourceGroup
+	iothubDpsName := id.Path["provisioningServices"]
+	keyName := id.Path["keys"]
 
 	locks.ByName(iothubDpsName, iothubResourceName)
 	defer locks.UnlockByName(iothubDpsName, iothubResourceName)
@@ -305,26 +287,53 @@ type dpsAccessRights struct {
 	serviceConfig     bool
 }
 
-func expandDpsAccessRights(d *schema.ResourceData) string {
-	var possibleAccessRights = []struct {
-		schema string
-		right  string
-	}{
-		{"enrollment_read", "EnrollmentRead"},
-		{"enrollment_write", "EnrollmentWrite"},
-		{"registration_read", "RegistrationStatusRead"},
-		{"registration_write", "RegistrationStatusWrite"},
-		{"service_config", "ServiceConfig"},
+func (r dpsAccessRights) validate() error {
+	var err error
+
+	if !r.enrollmentRead && !r.enrollmentWrite && !r.registrationRead && !r.registrationWrite && !r.serviceConfig {
+		err = multierror.Append(err, fmt.Errorf("At least one of `enrollment_read`, `enrollment_write`, `registration_read`, `registration_write` , or `service_config` properties must be set to true"))
 	}
+
+	if r.enrollmentRead && !r.registrationRead {
+		err = multierror.Append(err, fmt.Errorf("If `enrollment_read` is set to true, `registration_read` must also be set to true"))
+	}
+
+	if r.registrationWrite && !r.registrationRead {
+		err = multierror.Append(err, fmt.Errorf("If `registration_write` is set to true, `registration_read` must also be set to true"))
+	}
+
+	if r.enrollmentWrite && !r.enrollmentRead && !r.registrationRead && !r.registrationWrite {
+		err = multierror.Append(err, fmt.Errorf("If `enrollment_write` is set to true, `enrollment_read`, `registration_read`, and `registration_write` must also be set to true"))
+	}
+
+	return err
+}
+
+func expandDpsAccessRights(input dpsAccessRights) string {
 	actualRights := make([]string, 0)
-	// iteration order is important here, so we cannot use a map
-	for _, possibleRight := range possibleAccessRights {
-		if d.Get(possibleRight.schema).(bool) {
-			actualRights = append(actualRights, possibleRight.right)
-		}
+
+	// NOTE: the iteration order is important here
+	if input.enrollmentRead {
+		actualRights = append(actualRights, "EnrollmentRead")
 	}
-	strRights := strings.Join(actualRights, ", ")
-	return strRights
+
+	if input.enrollmentWrite {
+		actualRights = append(actualRights, "EnrollmentWrite")
+	}
+
+	if input.registrationRead {
+		actualRights = append(actualRights, "RegistrationStatusRead")
+	}
+
+	if input.registrationWrite {
+		actualRights = append(actualRights, "RegistrationStatusWrite")
+	}
+
+	if input.serviceConfig {
+		actualRights = append(actualRights, "ServiceConfig")
+	}
+
+	return strings.Join(actualRights, ", ")
 }
 
 func flattenDpsAccessRights(r iothub.AccessRightsDescription) dpsAccessRights {

@@ -15,14 +15,14 @@ Manages an IotHub Device Provisioning Service Shared Access Policy
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_iothub_dps" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
@@ -33,8 +33,8 @@ resource "azurerm_iothub_dps" "example" {
 
 resource "azurerm_iothub_dps_shared_access_policy" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  iothub_dps_name     = "${azurerm_iothub_dps.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  iothub_dps_name     = azurerm_iothub_dps.example.name
 
   enrollment_write  = true
   enrollment_read   = true
@@ -57,13 +57,13 @@ The following arguments are supported:
 
 * `enrollment_write` - (Optional) Adds `EnrollmentWrite` permission to this Shared Access Account. It allows write access to enrollment data.
 
--> **NOTE** When `registration_write` is set to `true`, `enrollment_read`, `registration_read`, and `registration_write` must also be set to true. This is a limitation of the Azure REST API
+-> **NOTE** When `registration_write` is set to `true`, `enrollment_read`, `registration_read`, and `registration_write` must also be set to true. This is a requirement of the Azure API.
 
 * `registration_read` - (Optional) Adds `RegistrationStatusRead` permission to this Shared Access Account. It allows read access to device registrations.
 
 * `registration_write` - (Optional) Adds `RegistrationStatusWrite` permission to this Shared Access Account. It allows write access to device registrations.
 
--> **NOTE** When `registration_write` is set to `true`, `registration_read` must also be set to true. This is a limitation of the Azure REST API
+-> **NOTE** When `registration_write` is set to `true`, `registration_read` must also be set to true. This is a requirement of the Azure API.
 
 * `service_config` - (Optional) Adds `ServiceConfig` permission to this Shared Access Account. It allows configuration of the Device Provisioning Service.
 
