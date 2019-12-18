@@ -112,23 +112,6 @@ func resourceArmCosmosDbMongoDatabaseCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Database %s (Account %s): %+v", name, account, err)
 	}
 
-	throughputParameters := documentdb.ThroughputUpdateParameters{
-		ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
-			Resource: &documentdb.ThroughputResource{
-				Throughput: utils.Int32(int32(throughput)),
-			},
-		},
-	}
-
-	throughputFuture, err := client.UpdateMongoDBDatabaseThroughput(ctx, resourceGroup, account, name, throughputParameters)
-	if err != nil {
-		return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Database %s (Account %s): %+v", name, account, err)
-	}
-
-	if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Mongo Database %s (Account %s): %+v", name, account, err)
-	}
-
 	resp, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
 	if err != nil {
 		return fmt.Errorf("Error making get request for Cosmos Mongo Database %s (Account %s): %+v", name, account, err)

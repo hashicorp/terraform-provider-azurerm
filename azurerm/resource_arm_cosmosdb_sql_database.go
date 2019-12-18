@@ -207,11 +207,13 @@ func resourceArmCosmosDbSQLDatabaseRead(d *schema.ResourceData, meta interface{}
 
 	throughputResp, err := client.GetSQLDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Database)
 	if err != nil {
-		return fmt.Errorf("Error reading Throughput on Cosmos SQL Database '%s' (Account %s) ID: %v", id.Database, id.Account, err)
-	}
-
-	if throughput := throughputResp.Throughput; throughput != nil {
-		d.Set("throughput", int(*throughput))
+		if !utils.ResponseWasNotFound(throughputResp.Response) {
+			return fmt.Errorf("Error reading Throughput on Cosmos SQL Database '%s' (Account %s) ID: %v", id.Database, id.Account, err)
+		} else {
+			d.Set("throughput", nil)
+		}
+	} else {
+		d.Set("throughput", throughputResp.Throughput)
 	}
 
 	return nil

@@ -287,13 +287,15 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 
 	throughputResp, err := client.GetSQLContainerThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Container)
 	if err != nil {
-		return fmt.Errorf("Error reading Throughput on Cosmos SQL Container '%s' (Account: %s, Database:%s) ID: %v", id.Container, id.Account, id.Database, err)
+		if !utils.ResponseWasNotFound(throughputResp.Response) {
+			return fmt.Errorf("Error reading Throughput on Cosmos SQL Container '%s' (Account: %s, Database:%s) ID: %v", id.Container, id.Account, id.Database, err)
+		} else {
+			d.Set("throughput", nil)
+		}
+	} else {
+		d.Set("throughput", throughputResp.Throughput)
 	}
-
-	if throughput := throughputResp.Throughput; throughput != nil {
-		d.Set("throughput", int(*throughput))
-	}
-
+	
 	return nil
 }
 

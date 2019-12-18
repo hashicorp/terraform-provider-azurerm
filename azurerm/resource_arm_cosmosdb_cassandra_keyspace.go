@@ -200,11 +200,13 @@ func resourceArmCosmosDbCassandraKeyspaceRead(d *schema.ResourceData, meta inter
 
 	throughputResp, err := client.GetCassandraKeyspaceThroughput(ctx, id.ResourceGroup, id.Account, id.Keyspace)
 	if err != nil {
-		return fmt.Errorf("Error reading Throughput on Cosmos Cassandra Keyspace %s (Account %s): %+v", id.Keyspace, id.Account, err)
-	}
-
-	if throughput := throughputResp.Throughput; throughput != nil {
-		d.Set("throughput", int(*throughput))
+		if !utils.ResponseWasNotFound(throughputResp.Response) {
+			return fmt.Errorf("Error reading Throughput on Cosmos Cassandra Keyspace %s (Account %s): %+v", id.Keyspace, id.Account, err)
+		} else {
+			d.Set("throughput", nil)
+		}
+	} else {
+		d.Set("throughput", throughputResp.Throughput)
 	}
 
 	return nil
