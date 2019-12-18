@@ -7,11 +7,13 @@
 
 IMPROVEMENTS:
 
-* Data Source: `azurerm_private_link_service` - support for the `enable_proxy_protocol` property  [GH-5178]
+* Data Source: `azurerm_private_link_service` - exposing the `enable_proxy_protocol` property  [GH-5178]
+* Data Source: `azurerm_virtual_network_gateway` - exposing the `generation` property [GH-5198]
 * `azurerm_function_app` - support for the `ftps_state` property [GH-5169]
 * `azurerm_image` - support for configuring `hyper_v_generation` [GH-4453]
 * `azurerm_private_link_service` - support for the `enable_proxy_protocol` property  [GH-5178]
 * `azurerm_search_service` - exposing the `query_keys` [GH-5029]
+* `azurerm_virtual_network_gateway` - support for configuring `generation` [GH-5198]
 
 BUG FIXES:
 
