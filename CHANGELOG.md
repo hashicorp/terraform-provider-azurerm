@@ -24,11 +24,13 @@ IMPROVEMENTS:
 * `azurerm_search_service` - exposing the `query_keys` [GH-5029]
 * `azurerm_storage_account`  - exposing the `blob_properties` block [GH-3807]
 * `aaurerm_storage_account` - correctly handle an empty network rules API response [GH-5210]
+* `azurerm_shared_image_version` - support for the `storage_account_type` property [GH-5212]
 * `azurerm_virtual_network_gateway` - support for configuring `generation` [GH-5198]
 * `azurerm_virtual_network_gateway_connection` - support for the `connection_protocol` property [GH-5145]
 
 BUG FIXES:
 
+* Data Source: `azurerm_shared_image_version` - change the `storage_account_type` property from a set to a list [GH-5212]
 * `azurerm_api_management_api` - working around a behavioural change in the API detecting deleted resources [GH-5054]
 * `azurerm_healthcare_service` - making rhe `cors_configuration` block computed [GH-5046]
 * `azurerm_monitor_log_profile` - polling until the log profile is repeatedly available [GH-5194]
