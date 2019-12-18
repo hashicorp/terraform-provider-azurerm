@@ -249,7 +249,7 @@ func testAccAzureRMBackupProtectedFileShare_basic(rInt int, location string) str
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protection_container_storage_account" "test" {
+resource "azurerm_backup_container_storage_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
   storage_account_id  = "${azurerm_storage_account.test.id}"
@@ -258,7 +258,7 @@ resource "azurerm_backup_protection_container_storage_account" "test" {
 resource "azurerm_backup_protected_file_share" "test" {
   resource_group_name       = "${azurerm_resource_group.test.name}"
   recovery_vault_name       = "${azurerm_recovery_services_vault.test.name}"
-  source_storage_account_id = "${azurerm_backup_protection_container_storage_account.test.storage_account_id}"
+  source_storage_account_id = "${azurerm_backup_container_storage_account.test.storage_account_id}"
   source_file_share_name    = "${azurerm_storage_share.test.name}"
   backup_policy_id          = "${azurerm_backup_policy_file_share.test1.id}"
 }
@@ -284,7 +284,7 @@ resource "azurerm_backup_policy_file_share" "test2" {
   }
 }
 
-resource "azurerm_backup_protection_container_storage_account" "test" {
+resource "azurerm_backup_container_storage_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
   storage_account_id  = "${azurerm_storage_account.test.id}"
@@ -293,7 +293,7 @@ resource "azurerm_backup_protection_container_storage_account" "test" {
 resource "azurerm_backup_protected_file_share" "test" {
   resource_group_name       = "${azurerm_resource_group.test.name}"
   recovery_vault_name       = "${azurerm_recovery_services_vault.test.name}"
-  source_storage_account_id = "${azurerm_backup_protection_container_storage_account.test.storage_account_id}"
+  source_storage_account_id = "${azurerm_backup_container_storage_account.test.storage_account_id}"
   source_file_share_name    = "${azurerm_storage_share.test.name}"
   backup_policy_id          = "${azurerm_backup_policy_file_share.test2.id}"
 }

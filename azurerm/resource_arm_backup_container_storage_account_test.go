@@ -16,7 +16,7 @@ func TestAccAzureRMBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 	resourceGroupName := "azurerm_resource_group.testrg"
 	vaultName := "azurerm_recovery_services_vault.testvlt"
 	storageAccountName := "azurerm_storage_account.testsa"
-	resourceName := "azurerm_backup_protection_container_storage_account.test"
+	resourceName := "azurerm_backup_container_storage_account.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
@@ -63,7 +63,7 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_backup_protection_container_storage_account" "test" {
+resource "azurerm_backup_container_storage_account" "test" {
   resource_group_name  = "${azurerm_resource_group.testrg.name}"
   recovery_vault_name  = "${azurerm_recovery_services_vault.testvlt.name}"
   storage_account_id   = "${azurerm_storage_account.testsa.id}"
