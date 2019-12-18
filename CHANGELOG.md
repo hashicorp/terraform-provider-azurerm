@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * `azurerm_search_service` - exposing the `query_keys` [GH-5029]
 * `azurerm_storage_account`  - exposing the `blob_properties` block [GH-3807]
 * `azurerm_virtual_network_gateway` - support for configuring `generation` [GH-5198]
+* `azurerm_virtual_network_gateway_connection` - support for the `connection_protocol` property [GH-5145]
 
 BUG FIXES:
 
