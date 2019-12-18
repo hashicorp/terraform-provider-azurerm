@@ -125,6 +125,17 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Computed: true,
 			},
 
+			"connection_protocol": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.IKEv1),
+					string(network.IKEv2),
+				}, false),
+			},
+
 			"ipsec_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -369,6 +380,8 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		d.Set("shared_key", conn.SharedKey)
 	}
 
+	d.Set("connection_protocol", string(conn.ConnectionProtocol))
+
 	if conn.ExpressRouteGatewayBypass != nil {
 		d.Set("express_route_gateway_bypass", conn.ExpressRouteGatewayBypass)
 	}
@@ -484,6 +497,11 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 
 	if v, ok := d.GetOk("shared_key"); ok {
 		props.SharedKey = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("connection_protocol"); ok {
+		connectionProtocol := v.(string)
+		props.ConnectionProtocol = network.VirtualNetworkGatewayConnectionProtocol(connectionProtocol)
 	}
 
 	if v, ok := d.GetOk("ipsec_policy"); ok {
