@@ -106,6 +106,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 			"generation": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.VpnGatewayGenerationGeneration1),
