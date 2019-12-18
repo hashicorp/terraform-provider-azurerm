@@ -199,7 +199,7 @@ func testAccAzureRMBackupProtectedFileShare_base(rInt int, location string) stri
 	rstr := strconv.Itoa(rInt)
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-backup-%[1]d"
   location = "%[2]s"
 }
 
@@ -212,7 +212,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "acctest-%[1]d"
+  name                 = "acctest-SS-%[1]d"
   storage_account_name = "${azurerm_storage_account.test.name}"
   metadata             = {}
   
@@ -222,14 +222,14 @@ resource "azurerm_storage_share" "test" {
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-%[1]d"
+  name                = "acctest-VAULT-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_backup_policy_file_share" "test1" {
-  name                = "acctest-%[1]d"
+  name                = "acctest-PFS-%[1]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
@@ -270,7 +270,7 @@ func testAccAzureRMBackupProtectedFileShare_updatePolicy(rInt int, location stri
 %s
 
 resource "azurerm_backup_policy_file_share" "test2" {
-  name                = "acctest-%d-secondary"
+  name                = "acctest-%d-Secondary"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 	

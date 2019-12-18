@@ -148,12 +148,12 @@ func testCheckAzureRMBackupProtectionPolicyFileShareExists(resourceName string) 
 func testAccAzureRMBackupProtectionPolicyFileShare_base(rInt int, location string) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-backup-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-%[1]d"
+  name                = "acctest-RSV-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
@@ -187,7 +187,7 @@ func testAccAzureRMBackupProtectionPolicyFileShare_updateDaily(rInt int, locatio
 %s
 
 resource "azurerm_backup_policy_file_share" "test" {
-  name                = "acctest-%d"
+  name                = "acctest-PFS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 

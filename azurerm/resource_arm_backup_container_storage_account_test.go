@@ -43,7 +43,7 @@ func TestAccAzureRMBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 func testAccAzureRMBackupProtectionContainerStorageAccount(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-backup-%d"
   location = "%s"
 }
 

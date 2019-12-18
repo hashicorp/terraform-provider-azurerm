@@ -79,7 +79,7 @@ func resourceArmBackupProtectionPolicyFileShare() *schema.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(backup.ScheduleRunTypeDaily),
-							}, true),
+							}, false),
 						},
 
 						"time": {
