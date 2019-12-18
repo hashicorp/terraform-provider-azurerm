@@ -8,6 +8,7 @@
 * **New Resource:** `azurerm_network_watcher_flow_log` [GH-5059]
 * **New Resource:** `azurerm_netapp_volume` [GH-4933]
 * **New Resource:** `azurerm_stream_analytics_reference_input_blob` [GH-3633]
+* **New Resource:** `azurerm_app_service_virtual_network_swift_connection` [GH-5214]
 
 IMPROVEMENTS:
 
