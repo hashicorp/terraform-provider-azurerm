@@ -37,6 +37,7 @@ func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "managed_image_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "target_region.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "target_region.0.storage_account_type", "Standard_LRS"),
 				),
 			},
 		},
