@@ -310,6 +310,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_iot_dps_certificate":                                   resourceArmIotDPSCertificate(),
 		"azurerm_iothub_dps":                                            resourceArmIotHubDPS(),
 		"azurerm_iothub_dps_certificate":                                resourceArmIotHubDPSCertificate(),
+		"azurerm_iothub_dps_shared_access_policy":                       resourceArmIotHubDPSSharedAccessPolicy(),
 		"azurerm_iothub_consumer_group":                                 resourceArmIotHubConsumerGroup(),
 		"azurerm_iothub":                                                resourceArmIotHub(),
 		"azurerm_iothub_fallback_route":                                 resourceArmIotHubFallbackRoute(),
