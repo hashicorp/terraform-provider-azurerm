@@ -14,15 +14,15 @@ Allows you to manage an Azure Search Service.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_search_service" "test" {
+resource "azurerm_search_service" "example" {
   name                = "acceptanceTestSearchService1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   sku                 = "standard"
 
   tags = {

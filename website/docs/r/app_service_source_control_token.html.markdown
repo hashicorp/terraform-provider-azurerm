@@ -17,7 +17,7 @@ Manages an App Service source control token.
 ## Example Usage
 
 ```hcl
-resource "azurerm_app_service_source_control_token" "test" {
+resource "azurerm_app_service_source_control_token" "example" {
   type  = "GitHub"
   token = "7e57735e77e577e57"
 }
@@ -38,5 +38,5 @@ The following arguments are supported:
 App Service source control tokens can be imported using the `type`, e.g.
 
 ```shell
-terraform import azurerm_app_service_source_control_token.test GitHub
+terraform import azurerm_app_service_source_control_token.example GitHub
 ```

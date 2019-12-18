@@ -66,7 +66,7 @@ func resourceStorageShareStateUpgradeV1ToV2(rawState map[string]interface{}, met
 	shareName := parsedId[0]
 	accountName := parsedId[2]
 
-	environment := meta.(*ArmClient).environment
+	environment := meta.(*ArmClient).Account.Environment
 	client := shares.NewWithEnvironment(environment)
 
 	newResourceId := client.GetResourceID(accountName, shareName)

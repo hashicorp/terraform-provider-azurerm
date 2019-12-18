@@ -14,23 +14,23 @@ Manages an Azure Storage Account Management Policy.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "testrg" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroupName"
   location = "westus"
 }
 
-resource "azurerm_storage_account" "testsa" {
+resource "azurerm_storage_account" "example" {
   name                = "storageaccountname"
-  resource_group_name = "${azurerm_resource_group.testrg.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
-  location                 = "${azurerm_resource_group.testrg.location}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "BlobStorage"
 }
 
-resource "azurerm_storage_management_policy" "testpolicy" {
-  storage_account_id = "${azurerm_storage_account.testsa.id}"
+resource "azurerm_storage_management_policy" "example" {
+  storage_account_id = "${azurerm_storage_account.example.id}"
 
   rule {
     name    = "rule1"
@@ -127,5 +127,5 @@ The following attributes are exported:
 Storage Account Management Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_management_policy.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Storage/storageAccounts/myaccountname/managementPoliices/default
+terraform import azurerm_storage_management_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Storage/storageAccounts/myaccountname/managementPoliices/default
 ```

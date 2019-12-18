@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image"
 sidebar_current: "docs-azurerm-datasource-shared-image-x"
@@ -15,7 +15,7 @@ Use this data source to access information about an existing Shared Image within
 ## Example Usage
 
 ```hcl
-data "azurerm_shared_image" "test" {
+data "azurerm_shared_image" "example" {
   name                = "my-image"
   gallery_name        = "my-image-gallery"
   resource_group_name = "example-resources"

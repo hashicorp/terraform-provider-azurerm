@@ -294,7 +294,6 @@ resource "azurerm_eventhub_namespace" "updated" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
   capacity            = 1
-  kafka_enabled       = false
 }
 
 resource "azurerm_eventhub" "updated" {
@@ -361,7 +360,6 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
   capacity            = 1
-  kafka_enabled       = false
 }
 
 resource "azurerm_eventhub" "test" {

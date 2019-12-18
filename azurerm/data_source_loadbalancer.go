@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -69,6 +69,11 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 						},
 
 						"zones": azure.SchemaZonesComputed(),
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -156,6 +161,10 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.F
 		ipConfig := make(map[string]interface{})
 		if config.Name != nil {
 			ipConfig["name"] = *config.Name
+		}
+
+		if config.ID != nil {
+			ipConfig["id"] = *config.ID
 		}
 
 		zones := make([]string, 0)

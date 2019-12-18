@@ -153,6 +153,8 @@ func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultSecretExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "not_before_date", "2019-01-01T01:02:03Z"),
+					resource.TestCheckResourceAttr(resourceName, "expiration_date", "2020-01-01T01:02:03Z"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
@@ -445,10 +447,12 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_secret" "test" {
-  name         = "secret-%s"
-  value        = "<rick><morty /></rick>"
-  key_vault_id = "${azurerm_key_vault.test.id}"
-  content_type = "application/xml"
+  name            = "secret-%s"
+  value           = "<rick><morty /></rick>"
+  key_vault_id    = "${azurerm_key_vault.test.id}"
+  content_type    = "application/xml"
+  not_before_date = "2019-01-01T01:02:03Z"
+  expiration_date = "2020-01-01T01:02:03Z"
 
   tags = {
     "hello" = "world"

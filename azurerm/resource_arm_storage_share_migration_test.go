@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAzureRMStorageShareMigrateStateV0ToV1(t *testing.T) {
@@ -27,7 +28,11 @@ func TestAzureRMStorageShareMigrateStateV0ToV1(t *testing.T) {
 			"quota":                5120,
 		}
 		meta := &ArmClient{
-			environment: cloud,
+			Client: clients.Client{
+				Account: &clients.ResourceManagerAccount{
+					Environment: cloud,
+				},
+			},
 		}
 		expected := map[string]interface{}{
 			"id":                   "share1/group1/account1",
@@ -69,7 +74,11 @@ func TestAzureRMStorageShareMigrateStateV1ToV2(t *testing.T) {
 			"quota":                5120,
 		}
 		meta := &ArmClient{
-			environment: cloud,
+			Client: clients.Client{
+				Account: &clients.ResourceManagerAccount{
+					Environment: cloud,
+				},
+			},
 		}
 		expected := map[string]interface{}{
 			"id":                   fmt.Sprintf("https://account1.file.%s/share1", cloud.StorageEndpointSuffix),

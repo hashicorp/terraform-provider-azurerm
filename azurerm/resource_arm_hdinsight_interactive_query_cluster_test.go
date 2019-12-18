@@ -48,6 +48,43 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMHDInsightInteractiveQueryCluster_gen2basic(t *testing.T) {
+	resourceName := "azurerm_hdinsight_interactive_query_cluster.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_interactive_query_cluster"),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_gen2basic(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"roles.0.head_node.0.password",
+					"roles.0.head_node.0.vm_size",
+					"roles.0.worker_node.0.password",
+					"roles.0.worker_node.0.vm_size",
+					"roles.0.zookeeper_node.0.password",
+					"roles.0.zookeeper_node.0.vm_size",
+					"storage_account",
+				},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMHDInsightInteractiveQueryCluster_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -276,6 +313,61 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     storage_container_id = "${azurerm_storage_container.test.id}"
     storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
     is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D13_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D14_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, template, rInt)
+}
+
+func testAccAzureRMHDInsightInteractiveQueryCluster_gen2basic(rInt int, rString string, location string) string {
+	template := testAccAzureRMHDInsightInteractiveQueryCluster_gen2template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  depends_on = [azurerm_role_assignment.test]
+
+  name                = "acctesthdi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  cluster_version     = "3.6"
+  tier                = "Standard"
+
+  component_version {
+    interactive_hive = "2.1"
+  }
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account_gen2 {
+    storage_resource_id          = azurerm_storage_account.gen2test.id
+    filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
+    managed_identity_resource_id = azurerm_user_assigned_identity.test.id
+    is_default                   = true
   }
 
   roles {
@@ -601,6 +693,45 @@ resource "azurerm_storage_container" "test" {
   resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMHDInsightInteractiveQueryCluster_gen2template(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "gen2test" {
+  name                     = "accgen2test%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "StorageV2"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  is_hns_enabled           = true
+}
+
+resource "azurerm_storage_data_lake_gen2_filesystem" "gen2test" {
+  name               = "acctest"
+  storage_account_id = azurerm_storage_account.gen2test.id
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  name = "test-identity"
+}
+
+data "azurerm_subscription" "primary" {}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = "${data.azurerm_subscription.primary.id}"
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = "${azurerm_user_assigned_identity.test.principal_id}"
 }
 `, rInt, location, rString)
 }

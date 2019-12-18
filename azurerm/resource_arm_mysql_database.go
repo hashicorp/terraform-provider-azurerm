@@ -65,7 +65,7 @@ func resourceArmMySqlDatabase() *schema.Resource {
 }
 
 func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.DatabasesClient
+	client := meta.(*ArmClient).MySQL.DatabasesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -121,7 +121,7 @@ func resourceArmMySqlDatabaseCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmMySqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.DatabasesClient
+	client := meta.(*ArmClient).MySQL.DatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -153,7 +153,7 @@ func resourceArmMySqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.DatabasesClient
+	client := meta.(*ArmClient).MySQL.DatabasesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

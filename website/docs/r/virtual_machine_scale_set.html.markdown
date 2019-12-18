@@ -19,58 +19,58 @@ Manages a virtual machine scale set.
 ## Example Usage with Managed Disks (Recommended)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctestRG"
   location = "West US 2"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "acctsub"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_public_ip" "test" {
+resource "azurerm_public_ip" "example" {
   name                = "test"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   allocation_method   = "Static"
-  domain_name_label   = "${azurerm_resource_group.test.name}"
+  domain_name_label   = "${azurerm_resource_group.example.name}"
 
   tags = {
     environment = "staging"
   }
 }
 
-resource "azurerm_lb" "test" {
+resource "azurerm_lb" "example" {
   name                = "test"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.example.id}"
   }
 }
 
 resource "azurerm_lb_backend_address_pool" "bpepool" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  loadbalancer_id     = "${azurerm_lb.example.id}"
   name                = "BackEndAddressPool"
 }
 
 resource "azurerm_lb_nat_pool" "lbnatpool" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
+  resource_group_name            = "${azurerm_resource_group.example.name}"
   name                           = "ssh"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  loadbalancer_id                = "${azurerm_lb.example.id}"
   protocol                       = "Tcp"
   frontend_port_start            = 50000
   frontend_port_end              = 50119
@@ -78,19 +78,19 @@ resource "azurerm_lb_nat_pool" "lbnatpool" {
   frontend_ip_configuration_name = "PublicIPAddress"
 }
 
-resource "azurerm_lb_probe" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+resource "azurerm_lb_probe" "example" {
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  loadbalancer_id     = "${azurerm_lb.example.id}"
   name                = "http-probe"
   protocol            = "Http"
   request_path        = "/health"
   port                = 8080
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "mytestscaleset-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   # automatic rolling upgrade
   automatic_os_upgrade = true
@@ -104,7 +104,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   # required when using rolling upgrade policy
-  health_probe_id = "${azurerm_lb_probe.test.id}"
+  health_probe_id = "${azurerm_lb_probe.example.id}"
 
   sku {
     name     = "Standard_F2"
@@ -154,7 +154,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     ip_configuration {
       name                                   = "TestIPConfiguration"
       primary                                = true
-      subnet_id                              = "${azurerm_subnet.test.id}"
+      subnet_id                              = "${azurerm_subnet.example.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.bpepool.id}"]
       load_balancer_inbound_nat_rules_ids    = ["${azurerm_lb_nat_pool.lbnatpool.id}"]
     }
@@ -169,28 +169,28 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 ## Example Usage with Unmanaged Disks
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctestRG"
   location = "West US"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "acctsub"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "accsa"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
   location                 = "westus"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -200,17 +200,17 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-resource "azurerm_storage_container" "test" {
+resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  storage_account_name  = "${azurerm_storage_account.example.name}"
   container_access_type = "private"
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "mytestscaleset-1"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   upgrade_policy_mode = "Manual"
 
   sku {
@@ -240,7 +240,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     ip_configuration {
       name      = "TestIPConfiguration"
       primary   = true
-      subnet_id = "${azurerm_subnet.test.id}"
+      subnet_id = "${azurerm_subnet.example.id}"
     }
   }
 
@@ -248,7 +248,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     name           = "osDiskProfile"
     caching        = "ReadWrite"
     create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    vhd_containers = ["${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}"]
   }
 
   storage_profile_image_reference {
@@ -341,15 +341,15 @@ The following arguments are supported:
 
 `identity` supports the following:
 
-* `type` - (Required) Specifies the identity type to be assigned to the scale set. Allowable values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`. For the `SystemAssigned` identity the scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
+* `type` - (Required) Specifies the identity type to be assigned to the scale set. Allowable values are `SystemAssigned` and `UserAssigned`. For the `SystemAssigned` identity the scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VMSS. Required if `type` is `UserAssigned`.
 
 ```hcl
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "vm-scaleset"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   sku {
     name     = "${var.vm_sku}"
@@ -358,7 +358,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type = "systemAssigned"
+    type = "SystemAssigned"
   }
 
   extension {
@@ -373,7 +373,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 }
 
 output "principal_id" {
-  value = "${lookup(azurerm_virtual_machine_scale_set.test.identity[0], "principal_id")}"
+  value = "${lookup(azurerm_virtual_machine_scale_set.example.identity[0], "principal_id")}"
 }
 ```
 
@@ -513,19 +513,19 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 ## Example of storage_profile_image_reference with id
 
 ```hcl
-resource "azurerm_image" "test" {
+resource "azurerm_image" "example" {
   name = "test"
 
   # ...
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   name = "test"
 
   # ...
 
   storage_profile_image_reference {
-    id = "${azurerm_image.test.id}"
+    id = "${azurerm_image.example.id}"
   }
 
   # ...

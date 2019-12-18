@@ -3,13 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -42,7 +42,7 @@ func resourceArmStorageContainer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageContainerName,
+				ValidateFunc: validate.StorageContainerName,
 			},
 
 			"storage_account_name": {
@@ -310,23 +310,4 @@ func flattenStorageContainerAccessLevel(input containers.AccessLevel) string {
 	}
 
 	return string(input)
-}
-
-func validateArmStorageContainerName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^\$root$|^\$web$|^[0-9a-z-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only lowercase alphanumeric characters and hyphens allowed in %q: %q",
-			k, value))
-	}
-	if len(value) < 3 || len(value) > 63 {
-		errors = append(errors, fmt.Errorf(
-			"%q must be between 3 and 63 characters: %q", k, value))
-	}
-	if regexp.MustCompile(`^-`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot begin with a hyphen: %q", k, value))
-	}
-	return warnings, errors
 }

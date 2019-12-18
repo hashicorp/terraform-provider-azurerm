@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_service_versions"
 sidebar_current: "docs-azurerm-datasource-kubernetes-service-versions"

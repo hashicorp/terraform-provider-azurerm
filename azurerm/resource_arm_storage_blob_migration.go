@@ -25,7 +25,7 @@ func migrateStorageBlobStateV0toV1(is *terraform.InstanceState, meta interface{}
 
 	log.Printf("[DEBUG] ARM Storage Blob Attributes before Migration: %#v", is.Attributes)
 
-	environment := meta.(*ArmClient).environment
+	environment := meta.(*ArmClient).Account.Environment
 
 	blobName := is.Attributes["name"]
 	containerName := is.Attributes["storage_container_name"]
