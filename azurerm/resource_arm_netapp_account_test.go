@@ -227,7 +227,6 @@ resource "azurerm_netapp_account" "import" {
   location            = "${azurerm_netapp_account.test.location}"
   resource_group_name = "${azurerm_netapp_account.test.name}"
 }
-}
 `, testAccAzureRMNetAppAccount_basicConfig(rInt, location))
 }
 
