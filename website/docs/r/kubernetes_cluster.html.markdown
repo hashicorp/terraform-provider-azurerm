@@ -283,7 +283,7 @@ A `linux_profile` block supports the following:
 
 ---
 
-A `mangaged_cluster_identity` block supports the following:
+A `managed_cluster_identity` block supports the following:
 
 * `type` - The type of identity used for the managed cluster. Valid values are `SystemAssigned` or `None`. 
 
