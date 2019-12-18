@@ -827,8 +827,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("managed_cluster_identity") {
 		updateCluster = true
 		managedClusterIdentityRaw := d.Get("managed_cluster_identity").([]interface{})
-		managedClusterIdentity := expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
-		existing.Identity = managedClusterIdentity
+		existing.Identity = expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
 	}
 
 	if updateCluster {
@@ -1450,14 +1449,11 @@ func expandKubernetesClusterManagedClusterIdentity(input []interface{}) *contain
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
+	values := input[0].(map[string]interface{})
 
-	val := input[0].(map[string]interface{})
-
-	managedClusterIdentity := &containerservice.ManagedClusterIdentity{
-		Type: containerservice.ResourceIdentityType(val["type"].(string)),
+	return &containerservice.ManagedClusterIdentity{
+		Type: containerservice.ResourceIdentityType(values["type"].(string)),
 	}
-
-	return managedClusterIdentity
 }
 
 func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.ManagedClusterProperties, d *schema.ResourceData) []interface{} {
@@ -1593,12 +1589,17 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 	}
 
 	identity := make(map[string]interface{})
+
+	identity["principal_id"] = ""
 	if input.PrincipalID != nil {
 		identity["principal_id"] = *input.PrincipalID
 	}
+
+	identity["tenant_id"] = ""
 	if input.TenantID != nil {
 		identity["tenant_id"] = *input.TenantID
 	}
+
 	identity["type"] = string(input.Type)
 
 	return []interface{}{identity}
