@@ -17,6 +17,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_sql_container` - support for the `throughput` property [GH-5203]
 * `azurerm_cosmosdb_sql_database` - support for the `throughput` property [GH-5203]
 * `azurerm_cosmosdb_table` - support for the `throughput` property [GH-5203]
+* `azurerm_dns_mx_record`: the `name` property is now optional [GH-5205]
 * `azurerm_function_app` - support for the `ftps_state` property [GH-5169]
 * `azurerm_image` - support for configuring `hyper_v_generation` [GH-4453]
 * `azurerm_key_vault`: the `network_acls` property is now computed [GH-5207]
