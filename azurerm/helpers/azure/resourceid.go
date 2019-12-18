@@ -18,7 +18,7 @@ type ResourceID struct {
 }
 
 // parseAzureResourceID converts a long-form Azure Resource Manager ID
-// into a TargetResourceID. We make assumptions about the structure of URLs,
+// into a ResourceID. We make assumptions about the structure of URLs,
 // which is obviously not good, but the best thing available given the
 // SDK.
 func ParseAzureResourceID(id string) (*ResourceID, error) {
