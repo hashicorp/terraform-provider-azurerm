@@ -429,7 +429,7 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   cluster_version     = "3.6"
   tier                = "Standard"
 
-  component_version 
+  component_version {
     interactive_hive = "2.1"
   }
 

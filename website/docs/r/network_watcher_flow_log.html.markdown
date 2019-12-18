@@ -79,11 +79,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Network Watcher was deployed. Changing this forces a new resource to be created.
 
-* `network_security_group_id` - (Required) The resource ID of the network security group for which to enable flow logs for. Changing this forces a new resource to be created.
+* `network_security_group_id` - (Required) The ID of the Network Security Group for which to enable flow logs for. Changing this forces a new resource to be created.
   
-* `storage_account_id` - (Required) The resource ID of the storage account where flow logs are stored.
+* `storage_account_id` - (Required) The ID of the Storage Account where flow logs are stored.
   
-* `enabled` - (Required) Boolean flag to enable/disable flow log.
+* `enabled` - (Required) Should Network Flow Logging be Enabled?
 
 * `retention_policy` - (Required) A `retention_policy` block as documented below.
 

@@ -255,7 +255,7 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 
 		// Azure API returns "" when flow log is disabled
 		// Don't overwrite to prevent storage account ID diff when that is the case
-		if *props.StorageID != "" {
+		if props.StorageID != nil && *props.StorageID != "" {
 			d.Set("storage_account_id", props.StorageID)
 		}
 
