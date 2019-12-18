@@ -260,6 +260,10 @@ func resourceArmIotHubDPSSharedAccessPolicyDelete(d *schema.ResourceData, meta i
 		}
 		existingAccessPolicy := accessPolicyIterator.Value()
 
+		if existingAccessPolicy.KeyName == nil {
+			continue
+		}
+
 		if !strings.EqualFold(*existingAccessPolicy.KeyName, keyName) {
 			accessPolicies = append(accessPolicies, existingAccessPolicy)
 		}
