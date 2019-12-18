@@ -7,7 +7,7 @@ description: |-
     Manages a site recovery services protection container mappings on Azure.
 ---
 
-# azurerm_replicated_vm
+# azurerm_recovery_replicated_vm
 
 ~> **NOTE:** This resource has been deprecated in favour of the `azurerm_site_recovery_replicated_vm` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
 
