@@ -3,6 +3,8 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -18,9 +20,9 @@ import (
 
 func resourceArmCosmosDbTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbTableCreateUpdate,
+		Create: resourceArmCosmosDbTableCreate,
 		Read:   resourceArmCosmosDbTableRead,
-		Update: resourceArmCosmosDbTableCreateUpdate,
+		Update: resourceArmCosmosDbTableUpdate,
 		Delete: resourceArmCosmosDbTableDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -54,14 +56,14 @@ func resourceArmCosmosDbTable() *schema.Resource {
 			"throughput": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Default:      400,
+				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
 			},
 		},
 	}
 }
 
-func resourceArmCosmosDbTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -69,9 +71,8 @@ func resourceArmCosmosDbTableCreateUpdate(d *schema.ResourceData, meta interface
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	account := d.Get("account_name").(string)
-	throughput := d.Get("throughput").(int)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetTable(ctx, resourceGroup, account, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -96,6 +97,12 @@ func resourceArmCosmosDbTableCreateUpdate(d *schema.ResourceData, meta interface
 		},
 	}
 
+	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
+		db.TableCreateUpdateProperties.Options = map[string]*string{
+			"throughput": utils.String(strconv.Itoa(throughput.(int))),
+		}
+	}
+
 	future, err := client.CreateUpdateTable(ctx, resourceGroup, account, name, db)
 	if err != nil {
 		return fmt.Errorf("Error issuing create/update request for Cosmos Table %s (Account %s): %+v", name, account, err)
@@ -103,23 +110,6 @@ func resourceArmCosmosDbTableCreateUpdate(d *schema.ResourceData, meta interface
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Table %s (Account %s): %+v", name, account, err)
-	}
-
-	throughputParameters := documentdb.ThroughputUpdateParameters{
-		ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
-			Resource: &documentdb.ThroughputResource{
-				Throughput: utils.Int32(int32(throughput)),
-			},
-		},
-	}
-
-	throughputFuture, err := client.UpdateTableThroughput(ctx, resourceGroup, account, name, throughputParameters)
-	if err != nil {
-		return fmt.Errorf("Error setting Throughput for Cosmos Table %s (Account %s): %+v", name, account, err)
-	}
-
-	if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Table %s (Account %s): %+v", name, account, err)
 	}
 
 	resp, err := client.GetTable(ctx, resourceGroup, account, name)
@@ -132,6 +122,60 @@ func resourceArmCosmosDbTableCreateUpdate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error retrieving the ID for Cosmos Table '%s' (Account %s) ID: %v", name, account, err)
 	}
 	d.SetId(id)
+
+	return resourceArmCosmosDbTableRead(d, meta)
+}
+
+func resourceArmCosmosDbTableUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseCosmosTableID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	db := documentdb.TableCreateUpdateParameters{
+		TableCreateUpdateProperties: &documentdb.TableCreateUpdateProperties{
+			Resource: &documentdb.TableResource{
+				ID: &id.Table,
+			},
+			Options: map[string]*string{},
+		},
+	}
+
+	future, err := client.CreateUpdateTable(ctx, id.ResourceGroup, id.Account, id.Table, db)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for Cosmos Table %s (Account %s): %+v", id.Table, id.Account, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Table %s (Account %s): %+v", id.Table, id.Account, err)
+	}
+
+	if d.HasChange("throughput") {
+		throughputParameters := documentdb.ThroughputUpdateParameters{
+			ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
+				Resource: &documentdb.ThroughputResource{
+					Throughput: utils.Int32(int32(d.Get("throughput").(int))),
+				},
+			},
+		}
+
+		throughputFuture, err := client.UpdateTableThroughput(ctx, id.ResourceGroup, id.Account, id.Table, throughputParameters)
+		if err != nil {
+			if throughputFuture.Response().StatusCode == http.StatusNotFound {
+				d.Set("throughput", nil)
+				return fmt.Errorf("Error setting Throughput for Cosmos Table %s (Account %s): %+v - "+
+					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Table, id.Account, err)
+			}
+		}
+
+		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Table %s (Account %s): %+v", id.Table, id.Account, err)
+		}
+	}
 
 	return resourceArmCosmosDbTableRead(d, meta)
 }

@@ -47,10 +47,10 @@ func TestAccAzureRMCosmosDbSqlDatabase_update(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbSqlDatabase_complete(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbSqlDatabase_throughput(ri, testLocation(), 700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "throughput", "600"),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "700"),
 				),
 			},
 			{
@@ -60,10 +60,10 @@ func TestAccAzureRMCosmosDbSqlDatabase_update(t *testing.T) {
 			},
 			{
 
-				Config: testAccAzureRMCosmosDbSqlDatabase_update(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbSqlDatabase_throughput(ri, testLocation(), 1700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "1700"),
 				),
 			},
 			{
@@ -143,7 +143,7 @@ resource "azurerm_cosmosdb_sql_database" "test" {
 `, testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.Eventual), "", ""), rInt)
 }
 
-func testAccAzureRMCosmosDbSqlDatabase_complete(rInt int, location string) string {
+func testAccAzureRMCosmosDbSqlDatabase_throughput(rInt int, location string, throughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -151,20 +151,7 @@ resource "azurerm_cosmosdb_sql_database" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
-  throughput          = 600
+  throughput          = %[3]d
 }
-`, testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.Eventual), "", ""), rInt)
-}
-
-func testAccAzureRMCosmosDbSqlDatabase_update(rInt int, location string) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_sql_database" "test" {
-  name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  throughput          = 400
-}
-`, testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.Eventual), "", ""), rInt)
+`, testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.Eventual), "", ""), rInt, throughput)
 }

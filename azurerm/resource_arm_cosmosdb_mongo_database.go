@@ -23,7 +23,6 @@ func resourceArmCosmosDbMongoDatabase() *schema.Resource {
 		Create: resourceArmCosmosDbMongoDatabaseCreate,
 		Update: resourceArmCosmosDbMongoDatabaseUpdate,
 		Read:   resourceArmCosmosDbMongoDatabaseRead,
-		Update: resourceArmCosmosDbMongoDatabaseCreateUpdate,
 		Delete: resourceArmCosmosDbMongoDatabaseDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -64,7 +63,7 @@ func resourceArmCosmosDbMongoDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbMongoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbMongoDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -18,9 +19,9 @@ import (
 
 func resourceArmCosmosDbCassandraKeyspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbCassandraKeyspaceCreateUpdate,
+		Create: resourceArmCosmosDbCassandraKeyspaceCreate,
 		Read:   resourceArmCosmosDbCassandraKeyspaceRead,
-		Update: resourceArmCosmosDbCassandraKeyspaceCreateUpdate,
+		Update: resourceArmCosmosDbCassandraKeyspaceUpdate,
 		Delete: resourceArmCosmosDbCassandraKeyspaceDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -54,14 +55,14 @@ func resourceArmCosmosDbCassandraKeyspace() *schema.Resource {
 			"throughput": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Default:      400,
+				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
 			},
 		},
 	}
 }
 
-func resourceArmCosmosDbCassandraKeyspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -69,9 +70,8 @@ func resourceArmCosmosDbCassandraKeyspaceCreateUpdate(d *schema.ResourceData, me
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	account := d.Get("account_name").(string)
-	throughput := d.Get("throughput").(int)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetCassandraKeyspace(ctx, resourceGroup, account, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -105,23 +105,6 @@ func resourceArmCosmosDbCassandraKeyspaceCreateUpdate(d *schema.ResourceData, me
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Cassandra Keyspace %s (Account %s): %+v", name, account, err)
 	}
 
-	throughputParameters := documentdb.ThroughputUpdateParameters{
-		ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
-			Resource: &documentdb.ThroughputResource{
-				Throughput: utils.Int32(int32(throughput)),
-			},
-		},
-	}
-
-	throughputFuture, err := client.UpdateCassandraKeyspaceThroughput(ctx, resourceGroup, account, name, throughputParameters)
-	if err != nil {
-		return fmt.Errorf("Error setting Throughput for Cosmos Cassandra Keyspace %s (Account %s): %+v", name, account, err)
-	}
-
-	if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Cassandra Keyspace %s (Account %s): %+v", name, account, err)
-	}
-
 	resp, err := client.GetCassandraKeyspace(ctx, resourceGroup, account, name)
 	if err != nil {
 		return fmt.Errorf("Error making get request for Cosmos Cassandra Keyspace %s (Account %s): %+v", name, account, err)
@@ -132,6 +115,60 @@ func resourceArmCosmosDbCassandraKeyspaceCreateUpdate(d *schema.ResourceData, me
 		return fmt.Errorf("Error retrieving the ID for Cosmos Cassandra Keyspace '%s' (Account %s) ID: %v", name, account, err)
 	}
 	d.SetId(id)
+
+	return resourceArmCosmosDbCassandraKeyspaceRead(d, meta)
+}
+
+func resourceArmCosmosDbCassandraKeyspaceUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseCosmosKeyspaceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	db := documentdb.CassandraKeyspaceCreateUpdateParameters{
+		CassandraKeyspaceCreateUpdateProperties: &documentdb.CassandraKeyspaceCreateUpdateProperties{
+			Resource: &documentdb.CassandraKeyspaceResource{
+				ID: &id.Keyspace,
+			},
+			Options: map[string]*string{},
+		},
+	}
+
+	future, err := client.CreateUpdateCassandraKeyspace(ctx, id.ResourceGroup, id.Account, id.Keyspace, db)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for Cosmos Cassandra Keyspace %s (Account %s): %+v", id.ResourceGroup, id.Account, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Cassandra Keyspace %s (Account %s): %+v", id.ResourceGroup, id.Account, err)
+	}
+
+	if d.HasChange("throughput") {
+		throughputParameters := documentdb.ThroughputUpdateParameters{
+			ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
+				Resource: &documentdb.ThroughputResource{
+					Throughput: utils.Int32(int32(d.Get("throughput").(int))),
+				},
+			},
+		}
+
+		throughputFuture, err := client.UpdateCassandraKeyspaceThroughput(ctx, id.ResourceGroup, id.Account, id.Keyspace, throughputParameters)
+		if err != nil {
+			if throughputFuture.Response().StatusCode == http.StatusNotFound {
+				d.Set("throughput", nil)
+				return fmt.Errorf("Error setting Throughput for Cosmos Cassandra Keyspace %s (Account %s): %+v - "+
+					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Keyspace, id.Account, err)
+			}
+		}
+
+		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Cassandra Keyspace %s (Account %s): %+v", id.Keyspace, id.Account, err)
+		}
+	}
 
 	return resourceArmCosmosDbCassandraKeyspaceRead(d, meta)
 }

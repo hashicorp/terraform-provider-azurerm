@@ -35,6 +35,31 @@ func TestAccAzureRMCosmosDbCassandraKeyspace_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDbCassandraKeyspace_complete(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_cosmosdb_cassandra_keyspace.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbCassandraKeyspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDbCassandraKeyspace_throughput(ri, testLocation(), 700),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "700"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMCosmosDbCassandraKeyspace_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_cassandra_keyspace.test"
@@ -45,10 +70,10 @@ func TestAccAzureRMCosmosDbCassandraKeyspace_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDbCassandraKeyspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbCassandraKeyspace_complete(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbCassandraKeyspace_throughput(ri, testLocation(), 700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "throughput", "600"),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "700"),
 				),
 			},
 			{
@@ -57,10 +82,10 @@ func TestAccAzureRMCosmosDbCassandraKeyspace_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMCosmosDbCassandraKeyspace_update(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbCassandraKeyspace_throughput(ri, testLocation(), 1700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "1700"),
 				),
 			},
 			{
@@ -140,7 +165,7 @@ resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
 `, testAccAzureRMCosmosDBAccount_capabilityCassandra(rInt, location), rInt)
 }
 
-func testAccAzureRMCosmosDbCassandraKeyspace_complete(rInt int, location string) string {
+func testAccAzureRMCosmosDbCassandraKeyspace_throughput(rInt int, location string, throughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -148,20 +173,8 @@ resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
-  throughput          = 600
-}
-`, testAccAzureRMCosmosDBAccount_capabilityCassandra(rInt, location), rInt)
-}
 
-func testAccAzureRMCosmosDbCassandraKeyspace_update(rInt int, location string) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
-  name                = "acctest-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  throughput          = 400
+  throughput          = %[3]d
 }
-`, testAccAzureRMCosmosDBAccount_capabilityCassandra(rInt, location), rInt)
+`, testAccAzureRMCosmosDBAccount_capabilityCassandra(rInt, location), rInt, throughput)
 }
