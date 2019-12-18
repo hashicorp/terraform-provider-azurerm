@@ -35,6 +35,12 @@ func TestAccAzureRMAutomationCertificate_basic(t *testing.T) {
 					testCheckAzureRMAutomationCertificateExists(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"base64"},
+			},
 		},
 	})
 }
@@ -63,12 +69,6 @@ func TestAccAzureRMAutomationCertificate_requiresImport(t *testing.T) {
 			{
 				Config:      testAccAzureRMAutomationCertificate_requiresImport(ri, location),
 				ExpectError: testRequiresImportError("azurerm_automation_certificate"),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"base64"},
 			},
 		},
 	})
@@ -117,6 +117,12 @@ func TestAccAzureRMAutomationCertificate_update(t *testing.T) {
 					testCheckAzureRMAutomationCertificateExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"base64"},
 			},
 			{
 				Config: testAccAzureRMAutomationCertificate_update(ri, testLocation()),
