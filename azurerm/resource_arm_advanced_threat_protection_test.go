@@ -230,7 +230,7 @@ resource "azurerm_advanced_threat_protection" "requireimport" {
   target_resource_id = "${azurerm_advanced_threat_protection.test.id}"
   enabled            = "${azurerm_advanced_threat_protection.test.enabled}"
 }
-`, testAccAzureRMAdvancedThreatProtection_storageAccount(rInt, testLocation(), true, true))
+`, testAccAzureRMAdvancedThreatProtection_storageAccount(rInt, location, true, true))
 }
 
 func testAccAzureRMAdvancedThreatProtection_storageAccount(rInt int, location string, hasResource, enabled bool) string {
