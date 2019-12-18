@@ -113,8 +113,7 @@ func resourceArmBackupProtectionContainerStorageAccountCreate(d *schema.Resource
 	}
 
 	operationID := parsedLocation.Path["operationResults"]
-	_, err = resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx, opStatusClient, vaultName, resGroup, operationID, d)
-	if err != nil {
+	if _, err = resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx, opStatusClient, vaultName, resGroup, operationID, d); err != nil {
 		return err
 	}
 
@@ -196,8 +195,7 @@ func resourceArmBackupProtectionContainerStorageAccountDelete(d *schema.Resource
 	}
 	operationID := parsedLocation.Path["backupOperationResults"]
 
-	_, err = resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx, opClient, vaultName, resGroup, operationID, d)
-	if err != nil {
+	if _, err = resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx, opClient, vaultName, resGroup, operationID, d); err != nil {
 		return err
 	}
 

@@ -74,6 +74,11 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_updateDaily(t *testing.T) {
 				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(resourceName, ri),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAzureRMBackupProtectionPolicyFileShare_updateDaily(ri, testLocation()),
 				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_updateDaily(resourceName, ri),
 			},
