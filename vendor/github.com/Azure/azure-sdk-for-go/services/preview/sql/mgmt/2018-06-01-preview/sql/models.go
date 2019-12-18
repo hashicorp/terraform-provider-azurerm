@@ -166,6 +166,29 @@ func PossibleManagedServerCreateModeValues() []ManagedServerCreateMode {
 	return []ManagedServerCreateMode{ManagedServerCreateModeDefault, ManagedServerCreateModePointInTimeRestore}
 }
 
+// ManagementOperationState enumerates the values for management operation state.
+type ManagementOperationState string
+
+const (
+	// CancelInProgress ...
+	CancelInProgress ManagementOperationState = "CancelInProgress"
+	// Cancelled ...
+	Cancelled ManagementOperationState = "Cancelled"
+	// Failed ...
+	Failed ManagementOperationState = "Failed"
+	// InProgress ...
+	InProgress ManagementOperationState = "InProgress"
+	// Pending ...
+	Pending ManagementOperationState = "Pending"
+	// Succeeded ...
+	Succeeded ManagementOperationState = "Succeeded"
+)
+
+// PossibleManagementOperationStateValues returns an array of possible values for the ManagementOperationState const type.
+func PossibleManagementOperationStateValues() []ManagementOperationState {
+	return []ManagementOperationState{CancelInProgress, Cancelled, Failed, InProgress, Pending, Succeeded}
+}
+
 // ReplicaType enumerates the values for replica type.
 type ReplicaType string
 
@@ -211,6 +234,165 @@ const (
 // PossibleSensitivityLabelSourceValues returns an array of possible values for the SensitivityLabelSource const type.
 func PossibleSensitivityLabelSourceValues() []SensitivityLabelSource {
 	return []SensitivityLabelSource{Current, Recommended}
+}
+
+// AdministratorListResult a list of active directory administrators.
+type AdministratorListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ServerAzureADAdministrator `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// AdministratorListResultIterator provides access to a complete listing of ServerAzureADAdministrator
+// values.
+type AdministratorListResultIterator struct {
+	i    int
+	page AdministratorListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *AdministratorListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AdministratorListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *AdministratorListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter AdministratorListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter AdministratorListResultIterator) Response() AdministratorListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter AdministratorListResultIterator) Value() ServerAzureADAdministrator {
+	if !iter.page.NotDone() {
+		return ServerAzureADAdministrator{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the AdministratorListResultIterator type.
+func NewAdministratorListResultIterator(page AdministratorListResultPage) AdministratorListResultIterator {
+	return AdministratorListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (alr AdministratorListResult) IsEmpty() bool {
+	return alr.Value == nil || len(*alr.Value) == 0
+}
+
+// administratorListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (alr AdministratorListResult) administratorListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if alr.NextLink == nil || len(to.String(alr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(alr.NextLink)))
+}
+
+// AdministratorListResultPage contains a page of ServerAzureADAdministrator values.
+type AdministratorListResultPage struct {
+	fn  func(context.Context, AdministratorListResult) (AdministratorListResult, error)
+	alr AdministratorListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *AdministratorListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AdministratorListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.alr)
+	if err != nil {
+		return err
+	}
+	page.alr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *AdministratorListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page AdministratorListResultPage) NotDone() bool {
+	return !page.alr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page AdministratorListResultPage) Response() AdministratorListResult {
+	return page.alr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page AdministratorListResultPage) Values() []ServerAzureADAdministrator {
+	if page.alr.IsEmpty() {
+		return nil
+	}
+	return *page.alr.Value
+}
+
+// Creates a new instance of the AdministratorListResultPage type.
+func NewAdministratorListResultPage(getNextPage func(context.Context, AdministratorListResult) (AdministratorListResult, error)) AdministratorListResultPage {
+	return AdministratorListResultPage{fn: getNextPage}
+}
+
+// AdministratorProperties properties of a active directory administrator.
+type AdministratorProperties struct {
+	// AdministratorType - Type of the sever administrator.
+	AdministratorType *string `json:"administratorType,omitempty"`
+	// Login - Login name of the server administrator.
+	Login *string `json:"login,omitempty"`
+	// Sid - SID (object ID) of the server administrator.
+	Sid *uuid.UUID `json:"sid,omitempty"`
+	// TenantID - Tenant ID of the administrator.
+	TenantID *uuid.UUID `json:"tenantId,omitempty"`
 }
 
 // CompleteDatabaseRestoreDefinition contains the information necessary to perform a complete database
@@ -1661,6 +1843,255 @@ func NewManagedInstanceListResultPage(getNextPage func(context.Context, ManagedI
 	return ManagedInstanceListResultPage{fn: getNextPage}
 }
 
+// ManagedInstanceOperation a managed instance operation.
+type ManagedInstanceOperation struct {
+	// ManagedInstanceOperationProperties - Resource properties.
+	*ManagedInstanceOperationProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedInstanceOperation.
+func (mio ManagedInstanceOperation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mio.ManagedInstanceOperationProperties != nil {
+		objectMap["properties"] = mio.ManagedInstanceOperationProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ManagedInstanceOperation struct.
+func (mio *ManagedInstanceOperation) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var managedInstanceOperationProperties ManagedInstanceOperationProperties
+				err = json.Unmarshal(*v, &managedInstanceOperationProperties)
+				if err != nil {
+					return err
+				}
+				mio.ManagedInstanceOperationProperties = &managedInstanceOperationProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mio.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mio.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mio.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ManagedInstanceOperationListResult the response to a list managed instance operations request
+type ManagedInstanceOperationListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ManagedInstanceOperation `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ManagedInstanceOperationListResultIterator provides access to a complete listing of
+// ManagedInstanceOperation values.
+type ManagedInstanceOperationListResultIterator struct {
+	i    int
+	page ManagedInstanceOperationListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ManagedInstanceOperationListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceOperationListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ManagedInstanceOperationListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ManagedInstanceOperationListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ManagedInstanceOperationListResultIterator) Response() ManagedInstanceOperationListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ManagedInstanceOperationListResultIterator) Value() ManagedInstanceOperation {
+	if !iter.page.NotDone() {
+		return ManagedInstanceOperation{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ManagedInstanceOperationListResultIterator type.
+func NewManagedInstanceOperationListResultIterator(page ManagedInstanceOperationListResultPage) ManagedInstanceOperationListResultIterator {
+	return ManagedInstanceOperationListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (miolr ManagedInstanceOperationListResult) IsEmpty() bool {
+	return miolr.Value == nil || len(*miolr.Value) == 0
+}
+
+// managedInstanceOperationListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (miolr ManagedInstanceOperationListResult) managedInstanceOperationListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if miolr.NextLink == nil || len(to.String(miolr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(miolr.NextLink)))
+}
+
+// ManagedInstanceOperationListResultPage contains a page of ManagedInstanceOperation values.
+type ManagedInstanceOperationListResultPage struct {
+	fn    func(context.Context, ManagedInstanceOperationListResult) (ManagedInstanceOperationListResult, error)
+	miolr ManagedInstanceOperationListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ManagedInstanceOperationListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstanceOperationListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.miolr)
+	if err != nil {
+		return err
+	}
+	page.miolr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ManagedInstanceOperationListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ManagedInstanceOperationListResultPage) NotDone() bool {
+	return !page.miolr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ManagedInstanceOperationListResultPage) Response() ManagedInstanceOperationListResult {
+	return page.miolr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ManagedInstanceOperationListResultPage) Values() []ManagedInstanceOperation {
+	if page.miolr.IsEmpty() {
+		return nil
+	}
+	return *page.miolr.Value
+}
+
+// Creates a new instance of the ManagedInstanceOperationListResultPage type.
+func NewManagedInstanceOperationListResultPage(getNextPage func(context.Context, ManagedInstanceOperationListResult) (ManagedInstanceOperationListResult, error)) ManagedInstanceOperationListResultPage {
+	return ManagedInstanceOperationListResultPage{fn: getNextPage}
+}
+
+// ManagedInstanceOperationProperties the properties of a managed instance operation.
+type ManagedInstanceOperationProperties struct {
+	// ManagedInstanceName - READ-ONLY; The name of the managed instance the operation is being performed on.
+	ManagedInstanceName *string `json:"managedInstanceName,omitempty"`
+	// Operation - READ-ONLY; The name of operation.
+	Operation *string `json:"operation,omitempty"`
+	// OperationFriendlyName - READ-ONLY; The friendly name of operation.
+	OperationFriendlyName *string `json:"operationFriendlyName,omitempty"`
+	// PercentComplete - READ-ONLY; The percentage of the operation completed.
+	PercentComplete *int32 `json:"percentComplete,omitempty"`
+	// StartTime - READ-ONLY; The operation start time.
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// State - READ-ONLY; The operation state. Possible values include: 'Pending', 'InProgress', 'Succeeded', 'Failed', 'CancelInProgress', 'Cancelled'
+	State ManagementOperationState `json:"state,omitempty"`
+	// ErrorCode - READ-ONLY; The operation error code.
+	ErrorCode *int32 `json:"errorCode,omitempty"`
+	// ErrorDescription - READ-ONLY; The operation error description.
+	ErrorDescription *string `json:"errorDescription,omitempty"`
+	// ErrorSeverity - READ-ONLY; The operation error severity.
+	ErrorSeverity *int32 `json:"errorSeverity,omitempty"`
+	// IsUserError - READ-ONLY; Whether or not the error is a user error.
+	IsUserError *bool `json:"isUserError,omitempty"`
+	// EstimatedCompletionTime - READ-ONLY; The estimated completion time of the operation.
+	EstimatedCompletionTime *date.Time `json:"estimatedCompletionTime,omitempty"`
+	// Description - READ-ONLY; The operation description.
+	Description *string `json:"description,omitempty"`
+	// IsCancellable - READ-ONLY; Whether the operation can be cancelled.
+	IsCancellable *bool `json:"isCancellable,omitempty"`
+}
+
 // ManagedInstanceProperties the properties of a managed instance.
 type ManagedInstanceProperties struct {
 	// ManagedInstanceCreateMode - Specifies the mode of database creation.
@@ -2085,7 +2516,7 @@ func NewManagedInstanceVulnerabilityAssessmentListResultPage(getNextPage func(co
 type ManagedInstanceVulnerabilityAssessmentProperties struct {
 	// StorageContainerPath - A blob storage container path to hold the scan results (e.g. https://myStorage.blob.core.windows.net/VaScans/).
 	StorageContainerPath *string `json:"storageContainerPath,omitempty"`
-	// StorageContainerSasKey - A shared access signature (SAS Key) that has write access to the blob container specified in 'storageContainerPath' parameter. If 'storageAccountAccessKey' isn't specified, StorageContainerSasKey is required.
+	// StorageContainerSasKey - A shared access signature (SAS Key) that has read and write access to the blob container specified in 'storageContainerPath' parameter. If 'storageAccountAccessKey' isn't specified, StorageContainerSasKey is required.
 	StorageContainerSasKey *string `json:"storageContainerSasKey,omitempty"`
 	// StorageAccountAccessKey - Specifies the identifier key of the storage account for vulnerability assessment scan results. If 'StorageContainerSasKey' isn't specified, storageAccountAccessKey is required.
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
@@ -2682,6 +3113,131 @@ type SensitivityLabelProperties struct {
 	IsDisabled *bool `json:"isDisabled,omitempty"`
 }
 
+// ServerAzureADAdministrator azure Active Directory administrator.
+type ServerAzureADAdministrator struct {
+	autorest.Response `json:"-"`
+	// AdministratorProperties - Resource properties.
+	*AdministratorProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerAzureADAdministrator.
+func (saaa ServerAzureADAdministrator) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if saaa.AdministratorProperties != nil {
+		objectMap["properties"] = saaa.AdministratorProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ServerAzureADAdministrator struct.
+func (saaa *ServerAzureADAdministrator) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var administratorProperties AdministratorProperties
+				err = json.Unmarshal(*v, &administratorProperties)
+				if err != nil {
+					return err
+				}
+				saaa.AdministratorProperties = &administratorProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				saaa.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				saaa.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				saaa.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ServerAzureADAdministratorsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type ServerAzureADAdministratorsCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ServerAzureADAdministratorsCreateOrUpdateFuture) Result(client ServerAzureADAdministratorsClient) (saaa ServerAzureADAdministrator, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ServerAzureADAdministratorsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if saaa.Response.Response, err = future.GetResult(sender); err == nil && saaa.Response.Response.StatusCode != http.StatusNoContent {
+		saaa, err = client.CreateOrUpdateResponder(saaa.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsCreateOrUpdateFuture", "Result", saaa.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ServerAzureADAdministratorsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ServerAzureADAdministratorsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ServerAzureADAdministratorsDeleteFuture) Result(client ServerAzureADAdministratorsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ServerAzureADAdministratorsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // ServerVulnerabilityAssessment a server vulnerability assessment.
 type ServerVulnerabilityAssessment struct {
 	autorest.Response `json:"-"`
@@ -2906,7 +3462,7 @@ func NewServerVulnerabilityAssessmentListResultPage(getNextPage func(context.Con
 type ServerVulnerabilityAssessmentProperties struct {
 	// StorageContainerPath - A blob storage container path to hold the scan results (e.g. https://myStorage.blob.core.windows.net/VaScans/).
 	StorageContainerPath *string `json:"storageContainerPath,omitempty"`
-	// StorageContainerSasKey - A shared access signature (SAS Key) that has write access to the blob container specified in 'storageContainerPath' parameter. If 'storageAccountAccessKey' isn't specified, StorageContainerSasKey is required.
+	// StorageContainerSasKey - A shared access signature (SAS Key) that has read and write access to the blob container specified in 'storageContainerPath' parameter. If 'storageAccountAccessKey' isn't specified, StorageContainerSasKey is required.
 	StorageContainerSasKey *string `json:"storageContainerSasKey,omitempty"`
 	// StorageAccountAccessKey - Specifies the identifier key of the storage account for vulnerability assessment scan results. If 'StorageContainerSasKey' isn't specified, storageAccountAccessKey is required.
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`

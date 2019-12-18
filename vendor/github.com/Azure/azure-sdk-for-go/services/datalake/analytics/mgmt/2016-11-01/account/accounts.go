@@ -150,16 +150,16 @@ func (client AccountsClient) Create(ctx context.Context, resourceGroupName strin
 					Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.DefaultDataLakeStoreAccount", Name: validation.Null, Rule: true, Chain: nil},
 						{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.DataLakeStoreAccounts", Name: validation.Null, Rule: true, Chain: nil},
 						{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxJobCount", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxJobCount", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxJobCount", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 						{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxDegreeOfParallelism", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxDegreeOfParallelism", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxDegreeOfParallelism", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 						{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxDegreeOfParallelismPerJob", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxDegreeOfParallelismPerJob", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MaxDegreeOfParallelismPerJob", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 						{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MinPriorityPerJob", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MinPriorityPerJob", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.MinPriorityPerJob", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 						{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.QueryStoreRetention", Name: validation.Null, Rule: false,
 							Chain: []validation.Constraint{{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.QueryStoreRetention", Name: validation.InclusiveMaximum, Rule: int64(180), Chain: nil},
-								{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.QueryStoreRetention", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+								{Target: "parameters.CreateDataLakeAnalyticsAccountProperties.QueryStoreRetention", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 							}},
 					}}}}}); err != nil {
 		return result, validation.NewError("account.AccountsClient", "Create", err.Error())
@@ -409,10 +409,10 @@ func (client AccountsClient) List(ctx context.Context, filter string, top *int32
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: top,
 			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}}}},
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}}}},
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("account.AccountsClient", "List", err.Error())
 	}
 
@@ -560,10 +560,10 @@ func (client AccountsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: top,
 			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}}}},
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}}}},
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("account.AccountsClient", "ListByResourceGroup", err.Error())
 	}
 
