@@ -171,6 +171,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_api_management_authorization_server":                   resourceArmApiManagementAuthorizationServer(),
 		"azurerm_api_management_backend":                                resourceArmApiManagementBackend(),
 		"azurerm_api_management_certificate":                            resourceArmApiManagementCertificate(),
+		"azurerm_api_management_diagnostic":                             resourceArmApiManagementDiagnostic(),
 		"azurerm_api_management_group":                                  resourceArmApiManagementGroup(),
 		"azurerm_api_management_group_user":                             resourceArmApiManagementGroupUser(),
 		"azurerm_api_management_logger":                                 resourceArmApiManagementLogger(),
