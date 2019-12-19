@@ -233,8 +233,8 @@ func checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(resourceName stri
 	return resource.ComposeAggregateTestCheckFunc(
 		testCheckAzureRMBackupProtectionPolicyFileShareExists(resourceName),
 		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-%d", ri)),
+		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-backup-%d", ri)),
+		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-RSV-%d", ri)),
 		resource.TestCheckResourceAttr(resourceName, "backup.0.frequency", "Daily"),
 		resource.TestCheckResourceAttr(resourceName, "backup.0.time", "23:00"),
 		resource.TestCheckResourceAttr(resourceName, "retention_daily.0.count", "10"),
@@ -245,8 +245,8 @@ func checkAccAzureRMBackupProtectionPolicyFileShare_updateDaily(resourceName str
 	return resource.ComposeAggregateTestCheckFunc(
 		testCheckAzureRMBackupProtectionPolicyFileShareExists(resourceName),
 		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-%d", ri)),
+		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-backup-%d", ri)),
+		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-RSV-%d", ri)),
 		resource.TestCheckResourceAttr(resourceName, "backup.0.frequency", "Daily"),
 		resource.TestCheckResourceAttr(resourceName, "backup.0.time", "23:30"),
 		resource.TestCheckResourceAttr(resourceName, "retention_daily.0.count", "180"),
