@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMRecoveryFabric_basic(t *testing.T) {
@@ -97,8 +96,8 @@ func testCheckAzureRMRecoveryFabricDestroy(s *terraform.State) error {
 		vaultName := rs.Primary.Attributes["recovery_vault_name"]
 		resourceGroup := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.FabricClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.FabricClient(resourceGroupName, vaultName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup)
 		if err != nil {
