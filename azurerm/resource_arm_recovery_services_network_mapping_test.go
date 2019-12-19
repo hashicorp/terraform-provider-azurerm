@@ -113,6 +113,7 @@ func testCheckAzureRMRecoveryNetworkMappingExists(resourceName string) resource.
 		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
+		// TODO Fix Bad: networkMapping error
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
 		if err != nil {
 			if resp.Response.StatusCode == http.StatusNotFound {
