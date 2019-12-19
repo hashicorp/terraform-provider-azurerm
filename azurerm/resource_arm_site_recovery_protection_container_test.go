@@ -11,21 +11,18 @@ import (
 )
 
 func TestAccAzureRMSiteRecoveryProtectionContainer_basic(t *testing.T) {
-	resourceGroupName := "azurerm_resource_group.test"
-	vaultName := "azurerm_recovery_services_vault.test"
-	fabricName := "azurerm_site_recovery_fabric.test"
 	resourceName := "azurerm_site_recovery_protection_container.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		CheckDestroy: testCheckAzureRMSiteRecoveryProtectionContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSiteRecoveryProtectionContainer_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSiteRecoveryProtectionContainerExists(resourceGroupName, vaultName, fabricName, resourceName),
+					testCheckAzureRMSiteRecoveryProtectionContainerExists(resourceName),
 				),
 			},
 			{
@@ -68,44 +65,58 @@ resource "azurerm_site_recovery_protection_container" "test" {
 `, rInt, location, rInt, rInt, rInt)
 }
 
-func testCheckAzureRMSiteRecoveryProtectionContainerExists(resourceGroupStateName, vaultStateName string, resourceStateName string, protectionContainerStateName string) resource.TestCheckFunc {
+func testCheckAzureRMSiteRecoveryProtectionContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		resourceGroupState, ok := s.RootModule().Resources[resourceGroupStateName]
+		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", resourceGroupStateName)
-		}
-		vaultState, ok := s.RootModule().Resources[vaultStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", vaultStateName)
-		}
-		fabricState, ok := s.RootModule().Resources[resourceStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceStateName)
-		}
-		protectionContainerState, ok := s.RootModule().Resources[protectionContainerStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceStateName)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroupName := resourceGroupState.Primary.Attributes["name"]
-		vaultName := vaultState.Primary.Attributes["name"]
-		fabricName := fabricState.Primary.Attributes["name"]
-		protectionContainerName := protectionContainerState.Primary.Attributes["name"]
+		resourceGroupName := state.Primary.Attributes["resource_group_name"]
+		vaultName := state.Primary.Attributes["recovery_vault_name"]
+		fabricName := state.Primary.Attributes["recovery_fabric_name"]
+		protectionContainerName := state.Primary.Attributes["name"]
 
-		// Ensure fabric exists in API
 		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on fabricClient: %+v", err)
+			return fmt.Errorf("Bad: Get on RecoveryServices.ProtectionContainerClient: %+v", err)
 		}
 
 		if resp.Response.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: fabric: %q does not exist", fabricName)
+			return fmt.Errorf("Bad: Protection Container: %q does not exist", fabricName)
 		}
 
 		return nil
 	}
+}
+
+func testCheckAzureRMSiteRecoveryProtectionContainerDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_site_recovery_protection_container" {
+			continue
+		}
+
+		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
+		vaultName := rs.Primary.Attributes["recovery_vault_name"]
+		fabricName := rs.Primary.Attributes["recovery_fabric_name"]
+		protectionContainerName := rs.Primary.Attributes["name"]
+
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.Get(ctx, fabricName, protectionContainerName)
+		if err != nil {
+			return nil
+		}
+
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Protection Container still exists:\n%#v", resp.Properties)
+		}
+	}
+
+	return nil
 }

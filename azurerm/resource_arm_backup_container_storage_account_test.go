@@ -13,9 +13,6 @@ import (
 )
 
 func TestAccAzureRMBackupProtectionContainerStorageAccount_basic(t *testing.T) {
-	resourceGroupName := "azurerm_resource_group.testrg"
-	vaultName := "azurerm_recovery_services_vault.testvlt"
-	storageAccountName := "azurerm_storage_account.testsa"
 	resourceName := "azurerm_backup_container_storage_account.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
@@ -23,12 +20,12 @@ func TestAccAzureRMBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectionContainerStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionContainerStorageAccount(ri, rs, testLocation()),
+				Config: testAccAzureRMBackupProtectionContainerStorageAccount_basic(ri, rs, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBackupProtectionContainerStorageAccount(resourceGroupName, vaultName, storageAccountName, resourceName),
+					testCheckAzureRMBackupProtectionContainerStorageAccountExists(resourceName),
 				),
 			},
 			{
@@ -40,7 +37,7 @@ func TestAccAzureRMBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBackupProtectionContainerStorageAccount(rInt int, rString string, location string) string {
+func testAccAzureRMBackupProtectionContainerStorageAccount_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-backup-%d"
@@ -71,34 +68,17 @@ resource "azurerm_backup_container_storage_account" "test" {
 `, rInt, location, rInt, rString)
 }
 
-func testCheckAzureRMBackupProtectionContainerStorageAccount(resourceGroupStateName, vaultStateName, storageAccountName, resourceStateName string) resource.TestCheckFunc {
+func testCheckAzureRMBackupProtectionContainerStorageAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		resourceGroupState, ok := s.RootModule().Resources[resourceGroupStateName]
+		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", resourceGroupStateName)
-		}
-		vaultState, ok := s.RootModule().Resources[vaultStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", vaultStateName)
-		}
-		storageState, ok := s.RootModule().Resources[storageAccountName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", storageAccountName)
-		}
-		protectionContainerState, ok := s.RootModule().Resources[resourceStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceStateName)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroupName := resourceGroupState.Primary.Attributes["name"]
-		vaultName := vaultState.Primary.Attributes["name"]
-		storageAccountID := storageState.Primary.Attributes["id"]
-		resourceStorageID := protectionContainerState.Primary.Attributes["storage_account_id"]
-
-		if storageAccountID != resourceStorageID {
-			return fmt.Errorf("Bad: Container resource's storage_account_id %q does not match storage account resource's ID %q", storageAccountID, resourceStorageID)
-		}
+		resourceGroupName := state.Primary.Attributes["resource_group_name"]
+		vaultName := state.Primary.Attributes["recovery_vault_name"]
+		storageAccountID := state.Primary.Attributes["storage_account_id"]
 
 		parsedStorageAccountID, err := azure.ParseAzureResourceID(storageAccountID)
 		if err != nil {
@@ -126,4 +106,42 @@ func testCheckAzureRMBackupProtectionContainerStorageAccount(resourceGroupStateN
 
 		return nil
 	}
+}
+
+func testCheckAzureRMBackupProtectionContainerStorageAccountDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_backup_container_storage_account" {
+			continue
+		}
+
+		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
+		vaultName := rs.Primary.Attributes["recovery_vault_name"]
+		storageAccountID := rs.Primary.Attributes["storage_account_id"]
+
+		parsedStorageAccountID, err := azure.ParseAzureResourceID(storageAccountID)
+		if err != nil {
+			return fmt.Errorf("Bad: Unable to parse storage_account_id '%s': %+v", storageAccountID, err)
+		}
+		accountName, hasName := parsedStorageAccountID.Path["storageAccounts"]
+		if !hasName {
+			return fmt.Errorf("Bad: Parsed storage_account_id '%s' doesn't contain 'storageAccounts'", storageAccountID)
+		}
+
+		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
+
+		// Ensure container exists in API
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.BackupProtectionContainersClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.Get(ctx, vaultName, resourceGroupName, "Azure", containerName)
+		if err != nil {
+			return nil
+		}
+
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Backup Container Storage Account still exists:\n%#v", resp.Properties)
+		}
+	}
+
+	return nil
 }

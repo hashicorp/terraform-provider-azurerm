@@ -11,22 +11,18 @@ import (
 )
 
 func TestAccAzureRMSiteRecoveryReplicatedVm_basic(t *testing.T) {
-	resourceGroupName := "azurerm_resource_group.test2"
-	vaultName := "azurerm_recovery_services_vault.test"
-	fabricName := "azurerm_site_recovery_fabric.test1"
-	protectionContainerName := "azurerm_site_recovery_protection_container.test1"
 	replicationName := "azurerm_site_recovery_replicated_vm.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		CheckDestroy: testCheckAzureRMSiteRecoveryReplicatedVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSiteRecoveryReplicatedVm_basic(ri, testLocation(), testAltLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceGroupName, vaultName, fabricName, protectionContainerName, replicationName),
+					testCheckAzureRMSiteRecoveryReplicatedVmExists(replicationName),
 				),
 			},
 			{
@@ -215,37 +211,20 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 `, rInt, location, rInt, altLocation, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
-func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceGroupStateName, vaultStateName string, resourceStateName string, protectionContainerStateName string, replicationStateName string) resource.TestCheckFunc {
+func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		resourceGroupState, ok := s.RootModule().Resources[resourceGroupStateName]
+		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", resourceGroupStateName)
-		}
-		vaultState, ok := s.RootModule().Resources[vaultStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", vaultStateName)
-		}
-		fabricState, ok := s.RootModule().Resources[resourceStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceStateName)
-		}
-		protectionContainerState, ok := s.RootModule().Resources[protectionContainerStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceStateName)
-		}
-		replicationState, ok := s.RootModule().Resources[replicationStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", replicationStateName)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroupName := resourceGroupState.Primary.Attributes["name"]
-		vaultName := vaultState.Primary.Attributes["name"]
-		fabricName := fabricState.Primary.Attributes["name"]
-		protectionContainerName := protectionContainerState.Primary.Attributes["name"]
-		replicationName := replicationState.Primary.Attributes["name"]
+		resourceGroupName := state.Primary.Attributes["resource_group_name"]
+		vaultName := state.Primary.Attributes["recovery_vault_name"]
+		fabricName := state.Primary.Attributes["source_recovery_fabric_name"]
+		protectionContainerName := state.Primary.Attributes["source_recovery_protection_container_name"]
+		replicationName := state.Primary.Attributes["name"]
 
-		// Ensure mapping exists in API
 		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -260,4 +239,32 @@ func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceGroupStateName, vaul
 
 		return nil
 	}
+}
+
+func testCheckAzureRMSiteRecoveryReplicatedVmDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_site_recovery_replicated_vm" {
+			continue
+		}
+
+		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
+		vaultName := rs.Primary.Attributes["recovery_vault_name"]
+		fabricName := rs.Primary.Attributes["source_recovery_fabric_name"]
+		protectionContainerName := rs.Primary.Attributes["source_recovery_protection_container_name"]
+		replicationName := rs.Primary.Attributes["name"]
+
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.Get(ctx, fabricName, protectionContainerName, replicationName)
+		if err != nil {
+			return nil
+		}
+
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Replicated VM still exists:\n%#v", resp.Properties)
+		}
+	}
+
+	return nil
 }
