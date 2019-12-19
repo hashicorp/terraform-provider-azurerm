@@ -48,6 +48,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_shared_image_version` - change the `storage_account_type` property from a set to a list [GH-5212]
 * `azurerm_api_management_api` - working around a behavioural change in the API detecting deleted resources [GH-5054]
+* `azurerm_api_management_api` - correctly setting the soap API type when `soap_pass_through` is true [GH-5081]
 * `azurerm_healthcare_service` - making rhe `cors_configuration` block computed [GH-5046]
 * `azurerm_monitor_log_profile` - polling until the log profile is repeatedly available [GH-5194]
 * `azurerm_storage_account_network_rules` - matching the validation used for `ip_rules ` with the validation used by `ip_rules ` in the `network_rules` block of `azurerm_storage_account` [GH-5201]
