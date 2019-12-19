@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault to use. Changing this forces a new resource to be created.
 
-* `backup` - (Required) Configures the Policy backup frequecent, times & days as documented in the `backup` block below. 
+* `backup` - (Required) Configures the Policy backup frequency, times & days as documented in the `backup` block below. 
 
 * `timezone` - (Optional) Specifies the timezone. Defaults to `UTC`
 
@@ -92,7 +92,7 @@ The `backup` block supports:
 
 * `frequency` - (Required) Sets the backup frequency. Must be either `Daily` or`Weekly`. 
 
-* `times` - (Required) The time of day to perform the backup in 24hour format.
+* `time` - (Required) The time of day to perform the backup in 24hour format.
 
 * `weekdays` - (Optional) The days of the week to perform backups on. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
 
