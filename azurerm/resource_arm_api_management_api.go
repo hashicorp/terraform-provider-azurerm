@@ -222,6 +222,18 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
+	var apiType apimanagement.APIType
+	var soapApiType apimanagement.SoapAPIType
+
+	soapPassThrough := d.Get("soap_pass_through").(bool)
+	if soapPassThrough {
+		apiType = apimanagement.Soap
+		soapApiType = apimanagement.SoapPassThrough
+	} else {
+		apiType = apimanagement.HTTP
+		soapApiType = apimanagement.SoapToRest
+	}
+
 	// If import is used, we need to send properties to Azure API in two operations.
 	// First we execute import and then updated the other props.
 	if vs, hasImport := d.GetOk("import"); hasImport {
@@ -233,6 +245,8 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		log.Printf("[DEBUG] Importing API Management API %q of type %q", name, contentFormat)
 		apiParams := apimanagement.APICreateOrUpdateParameter{
 			APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
+				APIType:       apiType,
+				SoapAPIType:   soapApiType,
 				ContentFormat: apimanagement.ContentFormat(contentFormat),
 				ContentValue:  utils.String(contentValue),
 				Path:          utils.String(path),
@@ -270,17 +284,10 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	subscriptionKeyParameterNamesRaw := d.Get("subscription_key_parameter_names").([]interface{})
 	subscriptionKeyParameterNames := expandApiManagementApiSubscriptionKeyParamNames(subscriptionKeyParameterNamesRaw)
 
-	var apiType apimanagement.APIType
-	soapPassThrough := d.Get("soap_pass_through").(bool)
-	if soapPassThrough {
-		apiType = apimanagement.APIType(apimanagement.SoapPassThrough)
-	} else {
-		apiType = apimanagement.APIType(apimanagement.SoapToRest)
-	}
-
 	params := apimanagement.APICreateOrUpdateParameter{
 		APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
 			APIType:                       apiType,
+			SoapAPIType:                   soapApiType,
 			Description:                   utils.String(description),
 			DisplayName:                   utils.String(displayName),
 			Path:                          utils.String(path),
