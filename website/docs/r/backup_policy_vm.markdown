@@ -1,17 +1,15 @@
 ---
 subcategory: "Recovery Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy_vm"
-sidebar_current: "docs-azurerm-recovery-services-protection-policy-vm"
+page_title: "Azure Resource Manager: azurerm_backup_policy_vm"
+sidebar_current: "docs-azurerm-backup-policy-vm"
 description: |-
-  Manages an Recovery Services VM Protection Policy.
+  Manages an Azure Backup VM Backup Policy.
 ---
 
-# azurerm_recovery_services_protection_policy_vm
+# azurerm_backup_policy_vm
 
-~> **NOTE:** This resource has been deprecated in favour of the `azurerm_backup_policy_vm` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
-
-Manages an Recovery Services VM Protection Policy.
+Manages an Azure Backup VM Backup Policy.
 
 ## Example Usage
 
@@ -28,7 +26,7 @@ resource "azurerm_recovery_services_vault" "example" {
   sku                 = "Standard"
 }
 
-resource "azurerm_recovery_services_protection_policy_vm" "example" {
+resource "azurerm_backup_policy_vm" "example" {
   name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
@@ -68,9 +66,9 @@ resource "azurerm_recovery_services_protection_policy_vm" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Recovery Services Vault Policy. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Backup Policy. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Recovery Services Protected VM. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the policy. Changing this forces a new resource to be created.
 
 * `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault to use. Changing this forces a new resource to be created.
 
@@ -140,14 +138,14 @@ The `retention_yearly` block supports:
 
 The following attributes are exported:
 
-* `id` - The ID of the Recovery Services VM Protection Policy.
+* `id` - The ID of the VM Backup Policy.
 
 ## Import
 
-Recovery Services VM Protection Policy can be imported using the `resource id`, e.g.
+VM Backup Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_recovery_services_protection_policy_vm.policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupPolicies/policy1
+terraform import azurerm_backup_policy_vm.policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupPolicies/policy1
 ```
 
  

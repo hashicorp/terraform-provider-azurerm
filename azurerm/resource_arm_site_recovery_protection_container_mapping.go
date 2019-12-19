@@ -15,13 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRecoveryServicesProtectionContainerMapping() *schema.Resource {
+func resourceArmSiteRecoveryProtectionContainerMapping() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: "`azurerm_recovery_services_protection_container_mapping` resource is deprecated in favor of `azurerm_site_recovery_protection_container_mapping` and will be removed in v2.0 of the AzureRM Provider",
-		Create:             resourceArmRecoveryServicesContainerMappingCreate,
-		Read:               resourceArmRecoveryServicesContainerMappingRead,
-		Update:             nil,
-		Delete:             resourceArmRecoveryServicesContainerMappingDelete,
+		Create: resourceArmSiteRecoveryContainerMappingCreate,
+		Read:   resourceArmSiteRecoveryContainerMappingRead,
+		Update: nil,
+		Delete: resourceArmSiteRecoveryServicesContainerMappingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -78,7 +77,7 @@ func resourceArmRecoveryServicesProtectionContainerMapping() *schema.Resource {
 	}
 }
 
-func resourceArmRecoveryServicesContainerMappingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryContainerMappingCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("recovery_fabric_name").(string)
@@ -95,12 +94,12 @@ func resourceArmRecoveryServicesContainerMappingCreate(d *schema.ResourceData, m
 		existing, err := client.Get(ctx, fabricName, protectionContainerName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing recovery services protection container mapping %s (fabric %s, container %s): %+v", name, fabricName, protectionContainerName, err)
+				return fmt.Errorf("Error checking for presence of existing site recovery protection container mapping %s (fabric %s, container %s): %+v", name, fabricName, protectionContainerName, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_recovery_services_protection_container_mapping", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_protection_container_mapping", azure.HandleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -113,10 +112,10 @@ func resourceArmRecoveryServicesContainerMappingCreate(d *schema.ResourceData, m
 	}
 	future, err := client.Create(ctx, fabricName, protectionContainerName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating recovery services protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error creating site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating recovery services protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error creating site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, fabricName, protectionContainerName, name)
@@ -126,10 +125,10 @@ func resourceArmRecoveryServicesContainerMappingCreate(d *schema.ResourceData, m
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmRecoveryServicesContainerMappingRead(d, meta)
+	return resourceArmSiteRecoveryContainerMappingRead(d, meta)
 }
 
-func resourceArmRecoveryServicesContainerMappingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryContainerMappingRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -151,7 +150,7 @@ func resourceArmRecoveryServicesContainerMappingRead(d *schema.ResourceData, met
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on recovery services protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error making Read request on site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.Set("resource_group_name", resGroup)
@@ -164,7 +163,7 @@ func resourceArmRecoveryServicesContainerMappingRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmRecoveryServicesContainerMappingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryServicesContainerMappingDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -191,11 +190,11 @@ func resourceArmRecoveryServicesContainerMappingDelete(d *schema.ResourceData, m
 
 	future, err := client.Delete(ctx, fabricName, protectionContainerName, name, input)
 	if err != nil {
-		return fmt.Errorf("Error deleting recovery services protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error deleting site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of recovery services protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error waiting for deletion of site recovery protection container mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	return nil

@@ -15,13 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRecoveryServicesReplicationPolicy() *schema.Resource {
+func resourceArmSiteRecoveryReplicationPolicy() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: "`azurerm_recovery_services_replication_policy` resource is deprecated in favor of `azurerm_site_recovery_replication_policy` and will be removed in v2.0 of the AzureRM Provider",
-		Create:             resourceArmRecoveryServicesReplicationPolicyCreate,
-		Read:               resourceArmRecoveryServicesReplicationPolicyRead,
-		Update:             resourceArmRecoveryServicesReplicationPolicyUpdate,
-		Delete:             resourceArmRecoveryServicesReplicationPolicyDelete,
+		Create: resourceArmSiteRecoveryReplicationPolicyCreate,
+		Read:   resourceArmSiteRecoveryReplicationPolicyRead,
+		Update: resourceArmSiteRecoveryReplicationPolicyUpdate,
+		Delete: resourceArmSiteRecoveryReplicationPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -64,7 +63,7 @@ func resourceArmRecoveryServicesReplicationPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmRecoveryServicesReplicationPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryReplicationPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
@@ -77,12 +76,12 @@ func resourceArmRecoveryServicesReplicationPolicyCreate(d *schema.ResourceData, 
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing recovery services replication policy %s: %+v", name, err)
+				return fmt.Errorf("Error checking for presence of existing site recovery replication policy %s: %+v", name, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_recovery_services_replication_policy", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_replication_policy", azure.HandleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -100,10 +99,10 @@ func resourceArmRecoveryServicesReplicationPolicyCreate(d *schema.ResourceData, 
 	}
 	future, err := client.Create(ctx, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating recovery services replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error creating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating recovery services replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error creating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, name)
@@ -113,10 +112,10 @@ func resourceArmRecoveryServicesReplicationPolicyCreate(d *schema.ResourceData, 
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmRecoveryServicesReplicationPolicyRead(d, meta)
+	return resourceArmSiteRecoveryReplicationPolicyRead(d, meta)
 }
 
-func resourceArmRecoveryServicesReplicationPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryReplicationPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
@@ -139,10 +138,10 @@ func resourceArmRecoveryServicesReplicationPolicyUpdate(d *schema.ResourceData, 
 	}
 	future, err := client.Update(ctx, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating recovery services replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error updating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error updating recovery services replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error updating site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, name)
@@ -152,10 +151,10 @@ func resourceArmRecoveryServicesReplicationPolicyUpdate(d *schema.ResourceData, 
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmRecoveryServicesReplicationPolicyRead(d, meta)
+	return resourceArmSiteRecoveryReplicationPolicyRead(d, meta)
 }
 
-func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryReplicationPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -175,7 +174,7 @@ func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, me
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on recovery services replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error making Read request on site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -188,7 +187,7 @@ func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmRecoveryServicesReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -204,11 +203,11 @@ func resourceArmRecoveryServicesReplicationPolicyDelete(d *schema.ResourceData, 
 
 	future, err := client.Delete(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting recovery services replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error deleting site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of recovery services replication policy %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error waiting for deletion of site recovery replication policy %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	return nil

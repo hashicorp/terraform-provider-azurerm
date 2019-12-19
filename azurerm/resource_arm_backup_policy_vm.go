@@ -24,13 +24,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
+func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: "`azurerm_recovery_services_protection_policy_vm` resource is deprecated in favor of `azurerm_backup_policy_vm` and will be removed in v2.0 of the AzureRM Provider",
-		Create:             resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate,
-		Read:               resourceArmRecoveryServicesProtectionPolicyVmRead,
-		Update:             resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate,
-		Delete:             resourceArmRecoveryServicesProtectionPolicyVmDelete,
+		Create: resourceArmBackupProtectionPolicyVMCreateUpdate,
+		Read:   resourceArmBackupProtectionPolicyVMRead,
+		Update: resourceArmBackupProtectionPolicyVMCreateUpdate,
+		Delete: resourceArmBackupProtectionPolicyVMDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -283,7 +282,7 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 	}
 }
 
-func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -293,7 +292,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 	vaultName := d.Get("recovery_vault_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	log.Printf("[DEBUG] Creating/updating Recovery Service Protection Policy %s (resource group %q)", policyName, resourceGroup)
+	log.Printf("[DEBUG] Creating/updating Azure Backup Protection Policy %s (resource group %q)", policyName, resourceGroup)
 
 	//getting this ready now because its shared between *everything*, time is... complicated for this resource
 	timeOfDay := d.Get("backup.0.time").(string)
@@ -307,12 +306,12 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 		existing, err2 := client.Get(ctx, vaultName, resourceGroup, policyName)
 		if err2 != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err2)
+				return fmt.Errorf("Error checking for presence of existing Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err2)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_recovery_services_protection_policy_vm", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_backup_policy_vm", *existing.ID)
 		}
 	}
 
@@ -321,21 +320,21 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 		Properties: &backup.AzureIaaSVMProtectionPolicy{
 			TimeZone:             utils.String(d.Get("timezone").(string)),
 			BackupManagementType: backup.BackupManagementTypeAzureIaasVM,
-			SchedulePolicy:       expandArmRecoveryServicesProtectionPolicySchedule(d, times),
+			SchedulePolicy:       expandArmBackupProtectionPolicyVMSchedule(d, times),
 			RetentionPolicy: &backup.LongTermRetentionPolicy{ //SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 				RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
-				DailySchedule:       expandArmRecoveryServicesProtectionPolicyRetentionDaily(d, times),
-				WeeklySchedule:      expandArmRecoveryServicesProtectionPolicyRetentionWeekly(d, times),
-				MonthlySchedule:     expandArmRecoveryServicesProtectionPolicyRetentionMonthly(d, times),
-				YearlySchedule:      expandArmRecoveryServicesProtectionPolicyRetentionYearly(d, times),
+				DailySchedule:       expandArmBackupProtectionPolicyVMRetentionDaily(d, times),
+				WeeklySchedule:      expandArmBackupProtectionPolicyVMRetentionWeekly(d, times),
+				MonthlySchedule:     expandArmBackupProtectionPolicyVMRetentionMonthly(d, times),
+				YearlySchedule:      expandArmBackupProtectionPolicyVMRetentionYearly(d, times),
 			},
 		},
 	}
 	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, policyName, policy); err != nil {
-		return fmt.Errorf("Error creating/updating Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
-	resp, err := resourceArmRecoveryServicesProtectionPolicyWaitForUpdate(ctx, client, vaultName, resourceGroup, policyName, d)
+	resp, err := resourceArmBackupProtectionPolicyVMWaitForUpdate(ctx, client, vaultName, resourceGroup, policyName, d)
 	if err != nil {
 		return err
 	}
@@ -343,10 +342,10 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 	id := strings.Replace(*resp.ID, "Subscriptions", "subscriptions", 1)
 	d.SetId(id)
 
-	return resourceArmRecoveryServicesProtectionPolicyVmRead(d, meta)
+	return resourceArmBackupProtectionPolicyVMRead(d, meta)
 }
 
-func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmBackupProtectionPolicyVMRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -360,7 +359,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 	vaultName := id.Path["vaults"]
 	resourceGroup := id.ResourceGroup
 
-	log.Printf("[DEBUG] Reading Recovery Service Protection Policy %q (resource group %q)", policyName, resourceGroup)
+	log.Printf("[DEBUG] Reading Azure Backup Protection Policy %q (resource group %q)", policyName, resourceGroup)
 
 	resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
 	if err != nil {
@@ -369,7 +368,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
 	d.Set("name", policyName)
@@ -380,14 +379,14 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 		d.Set("timezone", properties.TimeZone)
 
 		if schedule, ok := properties.SchedulePolicy.AsSimpleSchedulePolicy(); ok && schedule != nil {
-			if err := d.Set("backup", flattenArmRecoveryServicesProtectionPolicySchedule(schedule)); err != nil {
+			if err := d.Set("backup", flattenArmBackupProtectionPolicyVMSchedule(schedule)); err != nil {
 				return fmt.Errorf("Error setting `backup`: %+v", err)
 			}
 		}
 
 		if retention, ok := properties.RetentionPolicy.AsLongTermRetentionPolicy(); ok && retention != nil {
 			if s := retention.DailySchedule; s != nil {
-				if err := d.Set("retention_daily", flattenArmRecoveryServicesProtectionPolicyRetentionDaily(s)); err != nil {
+				if err := d.Set("retention_daily", flattenArmBackupProtectionPolicyVMRetentionDaily(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_daily`: %+v", err)
 				}
 			} else {
@@ -395,7 +394,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 			}
 
 			if s := retention.WeeklySchedule; s != nil {
-				if err := d.Set("retention_weekly", flattenArmRecoveryServicesProtectionPolicyRetentionWeekly(s)); err != nil {
+				if err := d.Set("retention_weekly", flattenArmBackupProtectionPolicyVMRetentionWeekly(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_weekly`: %+v", err)
 				}
 			} else {
@@ -403,7 +402,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 			}
 
 			if s := retention.MonthlySchedule; s != nil {
-				if err := d.Set("retention_monthly", flattenArmRecoveryServicesProtectionPolicyRetentionMonthly(s)); err != nil {
+				if err := d.Set("retention_monthly", flattenArmBackupProtectionPolicyVMRetentionMonthly(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_monthly`: %+v", err)
 				}
 			} else {
@@ -411,7 +410,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 			}
 
 			if s := retention.YearlySchedule; s != nil {
-				if err := d.Set("retention_yearly", flattenArmRecoveryServicesProtectionPolicyRetentionYearly(s)); err != nil {
+				if err := d.Set("retention_yearly", flattenArmBackupProtectionPolicyVMRetentionYearly(s)); err != nil {
 					return fmt.Errorf("Error setting `retention_yearly`: %+v", err)
 				}
 			} else {
@@ -423,7 +422,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmRecoveryServicesProtectionPolicyVmDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmBackupProtectionPolicyVMDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).RecoveryServices.ProtectionPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -437,23 +436,23 @@ func resourceArmRecoveryServicesProtectionPolicyVmDelete(d *schema.ResourceData,
 	resourceGroup := id.ResourceGroup
 	vaultName := id.Path["vaults"]
 
-	log.Printf("[DEBUG] Deleting Recovery Service Protected Item %q (resource group %q)", policyName, resourceGroup)
+	log.Printf("[DEBUG] Deleting Azure Backup Protected Item %q (resource group %q)", policyName, resourceGroup)
 
 	resp, err := client.Delete(ctx, vaultName, resourceGroup, policyName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing delete request for Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+			return fmt.Errorf("Error issuing delete request for Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 		}
 	}
 
-	if _, err := resourceArmRecoveryServicesProtectionPolicyWaitForDeletion(ctx, client, vaultName, resourceGroup, policyName, d); err != nil {
+	if _, err := resourceArmBackupProtectionPolicyVMWaitForDeletion(ctx, client, vaultName, resourceGroup, policyName, d); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func expandArmRecoveryServicesProtectionPolicySchedule(d *schema.ResourceData, times []date.Time) *backup.SimpleSchedulePolicy {
+func expandArmBackupProtectionPolicyVMSchedule(d *schema.ResourceData, times []date.Time) *backup.SimpleSchedulePolicy {
 	if bb, ok := d.Get("backup").([]interface{}); ok && len(bb) > 0 {
 		block := bb[0].(map[string]interface{})
 
@@ -480,7 +479,7 @@ func expandArmRecoveryServicesProtectionPolicySchedule(d *schema.ResourceData, t
 	return nil
 }
 
-func expandArmRecoveryServicesProtectionPolicyRetentionDaily(d *schema.ResourceData, times []date.Time) *backup.DailyRetentionSchedule {
+func expandArmBackupProtectionPolicyVMRetentionDaily(d *schema.ResourceData, times []date.Time) *backup.DailyRetentionSchedule {
 	if rb, ok := d.Get("retention_daily").([]interface{}); ok && len(rb) > 0 {
 		block := rb[0].(map[string]interface{})
 
@@ -496,7 +495,7 @@ func expandArmRecoveryServicesProtectionPolicyRetentionDaily(d *schema.ResourceD
 	return nil
 }
 
-func expandArmRecoveryServicesProtectionPolicyRetentionWeekly(d *schema.ResourceData, times []date.Time) *backup.WeeklyRetentionSchedule {
+func expandArmBackupProtectionPolicyVMRetentionWeekly(d *schema.ResourceData, times []date.Time) *backup.WeeklyRetentionSchedule {
 	if rb, ok := d.Get("retention_weekly").([]interface{}); ok && len(rb) > 0 {
 		block := rb[0].(map[string]interface{})
 
@@ -522,14 +521,14 @@ func expandArmRecoveryServicesProtectionPolicyRetentionWeekly(d *schema.Resource
 	return nil
 }
 
-func expandArmRecoveryServicesProtectionPolicyRetentionMonthly(d *schema.ResourceData, times []date.Time) *backup.MonthlyRetentionSchedule {
+func expandArmBackupProtectionPolicyVMRetentionMonthly(d *schema.ResourceData, times []date.Time) *backup.MonthlyRetentionSchedule {
 	if rb, ok := d.Get("retention_monthly").([]interface{}); ok && len(rb) > 0 {
 		block := rb[0].(map[string]interface{})
 
 		retention := backup.MonthlyRetentionSchedule{
 			RetentionScheduleFormatType: backup.RetentionScheduleFormatWeekly, //this is always weekly ¯\_(ツ)_/¯
 			RetentionScheduleDaily:      nil,                                  //and this is always nil..
-			RetentionScheduleWeekly:     expandArmRecoveryServicesProtectionPolicyRetentionWeeklyFormat(block),
+			RetentionScheduleWeekly:     expandArmBackupProtectionPolicyVMRetentionWeeklyFormat(block),
 			RetentionTimes:              &times,
 			RetentionDuration: &backup.RetentionDuration{
 				Count:        utils.Int32(int32(block["count"].(int))),
@@ -543,14 +542,14 @@ func expandArmRecoveryServicesProtectionPolicyRetentionMonthly(d *schema.Resourc
 	return nil
 }
 
-func expandArmRecoveryServicesProtectionPolicyRetentionYearly(d *schema.ResourceData, times []date.Time) *backup.YearlyRetentionSchedule {
+func expandArmBackupProtectionPolicyVMRetentionYearly(d *schema.ResourceData, times []date.Time) *backup.YearlyRetentionSchedule {
 	if rb, ok := d.Get("retention_yearly").([]interface{}); ok && len(rb) > 0 {
 		block := rb[0].(map[string]interface{})
 
 		retention := backup.YearlyRetentionSchedule{
 			RetentionScheduleFormatType: backup.RetentionScheduleFormatWeekly, //this is always weekly ¯\_(ツ)_/¯
 			RetentionScheduleDaily:      nil,                                  //and this is always nil..
-			RetentionScheduleWeekly:     expandArmRecoveryServicesProtectionPolicyRetentionWeeklyFormat(block),
+			RetentionScheduleWeekly:     expandArmBackupProtectionPolicyVMRetentionWeeklyFormat(block),
 			RetentionTimes:              &times,
 			RetentionDuration: &backup.RetentionDuration{
 				Count:        utils.Int32(int32(block["count"].(int))),
@@ -572,7 +571,7 @@ func expandArmRecoveryServicesProtectionPolicyRetentionYearly(d *schema.Resource
 	return nil
 }
 
-func expandArmRecoveryServicesProtectionPolicyRetentionWeeklyFormat(block map[string]interface{}) *backup.WeeklyRetentionFormat {
+func expandArmBackupProtectionPolicyVMRetentionWeeklyFormat(block map[string]interface{}) *backup.WeeklyRetentionFormat {
 	weekly := backup.WeeklyRetentionFormat{}
 
 	if v, ok := block["weekdays"].(*schema.Set); ok {
@@ -594,7 +593,7 @@ func expandArmRecoveryServicesProtectionPolicyRetentionWeeklyFormat(block map[st
 	return &weekly
 }
 
-func flattenArmRecoveryServicesProtectionPolicySchedule(schedule *backup.SimpleSchedulePolicy) []interface{} {
+func flattenArmBackupProtectionPolicyVMSchedule(schedule *backup.SimpleSchedulePolicy) []interface{} {
 	block := map[string]interface{}{}
 
 	block["frequency"] = string(schedule.ScheduleRunFrequency)
@@ -614,7 +613,7 @@ func flattenArmRecoveryServicesProtectionPolicySchedule(schedule *backup.SimpleS
 	return []interface{}{block}
 }
 
-func flattenArmRecoveryServicesProtectionPolicyRetentionDaily(daily *backup.DailyRetentionSchedule) []interface{} {
+func flattenArmBackupProtectionPolicyVMRetentionDaily(daily *backup.DailyRetentionSchedule) []interface{} {
 	block := map[string]interface{}{}
 
 	if duration := daily.RetentionDuration; duration != nil {
@@ -626,7 +625,7 @@ func flattenArmRecoveryServicesProtectionPolicyRetentionDaily(daily *backup.Dail
 	return []interface{}{block}
 }
 
-func flattenArmRecoveryServicesProtectionPolicyRetentionWeekly(weekly *backup.WeeklyRetentionSchedule) []interface{} {
+func flattenArmBackupProtectionPolicyVMRetentionWeekly(weekly *backup.WeeklyRetentionSchedule) []interface{} {
 	block := map[string]interface{}{}
 
 	if duration := weekly.RetentionDuration; duration != nil {
@@ -646,7 +645,7 @@ func flattenArmRecoveryServicesProtectionPolicyRetentionWeekly(weekly *backup.We
 	return []interface{}{block}
 }
 
-func flattenArmRecoveryServicesProtectionPolicyRetentionMonthly(monthly *backup.MonthlyRetentionSchedule) []interface{} {
+func flattenArmBackupProtectionPolicyVMRetentionMonthly(monthly *backup.MonthlyRetentionSchedule) []interface{} {
 	block := map[string]interface{}{}
 
 	if duration := monthly.RetentionDuration; duration != nil {
@@ -656,13 +655,13 @@ func flattenArmRecoveryServicesProtectionPolicyRetentionMonthly(monthly *backup.
 	}
 
 	if weekly := monthly.RetentionScheduleWeekly; weekly != nil {
-		block["weekdays"], block["weeks"] = flattenArmRecoveryServicesProtectionPolicyRetentionWeeklyFormat(weekly)
+		block["weekdays"], block["weeks"] = flattenArmBackupProtectionPolicyVMRetentionWeeklyFormat(weekly)
 	}
 
 	return []interface{}{block}
 }
 
-func flattenArmRecoveryServicesProtectionPolicyRetentionYearly(yearly *backup.YearlyRetentionSchedule) []interface{} {
+func flattenArmBackupProtectionPolicyVMRetentionYearly(yearly *backup.YearlyRetentionSchedule) []interface{} {
 	block := map[string]interface{}{}
 
 	if duration := yearly.RetentionDuration; duration != nil {
@@ -672,7 +671,7 @@ func flattenArmRecoveryServicesProtectionPolicyRetentionYearly(yearly *backup.Ye
 	}
 
 	if weekly := yearly.RetentionScheduleWeekly; weekly != nil {
-		block["weekdays"], block["weeks"] = flattenArmRecoveryServicesProtectionPolicyRetentionWeeklyFormat(weekly)
+		block["weekdays"], block["weeks"] = flattenArmBackupProtectionPolicyVMRetentionWeeklyFormat(weekly)
 	}
 
 	if months := yearly.MonthsOfYear; months != nil {
@@ -686,7 +685,7 @@ func flattenArmRecoveryServicesProtectionPolicyRetentionYearly(yearly *backup.Ye
 	return []interface{}{block}
 }
 
-func flattenArmRecoveryServicesProtectionPolicyRetentionWeeklyFormat(retention *backup.WeeklyRetentionFormat) (weekdays, weeks *schema.Set) {
+func flattenArmBackupProtectionPolicyVMRetentionWeeklyFormat(retention *backup.WeeklyRetentionFormat) (weekdays, weeks *schema.Set) {
 	if days := retention.DaysOfTheWeek; days != nil {
 		slice := make([]interface{}, 0)
 		for _, d := range *days {
@@ -706,13 +705,13 @@ func flattenArmRecoveryServicesProtectionPolicyRetentionWeeklyFormat(retention *
 	return weekdays, weeks
 }
 
-func resourceArmRecoveryServicesProtectionPolicyWaitForUpdate(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
+func resourceArmBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
 	state := &resource.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"NotFound"},
 		Target:     []string{"Found"},
-		Refresh:    resourceArmRecoveryServicesProtectionPolicyRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
+		Refresh:    resourceArmBackupProtectionPolicyVMRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
 	}
 
 	if features.SupportsCustomTimeouts() {
@@ -727,19 +726,19 @@ func resourceArmRecoveryServicesProtectionPolicyWaitForUpdate(ctx context.Contex
 
 	resp, err := state.WaitForState()
 	if err != nil {
-		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Recovery Service Protection Policy %q to be true (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
+		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Azure Backup Protection Policy %q to be true (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectionPolicyResource), nil
 }
 
-func resourceArmRecoveryServicesProtectionPolicyWaitForDeletion(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
+func resourceArmBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
 	state := &resource.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Pending:    []string{"Found"},
 		Target:     []string{"NotFound"},
-		Refresh:    resourceArmRecoveryServicesProtectionPolicyRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
+		Refresh:    resourceArmBackupProtectionPolicyVMRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
 	}
 
 	if features.SupportsCustomTimeouts() {
@@ -750,13 +749,13 @@ func resourceArmRecoveryServicesProtectionPolicyWaitForDeletion(ctx context.Cont
 
 	resp, err := state.WaitForState()
 	if err != nil {
-		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Recovery Service Protection Policy %q to be false (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
+		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Azure Backup Protection Policy %q to be false (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectionPolicyResource), nil
 }
 
-func resourceArmRecoveryServicesProtectionPolicyRefreshFunc(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string) resource.StateRefreshFunc {
+func resourceArmBackupProtectionPolicyVMRefreshFunc(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
 		if err != nil {
@@ -764,7 +763,7 @@ func resourceArmRecoveryServicesProtectionPolicyRefreshFunc(ctx context.Context,
 				return resp, "NotFound", nil
 			}
 
-			return resp, "Error", fmt.Errorf("Error making Read request on Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+			return resp, "Error", fmt.Errorf("Error making Read request on Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 		}
 
 		return resp, "Found", nil

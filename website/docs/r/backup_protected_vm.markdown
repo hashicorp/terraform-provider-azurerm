@@ -1,17 +1,15 @@
 ---
 subcategory: "Recovery Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_recovery_services_protected_vm"
-sidebar_current: "docs-azurerm-recovery-services-protected-vm"
+page_title: "Azure Resource Manager: azurerm_backup_protected_vm"
+sidebar_current: "docs-azurerm-backup-protected-vm"
 description: |-
-  Manages an Recovery Services Protected VM.
+  Manages an Azure Backup Protected VM.
 ---
 
-# azurerm_recovery_services_protected_vm
+# azurerm_backup_protected_vm
 
-~> **NOTE:** This resource has been deprecated in favour of the `azurerm_backup_protected_vm` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
-
-Manages an Recovery Protected VM.
+Manages Azure Backup for an Azure VM
 
 ## Example Usage
 
@@ -28,7 +26,7 @@ resource "azurerm_recovery_services_vault" "example" {
   sku                 = "Standard"
 }
 
-resource "azurerm_recovery_services_protection_policy_vm" "example" {
+resource "azurerm_backup_policy_vm" "example" {
   name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
@@ -39,11 +37,11 @@ resource "azurerm_recovery_services_protection_policy_vm" "example" {
   }
 }
 
-resource "azurerm_recovery_services_protected_vm" "vm1" {
+resource "azurerm_backup_protected_vm" "vm1" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
   source_vm_id        = "${azurerm_virtual_machine.example.id}"
-  backup_policy_id    = "${azurerm_recovery_services_protection_policy_vm.example.id}"
+  backup_policy_id    = "${azurerm_backup_policy_vm.example.id}"
 }
 ```
 
@@ -72,7 +70,7 @@ The following attributes are exported:
 Recovery Services Protected VMs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_recovery_services_protected_vm.item1 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupFabrics/Azure/protectionContainers/iaasvmcontainer;iaasvmcontainerv2;group1;vm1/protectedItems/vm;iaasvmcontainerv2;group1;vm1"
+terraform import azurerm_backup_protected_vm.item1 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupFabrics/Azure/protectionContainers/iaasvmcontainer;iaasvmcontainerv2;group1;vm1/protectedItems/vm;iaasvmcontainerv2;group1;vm1"
 ```
 
 Note the ID requires quoting as there are semicolons
