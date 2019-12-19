@@ -79,33 +79,6 @@ The following arguments are supported:
 
 ~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0
 
----
-
-A `aci_connector_linux` block supports the following:
-
-* `enabled` - (Required) Is the virtual node addon enabled?
-
-* `subnet_name` - (Optional) The subnet name for the virtual nodes to run. This is required when `aci_connector_linux` `enabled` argument is set to `true`.
-
--> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
-
-```
-resource "azurerm_subnet" "virtual" {
-
-  ...
-
-  delegation {
-    name = "aciDelegation"
-    service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-```
-
----
-
 * `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
 * `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
@@ -141,6 +114,31 @@ resource "azurerm_subnet" "virtual" {
 * `private_link_enabled` Should this Kubernetes Cluster have Private Link Enabled? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
 -> **NOTE:**  At this time Private Link is in Public Preview. For an example of how to enable a Preview feature, please visit [Private Azure Kubernetes Service cluster](https://docs.microsoft.com/en-gb/azure/aks/private-clusters)
+
+---
+
+A `aci_connector_linux` block supports the following:
+
+* `enabled` - (Required) Is the virtual node addon enabled?
+
+* `subnet_name` - (Optional) The subnet name for the virtual nodes to run. This is required when `aci_connector_linux` `enabled` argument is set to `true`.
+
+-> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
+
+```
+resource "azurerm_subnet" "virtual" {
+
+  ...
+
+  delegation {
+    name = "aciDelegation"
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+```
 
 ---
 
