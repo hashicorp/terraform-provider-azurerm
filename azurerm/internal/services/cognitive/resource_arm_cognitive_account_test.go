@@ -1,4 +1,4 @@
-package azurerm
+package cognitive
 
 import (
 	"fmt"
