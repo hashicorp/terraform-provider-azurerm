@@ -41,6 +41,7 @@ import (
 	monitor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/client"
 	msi "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/client"
 	mssql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/client"
+	mssqlvm "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssqlvm/client"
 	mysql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/client"
 	netapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/client"
 	network "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/client"
@@ -65,7 +66,6 @@ import (
 	subscription "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/client"
 	trafficManager "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/client"
 	web "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/client"
-	mssqlvm "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssqlvm/client"
 )
 
 type Client struct {
@@ -201,5 +201,6 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.TrafficManager = trafficManager.NewClient(o)
 	client.Web = web.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)
+	client.MSSQLVM = mssqlvm.NewClient(o)
 	return nil
 }

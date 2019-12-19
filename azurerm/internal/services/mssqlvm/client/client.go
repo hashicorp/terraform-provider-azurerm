@@ -6,7 +6,7 @@ import (
 )
 
 type Client struct {
-	SQLVirtualMachinesClient                                 *sqlvirtualmachine.SQLVirtualMachinesClient
+	SQLVirtualMachinesClient *sqlvirtualmachine.SQLVirtualMachinesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {

@@ -15,436 +15,345 @@
 package azurerm
 
 import (
-    "fmt"
-    "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-    "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-    "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-    "github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmSqlVirtualMachine() *schema.Resource {
-    return &schema.Resource{
-        Read: dataSourceArmSqlVirtualMachineRead,
+	return &schema.Resource{
+		Read: dataSourceArmSqlVirtualMachineRead,
 
-        Schema: map[string]*schema.Schema{
-            "resource_group": azure.SchemaResourceGroupNameForDataSource(),
+		Schema: map[string]*schema.Schema{
+			"location": azure.SchemaLocation(),
 
-            "sql_virtual_machine_name": {
-                Type: schema.TypeString,
-                Required: true,
-                ValidateFunc: validate.NoEmptyStrings,
-            },
+			"resource_group": azure.SchemaResourceGroupNameDiffSuppress(),
 
-            "auto_backup_settings": {
-                Type: schema.TypeList,
-                Computed: true,
-                Elem: &schema.Resource{
-                    Schema: map[string]*schema.Schema{
-                        "backup_schedule_type": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                        "backup_system_dbs": {
-                            Type: schema.TypeBool,
-                            Computed: true,
-                        },
-                        "enable": {
-                            Type: schema.TypeBool,
-                            Computed: true,
-                        },
-                        "enable_encryption": {
-                            Type: schema.TypeBool,
-                            Computed: true,
-                        },
-                        "full_backup_frequency": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                        "full_backup_start_time": {
-                            Type: schema.TypeInt,
-                            Computed: true,
-                        },
-                        "full_backup_window_hours": {
-                            Type: schema.TypeInt,
-                            Computed: true,
-                        },
-                        "log_backup_frequency": {
-                            Type: schema.TypeInt,
-                            Computed: true,
-                        },
-                        "password": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                        "retention_period": {
-                            Type: schema.TypeInt,
-                            Computed: true,
-                        },
-                        "storage_access_key": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                        "storage_account_url": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                    },
-                },
-            },
+			"sql_virtual_machine_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
 
-            "auto_patching_settings": {
-                Type: schema.TypeList,
-                Computed: true,
-                Elem: &schema.Resource{
-                    Schema: map[string]*schema.Schema{
-                        "day_of_week": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                        "enable": {
-                            Type: schema.TypeBool,
-                            Computed: true,
-                        },
-                        "maintenance_window_duration": {
-                            Type: schema.TypeInt,
-                            Computed: true,
-                        },
-                        "maintenance_window_starting_hour": {
-                            Type: schema.TypeInt,
-                            Computed: true,
-                        },
-                    },
-                },
-            },
+			"virtual_machine_resource_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
-            "id": {
-                Type: schema.TypeString,
-                Computed: true,
-            },
+			"sql_server_license_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
-            "identity": {
-                Type: schema.TypeList,
-                Computed: true,
-                Elem: &schema.Resource{
-                    Schema: map[string]*schema.Schema{
-                        "type": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                    },
-                },
-            },
+			"sql_image_offer": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
-            "key_vault_credential_settings": {
-                Type: schema.TypeList,
-                Computed: true,
-                Elem: &schema.Resource{
-                    Schema: map[string]*schema.Schema{
-                        "azure_key_vault_url": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                        "credential_name": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                        "enable": {
-                            Type: schema.TypeBool,
-                            Computed: true,
-                        },
-                        "service_principal_name": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                        "service_principal_secret": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                    },
-                },
-            },
+			"sql_management": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
-            "location": azure.SchemaLocationForDataSource(),
+			"sql_image_sku": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
-            "name": {
-                Type: schema.TypeString,
-                Computed: true,
-            },
+			"sql_virtual_machine_group_resource_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
-            "provisioning_state": {
-                Type: schema.TypeString,
-                Computed: true,
-            },
+			"wsfc_domain_credentials": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cluster_bootstrap_account_password": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"cluster_operator_account_password": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"sql_service_account_password": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
-            "sql_image_offer": {
-                Type: schema.TypeString,
-                Computed: true,
-            },
+			"auto_patching_settings": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"day_of_week": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"enable": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"maintenance_window_duration": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"maintenance_window_starting_hour": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
 
-            "sql_image_sku": {
-                Type: schema.TypeString,
-                Computed: true,
-            },
+			"auto_backup_settings": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"backup_schedule_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"backup_system_dbs": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"enable": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"enable_encryption": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"full_backup_frequency": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"full_backup_start_time": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"full_backup_window_hours": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"log_backup_frequency": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"password": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"retention_period": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"storage_access_key": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"storage_account_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
-            "sql_management": {
-                Type: schema.TypeString,
-                Computed: true,
-            },
+			"key_vault_credential_settings": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"azure_key_vault_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"credential_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"enable": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"service_principal_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"service_principal_secret": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
-            "sql_server_license_type": {
-                Type: schema.TypeString,
-                Computed: true,
-            },
+			"server_configurations_management_settings": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"is_r_services_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"sql_connectivity_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"sql_connectivity_port": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"sql_connectivity_auth_update_password": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"sql_connectivity_auth_update_user_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"sql_storage_disk_configuration_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"sql_storage_disk_count": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"sql_storage_starting_device_id": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
 
-            "sql_virtual_machine_group_resource_id": {
-                Type: schema.TypeString,
-                Computed: true,
-            },
+						"sql_workload_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
-            "server_configurations_management_settings": {
-                Type: schema.TypeList,
-                Computed: true,
-                Elem: &schema.Resource{
-                    Schema: map[string]*schema.Schema{
-                        "additional_features_server_configurations": {
-                            Type: schema.TypeList,
-                            Computed: true,
-                            Elem: &schema.Resource{
-                                Schema: map[string]*schema.Schema{
-                                    "is_r_services_enabled": {
-                                        Type: schema.TypeBool,
-                                        Computed: true,
-                                    },
-                                },
-                            },
-                        },
-                        "sql_connectivity_update_settings": {
-                            Type: schema.TypeList,
-                            Computed: true,
-                            Elem: &schema.Resource{
-                                Schema: map[string]*schema.Schema{
-                                    "connectivity_type": {
-                                        Type: schema.TypeString,
-                                        Computed: true,
-                                    },
-                                    "port": {
-                                        Type: schema.TypeInt,
-                                        Computed: true,
-                                    },
-                                    "sql_auth_update_password": {
-                                        Type: schema.TypeString,
-                                        Computed: true,
-                                    },
-                                    "sql_auth_update_user_name": {
-                                        Type: schema.TypeString,
-                                        Computed: true,
-                                    },
-                                },
-                            },
-                        },
-                        "sql_storage_update_settings": {
-                            Type: schema.TypeList,
-                            Computed: true,
-                            Elem: &schema.Resource{
-                                Schema: map[string]*schema.Schema{
-                                    "disk_configuration_type": {
-                                        Type: schema.TypeString,
-                                        Computed: true,
-                                    },
-                                    "disk_count": {
-                                        Type: schema.TypeInt,
-                                        Computed: true,
-                                    },
-                                    "starting_device_id": {
-                                        Type: schema.TypeInt,
-                                        Computed: true,
-                                    },
-                                },
-                            },
-                        },
-                        "sql_workload_type_update_settings": {
-                            Type: schema.TypeList,
-                            Computed: true,
-                            Elem: &schema.Resource{
-                                Schema: map[string]*schema.Schema{
-                                    "sql_workload_type": {
-                                        Type: schema.TypeString,
-                                        Computed: true,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-
-            "storage_configuration_settings": {
-                Type: schema.TypeList,
-                Computed: true,
-                Elem: &schema.Resource{
-                    Schema: map[string]*schema.Schema{
-                        "disk_configuration_type": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                        "sql_data_settings": {
-                            Type: schema.TypeList,
-                            Computed: true,
-                            Elem: &schema.Resource{
-                                Schema: map[string]*schema.Schema{
-                                    "default_file_path": {
-                                        Type: schema.TypeString,
-                                        Computed: true,
-                                    },
-                                    "luns": {
-                                        Type: schema.TypeList,
-                                        Computed: true,
-                                        Elem: &schema.Schema{
-                                            Type: schema.TypeInt,
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                        "sql_log_settings": {
-                            Type: schema.TypeList,
-                            Computed: true,
-                            Elem: &schema.Resource{
-                                Schema: map[string]*schema.Schema{
-                                    "default_file_path": {
-                                        Type: schema.TypeString,
-                                        Computed: true,
-                                    },
-                                    "luns": {
-                                        Type: schema.TypeList,
-                                        Computed: true,
-                                        Elem: &schema.Schema{
-                                            Type: schema.TypeInt,
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                        "sql_temp_db_settings": {
-                            Type: schema.TypeList,
-                            Computed: true,
-                            Elem: &schema.Resource{
-                                Schema: map[string]*schema.Schema{
-                                    "default_file_path": {
-                                        Type: schema.TypeString,
-                                        Computed: true,
-                                    },
-                                    "luns": {
-                                        Type: schema.TypeList,
-                                        Computed: true,
-                                        Elem: &schema.Schema{
-                                            Type: schema.TypeInt,
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                        "storage_workload_type": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                    },
-                },
-            },
-
-            "tags": tags.SchemaDataSource(),
-
-            "type": {
-                Type: schema.TypeString,
-                Computed: true,
-            },
-
-            "virtual_machine_resource_id": {
-                Type: schema.TypeString,
-                Computed: true,
-            },
-
-            "wsfc_domain_credentials": {
-                Type: schema.TypeList,
-                Computed: true,
-                Elem: &schema.Resource{
-                    Schema: map[string]*schema.Schema{
-                        "cluster_bootstrap_account_password": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                        "cluster_operator_account_password": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                        "sql_service_account_password": {
-                            Type: schema.TypeString,
-                            Computed: true,
-                        },
-                    },
-                },
-            },
-        },
-    }
+			"storage_configuration_settings": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"disk_configuration_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"sql_data_default_file_path": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"sql_data_luns": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"sql_log_default_file_path": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"sql_log_luns": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"sql_temp_db_default_file_path": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"sql_temp_db_luns": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"storage_workload_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+		},
+	}
 }
 
 func dataSourceArmSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
-    client := meta.(*ArmClient).sqlVirtualMachinesClient
-    ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
-    defer cancel()
+	client := meta.(*ArmClient).MSSQLVM.SQLVirtualMachinesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-    resourceGroupName := d.Get("resource_group").(string)
-    name := d.Get("sql_virtual_machine_name").(string)
+	resourceGroupName := d.Get("resource_group").(string)
+	name := d.Get("sql_virtual_machine_name").(string)
 
-    resp, err := client.Get(ctx, resourceGroupName, name)
-    if err != nil {
-        if utils.ResponseWasNotFound(resp.Response) {
-            return fmt.Errorf("Error: Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q) was not found", name, resourceGroupName)
-        }
-        return fmt.Errorf("Error reading Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
-    }
+	resp, err := client.Get(ctx, resourceGroupName, name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error: Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q) was not found", name, resourceGroupName)
+		}
+		return fmt.Errorf("Error reading Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+	}
 
-    d.SetId(*resp.ID)
+	d.SetId(*resp.ID)
 
+	d.Set("resource_group", resourceGroupName)
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+	if properties := resp.Properties; properties != nil {
+		if err := d.Set("auto_backup_settings", flattenArmSqlVirtualMachineAutoBackupSettings(properties.AutoBackupSettings)); err != nil {
+			return fmt.Errorf("Error setting `auto_backup_settings`: %+v", err)
+		}
+		if err := d.Set("auto_patching_settings", flattenArmSqlVirtualMachineAutoPatchingSettings(properties.AutoPatchingSettings)); err != nil {
+			return fmt.Errorf("Error setting `auto_patching_settings`: %+v", err)
+		}
+		if err := d.Set("key_vault_credential_settings", flattenArmSqlVirtualMachineKeyVaultCredentialSettings(properties.KeyVaultCredentialSettings)); err != nil {
+			return fmt.Errorf("Error setting `key_vault_credential_settings`: %+v", err)
+		}
+		d.Set("provisioning_state", properties.ProvisioningState)
+		d.Set("sql_image_offer", properties.SQLImageOffer)
+		d.Set("sql_image_sku", string(properties.SQLImageSku))
+		d.Set("sql_management", string(properties.SQLManagement))
+		d.Set("sql_server_license_type", string(properties.SQLServerLicenseType))
+		d.Set("sql_virtual_machine_group_resource_id", properties.SQLVirtualMachineGroupResourceID)
+		d.Set("virtual_machine_resource_id", properties.VirtualMachineResourceID)
+		if err := d.Set("server_configurations_management_settings", flattenArmSqlVirtualMachineServerConfigurationsManagementSettings(properties.ServerConfigurationsManagementSettings)); err != nil {
+			return fmt.Errorf("Error setting `server_configurations_management_settings`: %+v", err)
+		}
+		if err := d.Set("storage_configuration_settings", flattenArmSqlVirtualMachineStorageConfigurationSettings(properties.StorageConfigurationSettings)); err != nil {
+			return fmt.Errorf("Error setting `storage_configuration_settings`: %+v", err)
+		}
+		if err := d.Set("wsfc_domain_credentials", flattenArmSqlVirtualMachineWsfcDomainCredentials(properties.WsfcDomainCredentials)); err != nil {
+			return fmt.Errorf("Error setting `wsfc_domain_credentials`: %+v", err)
+		}
+	}
+	d.Set("sql_virtual_machine_name", name)
+	d.Set("id", resp.ID)
+	d.Set("name", resp.Name)
 
-    d.Set("resource_group", resourceGroupName)
-    if location := resp.Location; location != nil {
-        d.Set("location", azure.NormalizeLocation(*location))
-    }
-    if properties := resp.Properties; properties != nil {
-        if err := d.Set("auto_backup_settings", flattenArmSqlVirtualMachineAutoBackupSettings(properties.AutoBackupSettings)); err != nil {
-            return fmt.Errorf("Error setting `auto_backup_settings`: %+v", err)
-        }
-        if err := d.Set("auto_patching_settings", flattenArmSqlVirtualMachineAutoPatchingSettings(properties.AutoPatchingSettings)); err != nil {
-            return fmt.Errorf("Error setting `auto_patching_settings`: %+v", err)
-        }
-        if err := d.Set("key_vault_credential_settings", flattenArmSqlVirtualMachineKeyVaultCredentialSettings(properties.KeyVaultCredentialSettings)); err != nil {
-            return fmt.Errorf("Error setting `key_vault_credential_settings`: %+v", err)
-        }
-        d.Set("provisioning_state", properties.ProvisioningState)
-        d.Set("sql_image_offer", properties.SQLImageOffer)
-        d.Set("sql_image_sku", string(properties.SQLImageSku))
-        d.Set("sql_management", string(properties.SQLManagement))
-        d.Set("sql_server_license_type", string(properties.SQLServerLicenseType))
-        d.Set("sql_virtual_machine_group_resource_id", properties.SQLVirtualMachineGroupResourceID)
-        if err := d.Set("server_configurations_management_settings", flattenArmSqlVirtualMachineServerConfigurationsManagementSettings(properties.ServerConfigurationsManagementSettings)); err != nil {
-            return fmt.Errorf("Error setting `server_configurations_management_settings`: %+v", err)
-        }
-        if err := d.Set("storage_configuration_settings", flattenArmSqlVirtualMachineStorageConfigurationSettings(properties.StorageConfigurationSettings)); err != nil {
-            return fmt.Errorf("Error setting `storage_configuration_settings`: %+v", err)
-        }
-        d.Set("virtual_machine_resource_id", properties.VirtualMachineResourceID)
-        if err := d.Set("wsfc_domain_credentials", flattenArmSqlVirtualMachineWsfcDomainCredentials(properties.WsfcDomainCredentials)); err != nil {
-            return fmt.Errorf("Error setting `wsfc_domain_credentials`: %+v", err)
-        }
-    }
-    d.Set("id", resp.ID)
-    if err := d.Set("identity", flattenArmSqlVirtualMachineResourceIdentity(resp.Identity)); err != nil {
-        return fmt.Errorf("Error setting `identity`: %+v", err)
-    }
-    d.Set("name", resp.Name)
-    d.Set("sql_virtual_machine_name", name)
-    d.Set("type", resp.Type)
-
-    return nil
+	return nil
 }

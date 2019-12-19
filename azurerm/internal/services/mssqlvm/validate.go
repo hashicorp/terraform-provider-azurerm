@@ -14,4 +14,3 @@ func ValidateVMResourceId(v interface{}, k string) (warnings []string, errors []
 
 	return warnings, errors
 }
-
