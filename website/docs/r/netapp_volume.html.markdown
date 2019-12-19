@@ -120,6 +120,8 @@ The following attributes are exported:
 
 * `id` - The ID of the NetApp Volume.
 
+* `file_system_id` - The ID of the file system.
+
 ## Import
 
 NetApp Volumes can be imported using the `resource id`, e.g.

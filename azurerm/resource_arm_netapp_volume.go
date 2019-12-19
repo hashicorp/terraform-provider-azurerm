@@ -137,6 +137,11 @@ func resourceArmNetAppVolume() *schema.Resource {
 					},
 				},
 			},
+
+			"file_system_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -236,6 +241,7 @@ func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
 		d.Set("subnet_id", props.SubnetID)
+		d.Set("file_system_id", props.FileSystemID)
 
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
