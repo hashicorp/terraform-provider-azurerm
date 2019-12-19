@@ -23,8 +23,8 @@ type Client struct {
 	AccountsClient           *storage.AccountsClient
 	FileSystemsClient        *filesystems.Client
 	ManagementPoliciesClient storage.ManagementPoliciesClient
-
-	environment az.Environment
+	BlobServicesClient       storage.BlobServicesClient
+	environment              az.Environment
 }
 
 func NewClient(options *common.ClientOptions) *Client {
@@ -37,12 +37,16 @@ func NewClient(options *common.ClientOptions) *Client {
 	managementPoliciesClient := storage.NewManagementPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&managementPoliciesClient.Client, options.ResourceManagerAuthorizer)
 
+	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&blobServicesClient.Client, options.ResourceManagerAuthorizer)
+
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	return &Client{
 		AccountsClient:           &accountsClient,
 		FileSystemsClient:        &fileSystemsClient,
 		ManagementPoliciesClient: managementPoliciesClient,
+		BlobServicesClient:       blobServicesClient,
 		environment:              options.Environment,
 	}
 }

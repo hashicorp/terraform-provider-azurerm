@@ -16,10 +16,11 @@ import (
 
 func resourceArmRecoveryServicesProtectionContainer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryServicesProtectionContainerCreate,
-		Read:   resourceArmRecoveryServicesProtectionContainerRead,
-		Update: nil,
-		Delete: resourceArmSiteRecoveryProtectionContainerDelete,
+		DeprecationMessage: "`azurerm_recovery_services_protection_container` resource is deprecated in favor of `azurerm_site_recovery_protection_container` and will be removed in v2.0 of the AzureRM Provider",
+		Create:             resourceArmRecoveryServicesProtectionContainerCreate,
+		Read:               resourceArmRecoveryServicesProtectionContainerRead,
+		Update:             nil,
+		Delete:             resourceArmRecoveryServicesProtectionContainerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -132,7 +133,7 @@ func resourceArmRecoveryServicesProtectionContainerRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmSiteRecoveryProtectionContainerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRecoveryServicesProtectionContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

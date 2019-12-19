@@ -16,10 +16,11 @@ import (
 
 func resourceArmRecoveryServicesFabric() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryServicesFabricCreate,
-		Read:   resourceArmRecoveryServicesFabricRead,
-		Update: nil,
-		Delete: resourceArmRecoveryServicesFabricDelete,
+		DeprecationMessage: "`azurerm_recovery_services_fabric` resource is deprecated in favor of `azurerm_site_recovery_fabric` and will be removed in v2.0 of the AzureRM Provider",
+		Create:             resourceArmRecoveryServicesFabricCreate,
+		Read:               resourceArmRecoveryServicesFabricRead,
+		Update:             nil,
+		Delete:             resourceArmRecoveryServicesFabricDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},

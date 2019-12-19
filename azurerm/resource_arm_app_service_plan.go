@@ -276,7 +276,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, name)
@@ -343,7 +343,7 @@ func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Name
 
 	log.Printf("[DEBUG] Deleting App Service Plan %q (Resource Group %q)", name, resourceGroup)

@@ -20,10 +20,11 @@ import (
 
 func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryServicesProtectedVmCreateUpdate,
-		Read:   resourceArmRecoveryServicesProtectedVmRead,
-		Update: resourceArmRecoveryServicesProtectedVmCreateUpdate,
-		Delete: resourceArmRecoveryServicesProtectedVmDelete,
+		DeprecationMessage: "`azurerm_recovery_services_protected_vm` resource is deprecated in favor of `azurerm_backup_protected_vm` and will be removed in v2.0 of the AzureRM Provider",
+		Create:             resourceArmRecoveryServicesProtectedVmCreateUpdate,
+		Read:               resourceArmRecoveryServicesProtectedVmRead,
+		Update:             resourceArmRecoveryServicesProtectedVmCreateUpdate,
+		Delete:             resourceArmRecoveryServicesProtectedVmDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,

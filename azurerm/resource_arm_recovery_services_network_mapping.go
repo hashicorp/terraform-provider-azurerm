@@ -17,9 +17,10 @@ import (
 
 func resourceArmRecoveryServicesNetworkMapping() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryNetworkMappingCreate,
-		Read:   resourceArmRecoveryNetworkMappingRead,
-		Delete: resourceArmRecoveryNetworkMappingDelete,
+		DeprecationMessage: "`azurerm_recovery_network_mapping` resource is deprecated in favor of `azurerm_site_recovery_network_mapping` and will be removed in v2.0 of the AzureRM Provider",
+		Create:             resourceArmRecoveryNetworkMappingCreate,
+		Read:               resourceArmRecoveryNetworkMappingRead,
+		Delete:             resourceArmRecoveryNetworkMappingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},

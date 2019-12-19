@@ -247,7 +247,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	appServiceName := id.AppServiceName
 	slot := id.Name
 
@@ -382,7 +382,7 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	appServiceName := id.AppServiceName
 	slot := id.Name
 
@@ -516,7 +516,7 @@ func resourceArmAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	appServiceName := id.AppServiceName
 	slot := id.Name
 

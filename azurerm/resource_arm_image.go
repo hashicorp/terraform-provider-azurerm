@@ -53,6 +53,17 @@ func resourceArmImage() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"hyper_v_generation": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(compute.HyperVGenerationTypesV1),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.HyperVGenerationTypesV1),
+					string(compute.HyperVGenerationTypesV2),
+				}, false),
+			},
+
 			"source_virtual_machine_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -186,6 +197,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneResilient := d.Get("zone_resilient").(bool)
+	hyperVGeneration := d.Get("hyper_v_generation").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
@@ -203,7 +215,9 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	expandedTags := tags.Expand(d.Get("tags").(map[string]interface{}))
 
-	properties := compute.ImageProperties{}
+	properties := compute.ImageProperties{
+		HyperVGeneration: compute.HyperVGenerationTypes(hyperVGeneration),
+	}
 
 	osDisk, err := expandAzureRmImageOsDisk(d)
 	if err != nil {
@@ -236,14 +250,10 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("[ERROR] Cannot create image when both source VM and storage profile are empty")
 		}
 
-		properties = compute.ImageProperties{
-			StorageProfile: &storageProfile,
-		}
+		properties.StorageProfile = &storageProfile
 	} else {
 		//creating an image from source VM
-		properties = compute.ImageProperties{
-			SourceVirtualMachine: &sourceVM,
-		}
+		properties.SourceVirtualMachine = &sourceVM
 	}
 
 	createImage := compute.Image{
@@ -319,6 +329,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		d.Set("zone_resilient", resp.StorageProfile.ZoneResilient)
 	}
+	d.Set("hyper_v_generation", string(resp.HyperVGeneration))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

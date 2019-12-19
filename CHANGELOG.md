@@ -1,12 +1,54 @@
 ## 1.40.0 (Unreleased)
 
+* **New Data Source:** `azurerm_netapp_volume` [GH-4933]
+* **New Resource:** `azurerm_advanced_threat_protection` [GH-4848]
+* **New Resource:** `azurerm_api_management_diagnostic ` [GH-4836]
+* **New Resource:** `azurerm_automation_certificate` [GH-4785]
+* **New Resource:** `azurerm_iothub_dps_shared_access_policy` [GH-5171]
+* **New Resource:** `azurerm_network_watcher_flow_log` [GH-5059]
+* **New Resource:** `azurerm_netapp_volume` [GH-4933]
+* **New Resource:** `azurerm_stream_analytics_reference_input_blob` [GH-3633]
+* **New Resource:** `azurerm_app_service_virtual_network_swift_connection` [GH-5214]
+
 IMPROVEMENTS:
 
-* `azurerm_function_app` - support for `ftps_state` [GH-5169]
+* Data Source: `azurerm_private_link_service` - exposing the `enable_proxy_protocol` property  [GH-5178]
+* Data Source: `azurerm_virtual_network_gateway` - exposing the `generation` property [GH-5198]
+* `azurerm_application_gateway` - support for the `trusted_root_certificate_names` property [GH-5204]
+* `azurerm_cosmosdb_cassandra_keyspace` - support for the `throughput` property [GH-5203]
+* `azurerm_cosmosdb_sql_container` - support for the `throughput` property [GH-5203]
+* `azurerm_cosmosdb_sql_database` - support for the `throughput` property [GH-5203]
+* `azurerm_cosmosdb_table` - support for the `throughput` property [GH-5203]
+* `azurerm_dns_mx_record`: the `name` property is now optional [GH-5205]
+* `azurerm_function_app` - support for the `ftps_state` property [GH-5169]
+* `azurerm_image` - support for configuring `hyper_v_generation` [GH-4453]
+* `azurerm_key_vault`: the `network_acls` property is now computed [GH-5207]
+* `azurerm_kubernetes_cluster` - support for the `managed_cluster_identity` property [GH-5168]
+* `azurerm_kubernetes_cluster` - support for private link [GH-5161]
+* `azurerm_private_link_service` - support for the `enable_proxy_protocol` property  [GH-5178]
+* `azurerm_recovery_services_fabric` - has been deprecated and renamed to `	azurerm_site_recovery_fabric` [GH-5170]
+* `azurerm_recovery_network_mapping` - has been deprecated and renamed to `	azurerm_site_recovery_network_mapping` [GH-5170]
+* `azurerm_recovery_services_protection_container` - has been deprecated and renamed to `	azurerm_site_recovery_protection_container` [GH-5170]
+* `azurerm_recovery_services_protection_container_mapping` - has been deprecated and renamed to `azurerm_site_recovery_protection_container_mapping` [GH-5170]
+* `azurerm_recovery_services_replication_policy` - has been deprecated and renamed to `azurerm_site_recovery_protection_policy` [GH-5170]
+* `azurerm_recovery_replicated_vm` - has been deprecated and renamed to `azurerm_site_recovery_replicated_vm` [GH-5170]
+* `azurerm_recovery_services_protection_policy_vm` - has been deprecated and renamed to `	zurerm_backup_policy_vm` [GH-5170]
+* `azurerm_recovery_services_protected_vm` - has been deprecated and renamed to `azurerm_backup_protected_vm` [GH-5170]
+* `azurerm_search_service` - exposing the `query_keys` [GH-5029]
+* `azurerm_storage_account`  - exposing the `blob_properties` block [GH-3807]
+* `aaurerm_storage_account` - correctly handle an empty network rules API response [GH-5210]
+* `azurerm_shared_image_version` - support for the `storage_account_type` property [GH-5212]
+* `azurerm_virtual_network_gateway` - support for configuring `generation` [GH-5198]
+* `azurerm_virtual_network_gateway_connection` - support for the `connection_protocol` property [GH-5145]
 
 BUG FIXES:
 
+* Data Source: `azurerm_shared_image_version` - change the `storage_account_type` property from a set to a list [GH-5212]
 * `azurerm_api_management_api` - working around a behavioural change in the API detecting deleted resources [GH-5054]
+* `azurerm_healthcare_service` - making rhe `cors_configuration` block computed [GH-5046]
+* `azurerm_monitor_log_profile` - polling until the log profile is repeatedly available [GH-5194]
+* `azurerm_storage_account_network_rules` - matching the validation used for `ip_rules ` with the validation used by `ip_rules ` in the `network_rules` block of `azurerm_storage_account` [GH-5201]
+* `azurerm_subnet` - allowing both `enforce_private_link_endpoint_network_policies` and `enforce_private_link_service_network_policies` to be set together [GH-5200]
 
 ## 1.39.0 (December 16, 2019)
 

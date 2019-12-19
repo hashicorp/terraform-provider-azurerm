@@ -102,7 +102,7 @@ func resourceArmAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	resGroup := id.Base.ResourceGroup
+	resGroup := id.ResourceGroup
 	name := id.Name
 
 	resp, err := client.Get(ctx, resGroup, name)

@@ -7,8 +7,6 @@ import (
 )
 
 type ResourceGroupResourceID struct {
-	Base azure.ResourceID
-
 	Name string
 }
 
@@ -19,18 +17,15 @@ func ParseResourceGroupID(input string) (*ResourceGroupResourceID, error) {
 	}
 
 	group := ResourceGroupResourceID{
-		Base: *id,
 		Name: id.ResourceGroup,
 	}
 
 	if group.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `resourceGroups` element")
+		return nil, fmt.Errorf("ID contained no `resourceGroups` segment!")
 	}
 
-	pathWithoutSubs := group.Base.Path
-	delete(pathWithoutSubs, "subscriptions")
-	if len(pathWithoutSubs) != 0 {
-		return nil, fmt.Errorf("ID contained more segments than a Resource ID requires: %q", input)
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
 	return &group, nil

@@ -162,21 +162,19 @@ func resourceArmVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.Base.ResourceGroup
-	name := id.Name
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Virtual Hub %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error reading Virtual Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -206,20 +204,18 @@ func resourceArmVirtualHubDelete(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.Base.ResourceGroup
-	name := id.Name
 
-	locks.ByName(name, virtualHubResourceName)
-	defer locks.UnlockByName(name, virtualHubResourceName)
+	locks.ByName(id.Name, virtualHubResourceName)
+	defer locks.UnlockByName(id.Name, virtualHubResourceName)
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting Virtual Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for deleting Virtual Hub %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

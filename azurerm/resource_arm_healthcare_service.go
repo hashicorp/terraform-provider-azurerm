@@ -78,6 +78,7 @@ func resourceArmHealthcareService() *schema.Resource {
 			"authentication_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -100,12 +101,13 @@ func resourceArmHealthcareService() *schema.Resource {
 			"cors_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"allowed_origins": {
 							Type:     schema.TypeSet,
-							Required: true,
+							Optional: true,
 							MaxItems: 64,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
@@ -114,7 +116,7 @@ func resourceArmHealthcareService() *schema.Resource {
 						},
 						"allowed_headers": {
 							Type:     schema.TypeSet,
-							Required: true,
+							Optional: true,
 							MaxItems: 64,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
@@ -123,7 +125,7 @@ func resourceArmHealthcareService() *schema.Resource {
 						},
 						"allowed_methods": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							MaxItems: 64,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -142,8 +144,8 @@ func resourceArmHealthcareService() *schema.Resource {
 						},
 						"max_age_in_seconds": {
 							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 2000000000),
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 2000000000),
 						},
 						"allow_credentials": {
 							Type:     schema.TypeBool,

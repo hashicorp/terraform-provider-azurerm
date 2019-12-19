@@ -65,6 +65,14 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"withFilters":                testAccAzureRMNetworkPacketCapture_withFilters,
 			"requiresImport":             testAccAzureRMNetworkPacketCapture_requiresImport,
 		},
+		"FlowLog": {
+			"basic":                testAccAzureRMNetworkWatcherFlowLog_basic,
+			"disabled":             testAccAzureRMNetworkWatcherFlowLog_disabled,
+			"reenabled":            testAccAzureRMNetworkWatcherFlowLog_reenabled,
+			"retentionPolicy":      testAccAzureRMNetworkWatcherFlowLog_retentionPolicy,
+			"updateStorageAccount": testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount,
+			"trafficAnalytics":     testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics,
+		},
 	}
 
 	for group, m := range testCases {
@@ -284,12 +292,12 @@ func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
 func testAccAzureRMNetworkWatcher_basicConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-watcher-%d"
   location = "%s"
 }
 
 resource "azurerm_network_watcher" "test" {
-  name                = "acctestnw-%d"
+  name                = "acctestNW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
@@ -312,12 +320,12 @@ resource "azurerm_network_watcher" "import" {
 func testAccAzureRMNetworkWatcher_completeConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-watcher-%d"
   location = "%s"
 }
 
 resource "azurerm_network_watcher" "test" {
-  name                = "acctestnw-%d"
+  name                = "acctestNW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 

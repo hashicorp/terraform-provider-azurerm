@@ -22,9 +22,10 @@ import (
 
 func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryReplicatedItemCreate,
-		Read:   resourceArmRecoveryReplicatedItemRead,
-		Delete: resourceArmRecoveryReplicatedItemDelete,
+		DeprecationMessage: "`azurerm_recovery_replicated_vm` resource is deprecated in favor of `azurerm_site_recovery_replicated_vm` and will be removed in v2.0 of the AzureRM Provider",
+		Create:             resourceArmRecoveryReplicatedItemCreate,
+		Read:               resourceArmRecoveryReplicatedItemRead,
+		Delete:             resourceArmRecoveryReplicatedItemDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},

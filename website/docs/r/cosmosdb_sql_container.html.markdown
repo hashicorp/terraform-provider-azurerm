@@ -21,7 +21,8 @@ resource "azurerm_cosmosdb_sql_container" "example" {
   account_name        = "${azurerm_cosmosdb_account.example.name}"
   database_name       = "${azurerm_cosmosdb_sql_database.example.name}"
   partition_key_path  = "/definition/id"
-
+  throughput          = 400
+ 
   unique_key {
     paths = ["/definition/idlong", "/definition/idshort"]
   }
@@ -44,6 +45,8 @@ The following arguments are supported:
 * `partition_key_path` - (Optional) Define a partition key. Changing this forces a new resource to be created.
 
 * `unique_key` - (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
+
+* `throughput` - (Optional) The throughput of SQL container (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
 ---
 A `unique_key` block supports the following:

@@ -7,9 +7,8 @@ import (
 )
 
 type AppServiceResourceID struct {
-	Base azure.ResourceID
-
-	Name string
+	ResourceGroup string
+	Name          string
 }
 
 func ParseAppServiceID(input string) (*AppServiceResourceID, error) {
@@ -18,22 +17,19 @@ func ParseAppServiceID(input string) (*AppServiceResourceID, error) {
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service ID %q: %+v", input, err)
 	}
 
-	group := AppServiceResourceID{
-		Base: *id,
-		Name: id.Path["sites"],
+	appService := AppServiceResourceID{
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if group.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `sites` element")
+	if appService.Name, err = id.PopSegment("sites"); err != nil {
+		return nil, err
 	}
 
-	pathWithoutElements := group.Base.Path
-	delete(pathWithoutElements, "sites")
-	if len(pathWithoutElements) != 0 {
-		return nil, fmt.Errorf("ID contained more segments than a Resource ID requires: %q", input)
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
-	return &group, nil
+	return &appService, nil
 }
 
 // ValidateAppServiceID validates that the specified ID is a valid App Service ID

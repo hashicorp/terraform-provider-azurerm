@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
 
 // AgentPoolType enumerates the values for agent pool type.
 type AgentPoolType string
@@ -1821,6 +1821,14 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	NodeTaints *[]string `json:"nodeTaints,omitempty"`
 }
 
+// ManagedClusterAPIServerAccessProfile access profile for managed cluster API server.
+type ManagedClusterAPIServerAccessProfile struct {
+	// AuthorizedIPRanges - Authorized IP Ranges to kubernetes API server.
+	AuthorizedIPRanges *[]string `json:"authorizedIPRanges,omitempty"`
+	// EnablePrivateCluster - Whether to create the cluster as a private cluster or not.
+	EnablePrivateCluster *bool `json:"enablePrivateCluster,omitempty"`
+}
+
 // ManagedClusterIdentity identity for the managed cluster.
 type ManagedClusterIdentity struct {
 	// PrincipalID - READ-ONLY; The principal id of the system assigned identity which is used by master components.
@@ -1977,6 +1985,39 @@ func NewManagedClusterListResultPage(getNextPage func(context.Context, ManagedCl
 	return ManagedClusterListResultPage{fn: getNextPage}
 }
 
+// ManagedClusterLoadBalancerProfile profile of the managed cluster load balancer
+type ManagedClusterLoadBalancerProfile struct {
+	// ManagedOutboundIPs - Desired managed outbound IPs for the cluster load balancer.
+	ManagedOutboundIPs *ManagedClusterLoadBalancerProfileManagedOutboundIPs `json:"managedOutboundIPs,omitempty"`
+	// OutboundIPPrefixes - Desired outbound IP Prefix resources for the cluster load balancer.
+	OutboundIPPrefixes *ManagedClusterLoadBalancerProfileOutboundIPPrefixes `json:"outboundIPPrefixes,omitempty"`
+	// OutboundIPs - Desired outbound IP resources for the cluster load balancer.
+	OutboundIPs *ManagedClusterLoadBalancerProfileOutboundIPs `json:"outboundIPs,omitempty"`
+	// EffectiveOutboundIPs - The effective outbound IP resources of the cluster load balancer.
+	EffectiveOutboundIPs *[]ResourceReference `json:"effectiveOutboundIPs,omitempty"`
+}
+
+// ManagedClusterLoadBalancerProfileManagedOutboundIPs desired managed outbound IPs for the cluster load
+// balancer.
+type ManagedClusterLoadBalancerProfileManagedOutboundIPs struct {
+	// Count - Desired number of outbound IP created/managed by Azure for the cluster load balancer. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 1.
+	Count *int32 `json:"count,omitempty"`
+}
+
+// ManagedClusterLoadBalancerProfileOutboundIPPrefixes desired outbound IP Prefix resources for the cluster
+// load balancer.
+type ManagedClusterLoadBalancerProfileOutboundIPPrefixes struct {
+	// PublicIPPrefixes - A list of public IP prefix resources.
+	PublicIPPrefixes *[]ResourceReference `json:"publicIPPrefixes,omitempty"`
+}
+
+// ManagedClusterLoadBalancerProfileOutboundIPs desired outbound IP resources for the cluster load
+// balancer.
+type ManagedClusterLoadBalancerProfileOutboundIPs struct {
+	// PublicIPs - A list of public IP resources.
+	PublicIPs *[]ResourceReference `json:"publicIPs,omitempty"`
+}
+
 // ManagedClusterPoolUpgradeProfile the list of available upgrade versions.
 type ManagedClusterPoolUpgradeProfile struct {
 	// KubernetesVersion - Kubernetes version (major, minor, patch).
@@ -2009,6 +2050,8 @@ type ManagedClusterProperties struct {
 	DNSPrefix *string `json:"dnsPrefix,omitempty"`
 	// Fqdn - READ-ONLY; FQDN for the master pool.
 	Fqdn *string `json:"fqdn,omitempty"`
+	// PrivateFQDN - READ-ONLY; FQDN of private cluster.
+	PrivateFQDN *string `json:"privateFQDN,omitempty"`
 	// AgentPoolProfiles - Properties of the agent pool.
 	AgentPoolProfiles *[]ManagedClusterAgentPoolProfile `json:"agentPoolProfiles,omitempty"`
 	// LinuxProfile - Profile for Linux VMs in the container service cluster.
@@ -2029,8 +2072,8 @@ type ManagedClusterProperties struct {
 	NetworkProfile *NetworkProfileType `json:"networkProfile,omitempty"`
 	// AadProfile - Profile of Azure Active Directory configuration.
 	AadProfile *ManagedClusterAADProfile `json:"aadProfile,omitempty"`
-	// APIServerAuthorizedIPRanges - (PREVIEW) Authorized IP Ranges to kubernetes API server.
-	APIServerAuthorizedIPRanges *[]string `json:"apiServerAuthorizedIPRanges,omitempty"`
+	// APIServerAccessProfile - Access profile for managed cluster API server.
+	APIServerAccessProfile *ManagedClusterAPIServerAccessProfile `json:"apiServerAccessProfile,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterProperties.
@@ -2072,8 +2115,8 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 	if mcp.AadProfile != nil {
 		objectMap["aadProfile"] = mcp.AadProfile
 	}
-	if mcp.APIServerAuthorizedIPRanges != nil {
-		objectMap["apiServerAuthorizedIPRanges"] = mcp.APIServerAuthorizedIPRanges
+	if mcp.APIServerAccessProfile != nil {
+		objectMap["apiServerAccessProfile"] = mcp.APIServerAccessProfile
 	}
 	return json.Marshal(objectMap)
 }
@@ -2179,6 +2222,29 @@ func (future *ManagedClustersResetServicePrincipalProfileFuture) Result(client M
 	}
 	if !done {
 		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersResetServicePrincipalProfileFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ManagedClustersRotateClusterCertificatesFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type ManagedClustersRotateClusterCertificatesFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ManagedClustersRotateClusterCertificatesFuture) Result(client ManagedClustersClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersRotateClusterCertificatesFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersRotateClusterCertificatesFuture")
 		return
 	}
 	ar.Response = future.Response()
@@ -2349,6 +2415,8 @@ type NetworkProfileType struct {
 	DockerBridgeCidr *string `json:"dockerBridgeCidr,omitempty"`
 	// LoadBalancerSku - The load balancer sku for the managed cluster. Possible values include: 'Standard', 'Basic'
 	LoadBalancerSku LoadBalancerSku `json:"loadBalancerSku,omitempty"`
+	// LoadBalancerProfile - Profile of the cluster load balancer.
+	LoadBalancerProfile *ManagedClusterLoadBalancerProfile `json:"loadBalancerProfile,omitempty"`
 }
 
 // OpenShiftManagedCluster openShift Managed cluster.
@@ -3181,6 +3249,12 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 		objectMap["tags"] = r.Tags
 	}
 	return json.Marshal(objectMap)
+}
+
+// ResourceReference a reference to an Azure resource.
+type ResourceReference struct {
+	// ID - The fully qualified Azure resource id.
+	ID *string `json:"id,omitempty"`
 }
 
 // ServicePrincipalProfile information about a service principal identity for the cluster to use for

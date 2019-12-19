@@ -6,6 +6,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-azure-helpers/resourceproviders"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
@@ -14,14 +15,14 @@ func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 		return
 	}
 
-	builder := armClientBuilder{
-		authConfig:                  config,
-		terraformVersion:            "0.0.0",
-		partnerId:                   "",
-		disableCorrelationRequestID: true,
-		disableTerraformPartnerID:   false,
+	builder := clients.ClientBuilder{
+		AuthConfig:                  config,
+		TerraformVersion:            "0.0.0",
+		PartnerId:                   "",
+		DisableCorrelationRequestID: true,
+		DisableTerraformPartnerID:   false,
 		// this test intentionally checks all the RP's are registered - so this is intentional
-		skipProviderRegistration: true,
+		SkipProviderRegistration: true,
 	}
 	armClient, err := getArmClient(context.Background(), builder)
 	if err != nil {

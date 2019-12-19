@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
@@ -195,6 +195,24 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"api_server_authorized_ip_ranges": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"private_link_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"private_fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -459,8 +477,19 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	if props := resp.ManagedClusterProperties; props != nil {
 		d.Set("dns_prefix", props.DNSPrefix)
 		d.Set("fqdn", props.Fqdn)
+		d.Set("private_fqdn", props.PrivateFQDN)
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
+
+		// TODO: 2.0 we should introduce a access_profile block to match the new API design,
+		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {
+			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
+			if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
+				return fmt.Errorf("Error setting `api_server_authorized_ip_ranges`: %+v", err)
+			}
+
+			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
+		}
 
 		addonProfiles := flattenKubernetesClusterDataSourceAddonProfiles(props.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {

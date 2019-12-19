@@ -17,10 +17,11 @@ import (
 
 func resourceArmRecoveryServicesReplicationPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryServicesReplicationPolicyCreate,
-		Read:   resourceArmRecoveryServicesReplicationPolicyRead,
-		Update: resourceArmRecoveryServicesReplicationPolicyUpdate,
-		Delete: resourceArmSiteRecoveryReplicationPolicyDelete,
+		DeprecationMessage: "`azurerm_recovery_services_replication_policy` resource is deprecated in favor of `azurerm_site_recovery_replication_policy` and will be removed in v2.0 of the AzureRM Provider",
+		Create:             resourceArmRecoveryServicesReplicationPolicyCreate,
+		Read:               resourceArmRecoveryServicesReplicationPolicyRead,
+		Update:             resourceArmRecoveryServicesReplicationPolicyUpdate,
+		Delete:             resourceArmRecoveryServicesReplicationPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -187,7 +188,7 @@ func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmSiteRecoveryReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRecoveryServicesReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
