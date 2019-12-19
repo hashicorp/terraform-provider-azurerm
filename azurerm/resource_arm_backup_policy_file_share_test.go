@@ -171,7 +171,7 @@ func testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(rInt int, location
 %s
 
 resource "azurerm_backup_policy_file_share" "test" {
-  name                = "acctest-%d"
+  name                = "acctest-PFS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
