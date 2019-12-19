@@ -11,20 +11,18 @@ import (
 )
 
 func TestAccAzureRMSiteRecoveryReplicationPolicy_basic(t *testing.T) {
-	resourceGroupName := "azurerm_resource_group.test"
-	vaultName := "azurerm_recovery_services_vault.test"
 	resourceName := "azurerm_site_recovery_replication_policy.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		CheckDestroy: testCheckAzureRMSiteRecoveryReplicationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSiteRecoveryReplicationPolicy_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSiteRecoveryReplicationPolicyExists(resourceGroupName, vaultName, resourceName),
+					testCheckAzureRMSiteRecoveryReplicationPolicyExists(resourceName),
 				),
 			},
 			{
@@ -60,39 +58,54 @@ resource "azurerm_site_recovery_replication_policy" "test" {
 `, rInt, location, rInt, rInt)
 }
 
-func testCheckAzureRMSiteRecoveryReplicationPolicyExists(resourceGroupStateName, vaultStateName string, policyStateName string) resource.TestCheckFunc {
+func testCheckAzureRMSiteRecoveryReplicationPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		resourceGroupState, ok := s.RootModule().Resources[resourceGroupStateName]
+		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", resourceGroupStateName)
-		}
-		vaultState, ok := s.RootModule().Resources[vaultStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", vaultStateName)
-		}
-		policyState, ok := s.RootModule().Resources[policyStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", policyStateName)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroupName := resourceGroupState.Primary.Attributes["name"]
-		vaultName := vaultState.Primary.Attributes["name"]
-		policyName := policyState.Primary.Attributes["name"]
+		resourceGroupName := state.Primary.Attributes["resource_group_name"]
+		vaultName := state.Primary.Attributes["recovery_vault_name"]
+		policyName := state.Primary.Attributes["name"]
 
-		// Ensure fabric exists in API
 		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
 		resp, err := client.Get(ctx, policyName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on fabricClient: %+v", err)
+			return fmt.Errorf("Bad: Get on RecoveryServices.ReplicationPoliciesClient: %+v", err)
 		}
 
 		if resp.Response.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: fabric: %q does not exist", policyName)
+			return fmt.Errorf("Bad: replication policy: %q does not exist", policyName)
 		}
 
 		return nil
 	}
+}
+
+func testCheckAzureRMSiteRecoveryReplicationPolicyDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_site_recovery_replication_policy" {
+			continue
+		}
+
+		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
+		vaultName := rs.Primary.Attributes["recovery_vault_name"]
+		policyName := rs.Primary.Attributes["name"]
+
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resourceGroupName, vaultName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, policyName)
+		if err != nil {
+			return nil
+		}
+
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Replication Policy still exists:\n%#v", resp.Properties)
+		}
+	}
+
+	return nil
 }
