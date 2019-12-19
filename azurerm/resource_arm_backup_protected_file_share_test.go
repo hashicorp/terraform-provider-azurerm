@@ -212,7 +212,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "acctest-SS-%[1]d"
+  name                 = "acctest-ss-%[1]d"
   storage_account_name = "${azurerm_storage_account.test.name}"
   metadata             = {}
   
