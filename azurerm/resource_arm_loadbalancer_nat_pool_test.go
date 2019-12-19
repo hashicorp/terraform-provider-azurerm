@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -24,12 +26,12 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 		subscriptionID, ri, ri, natPoolName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatPool_basic(ri, natPoolName, testLocation()),
+				Config: testAccAzureRMLoadBalancerNatPool_basic(ri, natPoolName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatPoolExists(natPoolName, &lb),
@@ -57,7 +59,7 @@ func TestAccAzureRMLoadBalancerNatPool_requiresImport(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
-	location := testLocation()
+	location := acceptance.Location()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	natPoolId := fmt.Sprintf(
@@ -65,8 +67,8 @@ func TestAccAzureRMLoadBalancerNatPool_requiresImport(t *testing.T) {
 		subscriptionID, ri, ri, natPoolName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -80,7 +82,7 @@ func TestAccAzureRMLoadBalancerNatPool_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLoadBalancerNatPool_requiresImport(ri, natPoolName, location),
-				ExpectError: testRequiresImportError("azurerm_lb_nat_pool"),
+				ExpectError: acceptance.RequiresImportError("azurerm_lb_nat_pool"),
 			},
 		},
 	})
@@ -92,19 +94,19 @@ func TestAccAzureRMLoadBalancerNatPool_removal(t *testing.T) {
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatPool_basic(ri, natPoolName, testLocation()),
+				Config: testAccAzureRMLoadBalancerNatPool_basic(ri, natPoolName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatPoolExists(natPoolName, &lb),
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerNatPool_removal(ri, testLocation()),
+				Config: testAccAzureRMLoadBalancerNatPool_removal(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatPoolNotExists(natPoolName, &lb),
@@ -121,12 +123,12 @@ func TestAccAzureRMLoadBalancerNatPool_update(t *testing.T) {
 	natPool2Name := fmt.Sprintf("NatPool-%d", tf.AccRandTimeInt())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatPool_multiplePools(ri, natPoolName, natPool2Name, testLocation()),
+				Config: testAccAzureRMLoadBalancerNatPool_multiplePools(ri, natPoolName, natPool2Name, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatPoolExists(natPoolName, &lb),
@@ -135,7 +137,7 @@ func TestAccAzureRMLoadBalancerNatPool_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerNatPool_multiplePoolsUpdate(ri, natPoolName, natPool2Name, testLocation()),
+				Config: testAccAzureRMLoadBalancerNatPool_multiplePoolsUpdate(ri, natPoolName, natPool2Name, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatPoolExists(natPoolName, &lb),
@@ -153,12 +155,12 @@ func TestAccAzureRMLoadBalancerNatPool_disappears(t *testing.T) {
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatPool_basic(ri, natPoolName, testLocation()),
+				Config: testAccAzureRMLoadBalancerNatPool_basic(ri, natPoolName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatPoolExists(natPoolName, &lb),
@@ -194,8 +196,8 @@ func testCheckAzureRMLoadBalancerNatPoolNotExists(natPoolName string, lb *networ
 
 func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Network.LoadBalancersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		_, i, exists := findLoadBalancerNatPoolByName(lb, natPoolName)
 		if !exists {

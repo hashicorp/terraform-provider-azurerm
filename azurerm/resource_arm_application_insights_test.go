@@ -8,17 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "web")
+	config := testAccAzureRMApplicationInsights_basic(ri, acceptance.Location(), "web")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,11 +47,11 @@ func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_application_insights.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +63,7 @@ func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApplicationInsights_requiresImport(ri, location, "web"),
-				ExpectError: testRequiresImportError("azurerm_application_insights"),
+				ExpectError: acceptance.RequiresImportError("azurerm_application_insights"),
 			},
 		},
 	})
@@ -70,11 +72,11 @@ func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
 func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "java")
+	config := testAccAzureRMApplicationInsights_basic(ri, acceptance.Location(), "java")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -96,11 +98,11 @@ func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "MobileCenter")
+	config := testAccAzureRMApplicationInsights_basic(ri, acceptance.Location(), "MobileCenter")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -122,11 +124,11 @@ func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "other")
+	config := testAccAzureRMApplicationInsights_basic(ri, acceptance.Location(), "other")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -148,11 +150,11 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "phone")
+	config := testAccAzureRMApplicationInsights_basic(ri, acceptance.Location(), "phone")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -174,11 +176,11 @@ func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "store")
+	config := testAccAzureRMApplicationInsights_basic(ri, acceptance.Location(), "store")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -200,11 +202,11 @@ func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "ios")
+	config := testAccAzureRMApplicationInsights_basic(ri, acceptance.Location(), "ios")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -224,8 +226,8 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 }
 
 func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).AppInsights.ComponentsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.ComponentsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_application_insights" {
@@ -263,8 +265,8 @@ func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for App Insights: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).AppInsights.ComponentsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.ComponentsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -282,11 +284,11 @@ func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.Tes
 func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsights_complete(ri, testLocation(), "web")
+	config := testAccAzureRMApplicationInsights_complete(ri, acceptance.Location(), "web")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{

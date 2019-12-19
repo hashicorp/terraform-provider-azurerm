@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -24,12 +26,12 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 		subscriptionID, ri, ri, probeName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName, testLocation()),
+				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -57,7 +59,7 @@ func TestAccAzureRMLoadBalancerProbe_requiresImport(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
-	location := testLocation()
+	location := acceptance.Location()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	probeId := fmt.Sprintf(
@@ -65,8 +67,8 @@ func TestAccAzureRMLoadBalancerProbe_requiresImport(t *testing.T) {
 		subscriptionID, ri, ri, probeName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -80,7 +82,7 @@ func TestAccAzureRMLoadBalancerProbe_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLoadBalancerProbe_requiresImport(ri, probeName, location),
-				ExpectError: testRequiresImportError("azurerm_lb_probe"),
+				ExpectError: acceptance.RequiresImportError("azurerm_lb_probe"),
 			},
 		},
 	})
@@ -90,11 +92,11 @@ func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -122,12 +124,12 @@ func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 	probe2Name := fmt.Sprintf("probe-%d", tf.AccRandTimeInt())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerProbe_multipleProbes(ri, probeName, probe2Name, testLocation()),
+				Config: testAccAzureRMLoadBalancerProbe_multipleProbes(ri, probeName, probe2Name, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -136,7 +138,7 @@ func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerProbe_multipleProbesUpdate(ri, probeName, probe2Name, testLocation()),
+				Config: testAccAzureRMLoadBalancerProbe_multipleProbesUpdate(ri, probeName, probe2Name, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -154,12 +156,12 @@ func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 	probeName := fmt.Sprintf("probe-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerProbe_updateProtocolBefore(ri, probeName, testLocation()),
+				Config: testAccAzureRMLoadBalancerProbe_updateProtocolBefore(ri, probeName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -167,7 +169,7 @@ func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerProbe_updateProtocolAfter(ri, probeName, testLocation()),
+				Config: testAccAzureRMLoadBalancerProbe_updateProtocolAfter(ri, probeName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -184,12 +186,12 @@ func TestAccAzureRMLoadBalancerProbe_disappears(t *testing.T) {
 	probeName := fmt.Sprintf("probe-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName, testLocation()),
+				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -225,8 +227,8 @@ func testCheckAzureRMLoadBalancerProbeNotExists(natRuleName string, lb *network.
 
 func testCheckAzureRMLoadBalancerProbeDisappears(addressPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Network.LoadBalancersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		_, i, exists := findLoadBalancerProbeByName(lb, addressPoolName)
 		if !exists {

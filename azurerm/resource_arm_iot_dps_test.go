@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -16,12 +18,12 @@ func TestAccAzureRMIotDPS_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotDPS_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotDPS_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotDPSExists(resourceName),
 				),
@@ -43,11 +45,11 @@ func TestAccAzureRMIotDPS_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_iot_dps.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -58,7 +60,7 @@ func TestAccAzureRMIotDPS_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotDPS_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_iotdps"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iotdps"),
 			},
 		},
 	})
@@ -69,12 +71,12 @@ func TestAccAzureRMIotDPS_update(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotDPS_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotDPS_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotDPSExists(resourceName),
 				),
@@ -85,7 +87,7 @@ func TestAccAzureRMIotDPS_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMIotDPS_update(rInt, testLocation()),
+				Config: testAccAzureRMIotDPS_update(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotDPSExists(resourceName),
 				),
@@ -104,12 +106,12 @@ func TestAccAzureRMIotDPS_linkedHubs(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotDPS_linkedHubs(rInt, testLocation()),
+				Config: testAccAzureRMIotDPS_linkedHubs(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotDPSExists(resourceName),
 				),
@@ -120,7 +122,7 @@ func TestAccAzureRMIotDPS_linkedHubs(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMIotDPS_linkedHubsUpdated(rInt, testLocation()),
+				Config: testAccAzureRMIotDPS_linkedHubsUpdated(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotDPSExists(resourceName),
 				),
@@ -135,8 +137,8 @@ func TestAccAzureRMIotDPS_linkedHubs(t *testing.T) {
 }
 
 func testCheckAzureRMIotDPSDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).IoTHub.DPSResourceClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iotdps" {
@@ -161,7 +163,7 @@ func testCheckAzureRMIotDPSDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotDPSExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -173,7 +175,7 @@ func testCheckAzureRMIotDPSExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for IoT Device Provisioning Service: %s", iotdpsName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).IoTHub.DPSResourceClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 		resp, err := client.Get(ctx, iotdpsName, resourceGroup)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

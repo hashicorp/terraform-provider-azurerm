@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -105,8 +106,8 @@ func resourceArmSearchService() *schema.Resource {
 }
 
 func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Search.ServicesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Search.ServicesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -162,8 +163,8 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Search.ServicesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Search.ServicesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -204,14 +205,14 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	adminKeysClient := meta.(*ArmClient).Search.AdminKeysClient
+	adminKeysClient := meta.(*clients.Client).Search.AdminKeysClient
 	adminKeysResp, err := adminKeysClient.Get(ctx, resourceGroup, name, nil)
 	if err == nil {
 		d.Set("primary_key", adminKeysResp.PrimaryKey)
 		d.Set("secondary_key", adminKeysResp.SecondaryKey)
 	}
 
-	queryKeysClient := meta.(*ArmClient).Search.QueryKeysClient
+	queryKeysClient := meta.(*clients.Client).Search.QueryKeysClient
 	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, resourceGroup, name, nil)
 	if err == nil {
 		d.Set("query_keys", flattenSearchQueryKeys(queryKeysResp.Value))
@@ -221,8 +222,8 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Search.ServicesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Search.ServicesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

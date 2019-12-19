@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	computeSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -113,8 +114,8 @@ func resourceArmVirtualMachineScaleSetExtension() *schema.Resource {
 }
 
 func resourceArmVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.VMScaleSetExtensionsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -194,8 +195,8 @@ func resourceArmVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, me
 }
 
 func resourceArmVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.VMScaleSetExtensionsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := computeSvc.ParseVirtualMachineScaleSetExtensionID(d.Id())
@@ -273,9 +274,9 @@ func resourceArmVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta interface{}) error {
-	vmssClient := meta.(*ArmClient).Compute.VMScaleSetClient
-	client := meta.(*ArmClient).Compute.VMScaleSetExtensionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	vmssClient := meta.(*clients.Client).Compute.VMScaleSetClient
+	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := computeSvc.ParseVirtualMachineScaleSetExtensionID(d.Id())
@@ -334,8 +335,8 @@ func resourceArmVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta
 }
 
 func resourceArmVirtualMachineScaleSetExtensionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.VMScaleSetExtensionsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := computeSvc.ParseVirtualMachineScaleSetExtensionID(d.Id())

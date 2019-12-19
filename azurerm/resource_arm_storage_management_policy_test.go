@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
@@ -16,12 +18,12 @@ func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
 	resourceName := "azurerm_storage_management_policy.testpolicy"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMStorageManagementPolicy_basic(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
 			{
@@ -58,12 +60,12 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 	resourceName := "azurerm_storage_management_policy.testpolicy"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMStorageManagementPolicy_multipleRule(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
 			{
@@ -119,13 +121,13 @@ func TestAccAzureRMStorageManagementPolicy_updateMultipleRule(t *testing.T) {
 	resourceName := "azurerm_storage_management_policy.testpolicy"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	config1 := testAccAzureRMStorageManagementPolicy_multipleRule(ri, rs, location)
 	config2 := testAccAzureRMStorageManagementPolicy_multipleRuleUpdated(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
 			{
@@ -272,8 +274,8 @@ func testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccount
 	resourceGroupName := rid.ResourceGroup
 	storageAccountName := rid.Path["storageAccounts"]
 
-	conn := testAccProvider.Meta().(*ArmClient).Storage.ManagementPoliciesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.ManagementPoliciesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	response, err := conn.Get(ctx, resourceGroupName, storageAccountName)
 	if err != nil {

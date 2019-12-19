@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -18,12 +20,12 @@ func TestAccAzureRMLocalNetworkGateway_basic(t *testing.T) {
 
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, testLocation()),
+				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "gateway_address", "127.0.0.1"),
@@ -48,10 +50,10 @@ func TestAccAzureRMLocalNetworkGateway_requiresImport(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
 
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -62,7 +64,7 @@ func TestAccAzureRMLocalNetworkGateway_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLocalNetworkGatewayConfig_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_local_network_gateway"),
+				ExpectError: acceptance.RequiresImportError("azurerm_local_network_gateway"),
 			},
 		},
 	})
@@ -73,12 +75,12 @@ func TestAccAzureRMLocalNetworkGateway_disappears(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, testLocation()),
+				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "gateway_address", "127.0.0.1"),
@@ -96,12 +98,12 @@ func TestAccAzureRMLocalNetworkGateway_tags(t *testing.T) {
 
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLocalNetworkGatewayConfig_tags(rInt, testLocation()),
+				Config: testAccAzureRMLocalNetworkGatewayConfig_tags(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -120,11 +122,11 @@ func TestAccAzureRMLocalNetworkGateway_tags(t *testing.T) {
 func TestAccAzureRMLocalNetworkGateway_bgpSettings(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -148,11 +150,11 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettings(t *testing.T) {
 func TestAccAzureRMLocalNetworkGateway_bgpSettingsDisable(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -182,11 +184,11 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsDisable(t *testing.T) {
 func TestAccAzureRMLocalNetworkGateway_bgpSettingsEnable(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -216,11 +218,11 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsEnable(t *testing.T) {
 func TestAccAzureRMLocalNetworkGateway_bgpSettingsComplete(t *testing.T) {
 	resourceName := "azurerm_local_network_gateway.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -264,8 +266,8 @@ func testCheckAzureRMLocalNetworkGatewayExists(resourceName string) resource.Tes
 		resGrp := id.ResourceGroup
 
 		// and finally, check that it exists on Azure:
-		client := testAccProvider.Meta().(*ArmClient).Network.LocalNetworkGatewaysClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resGrp, localNetName)
 		if err != nil {
@@ -297,8 +299,8 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(resourceName string) resource
 		resourceGroup := id.ResourceGroup
 
 		// and finally, check that it exists on Azure:
-		client := testAccProvider.Meta().(*ArmClient).Network.LocalNetworkGatewaysClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, localNetName)
 		if err != nil {
@@ -329,8 +331,8 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 		localNetName := id.Path["localNetworkGateways"]
 		resourceGroup := id.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).Network.LocalNetworkGatewaysClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, localNetName)
 
 		if err != nil {

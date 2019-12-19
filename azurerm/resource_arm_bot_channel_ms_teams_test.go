@@ -9,17 +9,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, testLocation())
+	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_channel_ms_teams.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelMsTeamsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -39,13 +41,13 @@ func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 
 func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, testLocation())
-	config2 := testAccAzureRMBotChannelMsTeams_basicUpdate(ri, testLocation())
+	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, acceptance.Location())
+	config2 := testAccAzureRMBotChannelMsTeams_basicUpdate(ri, acceptance.Location())
 	resourceName := "azurerm_bot_channel_ms_teams.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelMsTeamsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -99,8 +101,8 @@ func testCheckAzureRMBotChannelMsTeamsExists(name string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channel MsTeams")
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Bot.ChannelClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameMsTeamsChannel))
 		if err != nil {
@@ -116,8 +118,8 @@ func testCheckAzureRMBotChannelMsTeamsExists(name string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMBotChannelMsTeamsDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Bot.ChannelClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_bot_channel_ms_teams" {

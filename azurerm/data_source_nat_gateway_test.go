@@ -6,16 +6,17 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMNatGateway_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	// Using alt location because the resource currently in private preview and is only available in eastus2.
-	location := testAltLocation()
+	location := acceptance.AltLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNatGateway_basic(ri, location),
@@ -29,11 +30,11 @@ func TestAccDataSourceAzureRMNatGateway_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
 	// Using alt location because the resource currently in private preview and is only available in eastus2.
-	location := testAltLocation()
+	location := acceptance.AltLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNatGateway_complete(ri, location),

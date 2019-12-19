@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	networkSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -91,8 +92,8 @@ func resourceArmVirtualWan() *schema.Resource {
 }
 
 func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VirtualWanClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.VirtualWanClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Virtual WAN creation.")
@@ -154,8 +155,8 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VirtualWanClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.VirtualWanClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := networkSvc.ParseVirtualWanID(d.Id())
@@ -191,8 +192,8 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmVirtualWanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VirtualWanClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.VirtualWanClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := networkSvc.ParseVirtualWanID(d.Id())

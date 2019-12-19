@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	resourceName := "azurerm_virtual_network_gateway_connection.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,11 +46,11 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_requiresImport(t *testing.T) 
 
 	resourceName := "azurerm_virtual_network_gateway_connection.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +61,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_requiresImport(t *testing.T) 
 			},
 			{
 				Config:      testAccAzureRMVirtualNetworkGatewayConnection_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_virtual_network_gateway_connection"),
+				ExpectError: acceptance.RequiresImportError("azurerm_virtual_network_gateway_connection"),
 			},
 		},
 	})
@@ -72,11 +74,11 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	ri2 := tf.AccRandTimeInt()
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
-	config := testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, sharedKey, testLocation(), testAltLocation())
+	config := testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, sharedKey, acceptance.Location(), acceptance.AltLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -94,11 +96,11 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -116,11 +118,11 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(t *testing
 	resourceName := "azurerm_virtual_network_gateway_connection.test"
 
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(ri, testLocation())
+	config := testAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -140,15 +142,15 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.
 
 	ri := tf.AccRandTimeInt()
 	ri2 := tf.AccRandTimeInt()
-	loc1 := testLocation()
-	loc2 := testAltLocation()
+	loc1 := acceptance.Location()
+	loc2 := acceptance.AltLocation()
 
 	firstSharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 	secondSharedKey := "4-r33ly-53cr37-1p53c-5h4r3d-k3y"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -183,8 +185,8 @@ func testCheckAzureRMVirtualNetworkGatewayConnectionExists(resourceName string) 
 		connectionName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.VnetGatewayConnectionsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetGatewayConnectionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, connectionName)
 		if err != nil {
@@ -200,8 +202,8 @@ func testCheckAzureRMVirtualNetworkGatewayConnectionExists(resourceName string) 
 }
 
 func testCheckAzureRMVirtualNetworkGatewayConnectionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.VnetGatewayConnectionsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetGatewayConnectionsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_network_gateway_connection" {

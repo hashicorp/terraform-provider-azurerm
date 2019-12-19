@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -24,12 +26,12 @@ func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
 		subscriptionID, ri, ri, outboundRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_basic(ri, outboundRuleName, testLocation()),
+				Config: testAccAzureRMLoadBalancerOutboundRule_basic(ri, outboundRuleName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
@@ -57,7 +59,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
 	outboundRuleName := fmt.Sprintf("OutboundRule-%d", ri)
-	location := testLocation()
+	location := acceptance.Location()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	outboundRuleId := fmt.Sprintf(
@@ -65,8 +67,8 @@ func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 		subscriptionID, ri, ri, outboundRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -80,7 +82,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLoadBalancerOutboundRule_requiresImport(ri, outboundRuleName, location),
-				ExpectError: testRequiresImportError("azurerm_lb_outbound_rule"),
+				ExpectError: acceptance.RequiresImportError("azurerm_lb_outbound_rule"),
 			},
 		},
 	})
@@ -92,19 +94,19 @@ func TestAccAzureRMLoadBalancerOutboundRule_removal(t *testing.T) {
 	outboundRuleName := fmt.Sprintf("OutboundRule-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_basic(ri, outboundRuleName, testLocation()),
+				Config: testAccAzureRMLoadBalancerOutboundRule_basic(ri, outboundRuleName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_removal(ri, testLocation()),
+				Config: testAccAzureRMLoadBalancerOutboundRule_removal(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerOutboundRuleNotExists(outboundRuleName, &lb),
@@ -121,12 +123,12 @@ func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
 	outboundRule2Name := fmt.Sprintf("OutboundRule-%d", tf.AccRandTimeInt())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_multipleRules(ri, outboundRuleName, outboundRule2Name, testLocation()),
+				Config: testAccAzureRMLoadBalancerOutboundRule_multipleRules(ri, outboundRuleName, outboundRule2Name, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
@@ -135,7 +137,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_multipleRulesUpdate(ri, outboundRuleName, outboundRule2Name, testLocation()),
+				Config: testAccAzureRMLoadBalancerOutboundRule_multipleRulesUpdate(ri, outboundRuleName, outboundRule2Name, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
@@ -158,12 +160,12 @@ func TestAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(t *testing.T) {
 		subscriptionID, ri, ri, outboundRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(ri, outboundRuleName, testLocation()),
+				Config: testAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(ri, outboundRuleName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
@@ -188,12 +190,12 @@ func TestAccAzureRMLoadBalancerOutboundRule_disappears(t *testing.T) {
 	outboundRuleName := fmt.Sprintf("OutboundRule-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerOutboundRule_basic(ri, outboundRuleName, testLocation()),
+				Config: testAccAzureRMLoadBalancerOutboundRule_basic(ri, outboundRuleName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
@@ -227,8 +229,8 @@ func testCheckAzureRMLoadBalancerOutboundRuleNotExists(outboundRuleName string, 
 
 func testCheckAzureRMLoadBalancerOutboundRuleDisappears(ruleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Network.LoadBalancersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		_, i, exists := findLoadBalancerOutboundRuleByName(lb, ruleName)
 		if !exists {

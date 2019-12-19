@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMSiteRecoveryProtectionContainer_basic(t *testing.T) {
@@ -15,12 +17,12 @@ func TestAccAzureRMSiteRecoveryProtectionContainer_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSiteRecoveryProtectionContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSiteRecoveryProtectionContainer_basic(ri, testLocation()),
+				Config: testAccAzureRMSiteRecoveryProtectionContainer_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSiteRecoveryProtectionContainerExists(resourceName),
 				),
@@ -78,8 +80,8 @@ func testCheckAzureRMSiteRecoveryProtectionContainerExists(resourceName string) 
 		fabricName := state.Primary.Attributes["recovery_fabric_name"]
 		protectionContainerName := state.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName)
 		if err != nil {
@@ -105,8 +107,8 @@ func testCheckAzureRMSiteRecoveryProtectionContainerDestroy(s *terraform.State) 
 		fabricName := rs.Primary.Attributes["recovery_fabric_name"]
 		protectionContainerName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName)
 		if err != nil {

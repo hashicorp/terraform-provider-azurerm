@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -24,12 +26,12 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 		subscriptionID, ri, ri, natRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_basic(ri, natRuleName, testLocation()),
+				Config: testAccAzureRMLoadBalancerNatRule_basic(ri, natRuleName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
@@ -57,7 +59,7 @@ func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
-	location := testLocation()
+	location := acceptance.Location()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	natRuleId := fmt.Sprintf(
@@ -65,8 +67,8 @@ func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
 		subscriptionID, ri, ri, natRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -80,7 +82,7 @@ func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLoadBalancerNatRule_requiresImport(ri, natRuleName, location),
-				ExpectError: testRequiresImportError("azurerm_lb_nat_rule"),
+				ExpectError: acceptance.RequiresImportError("azurerm_lb_nat_rule"),
 			},
 		},
 	})
@@ -92,19 +94,19 @@ func TestAccAzureRMLoadBalancerNatRule_removal(t *testing.T) {
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_basic(ri, natRuleName, testLocation()),
+				Config: testAccAzureRMLoadBalancerNatRule_basic(ri, natRuleName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_removal(ri, testLocation()),
+				Config: testAccAzureRMLoadBalancerNatRule_removal(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatRuleNotExists(natRuleName, &lb),
@@ -121,12 +123,12 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 	natRule2Name := fmt.Sprintf("NatRule-%d", tf.AccRandTimeInt())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_multipleRules(ri, natRuleName, natRule2Name, testLocation()),
+				Config: testAccAzureRMLoadBalancerNatRule_multipleRules(ri, natRuleName, natRule2Name, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
@@ -136,7 +138,7 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_multipleRulesUpdate(ri, natRuleName, natRule2Name, testLocation()),
+				Config: testAccAzureRMLoadBalancerNatRule_multipleRulesUpdate(ri, natRuleName, natRule2Name, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
@@ -155,12 +157,12 @@ func TestAccAzureRMLoadBalancerNatRule_disappears(t *testing.T) {
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerNatRule_basic(ri, natRuleName, testLocation()),
+				Config: testAccAzureRMLoadBalancerNatRule_basic(ri, natRuleName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
@@ -176,11 +178,11 @@ func TestAccAzureRMLoadBalancerNatRule_enableFloatingIP(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -198,11 +200,11 @@ func TestAccAzureRMLoadBalancerNatRule_disableFloatingIP(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
 	natRuleName := fmt.Sprintf("NatRule-%d", ri)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -254,8 +256,8 @@ func testCheckAzureRMLoadBalancerNatRuleNotExists(natRuleName string, lb *networ
 
 func testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Network.LoadBalancersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		_, i, exists := findLoadBalancerNatRuleByName(lb, natRuleName)
 		if !exists {

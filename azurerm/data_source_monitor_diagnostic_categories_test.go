@@ -7,16 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_diagnostic_categories.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceArmMonitorDiagnosticCategories_appService(ri, location),
@@ -32,11 +33,11 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
 func TestAccDataSourceArmMonitorDiagnosticCategories_storageAccount(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_diagnostic_categories.test"
 	rs := acctest.RandString(8)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(rs, location),

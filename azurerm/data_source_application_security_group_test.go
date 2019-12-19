@@ -6,17 +6,18 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_application_security_group.test"
 	ri := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceApplicationSecurityGroup_basic(ri, testLocation()),
+				Config: testAccDataSourceApplicationSecurityGroup_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "location"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
@@ -32,11 +33,11 @@ func TestAccDataSourceAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_application_security_group.test"
 	ri := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceApplicationSecurityGroup_complete(ri, testLocation()),
+				Config: testAccDataSourceApplicationSecurityGroup_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "location"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),

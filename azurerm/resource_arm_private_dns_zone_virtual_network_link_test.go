@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -15,11 +17,11 @@ import (
 func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 	resourceName := "azurerm_private_dns_zone_virtual_network_link.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(ri, testLocation())
+	config := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,11 +47,11 @@ func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(t *testing.T)
 
 	resourceName := "azurerm_private_dns_zone_virtual_network_link.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -60,7 +62,7 @@ func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(t *testing.T)
 			},
 			{
 				Config:      testAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_private_dns_zone_virtual_network_link"),
+				ExpectError: acceptance.RequiresImportError("azurerm_private_dns_zone_virtual_network_link"),
 			},
 		},
 	})
@@ -69,13 +71,13 @@ func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(t *testing.T)
 func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(t *testing.T) {
 	resourceName := "azurerm_private_dns_zone_virtual_network_link.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(ri, location)
 	postConfig := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -117,8 +119,8 @@ func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName string)
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS zone virtual network link: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).PrivateDns.VirtualNetworkLinksClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.VirtualNetworkLinksClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dnsZoneName, name)
 		if err != nil {
@@ -134,8 +136,8 @@ func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName string)
 }
 
 func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).PrivateDns.VirtualNetworkLinksClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.VirtualNetworkLinksClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_private_dns_zone_virtual_network_link" {

@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,12 +19,12 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_basicDaily(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(ri, acceptance.Location()),
 				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(resourceName, ri),
 			},
 			{
@@ -44,17 +46,17 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_requiresImport(t *testing.T) 
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(ri, acceptance.Location()),
 				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(resourceName, ri),
 			},
 			{
-				Config:      testAccAzureRMBackupProtectionPolicyFileShare_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_backup_policy_file_share"),
+				Config:      testAccAzureRMBackupProtectionPolicyFileShare_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_backup_policy_file_share"),
 			},
 		},
 	})
@@ -65,12 +67,12 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_updateDaily(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(ri, acceptance.Location()),
 				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(resourceName, ri),
 			},
 			{
@@ -79,7 +81,7 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_updateDaily(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMBackupProtectionPolicyFileShare_updateDaily(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectionPolicyFileShare_updateDaily(ri, acceptance.Location()),
 				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_updateDaily(resourceName, ri),
 			},
 			{
@@ -92,8 +94,8 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_updateDaily(t *testing.T) {
 }
 
 func testCheckAzureRMBackupProtectionPolicyFileShareDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectionPoliciesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionPoliciesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_backup_policy_file_share" {
@@ -121,8 +123,8 @@ func testCheckAzureRMBackupProtectionPolicyFileShareDestroy(s *terraform.State) 
 
 func testCheckAzureRMBackupProtectionPolicyFileShareExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectionPoliciesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionPoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

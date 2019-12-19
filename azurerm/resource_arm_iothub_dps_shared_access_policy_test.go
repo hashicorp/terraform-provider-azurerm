@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,12 +19,12 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubDpsSharedAccessPolicy_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotHubDpsSharedAccessPolicy_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", "acctest"),
@@ -41,12 +43,12 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(rInt, testLocation()),
+				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(rInt, acceptance.Location()),
 				ExpectError: regexp.MustCompile("If `registration_write` is set to true, `registration_read` must also be set to true"),
 			},
 		},
@@ -57,12 +59,12 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration(rInt, testLocation()),
+				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration(rInt, acceptance.Location()),
 				ExpectError: regexp.MustCompile("If `enrollment_read` is set to true, `registration_read` must also be set to true"),
 			},
 		},
@@ -73,12 +75,12 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(t *t
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(rInt, testLocation()),
+				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(rInt, acceptance.Location()),
 				ExpectError: regexp.MustCompile("If `enrollment_write` is set to true, `enrollment_read`, `registration_read`, and `registration_write` must also be set to true"),
 			},
 		},
@@ -191,7 +193,7 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
 
 func testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -206,7 +208,7 @@ func testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName string) reso
 		iothubDpsName := rs.Primary.Attributes["iothub_dps_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).IoTHub.DPSResourceClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 
 		_, err = client.ListKeysForKeyName(ctx, iothubDpsName, keyName, resourceGroup)
 		if err != nil {
@@ -218,8 +220,8 @@ func testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName string) reso
 }
 
 func testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).IoTHub.DPSResourceClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothub_dps_shared_access_policy" {

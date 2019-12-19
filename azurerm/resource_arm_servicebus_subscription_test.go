@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,12 +19,12 @@ func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusSubscription_basic(ri, testLocation()),
+				Config: testAccAzureRMServiceBusSubscription_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
 				),
@@ -45,19 +47,19 @@ func TestAccAzureRMServiceBusSubscription_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusSubscription_basic(ri, testLocation()),
+				Config: testAccAzureRMServiceBusSubscription_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMServiceBusSubscription_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_servicebus_subscription"),
+				Config:      testAccAzureRMServiceBusSubscription_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_servicebus_subscription"),
 			},
 		},
 	})
@@ -66,11 +68,11 @@ func TestAccAzureRMServiceBusSubscription_requiresImport(t *testing.T) {
 func TestAccAzureRMServiceBusSubscription_defaultTtl(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusSubscription_withDefaultTtl(ri, testLocation())
+	config := testAccAzureRMServiceBusSubscription_withDefaultTtl(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -92,13 +94,13 @@ func TestAccAzureRMServiceBusSubscription_defaultTtl(t *testing.T) {
 func TestAccAzureRMServiceBusSubscription_updateEnableBatched(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusSubscription_updateEnableBatched(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -125,13 +127,13 @@ func TestAccAzureRMServiceBusSubscription_updateEnableBatched(t *testing.T) {
 func TestAccAzureRMServiceBusSubscription_updateRequiresSession(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusSubscription_updateRequiresSession(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -158,15 +160,15 @@ func TestAccAzureRMServiceBusSubscription_updateRequiresSession(t *testing.T) {
 func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusSubscription_updateForwardTo(ri, location)
 
 	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_to-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -193,15 +195,15 @@ func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 func TestAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t *testing.T) {
 	resourceName := "azurerm_servicebus_subscription.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(ri, location)
 
 	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_dl_messages_to-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -226,8 +228,8 @@ func TestAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t 
 }
 
 func testCheckAzureRMServiceBusSubscriptionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).ServiceBus.SubscriptionsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.SubscriptionsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_subscription" {
@@ -271,8 +273,8 @@ func testCheckAzureRMServiceBusSubscriptionExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for Subscription: %q", topicName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).ServiceBus.SubscriptionsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.SubscriptionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName)
 		if err != nil {

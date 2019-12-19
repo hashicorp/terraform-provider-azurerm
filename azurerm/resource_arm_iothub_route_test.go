@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -20,12 +22,12 @@ func TestAccAzureRMIotHubRoute_basic(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubRoute_basic(rInt, rs, testLocation()),
+				Config: testAccAzureRMIotHubRoute_basic(rInt, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubRouteExists(resourceName),
 				),
@@ -48,11 +50,11 @@ func TestAccAzureRMIotHubRoute_requiresImport(t *testing.T) {
 	resourceName := "azurerm_iothub_route.test"
 	rInt := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -63,7 +65,7 @@ func TestAccAzureRMIotHubRoute_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubRoute_requiresImport(rInt, rs, location),
-				ExpectError: testRequiresImportError("azurerm_iothub_route"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_route"),
 			},
 		},
 	})
@@ -75,12 +77,12 @@ func TestAccAzureRMIotHubRoute_update(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubRoute_basic(rInt, rs, testLocation()),
+				Config: testAccAzureRMIotHubRoute_basic(rInt, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubRouteExists(resourceName),
 				),
@@ -91,7 +93,7 @@ func TestAccAzureRMIotHubRoute_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMIotHubRoute_update(rInt, rs, testLocation()),
+				Config: testAccAzureRMIotHubRoute_update(rInt, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubRouteExists(resourceName),
 				),
@@ -106,8 +108,8 @@ func TestAccAzureRMIotHubRoute_update(t *testing.T) {
 }
 
 func testCheckAzureRMIotHubRouteDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothub_route" {
@@ -146,7 +148,7 @@ func testCheckAzureRMIotHubRouteDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotHubRouteExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -160,7 +162,7 @@ func testCheckAzureRMIotHubRouteExists(resourceName string) resource.TestCheckFu
 		routeName := parsedIothubId.Path["Routes"]
 		resourceGroup := parsedIothubId.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {

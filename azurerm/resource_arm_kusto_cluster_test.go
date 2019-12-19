@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,12 +19,12 @@ func TestAccAzureRMKustoCluster_basic(t *testing.T) {
 	rs := acctest.RandString(6)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_basic(ri, rs, testLocation()),
+				Config: testAccAzureRMKustoCluster_basic(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoClusterExists(resourceName),
 				),
@@ -40,12 +42,12 @@ func TestAccAzureRMKustoCluster_withTags(t *testing.T) {
 	resourceName := "azurerm_kusto_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
-	preConfig := testAccAzureRMKustoCluster_withTags(ri, rs, testLocation())
-	postConfig := testAccAzureRMKustoCluster_withTagsUpdate(ri, rs, testLocation())
+	preConfig := testAccAzureRMKustoCluster_withTags(ri, rs, acceptance.Location())
+	postConfig := testAccAzureRMKustoCluster_withTagsUpdate(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,12 +75,12 @@ func TestAccAzureRMKustoCluster_sku(t *testing.T) {
 	resourceName := "azurerm_kusto_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
-	preConfig := testAccAzureRMKustoCluster_basic(ri, rs, testLocation())
-	postConfig := testAccAzureRMKustoCluster_skuUpdate(ri, rs, testLocation())
+	preConfig := testAccAzureRMKustoCluster_basic(ri, rs, acceptance.Location())
+	postConfig := testAccAzureRMKustoCluster_skuUpdate(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -191,7 +193,7 @@ resource "azurerm_kusto_cluster" "test" {
 }
 
 func testCheckAzureRMKustoClusterDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Kusto.ClustersClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_kusto_cluster" {
@@ -201,7 +203,7 @@ func testCheckAzureRMKustoClusterDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -231,8 +233,8 @@ func testCheckAzureRMKustoClusterExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for Kusto Cluster: %s", kustoCluster)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Kusto.ClustersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, kustoCluster)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

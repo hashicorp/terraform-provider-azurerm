@@ -7,16 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMAutomationVariableBool_basic(t *testing.T) {
 	resourceName := "azurerm_automation_variable_bool.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -38,11 +39,11 @@ func TestAccAzureRMAutomationVariableBool_basic(t *testing.T) {
 func TestAccAzureRMAutomationVariableBool_complete(t *testing.T) {
 	resourceName := "azurerm_automation_variable_bool.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -65,11 +66,11 @@ func TestAccAzureRMAutomationVariableBool_complete(t *testing.T) {
 func TestAccAzureRMAutomationVariableBool_basicCompleteUpdate(t *testing.T) {
 	resourceName := "azurerm_automation_variable_bool.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
 		Steps: []resource.TestStep{
 			{

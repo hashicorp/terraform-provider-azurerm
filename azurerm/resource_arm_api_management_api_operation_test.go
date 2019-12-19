@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMApiManagementApiOperation_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementApiOperationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,11 +46,11 @@ func TestAccAzureRMApiManagementApiOperation_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_api_operation.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementApiOperationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +61,7 @@ func TestAccAzureRMApiManagementApiOperation_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApiManagementApiOperation_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_api_operation"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_api_operation"),
 			},
 		},
 	})
@@ -68,11 +70,11 @@ func TestAccAzureRMApiManagementApiOperation_requiresImport(t *testing.T) {
 func TestAccAzureRMApiManagementApiOperation_customMethod(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementApiOperationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -94,11 +96,11 @@ func TestAccAzureRMApiManagementApiOperation_customMethod(t *testing.T) {
 func TestAccAzureRMApiManagementApiOperation_headers(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementApiOperationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -119,11 +121,11 @@ func TestAccAzureRMApiManagementApiOperation_headers(t *testing.T) {
 func TestAccAzureRMApiManagementApiOperation_requestRepresentations(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementApiOperationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -156,11 +158,11 @@ func TestAccAzureRMApiManagementApiOperation_representations(t *testing.T) {
 	// TODO: once `azurerm_api_management_schema` is supported add `request.0.representation.0.schema_id`
 	resourceName := "azurerm_api_management_api_operation.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementApiOperationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -190,8 +192,8 @@ func TestAccAzureRMApiManagementApiOperation_representations(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementApiOperationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiOperationsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api_operation" {
@@ -231,8 +233,8 @@ func testCheckAzureRMApiManagementApiOperationExists(name string) resource.TestC
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiOperationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationId)
 		if err != nil {

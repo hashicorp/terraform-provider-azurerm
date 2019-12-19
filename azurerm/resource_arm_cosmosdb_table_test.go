@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,12 +18,12 @@ func TestAccAzureRMCosmosDbTable_basic(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbTable_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbTable_basic(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbTableExists(resourceName),
 				),
@@ -40,13 +42,13 @@ func TestAccAzureRMCosmosDbTable_update(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbTableDestroy,
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbTable_throughput(ri, testLocation(), 700),
+				Config: testAccAzureRMCosmosDbTable_throughput(ri, acceptance.Location(), 700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbTableExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "700"),
@@ -59,7 +61,7 @@ func TestAccAzureRMCosmosDbTable_update(t *testing.T) {
 			},
 			{
 
-				Config: testAccAzureRMCosmosDbTable_throughput(ri, testLocation(), 1700),
+				Config: testAccAzureRMCosmosDbTable_throughput(ri, acceptance.Location(), 1700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbTableExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "1700"),
@@ -75,8 +77,8 @@ func TestAccAzureRMCosmosDbTable_update(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDbTableDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cosmosdb_table" {
@@ -104,8 +106,8 @@ func testCheckAzureRMCosmosDbTableDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDbTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

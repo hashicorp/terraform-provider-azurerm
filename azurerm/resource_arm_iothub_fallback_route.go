@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -70,8 +71,8 @@ func resourceArmIotHubFallbackRoute() *schema.Resource {
 }
 
 func resourceArmIotHubFallbackRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).IoTHub.ResourceClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	iothubName := d.Get("iothub_name").(string)
@@ -122,8 +123,8 @@ func resourceArmIotHubFallbackRouteCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmIotHubFallbackRouteRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).IoTHub.ResourceClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
@@ -156,8 +157,8 @@ func resourceArmIotHubFallbackRouteRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmIotHubFallbackRouteDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).IoTHub.ResourceClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())

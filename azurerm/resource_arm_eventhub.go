@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -151,8 +152,8 @@ func resourceArmEventHub() *schema.Resource {
 }
 
 func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Eventhub.EventHubsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Eventhub.EventHubsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
@@ -211,8 +212,8 @@ func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Eventhub.EventHubsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Eventhub.EventHubsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -251,8 +252,8 @@ func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Eventhub.EventHubsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Eventhub.EventHubsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

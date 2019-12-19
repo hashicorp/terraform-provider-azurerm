@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -62,12 +64,12 @@ func testAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists(resourceName, &erc),
 				),
@@ -91,11 +93,11 @@ func testAccAzureRMExpressRouteCircuit_requiresImport(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -106,7 +108,7 @@ func testAccAzureRMExpressRouteCircuit_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMExpressRouteCircuit_requiresImportConfig(ri, location),
-				ExpectError: testRequiresImportError("azurerm_express_route_circuit"),
+				ExpectError: acceptance.RequiresImportError("azurerm_express_route_circuit"),
 			},
 		},
 	})
@@ -118,12 +120,12 @@ func testAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists(resourceName, &erc),
 				),
@@ -143,19 +145,19 @@ func testAccAzureRMExpressRouteCircuit_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists(resourceName, &erc),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "MeteredData"),
 				),
 			},
 			{
-				Config: testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists(resourceName, &erc),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "UnlimitedData"),
@@ -171,19 +173,19 @@ func testAccAzureRMExpressRouteCircuit_tierUpdate(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuit_sku(ri, testLocation(), "Standard", "MeteredData"),
+				Config: testAccAzureRMExpressRouteCircuit_sku(ri, acceptance.Location(), "Standard", "MeteredData"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Standard"),
 				),
 			},
 			{
-				Config: testAccAzureRMExpressRouteCircuit_sku(ri, testLocation(), "Premium", "MeteredData"),
+				Config: testAccAzureRMExpressRouteCircuit_sku(ri, acceptance.Location(), "Premium", "MeteredData"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Premium"),
@@ -199,12 +201,12 @@ func testAccAzureRMExpressRouteCircuit_premiumMetered(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuit_sku(ri, testLocation(), "Premium", "MeteredData"),
+				Config: testAccAzureRMExpressRouteCircuit_sku(ri, acceptance.Location(), "Premium", "MeteredData"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Premium"),
@@ -226,12 +228,12 @@ func testAccAzureRMExpressRouteCircuit_premiumUnlimited(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuit_sku(ri, testLocation(), "Premium", "UnlimitedData"),
+				Config: testAccAzureRMExpressRouteCircuit_sku(ri, acceptance.Location(), "Premium", "UnlimitedData"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Premium"),
@@ -253,19 +255,19 @@ func testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T
 	ri := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuit_allowClassicOperations(ri, testLocation(), "false"),
+				Config: testAccAzureRMExpressRouteCircuit_allowClassicOperations(ri, acceptance.Location(), "false"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
 					resource.TestCheckResourceAttr(resourceName, "allow_classic_operations", "false"),
 				),
 			},
 			{
-				Config: testAccAzureRMExpressRouteCircuit_allowClassicOperations(ri, testLocation(), "true"),
+				Config: testAccAzureRMExpressRouteCircuit_allowClassicOperations(ri, acceptance.Location(), "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
 					resource.TestCheckResourceAttr(resourceName, "allow_classic_operations", "true"),
@@ -288,8 +290,8 @@ func testCheckAzureRMExpressRouteCircuitExists(resourceName string, erc *network
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit: %s", expressRouteCircuitName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.ExpressRouteCircuitsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteCircuitsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, expressRouteCircuitName)
 		if err != nil {
@@ -307,8 +309,8 @@ func testCheckAzureRMExpressRouteCircuitExists(resourceName string, erc *network
 }
 
 func testCheckAzureRMExpressRouteCircuitDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.ExpressRouteCircuitsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteCircuitsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_express_route_circuit" {

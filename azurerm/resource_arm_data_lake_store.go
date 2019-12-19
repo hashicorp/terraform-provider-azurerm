@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -120,8 +121,8 @@ func resourceArmDataLakeStore() *schema.Resource {
 }
 
 func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Datalake.StoreAccountsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Datalake.StoreAccountsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -188,8 +189,8 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Datalake.StoreAccountsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Datalake.StoreAccountsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -221,8 +222,8 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Datalake.StoreAccountsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Datalake.StoreAccountsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -267,8 +268,8 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Datalake.StoreAccountsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Datalake.StoreAccountsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -22,14 +24,14 @@ func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Eventual), "", ""),
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, acceptance.Location(), string(documentdb.Eventual), "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Eventual), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.Eventual), 1),
 				),
 			},
 			{
@@ -48,22 +50,22 @@ func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_cosmosdb_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDBAccount_basic(ri, location, string(documentdb.Eventual), "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Eventual), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.Eventual), 1),
 				),
 			},
 			{
 				Config:      testAccAzureRMCosmosDBAccount_requiresImport(ri, location, string(documentdb.Eventual), "", ""),
-				ExpectError: testRequiresImportError("azurerm_cosmosdb_account"),
+				ExpectError: acceptance.RequiresImportError("azurerm_cosmosdb_account"),
 			},
 		},
 	})
@@ -74,14 +76,14 @@ func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "", ""),
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, acceptance.Location(), string(documentdb.Session), "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.Session), 1),
 				),
 			},
 			{
@@ -98,14 +100,14 @@ func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Strong), "", ""),
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, acceptance.Location(), string(documentdb.Strong), "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Strong), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.Strong), 1),
 				),
 			},
 			{
@@ -122,14 +124,14 @@ func TestAccAzureRMCosmosDBAccount_consistentPrefix(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.ConsistentPrefix), "", ""),
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, acceptance.Location(), string(documentdb.ConsistentPrefix), "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.ConsistentPrefix), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.ConsistentPrefix), 1),
 				),
 			},
 			{
@@ -146,14 +148,14 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.BoundedStaleness), "", ""),
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, acceptance.Location(), string(documentdb.BoundedStaleness), "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 				),
 			},
 			{
@@ -170,14 +172,14 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_boundedStaleness_complete(ri, testLocation()),
+				Config: testAccAzureRMCosmosDBAccount_boundedStaleness_complete(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "consistency_policy.0.max_interval_in_seconds", "10"),
 					resource.TestCheckResourceAttr(resourceName, "consistency_policy.0.max_staleness_prefix", "200"),
 				),
@@ -196,17 +198,17 @@ func TestAccAzureRMCosmosDBAccount_consistency_change(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "", ""),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session), 1),
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, acceptance.Location(), string(documentdb.Session), "", ""),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.Session), 1),
 			},
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.BoundedStaleness), "", ""),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, acceptance.Location(), string(documentdb.BoundedStaleness), "", ""),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 			},
 			{
 				ResourceName:      resourceName,
@@ -223,14 +225,14 @@ func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_mongoDB(ri, testLocation()),
+				Config: testAccAzureRMCosmosDBAccount_mongoDB(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
 					resource.TestCheckResourceAttr(resourceName, "connection_strings.#", "4"),
 				),
@@ -249,14 +251,14 @@ func TestAccAzureRMCosmosDBAccount_capabilityGremlin(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_capabilityGremlin(ri, testLocation()),
+				Config: testAccAzureRMCosmosDBAccount_capabilityGremlin(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
 				),
 			},
@@ -274,14 +276,14 @@ func TestAccAzureRMCosmosDBAccount_capabilityTable(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_capabilityTable(ri, testLocation()),
+				Config: testAccAzureRMCosmosDBAccount_capabilityTable(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
 				),
 			},
@@ -299,14 +301,14 @@ func TestAccAzureRMCosmosDBAccount_capabilityCassandra(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_capabilityCassandra(ri, testLocation()),
+				Config: testAccAzureRMCosmosDBAccount_capabilityCassandra(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
 				),
 			},
@@ -324,14 +326,14 @@ func TestAccAzureRMCosmosDBAccount_capabilityAggregationPipeline(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_capabilityAggregationPipeline(ri, testLocation()),
+				Config: testAccAzureRMCosmosDBAccount_capabilityAggregationPipeline(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
 				),
 			},
@@ -349,14 +351,14 @@ func TestAccAzureRMCosmosDBAccount_capabilityMongo35(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_capabilityMongo34(ri, testLocation()),
+				Config: testAccAzureRMCosmosDBAccount_capabilityMongo34(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
 				),
 			},
@@ -374,14 +376,14 @@ func TestAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(ri, testLocation()),
+				Config: testAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
 				),
 			},
@@ -399,21 +401,21 @@ func TestAccAzureRMCosmosDBAccount_capabilityUpdate(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(ri, testLocation()),
+				Config: testAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
 				),
 			},
 			{
-				Config: testAccAzureRMCosmosDBAccount_capabilityMongo34(ri, testLocation()),
+				Config: testAccAzureRMCosmosDBAccount_capabilityMongo34(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
 				),
 			},
@@ -431,17 +433,17 @@ func TestAbcAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "", ""),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session), 1),
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, acceptance.Location(), string(documentdb.Session), "", ""),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.Session), 1),
 			},
 			{
-				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation()),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
+				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, acceptance.Location(), acceptance.AltLocation()),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 2),
 			},
 			{
 				ResourceName:      resourceName,
@@ -458,14 +460,14 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 2),
 				),
 			},
 			{
@@ -482,14 +484,14 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_non_boundedStaleness_cp(t *test
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customConsistencyLevel(ri, testLocation(), testAltLocation(), documentdb.Session),
+				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customConsistencyLevel(ri, acceptance.Location(), acceptance.AltLocation(), documentdb.Session),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session), 2),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.Session), 2),
 				),
 			},
 			{
@@ -504,28 +506,28 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_non_boundedStaleness_cp(t *test
 func TestAccAzureRMCosmosDBAccount_geoReplicated_add_remove(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	configBasic := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.BoundedStaleness), "", "")
-	configReplicated := testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation())
+	configBasic := testAccAzureRMCosmosDBAccount_basic(ri, acceptance.Location(), string(documentdb.BoundedStaleness), "", "")
+	configReplicated := testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, acceptance.Location(), acceptance.AltLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic,
-				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 			},
 			{
 				Config: configReplicated,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 2),
 				),
 			},
 			{
 				Config: configBasic,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 				),
 			},
 			{
@@ -542,17 +544,17 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_geoReplicated(ri, testLocation(), testAltLocation()),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
+				Config: testAccAzureRMCosmosDBAccount_geoReplicated(ri, acceptance.Location(), acceptance.AltLocation()),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 2),
 			},
 			{
-				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation()),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
+				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, acceptance.Location(), acceptance.AltLocation()),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 2),
 			},
 			{
 				ResourceName:      resourceName,
@@ -568,13 +570,13 @@ func TestAccAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_virtualNetworkFilter(ri, testLocation()),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+				Config: testAccAzureRMCosmosDBAccount_virtualNetworkFilter(ri, acceptance.Location()),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 1),
 			},
 			{
 				ResourceName:      resourceName,
@@ -591,18 +593,18 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "", ""),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session), 1),
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, acceptance.Location(), string(documentdb.Session), "", ""),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.Session), 1),
 			},
 			{
-				Config: testAccAzureRMCosmosDBAccount_complete(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMCosmosDBAccount_complete(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 2),
 					resource.TestCheckResourceAttr(resourceName, "ip_range_filter", "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45/32,52.187.184.26,10.20.0.0/16"),
 					resource.TestCheckResourceAttr(resourceName, "enable_automatic_failover", "true"),
 				),
@@ -621,14 +623,14 @@ func TestAccAzureRMCosmosDBAccount_emptyIpFilter(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_emptyIpFilter(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMCosmosDBAccount_emptyIpFilter(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, acceptance.Location(), string(documentdb.BoundedStaleness), 2),
 					resource.TestCheckResourceAttr(resourceName, "ip_range_filter", ""),
 					resource.TestCheckResourceAttr(resourceName, "enable_automatic_failover", "true"),
 				),
@@ -647,12 +649,12 @@ func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_multiMaster(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMCosmosDBAccount_multiMaster(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "geo_location.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "write_endpoints.#", "2"),
@@ -669,8 +671,8 @@ func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cosmosdb_account" {
@@ -695,8 +697,8 @@ func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDBAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

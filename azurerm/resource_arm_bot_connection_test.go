@@ -8,17 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func testAccAzureRMBotConnection_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotConnection_basicConfig(ri, testLocation())
+	config := testAccAzureRMBotConnection_basicConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_connection.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -42,13 +44,13 @@ func testAccAzureRMBotConnection_basic(t *testing.T) {
 
 func testAccAzureRMBotConnection_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotConnection_completeConfig(ri, testLocation())
-	config2 := testAccAzureRMBotConnection_completeUpdateConfig(ri, testLocation())
+	config := testAccAzureRMBotConnection_completeConfig(ri, acceptance.Location())
+	config2 := testAccAzureRMBotConnection_completeUpdateConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_connection.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -100,8 +102,8 @@ func testCheckAzureRMBotConnectionExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channels Registration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Bot.ConnectionClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ConnectionClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, botName, name)
 		if err != nil {
@@ -117,8 +119,8 @@ func testCheckAzureRMBotConnectionExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMBotConnectionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Bot.ConnectionClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ConnectionClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_bot" {

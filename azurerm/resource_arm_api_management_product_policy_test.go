@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMApiManagementProductPolicy_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_product_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,11 +47,11 @@ func TestAccAzureRMApiManagementProductPolicy_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_product_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -60,7 +62,7 @@ func TestAccAzureRMApiManagementProductPolicy_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApiManagementProductPolicy_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_product"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_product"),
 			},
 		},
 	})
@@ -69,11 +71,11 @@ func TestAccAzureRMApiManagementProductPolicy_requiresImport(t *testing.T) {
 func TestAccAzureRMApiManagementProductPolicy_update(t *testing.T) {
 	resourceName := "azurerm_api_management_product_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -110,8 +112,8 @@ func testCheckAzureRMApiManagementProductPolicyExists(resourceName string) resou
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductPoliciesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductPoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productID)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -126,7 +128,7 @@ func testCheckAzureRMApiManagementProductPolicyExists(resourceName string) resou
 }
 
 func testCheckAzureRMApiManagementProductPolicyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductPoliciesClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductPoliciesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product_policy" {
@@ -136,7 +138,7 @@ func testCheckAzureRMApiManagementProductPolicyDestroy(s *terraform.State) error
 		productID := rs.Primary.Attributes["product_id"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productID)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

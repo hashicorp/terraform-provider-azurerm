@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -50,8 +51,8 @@ func resourceArmAdvancedThreatProtection() *schema.Resource {
 }
 
 func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceID := d.Get("target_resource_id").(string)
@@ -89,8 +90,8 @@ func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := securitycenter.ParseAdvancedThreatProtectionID(d.Id())
@@ -118,8 +119,8 @@ func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := securitycenter.ParseAdvancedThreatProtectionID(d.Id())

@@ -9,17 +9,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(ri, testLocation())
+	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -39,12 +41,12 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
 
 func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(ri, testLocation())
+	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -67,12 +69,12 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testi
 
 func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(ri, testLocation())
+	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -99,12 +101,12 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T
 func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(6)
-	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(ri, testLocation(), rs)
+	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(ri, acceptance.Location(), rs)
 	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -316,8 +318,8 @@ func testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(name string) res
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory Managed Integration Runtime: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).DataFactory.IntegrationRuntimesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.IntegrationRuntimesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 		if err != nil {
@@ -333,8 +335,8 @@ func testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(name string) res
 }
 
 func testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).DataFactory.IntegrationRuntimesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.IntegrationRuntimesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_factory_integration_managed" {

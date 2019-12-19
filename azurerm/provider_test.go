@@ -6,29 +6,19 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-var testAccProviders map[string]terraform.ResourceProvider
-var testAccProvider *schema.Provider
+// NOTE: this file has to remain in the root until all resources have been migrated into
+// packages & out of the root, since it requires an empty initializer for the AzureProvider
+// this will end up in ./azurerm/internal/acceptance
 
 func init() {
 	azureProvider := Provider().(*schema.Provider)
 
-	testAccProvider = azureProvider
-	acceptance.AzureProvider = azureProvider
-
-	// NOTE: these /cannot/ be simplified into a single shared variable (tried, it causes a nil-slice)
-	testAccProviders = map[string]terraform.ResourceProvider{
-		"azurerm": testAccProvider,
-		"azuread": azuread.Provider().(*schema.Provider),
-	}
-	acceptance.SupportedProviders = map[string]terraform.ResourceProvider{
-		"azurerm": testAccProvider,
-		"azuread": azuread.Provider().(*schema.Provider),
-	}
+	// HACK: remove this as soon as we can (when everything's moved out of the root,
+	//       so ultimately when the AzureProvider function takes no args)
+	acceptance.CustomInit(azureProvider)
 }
 
 func TestProvider(t *testing.T) {

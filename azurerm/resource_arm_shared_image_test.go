@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,12 +19,12 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImage_basic(ri, testLocation()),
+				Config: testAccAzureRMSharedImage_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
@@ -44,11 +46,11 @@ func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_shared_image.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -60,7 +62,7 @@ func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMSharedImage_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_shared_image"),
+				ExpectError: acceptance.RequiresImportError("azurerm_shared_image"),
 			},
 		},
 	})
@@ -71,12 +73,12 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImage_complete(ri, testLocation()),
+				Config: testAccAzureRMSharedImage_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
@@ -96,8 +98,8 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 }
 
 func testCheckAzureRMSharedImageDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Compute.GalleryImagesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleryImagesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_shared_image" {
@@ -139,8 +141,8 @@ func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for Shared Image: %s", imageName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.GalleryImagesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleryImagesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, galleryName, imageName)
 		if err != nil {

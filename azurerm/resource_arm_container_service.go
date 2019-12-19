@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -208,8 +209,8 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 }
 
 func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	containerServiceClient := client.Containers.ServicesClient
 
@@ -303,8 +304,8 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) error {
-	containerServiceClient := meta.(*ArmClient).Containers.ServicesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	containerServiceClient := meta.(*clients.Client).Containers.ServicesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -355,8 +356,8 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	containerServiceClient := client.Containers.ServicesClient
 
@@ -570,7 +571,7 @@ func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []contai
 	return profiles
 }
 
-func containerServiceStateRefreshFunc(ctx context.Context, client *ArmClient, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
+func containerServiceStateRefreshFunc(ctx context.Context, client *clients.Client, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Containers.ServicesClient.Get(ctx, resourceGroupName, containerServiceName)
 		if err != nil {

@@ -25,11 +25,9 @@ func TestAzureRMStorageTableMigrateStateV0ToV1(t *testing.T) {
 			"name":                 "table1",
 			"storage_account_name": "account1",
 		}
-		meta := &ArmClient{
-			Client: clients.Client{
-				Account: &clients.ResourceManagerAccount{
-					Environment: cloud,
-				},
+		meta := &clients.Client{
+			Account: &clients.ResourceManagerAccount{
+				Environment: cloud,
 			},
 		}
 		suffix := meta.Account.Environment.StorageEndpointSuffix
@@ -64,11 +62,9 @@ func TestAzureRMStorageTableMigrateStateV1ToV2(t *testing.T) {
 	for _, cloud := range clouds {
 		t.Logf("[DEBUG] Testing with Cloud %q", cloud.Name)
 
-		meta := &ArmClient{
-			Client: clients.Client{
-				Account: &clients.ResourceManagerAccount{
-					Environment: cloud,
-				},
+		meta := &clients.Client{
+			Account: &clients.ResourceManagerAccount{
+				Environment: cloud,
 			},
 		}
 		suffix := meta.Account.Environment.StorageEndpointSuffix

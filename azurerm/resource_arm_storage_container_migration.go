@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func resourceStorageContainerMigrateState(v int, is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
@@ -25,7 +26,7 @@ func migrateStorageContainerStateV0toV1(is *terraform.InstanceState, meta interf
 
 	log.Printf("[DEBUG] ARM Storage Container Attributes before Migration: %#v", is.Attributes)
 
-	environment := meta.(*ArmClient).Account.Environment
+	environment := meta.(*clients.Client).Account.Environment
 
 	containerName := is.Attributes["name"]
 	storageAccountName := is.Attributes["storage_account_name"]

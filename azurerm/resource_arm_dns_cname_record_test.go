@@ -9,17 +9,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsCNameRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsCNameRecord_basic(ri, testLocation())
+	config := testAccAzureRMDnsCNameRecord_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,11 +48,11 @@ func TestAccAzureRMDnsCNameRecord_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dns_cname_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +63,7 @@ func TestAccAzureRMDnsCNameRecord_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDnsCNameRecord_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_dns_cname_record"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dns_cname_record"),
 			},
 		},
 	})
@@ -70,11 +72,11 @@ func TestAccAzureRMDnsCNameRecord_requiresImport(t *testing.T) {
 func TestAccAzureRMDnsCNameRecord_subdomain(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsCNameRecord_subdomain(ri, testLocation())
+	config := testAccAzureRMDnsCNameRecord_subdomain(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -96,13 +98,13 @@ func TestAccAzureRMDnsCNameRecord_subdomain(t *testing.T) {
 func TestAccAzureRMDnsCNameRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsCNameRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsCNameRecord_updateRecords(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -124,13 +126,13 @@ func TestAccAzureRMDnsCNameRecord_updateRecords(t *testing.T) {
 func TestAccAzureRMDnsCNameRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsCNameRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsCNameRecord_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -161,13 +163,13 @@ func TestAccAzureRMDnsCNameRecord_withAlias(t *testing.T) {
 	targetResourceName := "azurerm_dns_cname_record.target"
 	targetResourceName2 := "azurerm_dns_cname_record.target2"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsCNameRecord_withAlias(ri, location)
 	postConfig := testAccAzureRMDnsCNameRecord_withAliasUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -197,13 +199,13 @@ func TestAccAzureRMDnsCNameRecord_RecordToAlias(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
 	targetResourceName := "azurerm_public_ip.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(ri, location)
 	postConfig := testAccAzureRMDnsCNameRecord_AliasToRecord(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -233,13 +235,13 @@ func TestAccAzureRMDnsCNameRecord_AliasToRecord(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
 	targetResourceName := "azurerm_public_ip.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsCNameRecord_AliasToRecord(ri, location)
 	postConfig := testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -280,8 +282,8 @@ func testCheckAzureRMDnsCNameRecordExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for DNS CNAME record: %s", cnameName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, cnameName, dns.CNAME)
 		if err != nil {
 			return fmt.Errorf("Bad: Get CNAME RecordSet: %v", err)
@@ -296,8 +298,8 @@ func testCheckAzureRMDnsCNameRecordExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMDnsCNameRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_cname_record" {

@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -92,12 +94,12 @@ func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
 	resourceName := "azurerm_network_watcher.test"
 	rInt := tf.AccRandTimeInt()
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
@@ -119,10 +121,10 @@ func testAccAzureRMNetworkWatcher_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_network_watcher.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -133,7 +135,7 @@ func testAccAzureRMNetworkWatcher_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMNetworkWatcher_requiresImportConfig(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_network_watcher"),
+				ExpectError: acceptance.RequiresImportError("azurerm_network_watcher"),
 			},
 		},
 	})
@@ -143,12 +145,12 @@ func testAccAzureRMNetworkWatcher_complete(t *testing.T) {
 	resourceName := "azurerm_network_watcher.test"
 	rInt := tf.AccRandTimeInt()
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
@@ -167,18 +169,18 @@ func testAccAzureRMNetworkWatcher_update(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
@@ -192,12 +194,12 @@ func testAccAzureRMNetworkWatcher_disappears(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherExists(resourceName),
 					testCheckAzureRMNetworkWatcherDisappears(resourceName),
@@ -221,8 +223,8 @@ func testCheckAzureRMNetworkWatcherExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.WatcherClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -249,8 +251,8 @@ func testCheckAzureRMNetworkWatcherDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.WatcherClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
 			if !response.WasNotFound(future.Response()) {
@@ -275,8 +277,8 @@ func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.WatcherClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {

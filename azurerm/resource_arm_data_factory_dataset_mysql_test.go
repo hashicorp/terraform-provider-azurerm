@@ -8,17 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDataFactoryDatasetMySQL_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryDatasetMySQL_basic(ri, testLocation())
+	config := testAccAzureRMDataFactoryDatasetMySQL_basic(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_dataset_mysql.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryDatasetMySQLDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -38,13 +40,13 @@ func TestAccAzureRMDataFactoryDatasetMySQL_basic(t *testing.T) {
 
 func TestAccAzureRMDataFactoryDatasetMySQL_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryDatasetMySQL_update1(ri, testLocation())
-	config2 := testAccAzureRMDataFactoryDatasetMySQL_update2(ri, testLocation())
+	config := testAccAzureRMDataFactoryDatasetMySQL_update1(ri, acceptance.Location())
+	config2 := testAccAzureRMDataFactoryDatasetMySQL_update2(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_dataset_mysql.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryDatasetMySQLDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -93,8 +95,8 @@ func testCheckAzureRMDataFactoryDatasetMySQLExists(name string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).DataFactory.DatasetClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
@@ -110,8 +112,8 @@ func testCheckAzureRMDataFactoryDatasetMySQLExists(name string) resource.TestChe
 }
 
 func testCheckAzureRMDataFactoryDatasetMySQLDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).DataFactory.DatasetClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_factory_dataset_mysql" {

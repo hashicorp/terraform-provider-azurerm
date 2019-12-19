@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -100,8 +101,8 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 }
 
 func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DevTestLabs.VirtualNetworksClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
@@ -126,7 +127,7 @@ func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interfa
 	description := d.Get("description").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	subscriptionId := meta.(*ArmClient).Account.SubscriptionId
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
 	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
 
@@ -162,8 +163,8 @@ func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DevTestLabs.VirtualNetworksClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -205,8 +206,8 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DevTestLabs.VirtualNetworksClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
@@ -218,7 +219,7 @@ func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interfa
 	description := d.Get("description").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	subscriptionId := meta.(*ArmClient).Account.SubscriptionId
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
 	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
 
@@ -254,8 +255,8 @@ func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DevTestLabs.VirtualNetworksClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

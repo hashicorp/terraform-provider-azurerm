@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -81,12 +83,12 @@ func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 		subscriptionID, ri, ri, lbRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, testLocation()),
+				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
@@ -116,12 +118,12 @@ func TestAccAzureRMLoadBalancerRule_disableoutboundsnat(t *testing.T) {
 		subscriptionID, ri, ri, lbRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerRule_disableoutboundsnat(ri, lbRuleName, testLocation()),
+				Config: testAccAzureRMLoadBalancerRule_disableoutboundsnat(ri, lbRuleName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
@@ -149,7 +151,7 @@ func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
-	location := testLocation()
+	location := acceptance.Location()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	lbRule_id := fmt.Sprintf(
@@ -157,8 +159,8 @@ func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
 		subscriptionID, ri, ri, lbRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -172,7 +174,7 @@ func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLoadBalancerRule_requiresImport(ri, lbRuleName, location),
-				ExpectError: testRequiresImportError("azurerm_lb_rule"),
+				ExpectError: acceptance.RequiresImportError("azurerm_lb_rule"),
 			},
 		},
 	})
@@ -184,19 +186,19 @@ func TestAccAzureRMLoadBalancerRule_removal(t *testing.T) {
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, testLocation()),
+				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerRule_removal(ri, testLocation()),
+				Config: testAccAzureRMLoadBalancerRule_removal(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerRuleNotExists(lbRuleName, &lb),
@@ -215,12 +217,12 @@ func TestAccAzureRMLoadBalancerRule_inconsistentReads(t *testing.T) {
 	probeName := fmt.Sprintf("LbProbe-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerRule_inconsistentRead(ri, backendPoolName, probeName, lbRuleName, testLocation()),
+				Config: testAccAzureRMLoadBalancerRule_inconsistentRead(ri, backendPoolName, probeName, lbRuleName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(backendPoolName, &lb),
@@ -248,12 +250,12 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 		subscriptionID, ri, ri, lbRule2Name)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerRule_multipleRules(ri, lbRuleName, lbRule2Name, testLocation()),
+				Config: testAccAzureRMLoadBalancerRule_multipleRules(ri, lbRuleName, lbRule2Name, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
@@ -265,7 +267,7 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerRule_multipleRulesUpdate(ri, lbRuleName, lbRule2Name, testLocation()),
+				Config: testAccAzureRMLoadBalancerRule_multipleRulesUpdate(ri, lbRuleName, lbRule2Name, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
@@ -286,12 +288,12 @@ func TestAccAzureRMLoadBalancerRule_disappears(t *testing.T) {
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, testLocation()),
+				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
@@ -327,8 +329,8 @@ func testCheckAzureRMLoadBalancerRuleNotExists(lbRuleName string, lb *network.Lo
 
 func testCheckAzureRMLoadBalancerRuleDisappears(ruleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Network.LoadBalancersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		_, i, exists := findLoadBalancerRuleByName(lb, ruleName)
 		if !exists {

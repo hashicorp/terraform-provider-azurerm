@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMRecoveryNetworkMapping_basic(t *testing.T) {
@@ -16,12 +18,12 @@ func TestAccAzureRMRecoveryNetworkMapping_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRecoveryNetworkMappingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryNetworkMapping_basic(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMRecoveryNetworkMapping_basic(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRecoveryNetworkMappingExists(resourceName),
 				),
@@ -110,8 +112,8 @@ func testCheckAzureRMRecoveryNetworkMappingExists(resourceName string) resource.
 		}
 		networkName := id.Path["virtualNetworks"]
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// TODO Fix Bad: networkMapping error
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
@@ -145,8 +147,8 @@ func testCheckAzureRMRecoveryNetworkMappingDestroy(s *terraform.State) error {
 		}
 		networkName := id.Path["virtualNetworks"]
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
 		if err != nil {

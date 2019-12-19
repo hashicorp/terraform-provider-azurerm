@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -18,12 +20,12 @@ func TestAccAzureRMBackupProtectedVm_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectedVm_basic(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedVm_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBackupProtectedVmExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
@@ -35,7 +37,7 @@ func TestAccAzureRMBackupProtectedVm_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{ //vault cannot be deleted unless we unregister all backups
-				Config: testAccAzureRMBackupProtectedVm_base(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedVm_base(ri, acceptance.Location()),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -52,23 +54,23 @@ func TestAccAzureRMBackupProtectedVm_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectedVm_basic(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedVm_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBackupProtectedVmExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
 				),
 			},
 			{
-				Config:      testAccAzureRMBackupProtectedVm_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_backup_protected_vm"),
+				Config:      testAccAzureRMBackupProtectedVm_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_backup_protected_vm"),
 			},
 			{ //vault cannot be deleted unless we unregister all backups
-				Config: testAccAzureRMBackupProtectedVm_base(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedVm_base(ri, acceptance.Location()),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -80,12 +82,12 @@ func TestAccAzureRMBackupProtectedVm_separateResourceGroups(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectedVm_separateResourceGroups(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedVm_separateResourceGroups(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBackupProtectedVmExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
@@ -97,7 +99,7 @@ func TestAccAzureRMBackupProtectedVm_separateResourceGroups(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{ //vault cannot be deleted unless we unregister all backups
-				Config: testAccAzureRMBackupProtectedVm_additionalVault(ri, testLocation()),
+				Config: testAccAzureRMBackupProtectedVm_additionalVault(ri, acceptance.Location()),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -113,13 +115,13 @@ func TestAccAzureRMBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{ // Create resources and link first backup policy id
 				ResourceName: fBackupPolicyResourceName,
-				Config:       testAccAzureRMBackupProtectedVm_linkFirstBackupPolicy(ri, testLocation()),
+				Config:       testAccAzureRMBackupProtectedVm_linkFirstBackupPolicy(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(protectedVmResourceName, "backup_policy_id", fBackupPolicyResourceName, "id"),
 				),
@@ -127,7 +129,7 @@ func TestAccAzureRMBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 			{ // Modify backup policy id to the second one
 				// Set Destroy false to prevent error from cleaning up dangling resource
 				ResourceName: sBackupPolicyResourceName,
-				Config:       testAccAzureRMBackupProtectedVm_linkSecondBackupPolicy(ri, testLocation()),
+				Config:       testAccAzureRMBackupProtectedVm_linkSecondBackupPolicy(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(protectedVmResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
 				),
@@ -136,17 +138,17 @@ func TestAccAzureRMBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 				// Backup policy link will need to be removed first so the VM's backup policy subsequently reverts to Default
 				// Azure API is quite sensitive, adding the step to control resource cleanup order
 				ResourceName: fBackupPolicyResourceName,
-				Config:       testAccAzureRMBackupProtectedVm_withVM(ri, testLocation()),
+				Config:       testAccAzureRMBackupProtectedVm_withVM(ri, acceptance.Location()),
 				Check:        resource.ComposeTestCheckFunc(),
 			},
 			{ // Then VM can be removed
 				ResourceName: virtualMachine,
-				Config:       testAccAzureRMBackupProtectedVm_withSecondPolicy(ri, testLocation()),
+				Config:       testAccAzureRMBackupProtectedVm_withSecondPolicy(ri, acceptance.Location()),
 				Check:        resource.ComposeTestCheckFunc(),
 			},
 			{ // Remove backup policies and vault
 				ResourceName: protectedVmResourceName,
-				Config:       testAccAzureRMBackupProtectedVm_basePolicyTest(ri, testLocation()),
+				Config:       testAccAzureRMBackupProtectedVm_basePolicyTest(ri, acceptance.Location()),
 				Check:        resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -175,8 +177,8 @@ func testCheckAzureRMBackupProtectedVmDestroy(s *terraform.State) error {
 		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectedItemsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {
@@ -222,8 +224,8 @@ func testCheckAzureRMBackupProtectedVmExists(resourceName string) resource.TestC
 		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectedItemsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {

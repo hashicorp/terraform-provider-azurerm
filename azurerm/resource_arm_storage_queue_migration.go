@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func resourceStorageQueueMigrateState(
@@ -26,7 +27,7 @@ func migrateStorageQueueStateV0toV1(is *terraform.InstanceState, meta interface{
 
 	log.Printf("[DEBUG] ARM Storage Queue Attributes before Migration: %#v", is.Attributes)
 
-	environment := meta.(*ArmClient).Account.Environment
+	environment := meta.(*clients.Client).Account.Environment
 
 	queueName := is.Attributes["name"]
 	storageAccountName := is.Attributes["storage_account_name"]

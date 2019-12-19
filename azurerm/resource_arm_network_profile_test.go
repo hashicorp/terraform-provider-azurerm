@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMNetworkProfile_basic(t *testing.T) {
 	resourceName := "azurerm_network_profile.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,11 +47,11 @@ func TestAccAzureRMNetworkProfile_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_network_profile.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -60,7 +62,7 @@ func TestAccAzureRMNetworkProfile_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMNetworkProfile_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_network_profile"),
+				ExpectError: acceptance.RequiresImportError("azurerm_network_profile"),
 			},
 		},
 	})
@@ -69,11 +71,11 @@ func TestAccAzureRMNetworkProfile_requiresImport(t *testing.T) {
 func TestAccAzureRMNetworkProfile_withTags(t *testing.T) {
 	resourceName := "azurerm_network_profile.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -105,11 +107,11 @@ func TestAccAzureRMNetworkProfile_withTags(t *testing.T) {
 func TestAccAzureRMNetworkProfile_disappears(t *testing.T) {
 	resourceName := "azurerm_network_profile.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -138,8 +140,8 @@ func testCheckAzureRMNetworkProfileExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Network Profile: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.ProfileClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -167,8 +169,8 @@ func testCheckAzureRMNetworkProfileDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Network Profile: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.ProfileClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		if _, err := client.Delete(ctx, resourceGroup, name); err != nil {
 			return fmt.Errorf("Bad: Delete on netProfileClient: %+v", err)
 		}
@@ -178,8 +180,8 @@ func testCheckAzureRMNetworkProfileDisappears(resourceName string) resource.Test
 }
 
 func testCheckAzureRMNetworkProfileDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.ProfileClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_network_profile" {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
@@ -39,9 +40,9 @@ func dataSourceArmSubscriptions() *schema.Resource {
 }
 
 func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
-	armClient := meta.(*ArmClient)
+	armClient := meta.(*clients.Client)
 	subClient := armClient.Subscription.Client
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	displayNamePrefix := strings.ToLower(d.Get("display_name_prefix").(string))

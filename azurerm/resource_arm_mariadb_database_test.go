@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMMariaDbDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_mariadb_database.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,11 +48,11 @@ func TestAccAzureRMMariaDbDatabase_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_mariadb_database.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +63,7 @@ func TestAccAzureRMMariaDbDatabase_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMMariaDbDatabase_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_mariadb_database"),
+				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_database"),
 			},
 		},
 	})
@@ -82,8 +84,8 @@ func testCheckAzureRMMariaDbDatabaseExists(resourceName string) resource.TestChe
 			return fmt.Errorf("bad: no resource group found in state for MariaDB database: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).MariaDB.DatabasesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.DatabasesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -98,8 +100,8 @@ func testCheckAzureRMMariaDbDatabaseExists(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMMariaDbDatabaseDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).MariaDB.DatabasesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.DatabasesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mariadb_database" {

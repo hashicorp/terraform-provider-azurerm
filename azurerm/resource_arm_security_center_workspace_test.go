@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -19,12 +21,12 @@ func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(ri, testLocation(), scope),
+				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(ri, acceptance.Location(), scope),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSecurityCenterWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "scope", scope),
@@ -55,20 +57,20 @@ func testAccAzureRMSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(ri, testLocation(), scope),
+				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(ri, acceptance.Location(), scope),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSecurityCenterWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "scope", scope),
 				),
 			},
 			{
-				Config:      testAccAzureRMSecurityCenterWorkspace_requiresImportCfg(ri, testLocation(), scope),
-				ExpectError: testRequiresImportError("azurerm_security_center_workspace"),
+				Config:      testAccAzureRMSecurityCenterWorkspace_requiresImportCfg(ri, acceptance.Location(), scope),
+				ExpectError: acceptance.RequiresImportError("azurerm_security_center_workspace"),
 			},
 			{
 				//reset pricing to free
@@ -85,18 +87,18 @@ func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(ri, testLocation(), scope),
+				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(ri, acceptance.Location(), scope),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSecurityCenterWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "scope", scope),
 				),
 			},
 			{
-				Config: testAccAzureRMSecurityCenterWorkspace_differentWorkspaceCfg(ri, testLocation(), scope),
+				Config: testAccAzureRMSecurityCenterWorkspace_differentWorkspaceCfg(ri, acceptance.Location(), scope),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSecurityCenterWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "scope", scope),
@@ -117,8 +119,8 @@ func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 
 func testCheckAzureRMSecurityCenterWorkspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).SecurityCenter.WorkspaceClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.WorkspaceClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -141,8 +143,8 @@ func testCheckAzureRMSecurityCenterWorkspaceExists(resourceName string) resource
 }
 
 func testCheckAzureRMSecurityCenterWorkspaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).SecurityCenter.WorkspaceClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.WorkspaceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, res := range s.RootModule().Resources {
 		if res.Type != "azurerm_security_center_workspace" {

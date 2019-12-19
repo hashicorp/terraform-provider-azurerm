@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -150,8 +151,8 @@ func resourceArmStorageBlob() *schema.Resource {
 }
 
 func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).Storage
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	storageClient := meta.(*clients.Client).Storage
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	accountName := d.Get("storage_account_name").(string)
@@ -213,8 +214,8 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).Storage
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	storageClient := meta.(*clients.Client).Storage
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := blobs.ParseResourceID(d.Id())
@@ -274,8 +275,8 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).Storage
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	storageClient := meta.(*clients.Client).Storage
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := blobs.ParseResourceID(d.Id())
@@ -334,8 +335,8 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).Storage
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	storageClient := meta.(*clients.Client).Storage
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := blobs.ParseResourceID(d.Id())

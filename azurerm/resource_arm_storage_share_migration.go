@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
 )
 
@@ -66,7 +67,7 @@ func resourceStorageShareStateUpgradeV1ToV2(rawState map[string]interface{}, met
 	shareName := parsedId[0]
 	accountName := parsedId[2]
 
-	environment := meta.(*ArmClient).Account.Environment
+	environment := meta.(*clients.Client).Account.Environment
 	client := shares.NewWithEnvironment(environment)
 
 	newResourceId := client.GetResourceID(accountName, shareName)

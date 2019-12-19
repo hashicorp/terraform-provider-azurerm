@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -66,8 +67,8 @@ func resourceArmRecoveryServicesBackupProtectedVM() *schema.Resource {
 }
 
 func resourceArmRecoveryServicesBackupProtectedVMCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).RecoveryServices.ProtectedItemsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -133,8 +134,8 @@ func resourceArmRecoveryServicesBackupProtectedVMCreateUpdate(d *schema.Resource
 }
 
 func resourceArmRecoveryServicesBackupProtectedVMRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).RecoveryServices.ProtectedItemsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -176,8 +177,8 @@ func resourceArmRecoveryServicesBackupProtectedVMRead(d *schema.ResourceData, me
 }
 
 func resourceArmRecoveryServicesBackupProtectedVMDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).RecoveryServices.ProtectedItemsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

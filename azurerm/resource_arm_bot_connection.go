@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -92,8 +93,8 @@ func resourceArmBotConnection() *schema.Resource {
 }
 
 func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Bot.ConnectionClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Bot.ConnectionClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -144,8 +145,8 @@ func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Bot.ConnectionClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Bot.ConnectionClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -184,8 +185,8 @@ func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Bot.ConnectionClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Bot.ConnectionClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -224,8 +225,8 @@ func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmBotConnectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Bot.ConnectionClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Bot.ConnectionClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

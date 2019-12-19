@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -16,12 +18,12 @@ func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation()),
+				Config: testAccAzureRMEventHubConsumerGroup_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
 				),
@@ -44,11 +46,11 @@ func TestAccAzureRMEventHubConsumerGroup_requiresImport(t *testing.T) {
 	resourceName := "azurerm_eventhub_consumer_group.test"
 	ri := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +61,7 @@ func TestAccAzureRMEventHubConsumerGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMEventHubConsumerGroup_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_eventhub_consumer_group"),
+				ExpectError: acceptance.RequiresImportError("azurerm_eventhub_consumer_group"),
 			},
 		},
 	})
@@ -70,12 +72,12 @@ func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation()),
+				Config: testAccAzureRMEventHubConsumerGroup_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
 				),
@@ -94,18 +96,18 @@ func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation()),
+				Config: testAccAzureRMEventHubConsumerGroup_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation()),
+				Config: testAccAzureRMEventHubConsumerGroup_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubConsumerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "user_metadata", "some-meta-data"),
@@ -121,8 +123,8 @@ func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 }
 
 func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Eventhub.ConsumerGroupClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.ConsumerGroupClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub_consumer_group" {
@@ -160,8 +162,8 @@ func testCheckAzureRMEventHubConsumerGroupExists(resourceName string) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub Consumer Group: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Eventhub.ConsumerGroupClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.ConsumerGroupClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		eventHubName := rs.Primary.Attributes["eventhub_name"]

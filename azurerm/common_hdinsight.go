@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -17,8 +18,8 @@ import (
 
 func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema.UpdateFunc {
 	return func(d *schema.ResourceData, meta interface{}) error {
-		client := meta.(*ArmClient).HDInsight.ClustersClient
-		ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+		client := meta.(*clients.Client).HDInsight.ClustersClient
+		ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
 		id, err := azure.ParseAzureResourceID(d.Id())
@@ -67,7 +68,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				log.Printf("[DEBUG] Detected change in edge nodes")
 				edgeNodeRaw := d.Get("roles.0.edge_node").([]interface{})
 				edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
-				applicationsClient := meta.(*ArmClient).HDInsight.ApplicationsClient
+				applicationsClient := meta.(*clients.Client).HDInsight.ApplicationsClient
 
 				oldEdgeNodeCount, newEdgeNodeCount := d.GetChange("roles.0.edge_node.0.target_instance_count")
 				oldEdgeNodeInt := oldEdgeNodeCount.(int)
@@ -110,8 +111,8 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 
 func hdinsightClusterDelete(clusterKind string) schema.DeleteFunc {
 	return func(d *schema.ResourceData, meta interface{}) error {
-		client := meta.(*ArmClient).HDInsight.ClustersClient
-		ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+		client := meta.(*clients.Client).HDInsight.ClustersClient
+		ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
 		id, err := azure.ParseAzureResourceID(d.Id())

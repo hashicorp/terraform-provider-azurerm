@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,8 +19,8 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
 	config := testAccAzureRMActiveDirectoryServicePrincipal_basic(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -48,8 +50,8 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_requiresImport(t *testing.T) 
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -60,7 +62,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_requiresImport(t *testing.T) 
 			},
 			{
 				Config:      testAccAzureRMActiveDirectoryServicePrincipal_requiresImport(id),
-				ExpectError: testRequiresImportError("azurerm_azuread_service_principal"),
+				ExpectError: acceptance.RequiresImportError("azurerm_azuread_service_principal"),
 			},
 		},
 	})
@@ -73,8 +75,8 @@ func testCheckAzureRMActiveDirectoryServicePrincipalExists(resourceName string) 
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Graph.ServicePrincipalsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ServicePrincipalsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
 		if err != nil {
@@ -94,8 +96,8 @@ func testCheckAzureRMActiveDirectoryServicePrincipalDestroy(s *terraform.State) 
 			continue
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Graph.ServicePrincipalsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ServicePrincipalsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
 		if err != nil {

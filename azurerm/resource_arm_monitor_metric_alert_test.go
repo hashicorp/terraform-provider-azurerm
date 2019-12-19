@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -17,11 +19,11 @@ func TestAccAzureRMMonitorMetricAlert_basic(t *testing.T) {
 	resourceName := "azurerm_monitor_metric_alert.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -57,11 +59,11 @@ func TestAccAzureRMMonitorMetricAlert_requiresImport(t *testing.T) {
 	resourceName := "azurerm_monitor_metric_alert.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -72,7 +74,7 @@ func TestAccAzureRMMonitorMetricAlert_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMMonitorMetricAlert_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_monitor_metric_alert"),
+				ExpectError: acceptance.RequiresImportError("azurerm_monitor_metric_alert"),
 			},
 		},
 	})
@@ -82,11 +84,11 @@ func TestAccAzureRMMonitorMetricAlert_complete(t *testing.T) {
 	resourceName := "azurerm_monitor_metric_alert.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMMonitorMetricAlert_complete(ri, rs, testLocation())
+	config := testAccAzureRMMonitorMetricAlert_complete(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -137,13 +139,13 @@ func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_metric_alert.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 	basicConfig := testAccAzureRMMonitorMetricAlert_basic(ri, rs, location)
 	completeConfig := testAccAzureRMMonitorMetricAlert_complete(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -357,8 +359,8 @@ resource "azurerm_monitor_metric_alert" "test" {
 }
 
 func testCheckAzureRMMonitorMetricAlertDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Monitor.MetricAlertsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.MetricAlertsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_monitor_metric_alert" {
 			continue
@@ -392,8 +394,8 @@ func testCheckAzureRMMonitorMetricAlertExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Metric Alert Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Monitor.MetricAlertsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.MetricAlertsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {

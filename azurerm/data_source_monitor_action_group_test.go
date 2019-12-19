@@ -8,16 +8,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceArmMonitorActionGroup_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_action_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccDataSourceArmMonitorActionGroup_basic(ri, testLocation())
+	config := testAccDataSourceArmMonitorActionGroup_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -44,11 +45,11 @@ func TestAccDataSourceArmMonitorActionGroup_basic(t *testing.T) {
 func TestAccDataSourceArmMonitorActionGroup_disabledBasic(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_action_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccDataSourceArmMonitorActionGroup_disabledBasic(ri, testLocation())
+	config := testAccDataSourceArmMonitorActionGroup_disabledBasic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -76,7 +77,7 @@ func TestAccDataSourceArmMonitorActionGroup_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_action_group.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	config := testAccDataSourceArmMonitorActionGroup_complete(ri, rs, testLocation())
+	config := testAccDataSourceArmMonitorActionGroup_complete(ri, rs, acceptance.Location())
 
 	aaName := fmt.Sprintf("acctestAA-%d", ri)
 	faName := fmt.Sprintf("acctestFA-%d", ri)
@@ -89,8 +90,8 @@ func TestAccDataSourceArmMonitorActionGroup_complete(t *testing.T) {
 	laResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Logic/workflows/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, laName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
