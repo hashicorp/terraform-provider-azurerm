@@ -143,8 +143,8 @@ func testCheckAzureRMRecoveryProtectionContainerMappingDestroy(s *terraform.Stat
 		mappingName := rs.Primary.Attributes["name"]
 
 		// Ensure mapping exists in API
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ContainerMappingClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ContainerMappingClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, mappingName)
 		if err != nil {

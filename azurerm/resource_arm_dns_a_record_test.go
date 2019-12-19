@@ -139,13 +139,13 @@ func TestAccAzureRMDnsARecord_withAlias(t *testing.T) {
 	targetResourceName := "azurerm_public_ip.test"
 	targetResourceName2 := "azurerm_public_ip.test2"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsARecord_withAlias(ri, location)
 	postConfig := testAccAzureRMDnsARecord_withAliasUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -175,13 +175,13 @@ func TestAccAzureRMDnsARecord_RecordsToAlias(t *testing.T) {
 	resourceName := "azurerm_dns_a_record.test"
 	targetResourceName := "azurerm_public_ip.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsARecord_AliasToRecordsUpdate(ri, location)
 	postConfig := testAccAzureRMDnsARecord_AliasToRecords(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -212,13 +212,13 @@ func TestAccAzureRMDnsARecord_AliasToRecords(t *testing.T) {
 	resourceName := "azurerm_dns_a_record.test"
 	targetResourceName := "azurerm_public_ip.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsARecord_AliasToRecords(ri, location)
 	postConfig := testAccAzureRMDnsARecord_AliasToRecordsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{

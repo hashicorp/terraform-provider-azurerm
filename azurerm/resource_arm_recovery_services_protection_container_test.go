@@ -106,8 +106,8 @@ func testCheckAzureRMRecoveryProtectionContainerDestroy(s *terraform.State) erro
 		fabricName := rs.Primary.Attributes["recovery_fabric_name"]
 		protectionContainerName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*clients.Client).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName)
 		if err != nil {
