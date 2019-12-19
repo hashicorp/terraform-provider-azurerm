@@ -47,7 +47,7 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 			},
 
 			"records": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Removed:  "Use `record` instead. This attribute will be removed in a future version",

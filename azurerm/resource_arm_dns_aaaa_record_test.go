@@ -206,7 +206,7 @@ func TestAccAzureRMDnsAAAARecord_RecordsToAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsAaaaecord_AliasToRecords(t *testing.T) {
+func TestAccAzureRMDnsAaaaRecord_AliasToRecords(t *testing.T) {
 	resourceName := "azurerm_dns_aaaa_record.test"
 	targetResourceName := "azurerm_public_ip.test"
 	ri := tf.AccRandTimeInt()
@@ -241,58 +241,6 @@ func TestAccAzureRMDnsAaaaecord_AliasToRecords(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccAzureRMDnsAaaaRecord_AliasToRecords(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_public_ip" "test" {
-	name                = "mypublicip%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	allocation_method   = "Dynamic"
-	ip_version          = "IPv4"
-}
-
-resource "azurerm_dns_aaaa_record" "test" {
-	name                = "myarecord%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	zone_name           = "${azurerm_dns_zone.test.name}"
-	ttl                 = 300
-	target_resource_id  = "${azurerm_public_ip.test.id}"
-}
-`, rInt, location, rInt, rInt, rInt)
-}
-
-func testAccAzureRMDnsAaaaRecord_AliasToRecordsUpdate(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_dns_aaaa_record" "test" {
-  name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
-  ttl                 = 300
-  records             = ["1.2.3.4", "1.2.4.5"]
-}
-`, rInt, location, rInt, rInt)
 }
 
 func testCheckAzureRMDnsAaaaRecordExists(resourceName string) resource.TestCheckFunc {
@@ -524,4 +472,56 @@ resource "azurerm_dns_aaaa_record" "test" {
   target_resource_id  = "${azurerm_public_ip.test2.id}"
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMDnsAaaaRecord_AliasToRecords(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_public_ip" "test" {
+	name                = "mypublicip%d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	allocation_method   = "Dynamic"
+	ip_version          = "IPv6"
+}
+
+resource "azurerm_dns_aaaa_record" "test" {
+	name                = "myarecord%d"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	zone_name           = "${azurerm_dns_zone.test.name}"
+	ttl                 = 300
+	target_resource_id  = "${azurerm_public_ip.test.id}"
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMDnsAaaaRecord_AliasToRecordsUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_dns_aaaa_record" "test" {
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  records             = ["3a62:353:8885:293c:a218:45cc:9ee9:4e27", "3a62:353:8885:293c:a218:45cc:9ee9:4e27"]
+}
+`, rInt, location, rInt, rInt)
 }

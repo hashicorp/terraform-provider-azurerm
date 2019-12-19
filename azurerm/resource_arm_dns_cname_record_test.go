@@ -193,13 +193,13 @@ func TestAccAzureRMDnsCNameRecord_withAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsCNameRecord_RecordsToAlias(t *testing.T) {
+func TestAccAzureRMDnsCNameRecord_RecordToAlias(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
 	targetResourceName := "azurerm_public_ip.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
-	preConfig := testAccAzureRMDnsCNameRecord_AliasToRecordsUpdate(ri, location)
-	postConfig := testAccAzureRMDnsCNameRecord_AliasToRecords(ri, location)
+	preConfig := testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(ri, location)
+	postConfig := testAccAzureRMDnsCNameRecord_AliasToRecord(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -210,7 +210,6 @@ func TestAccAzureRMDnsCNameRecord_RecordsToAlias(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCNameRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "records.#", "2"),
 				),
 			},
 			{
@@ -218,7 +217,7 @@ func TestAccAzureRMDnsCNameRecord_RecordsToAlias(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCNameRecordExists(resourceName),
 					resource.TestCheckResourceAttrPair(resourceName, "target_resource_id", targetResourceName, "id"),
-					resource.TestCheckNoResourceAttr(resourceName, "records"),
+					resource.TestCheckNoResourceAttr(resourceName, "record"),
 				),
 			},
 			{
@@ -230,13 +229,13 @@ func TestAccAzureRMDnsCNameRecord_RecordsToAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsCNameRecord_AliasToRecords(t *testing.T) {
+func TestAccAzureRMDnsCNameRecord_AliasToRecord(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
 	targetResourceName := "azurerm_public_ip.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
-	preConfig := testAccAzureRMDnsCNameRecord_AliasToRecords(ri, location)
-	postConfig := testAccAzureRMDnsCNameRecord_AliasToRecordsUpdate(ri, location)
+	preConfig := testAccAzureRMDnsCNameRecord_AliasToRecord(ri, location)
+	postConfig := testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -254,7 +253,6 @@ func TestAccAzureRMDnsCNameRecord_AliasToRecords(t *testing.T) {
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCNameRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "records.#", "2"),
 					resource.TestCheckNoResourceAttr(resourceName, "target_resource_id"),
 				),
 			},
@@ -265,58 +263,6 @@ func TestAccAzureRMDnsCNameRecord_AliasToRecords(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccAzureRMDnsCNameRecord_AliasToRecords(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_public_ip" "test" {
-	name                = "mypublicip%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	allocation_method   = "Dynamic"
-	ip_version          = "IPv4"
-}
-
-resource "azurerm_dns_cname_record" "test" {
-	name                = "myarecord%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	zone_name           = "${azurerm_dns_zone.test.name}"
-	ttl                 = 300
-	target_resource_id  = "${azurerm_public_ip.test.id}"
-}
-`, rInt, location, rInt, rInt, rInt)
-}
-
-func testAccAzureRMDnsCNameRecord_AliasToRecordsUpdate(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_dns_cname_record" "test" {
-  name                = "myarecord%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
-  ttl                 = 300
-  records             = ["1.2.3.4", "1.2.4.5"]
-}
-`, rInt, location, rInt, rInt)
 }
 
 func testCheckAzureRMDnsCNameRecordExists(resourceName string) resource.TestCheckFunc {
@@ -570,4 +516,56 @@ resource "azurerm_dns_cname_record" "test" {
   target_resource_id  = "${azurerm_dns_cname_record.target2.id}"
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMDnsCNameRecord_AliasToRecord(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_dns_cname_record" "target2" {
+	name                = "mycnametarget%d2"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	zone_name           = "${azurerm_dns_zone.test.name}"
+	ttl                 = 300
+	record              = "contoso.co.uk"
+}
+
+resource "azurerm_dns_cname_record" "test" {
+  name                = "mycnamerecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  target_resource_id  = "${azurerm_dns_cname_record.target2.id}"
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_dns_cname_record" "test" {
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  record              = "1.2.3.4"
+}
+`, rInt, location, rInt, rInt)
 }
