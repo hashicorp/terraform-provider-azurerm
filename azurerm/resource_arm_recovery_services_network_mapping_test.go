@@ -7,26 +7,23 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMRecoveryNetworkMapping_basic(t *testing.T) {
-	resourceGroupName := "azurerm_resource_group.test"
-	vaultName := "azurerm_recovery_services_vault.test"
-	fabricName := "azurerm_recovery_services_fabric.test1"
-	networkName := "azurerm_virtual_network.test1"
 	resourceName := "azurerm_recovery_network_mapping.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		CheckDestroy: testCheckAzureRMRecoveryNetworkMappingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRecoveryNetworkMapping_basic(ri, testLocation(), testAltLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryNetworkMappingExists(resourceGroupName, vaultName, fabricName, networkName, resourceName),
+					testCheckAzureRMRecoveryNetworkMappingExists(resourceName),
 				),
 			},
 			{
@@ -93,37 +90,28 @@ resource "azurerm_recovery_network_mapping" "test" {
 `, rInt, location, rInt, rInt, rInt, altLocation, rInt, rInt, rInt)
 }
 
-func testCheckAzureRMRecoveryNetworkMappingExists(resourceGroupStateName, vaultStateName string, fabricStateName string, networkStateName string, networkStateMappingName string) resource.TestCheckFunc {
+func testCheckAzureRMRecoveryNetworkMappingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		resourceGroupState, ok := s.RootModule().Resources[resourceGroupStateName]
+		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", resourceGroupStateName)
-		}
-		vaultState, ok := s.RootModule().Resources[vaultStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", vaultStateName)
-		}
-		fabricState, ok := s.RootModule().Resources[fabricStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", fabricStateName)
-		}
-		networkState, ok := s.RootModule().Resources[networkStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", fabricStateName)
-		}
-		networkMappingState, ok := s.RootModule().Resources[networkStateMappingName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", networkStateMappingName)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroupName := resourceGroupState.Primary.Attributes["name"]
-		vaultName := vaultState.Primary.Attributes["name"]
-		fabricName := fabricState.Primary.Attributes["name"]
-		networkName := networkState.Primary.Attributes["name"]
-		mappingName := networkMappingState.Primary.Attributes["name"]
+		resourceGroupName := state.Primary.Attributes["resource_group_name"]
+		vaultName := state.Primary.Attributes["recovery_vault_name"]
+		fabricName := state.Primary.Attributes["source_recovery_fabric_name"]
+		networkId := state.Primary.Attributes["source_network_id"]
+		networkName := func() string {
+			id, err := azure.ParseAzureResourceID(networkId)
+			if err != nil {
+				return ""
+			}
 
-		// Ensure mapping exists in API
+			return id.Path["virtualNetworks"]
+		}()
+		mappingName := state.Primary.Attributes["name"]
+
 		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -138,4 +126,40 @@ func testCheckAzureRMRecoveryNetworkMappingExists(resourceGroupStateName, vaultS
 
 		return nil
 	}
+}
+
+func testCheckAzureRMRecoveryNetworkMappingDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_recovery_network_mapping" {
+			continue
+		}
+
+		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
+		vaultName := rs.Primary.Attributes["recovery_vault_name"]
+		fabricName := rs.Primary.Attributes["source_recovery_fabric_name"]
+		networkId := rs.Primary.Attributes["source_network_id"]
+		networkName := func() string {
+			id, err := azure.ParseAzureResourceID(networkId)
+			if err != nil {
+				return ""
+			}
+
+			return id.Path["virtualNetworks"]
+		}()
+		mappingName := rs.Primary.Attributes["name"]
+
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
+		if err != nil {
+			return nil
+		}
+
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Network Mapping still exists:\n%#v", resp.Properties)
+		}
+	}
+
+	return nil
 }
