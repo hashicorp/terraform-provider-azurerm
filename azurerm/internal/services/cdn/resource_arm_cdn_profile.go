@@ -1,4 +1,4 @@
-package azurerm
+package cdn
 
 import (
 	"fmt"
