@@ -126,7 +126,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_backup_protected_vm":                                   resourceArmRecoveryServicesBackupProtectedVM(),
 		"azurerm_backup_policy_vm":                                      resourceArmBackupProtectionPolicyVM(),
 		"azurerm_bastion_host":                                          resourceArmBastionHost(),
-		"azurerm_cognitive_account":                                     resourceArmCognitiveAccount(),
 		"azurerm_connection_monitor":                                    resourceArmConnectionMonitor(),
 		"azurerm_container_group":                                       resourceArmContainerGroup(),
 		"azurerm_container_registry_webhook":                            resourceArmContainerRegistryWebhook(),
