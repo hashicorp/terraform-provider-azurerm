@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -47,10 +47,11 @@ func resourceArmDnsAAAARecord() *schema.Resource {
 			},
 
 			"records": {
-				Type:     schema.TypeSet,
-				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				Set:           schema.HashString,
+				ConflictsWith: []string{"target_resource_id"},
 			},
 
 			"ttl": {
@@ -64,6 +65,13 @@ func resourceArmDnsAAAARecord() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"target_resource_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"records"},
+			},
 		},
 	}
 }
@@ -92,14 +100,26 @@ func resourceArmDnsAaaaRecordCreateUpdate(d *schema.ResourceData, meta interface
 
 	ttl := int64(d.Get("ttl").(int))
 	t := d.Get("tags").(map[string]interface{})
+	recordsRaw := d.Get("records").(*schema.Set).List()
+	targetResourceId := d.Get("target_resource_id").(string)
 
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
-			Metadata:    tags.Expand(t),
-			TTL:         &ttl,
-			AaaaRecords: expandAzureRmDnsAaaaRecords(d),
+			Metadata:       tags.Expand(t),
+			TTL:            &ttl,
+			AaaaRecords:    expandAzureRmDnsAaaaRecords(recordsRaw),
+			TargetResource: &dns.SubResource{},
 		},
+	}
+
+	if targetResourceId != "" {
+		parameters.RecordSetProperties.TargetResource.ID = utils.String(targetResourceId)
+	}
+
+	// TODO: this can be removed when the provider SDK is upgraded
+	if targetResourceId == "" && len(recordsRaw) == 0 {
+		return fmt.Errorf("One of either `records` or `target_resource_id` must be specified")
 	}
 
 	eTag := ""
@@ -114,7 +134,7 @@ func resourceArmDnsAaaaRecordCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS AAAA Record %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Error retrieving DNS AAAA Record %q (Zone %q / Resource Group %q): ID was nil", name, zoneName, resGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -148,12 +168,19 @@ func resourceArmDnsAaaaRecordRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
-	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
+	d.Set("ttl", resp.TTL)
 
 	if err := d.Set("records", flattenAzureRmDnsAaaaRecords(resp.AaaaRecords)); err != nil {
-		return err
+		return fmt.Errorf("Error setting `records`: %+v", err)
 	}
+
+	targetResourceId := ""
+	if resp.TargetResource != nil && resp.TargetResource.ID != nil {
+		targetResourceId = *resp.TargetResource.ID
+	}
+	d.Set("target_resource_id", targetResourceId)
+
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
@@ -179,23 +206,10 @@ func resourceArmDnsAaaaRecordDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func flattenAzureRmDnsAaaaRecords(records *[]dns.AaaaRecord) []string {
-	results := make([]string, 0, len(*records))
+func expandAzureRmDnsAaaaRecords(input []interface{}) *[]dns.AaaaRecord {
+	records := make([]dns.AaaaRecord, len(input))
 
-	if records != nil {
-		for _, record := range *records {
-			results = append(results, *record.Ipv6Address)
-		}
-	}
-
-	return results
-}
-
-func expandAzureRmDnsAaaaRecords(d *schema.ResourceData) *[]dns.AaaaRecord {
-	recordStrings := d.Get("records").(*schema.Set).List()
-	records := make([]dns.AaaaRecord, len(recordStrings))
-
-	for i, v := range recordStrings {
+	for i, v := range input {
 		ipv6 := v.(string)
 		records[i] = dns.AaaaRecord{
 			Ipv6Address: &ipv6,
@@ -203,4 +217,20 @@ func expandAzureRmDnsAaaaRecords(d *schema.ResourceData) *[]dns.AaaaRecord {
 	}
 
 	return &records
+}
+
+func flattenAzureRmDnsAaaaRecords(records *[]dns.AaaaRecord) []string {
+	if records == nil {
+		return []string{}
+	}
+
+	results := make([]string, 0)
+	for _, record := range *records {
+		if record.Ipv6Address == nil {
+			continue
+		}
+
+		results = append(results, *record.Ipv6Address)
+	}
+	return results
 }

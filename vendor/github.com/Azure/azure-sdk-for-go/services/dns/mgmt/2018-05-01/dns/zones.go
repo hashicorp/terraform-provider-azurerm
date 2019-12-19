@@ -21,7 +21,6 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -43,7 +42,7 @@ func NewZonesClientWithBaseURI(baseURI string, subscriptionID string) ZonesClien
 
 // CreateOrUpdate creates or updates a DNS zone. Does not modify DNS records within the zone.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // zoneName - the name of the DNS zone (without a terminating dot).
 // parameters - parameters supplied to the CreateOrUpdate operation.
 // ifMatch - the etag of the DNS zone. Omit this value to always overwrite the current zone. Specify the
@@ -61,16 +60,6 @@ func (client ZonesClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.ZonesClient", "CreateOrUpdate", err.Error())
-	}
-
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, zoneName, parameters, ifMatch, ifNoneMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -100,7 +89,7 @@ func (client ZonesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGr
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -146,7 +135,7 @@ func (client ZonesClient) CreateOrUpdateResponder(resp *http.Response) (result Z
 // Delete deletes a DNS zone. WARNING: All DNS records in the zone will also be deleted. This operation cannot be
 // undone.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // zoneName - the name of the DNS zone (without a terminating dot).
 // ifMatch - the etag of the DNS zone. Omit this value to always delete the current zone. Specify the last-seen
 // etag value to prevent accidentally deleting any concurrent changes.
@@ -161,16 +150,6 @@ func (client ZonesClient) Delete(ctx context.Context, resourceGroupName string, 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.ZonesClient", "Delete", err.Error())
-	}
-
 	req, err := client.DeletePreparer(ctx, resourceGroupName, zoneName, ifMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "Delete", nil, "Failure preparing request")
@@ -194,7 +173,7 @@ func (client ZonesClient) DeletePreparer(ctx context.Context, resourceGroupName 
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -238,7 +217,7 @@ func (client ZonesClient) DeleteResponder(resp *http.Response) (result autorest.
 
 // Get gets a DNS zone. Retrieves the zone properties, but not the record sets within the zone.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // zoneName - the name of the DNS zone (without a terminating dot).
 func (client ZonesClient) Get(ctx context.Context, resourceGroupName string, zoneName string) (result Zone, err error) {
 	if tracing.IsEnabled() {
@@ -251,16 +230,6 @@ func (client ZonesClient) Get(ctx context.Context, resourceGroupName string, zon
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.ZonesClient", "Get", err.Error())
-	}
-
 	req, err := client.GetPreparer(ctx, resourceGroupName, zoneName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "Get", nil, "Failure preparing request")
@@ -290,7 +259,7 @@ func (client ZonesClient) GetPreparer(ctx context.Context, resourceGroupName str
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -337,12 +306,6 @@ func (client ZonesClient) List(ctx context.Context, top *int32) (result ZoneList
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.ZonesClient", "List", err.Error())
-	}
-
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, top)
 	if err != nil {
@@ -371,7 +334,7 @@ func (client ZonesClient) ListPreparer(ctx context.Context, top *int32) (*http.R
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -446,7 +409,7 @@ func (client ZonesClient) ListComplete(ctx context.Context, top *int32) (result 
 
 // ListByResourceGroup lists the DNS zones within a resource group.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // top - the maximum number of record sets to return. If not specified, returns up to 100 record sets.
 func (client ZonesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, top *int32) (result ZoneListResultPage, err error) {
 	if tracing.IsEnabled() {
@@ -459,16 +422,6 @@ func (client ZonesClient) ListByResourceGroup(ctx context.Context, resourceGroup
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.ZonesClient", "ListByResourceGroup", err.Error())
-	}
-
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, top)
 	if err != nil {
@@ -498,7 +451,7 @@ func (client ZonesClient) ListByResourceGroupPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -573,7 +526,7 @@ func (client ZonesClient) ListByResourceGroupComplete(ctx context.Context, resou
 
 // Update updates a DNS zone. Does not modify DNS records within the zone.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // zoneName - the name of the DNS zone (without a terminating dot).
 // parameters - parameters supplied to the Update operation.
 // ifMatch - the etag of the DNS zone. Omit this value to always overwrite the current zone. Specify the
@@ -589,16 +542,6 @@ func (client ZonesClient) Update(ctx context.Context, resourceGroupName string, 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.ZonesClient", "Update", err.Error())
-	}
-
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, zoneName, parameters, ifMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "Update", nil, "Failure preparing request")
@@ -628,7 +571,7 @@ func (client ZonesClient) UpdatePreparer(ctx context.Context, resourceGroupName 
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

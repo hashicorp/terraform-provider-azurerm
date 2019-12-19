@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -49,13 +49,13 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 			"records": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 				Removed:  "Use `record` instead. This attribute will be removed in a future version",
 			},
 
 			"record": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"target_resource_id"},
 			},
 
 			"ttl": {
@@ -66,6 +66,13 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 			"fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"target_resource_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"records"},
 			},
 
 			"tags": tags.Schema(),
@@ -98,31 +105,44 @@ func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interfac
 	ttl := int64(d.Get("ttl").(int))
 	record := d.Get("record").(string)
 	t := d.Get("tags").(map[string]interface{})
+	targetResourceId := d.Get("target_resource_id").(string)
 
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
-			Metadata: tags.Expand(t),
-			TTL:      &ttl,
-			CnameRecord: &dns.CnameRecord{
-				Cname: &record,
-			},
+			Metadata:       tags.Expand(t),
+			TTL:            &ttl,
+			CnameRecord:    &dns.CnameRecord{},
+			TargetResource: &dns.SubResource{},
 		},
+	}
+
+	if record != "" {
+		parameters.RecordSetProperties.CnameRecord.Cname = utils.String(record)
+	}
+
+	if targetResourceId != "" {
+		parameters.RecordSetProperties.TargetResource.ID = utils.String(targetResourceId)
+	}
+
+	// TODO: this can be removed when the provider SDK is upgraded
+	if record == "" && targetResourceId == "" {
+		return fmt.Errorf("One of either `record` or `target_resource_id` must be specified")
 	}
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
 	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.CNAME, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating DNS CNAME Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("Error creating/updating CNAME Record %q (DNS Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.CNAME)
 	if err != nil {
-		return fmt.Errorf("Error retrieving DNS CNAME Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("Error retrieving CNAME Record %q (DNS Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS CNAME Record %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Error retrieving CNAME Record %q (DNS Zone %q / Resource Group %q): ID was nil", name, zoneName, resGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -150,19 +170,27 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS CNAME record %s: %+v", name, err)
+		return fmt.Errorf("Error retrieving CNAME Record %s (DNS Zone %q / Resource Group %q): %+v", name, zoneName, resGroup, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
-	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
+	d.Set("ttl", resp.TTL)
 
 	if props := resp.RecordSetProperties; props != nil {
-		if record := props.CnameRecord; record != nil {
-			d.Set("record", record.Cname)
+		cname := ""
+		if props.CnameRecord != nil && props.CnameRecord.Cname != nil {
+			cname = *props.CnameRecord.Cname
 		}
+		d.Set("record", cname)
+
+		targetResourceId := ""
+		if props.TargetResource != nil && props.TargetResource.ID != nil {
+			targetResourceId = *props.TargetResource.ID
+		}
+		d.Set("target_resource_id", targetResourceId)
 	}
 
 	return tags.FlattenAndSet(d, resp.Metadata)
@@ -184,7 +212,7 @@ func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) e
 
 	resp, err := dnsClient.Delete(ctx, resGroup, zoneName, name, dns.CNAME, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS CNAME Record %s: %+v", name, err)
+		return fmt.Errorf("Error deleting CNAME Record %q (DNS Zone %q / Resource Group %q): %+v", name, zoneName, resGroup, err)
 	}
 
 	return nil

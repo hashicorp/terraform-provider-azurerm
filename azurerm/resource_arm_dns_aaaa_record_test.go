@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -121,6 +121,117 @@ func TestAccAzureRMDnsAAAARecord_withTags(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDnsAAAARecord_withAlias(t *testing.T) {
+	resourceName := "azurerm_dns_aaaa_record.test"
+	targetResourceName := "azurerm_public_ip.test"
+	targetResourceName2 := "azurerm_public_ip.test2"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	preConfig := testAccAzureRMDnsAAAARecord_withAlias(ri, location)
+	postConfig := testAccAzureRMDnsAAAARecord_withAliasUpdate(ri, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
+					resource.TestCheckResourceAttrPair(resourceName, "target_resource_id", targetResourceName, "id"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
+					resource.TestCheckResourceAttrPair(resourceName, "target_resource_id", targetResourceName2, "id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDnsAAAARecord_RecordsToAlias(t *testing.T) {
+	resourceName := "azurerm_dns_aaaa_record.test"
+	targetResourceName := "azurerm_public_ip.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	preConfig := testAccAzureRMDnsAaaaRecord_AliasToRecordsUpdate(ri, location)
+	postConfig := testAccAzureRMDnsAaaaRecord_AliasToRecords(ri, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "records.#", "2"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
+					resource.TestCheckResourceAttrPair(resourceName, "target_resource_id", targetResourceName, "id"),
+					resource.TestCheckNoResourceAttr(resourceName, "records"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMDnsAaaaRecord_AliasToRecords(t *testing.T) {
+	resourceName := "azurerm_dns_aaaa_record.test"
+	targetResourceName := "azurerm_public_ip.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	preConfig := testAccAzureRMDnsAaaaRecord_AliasToRecords(ri, location)
+	postConfig := testAccAzureRMDnsAaaaRecord_AliasToRecordsUpdate(ri, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
+					resource.TestCheckResourceAttrPair(resourceName, "target_resource_id", targetResourceName, "id"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "records.#", "2"),
+					resource.TestCheckNoResourceAttr(resourceName, "target_resource_id"),
 				),
 			},
 			{
@@ -299,6 +410,118 @@ resource "azurerm_dns_aaaa_record" "test" {
   tags = {
     environment = "staging"
   }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsAAAARecord_withAlias(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_public_ip" "test" {
+	name                = "mypublicip%d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	allocation_method   = "Dynamic"
+	ip_version          = "IPv6"
+}
+
+resource "azurerm_dns_aaaa_record" "test" {
+  name                = "myaaaarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  target_resource_id   = "${azurerm_public_ip.test.id}"
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMDnsAAAARecord_withAliasUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_public_ip" "test2" {
+	name                = "mypublicip%d2"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	allocation_method   = "Dynamic"
+	ip_version          = "IPv6"
+}
+
+resource "azurerm_dns_aaaa_record" "test" {
+  name                = "myaaaarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  target_resource_id  = "${azurerm_public_ip.test2.id}"
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMDnsAaaaRecord_AliasToRecords(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_public_ip" "test" {
+	name                = "mypublicip%d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	allocation_method   = "Dynamic"
+	ip_version          = "IPv6"
+}
+
+resource "azurerm_dns_aaaa_record" "test" {
+	name                = "myarecord%d"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	zone_name           = "${azurerm_dns_zone.test.name}"
+	ttl                 = 300
+	target_resource_id  = "${azurerm_public_ip.test.id}"
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMDnsAaaaRecord_AliasToRecordsUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_dns_aaaa_record" "test" {
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  records             = ["3a62:353:8885:293c:a218:45cc:9ee9:4e27", "3a62:353:8885:293c:a218:45cc:9ee9:4e27"]
 }
 `, rInt, location, rInt, rInt)
 }
