@@ -69,6 +69,8 @@ func resourceArmDnsARecord() *schema.Resource {
 				Optional:      true,
 				ValidateFunc:  azure.ValidateResourceID,
 				ConflictsWith: []string{"records"},
+
+				// TODO: switch ConflictsWith for ExactlyOneOf when the Provider SDK's updated
 			},
 
 			"tags": tags.Schema(),
@@ -101,24 +103,25 @@ func resourceArmDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{})
 	ttl := int64(d.Get("ttl").(int))
 	t := d.Get("tags").(map[string]interface{})
 	targetResourceId := d.Get("target_resource_id").(string)
-
-	if bool(targetResourceId == "") && bool(len(d.Get("records").(*schema.Set).List()) == 0) {
-		return fmt.Errorf("Neither 'records' nor 'target_resource_id' is defined")
-	}
-
-	var targetResource dns.SubResource
-	if targetResourceId != "" {
-		targetResource.ID = utils.String(targetResourceId)
-	}
+	recordsRaw := d.Get("records").(*schema.Set).List()
 
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
 			Metadata:       tags.Expand(t),
 			TTL:            &ttl,
-			ARecords:       expandAzureRmDnsARecords(d),
-			TargetResource: &targetResource,
+			ARecords:       expandAzureRmDnsARecords(recordsRaw),
+			TargetResource: &dns.SubResource{},
 		},
+	}
+
+	if targetResourceId != "" {
+		parameters.RecordSetProperties.TargetResource.ID = utils.String(targetResourceId)
+	}
+
+	// TODO: this can be removed when the provider SDK is upgraded
+	if targetResourceId == "" && len(recordsRaw) == 0 {
+		return fmt.Errorf("One of either `records` or `target_resource_id` must be specified")
 	}
 
 	eTag := ""
@@ -133,7 +136,7 @@ func resourceArmDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS A Record %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Error retrieving DNS A Record %q (Zone %q / Resource Group %q): ID was nil", name, zoneName, resGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -167,16 +170,18 @@ func resourceArmDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
-	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
-	d.Set("target_resource_id", (resp.TargetResource).ID)
+	d.Set("ttl", resp.TTL)
 
-	// Only flatten DNS records if they are present in the resource, e.g. not for alias records
-	if resp.ARecords != nil {
-		if err := d.Set("records", flattenAzureRmDnsARecords(resp.ARecords)); err != nil {
-			return err
-		}
+	if err := d.Set("records", flattenAzureRmDnsARecords(resp.ARecords)); err != nil {
+		return fmt.Errorf("Error setting `records`: %+v", err)
 	}
+
+	targetResourceId := ""
+	if resp.TargetResource != nil && resp.TargetResource.ID != nil {
+		targetResourceId = *resp.TargetResource.ID
+	}
+	d.Set("target_resource_id", targetResourceId)
 
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
@@ -203,23 +208,10 @@ func resourceArmDnsARecordDelete(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func flattenAzureRmDnsARecords(records *[]dns.ARecord) []string {
-	results := make([]string, 0, len(*records))
+func expandAzureRmDnsARecords(input []interface{}) *[]dns.ARecord {
+	records := make([]dns.ARecord, len(input))
 
-	if records != nil {
-		for _, record := range *records {
-			results = append(results, *record.Ipv4Address)
-		}
-	}
-
-	return results
-}
-
-func expandAzureRmDnsARecords(d *schema.ResourceData) *[]dns.ARecord {
-	recordStrings := d.Get("records").(*schema.Set).List()
-	records := make([]dns.ARecord, len(recordStrings))
-
-	for i, v := range recordStrings {
+	for i, v := range input {
 		ipv4 := v.(string)
 		records[i] = dns.ARecord{
 			Ipv4Address: &ipv4,
@@ -227,4 +219,21 @@ func expandAzureRmDnsARecords(d *schema.ResourceData) *[]dns.ARecord {
 	}
 
 	return &records
+}
+
+func flattenAzureRmDnsARecords(records *[]dns.ARecord) []string {
+	if records == nil {
+		return []string{}
+	}
+
+	results := make([]string, 0)
+	for _, record := range *records {
+		if record.Ipv4Address == nil {
+			continue
+		}
+
+		results = append(results, *record.Ipv4Address)
+	}
+
+	return results
 }
