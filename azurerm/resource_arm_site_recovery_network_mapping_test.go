@@ -102,26 +102,24 @@ func testCheckAzureRMSiteRecoveryNetworkMappingExists(resourceName string) resou
 		vaultName := state.Primary.Attributes["recovery_vault_name"]
 		fabricName := state.Primary.Attributes["source_recovery_fabric_name"]
 		networkId := state.Primary.Attributes["source_network_id"]
-		networkName := func() string {
-			id, err := azure.ParseAzureResourceID(networkId)
-			if err != nil {
-				return ""
-			}
-
-			return id.Path["virtualNetworks"]
-		}()
 		mappingName := state.Primary.Attributes["name"]
+
+		id, err := azure.ParseAzureResourceID(networkId)
+		if err != nil {
+			return err
+		}
+		networkName := id.Path["virtualNetworks"]
 
 		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on networkMappingClient: %+v", err)
-		}
+			if resp.Response.StatusCode == http.StatusNotFound {
+				return fmt.Errorf("Bad: networkMapping %q (network %q) does not exist", mappingName, networkName)
+			}
 
-		if resp.Response.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: networkMapping: %q does not exist", mappingName)
+			return fmt.Errorf("Bad: Get on networkMappingClient: %+v", err)
 		}
 
 		return nil
@@ -138,15 +136,13 @@ func testCheckAzureRMSiteRecoveryNetworkMappingDestroy(s *terraform.State) error
 		vaultName := rs.Primary.Attributes["recovery_vault_name"]
 		fabricName := rs.Primary.Attributes["source_recovery_fabric_name"]
 		networkId := rs.Primary.Attributes["source_network_id"]
-		networkName := func() string {
-			id, err := azure.ParseAzureResourceID(networkId)
-			if err != nil {
-				return ""
-			}
-
-			return id.Path["virtualNetworks"]
-		}()
 		mappingName := rs.Primary.Attributes["name"]
+
+		id, err := azure.ParseAzureResourceID(networkId)
+		if err != nil {
+			return err
+		}
+		networkName := id.Path["virtualNetworks"]
 
 		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
