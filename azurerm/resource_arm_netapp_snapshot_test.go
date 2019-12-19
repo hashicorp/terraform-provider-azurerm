@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,6 +31,34 @@ func TestAccAzureRMNetAppSnapshot_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNetAppSnapshot_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_netapp_snapshot.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetAppSnapshotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetAppSnapshot_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetAppSnapshotExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetAppSnapshot_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_netapp_snapshot"),
 			},
 		},
 	})
@@ -168,6 +197,18 @@ resource "azurerm_netapp_snapshot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, template, rInt)
+}
+
+func testAccAzureRMNetAppSnapshot_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_snapshot" "import" {
+  name                = "${azurerm_netapp_snapshot.test.name}"
+  location            = "${azurerm_netapp_snapshot.test.location}"
+  resource_group_name = "${azurerm_netapp_snapshot.test.name}"
+}
+`, testAccAzureRMNetAppSnapshot_basic(rInt, location))
 }
 
 func testAccAzureRMNetAppSnapshot_complete(rInt int, location string) string {
