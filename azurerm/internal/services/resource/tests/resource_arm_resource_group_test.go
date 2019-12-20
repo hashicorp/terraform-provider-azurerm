@@ -1,4 +1,4 @@
-package resource
+package tests
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
-	testData := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -21,12 +21,12 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMResourceGroup_basic(testData),
+				Config: testAccAzureRMResourceGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(testData.ResourceName),
+					testCheckAzureRMResourceGroupExists(data.ResourceName),
 				),
 			},
-			testData.ImportStep(),
+			data.ImportStep(),
 		},
 	})
 }
@@ -37,7 +37,7 @@ func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
 		return
 	}
 
-	testData := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -45,25 +45,25 @@ func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMResourceGroup_basic(testData),
+				Config: testAccAzureRMResourceGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(testData.ResourceName),
+					testCheckAzureRMResourceGroupExists(data.ResourceName),
 				),
 			},
-			testData.RequiresImportErrorStep(testAccAzureRMResourceGroup_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMResourceGroup_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
-	testData := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
-			testData.DisappearsStep(acceptance.DisappearsStepData{
+			data.DisappearsStep(acceptance.DisappearsStepData{
 				Config:      testAccAzureRMResourceGroup_basic,
 				CheckExists: testCheckAzureRMResourceGroupExists,
 				Destroy:     testCheckAzureRMResourceGroupDisappears,
@@ -73,7 +73,7 @@ func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
-	testData := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -81,24 +81,24 @@ func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMResourceGroup_withTags(testData),
+				Config: testAccAzureRMResourceGroup_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(testData.ResourceName),
-					resource.TestCheckResourceAttr(testData.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(testData.ResourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(testData.ResourceName, "tags.cost_center", "MSFT"),
+					testCheckAzureRMResourceGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-			testData.ImportStep(),
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMResourceGroup_withTagsUpdated(testData),
+				Config: testAccAzureRMResourceGroup_withTagsUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(testData.ResourceName),
-					resource.TestCheckResourceAttr(testData.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(testData.ResourceName, "tags.environment", "staging"),
+					testCheckAzureRMResourceGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
 				),
 			},
-			testData.ImportStep(),
+			data.ImportStep(),
 		},
 	})
 }
@@ -182,17 +182,17 @@ func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMResourceGroup_basic(testData acceptance.TestData) string {
+func testAccAzureRMResourceGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
-`, testData.RandomInteger, testData.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMResourceGroup_requiresImport(testData acceptance.TestData) string {
-	template := testAccAzureRMResourceGroup_basic(testData)
+func testAccAzureRMResourceGroup_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMResourceGroup_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -203,7 +203,7 @@ resource "azurerm_resource_group" "import" {
 `, template)
 }
 
-func testAccAzureRMResourceGroup_withTags(testData acceptance.TestData) string {
+func testAccAzureRMResourceGroup_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -214,10 +214,10 @@ resource "azurerm_resource_group" "test" {
     cost_center = "MSFT"
   }
 }
-`, testData.RandomInteger, testData.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMResourceGroup_withTagsUpdated(testData acceptance.TestData) string {
+func testAccAzureRMResourceGroup_withTagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -227,5 +227,5 @@ resource "azurerm_resource_group" "test" {
     environment = "staging"
   }
 }
-`, testData.RandomInteger, testData.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary)
 }
