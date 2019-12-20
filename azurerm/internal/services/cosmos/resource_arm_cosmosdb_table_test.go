@@ -1,4 +1,4 @@
-package azurerm
+package cosmos
 
 import (
 	"fmt"
@@ -13,19 +13,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCosmosDbCassandraKeyspace_basic(t *testing.T) {
+func TestAccAzureRMCosmosDbTable_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_cassandra_keyspace.test"
+	resourceName := "azurerm_cosmosdb_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbCassandraKeyspaceDestroy,
+		CheckDestroy: testCheckAzureRMCosmosDbTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbCassandraKeyspace_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosDbTable_basic(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName),
+					testCheckAzureRMCosmosDbTableExists(resourceName),
 				),
 			},
 			{
@@ -37,44 +37,20 @@ func TestAccAzureRMCosmosDbCassandraKeyspace_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCosmosDbCassandraKeyspace_complete(t *testing.T) {
+func TestAccAzureRMCosmosDbTable_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_cassandra_keyspace.test"
+	resourceName := "azurerm_cosmosdb_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbCassandraKeyspaceDestroy,
+		CheckDestroy: testCheckAzureRMCosmosDbTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbCassandraKeyspace_throughput(ri, acceptance.Location(), 700),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "throughput", "700"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
 
-func TestAccAzureRMCosmosDbCassandraKeyspace_update(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_cassandra_keyspace.test"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbCassandraKeyspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCosmosDbCassandraKeyspace_throughput(ri, acceptance.Location(), 700),
+				Config: testAccAzureRMCosmosDbTable_throughput(ri, acceptance.Location(), 700),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName),
+					testCheckAzureRMCosmosDbTableExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "700"),
 				),
 			},
@@ -84,9 +60,10 @@ func TestAccAzureRMCosmosDbCassandraKeyspace_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMCosmosDbCassandraKeyspace_throughput(ri, acceptance.Location(), 1700),
+
+				Config: testAccAzureRMCosmosDbTable_throughput(ri, acceptance.Location(), 1700),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName),
+					testCheckAzureRMCosmosDbTableExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "1700"),
 				),
 			},
@@ -99,12 +76,12 @@ func TestAccAzureRMCosmosDbCassandraKeyspace_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMCosmosDbCassandraKeyspaceDestroy(s *terraform.State) error {
+func testCheckAzureRMCosmosDbTableDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cosmosdb_cassandra_keyspace" {
+		if rs.Type != "azurerm_cosmosdb_table" {
 			continue
 		}
 
@@ -112,22 +89,22 @@ func testCheckAzureRMCosmosDbCassandraKeyspaceDestroy(s *terraform.State) error 
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetCassandraKeyspace(ctx, resourceGroup, account, name)
+		resp, err := client.GetTable(ctx, resourceGroup, account, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Error checking destroy for Cosmos Cassandra Keyspace %s (account %s) still exists:\n%v", name, account, err)
+				return fmt.Errorf("Bad: Error checking destroy for Cosmos Table %s (account %s) still exists:\n%v", name, account, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Cosmos Cassandra Keyspace %s (account %s) still exists:\n%#v", name, account, resp)
+			return fmt.Errorf("Cosmos Table %s (account %s) still exists:\n%#v", name, account, resp)
 		}
 	}
 
 	return nil
 }
 
-func testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMCosmosDbTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -142,41 +119,40 @@ func testCheckAzureRMCosmosDbCassandraKeyspaceExists(resourceName string) resour
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetCassandraKeyspace(ctx, resourceGroup, account, name)
+		resp, err := client.GetTable(ctx, resourceGroup, account, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Cosmos database '%s' (account: '%s') does not exist", name, account)
+			return fmt.Errorf("Bad: Cosmos Table '%s' (account: '%s') does not exist", name, account)
 		}
 
 		return nil
 	}
 }
 
-func testAccAzureRMCosmosDbCassandraKeyspace_basic(rInt int, location string) string {
+func testAccAzureRMCosmosDbTable_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
+resource "azurerm_cosmosdb_table" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
 }
-`, testAccAzureRMCosmosDBAccount_capabilityCassandra(rInt, location), rInt)
+`, testAccAzureRMCosmosDBAccount_capabilityTable(rInt, location), rInt)
 }
 
-func testAccAzureRMCosmosDbCassandraKeyspace_throughput(rInt int, location string, throughput int) string {
+func testAccAzureRMCosmosDbTable_throughput(rInt int, location string, throughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
+resource "azurerm_cosmosdb_table" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
-
-  throughput          = %[3]d
+  throughput		  = %[3]d
 }
-`, testAccAzureRMCosmosDBAccount_capabilityCassandra(rInt, location), rInt, throughput)
+`, testAccAzureRMCosmosDBAccount_capabilityTable(rInt, location), rInt, throughput)
 }
