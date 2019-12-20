@@ -2,7 +2,6 @@ package monitor
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"testing"
 
@@ -298,7 +297,7 @@ resource "azurerm_metric_alertrule" "import" {
 }
 
 func testAccAzureRMMetricAlertRule_sqlDatabaseStorage(rInt int, location string) string {
-	basicSqlServerDatabase := azurerm.testAccAzureRMSqlDatabase_basic(rInt, location)
+	basicSqlServerDatabase := testAccAzureRMSqlDatabase_basic(rInt, location)
 
 	return fmt.Sprintf(`
 %s

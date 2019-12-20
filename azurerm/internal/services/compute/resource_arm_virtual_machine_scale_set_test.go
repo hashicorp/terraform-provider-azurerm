@@ -703,7 +703,7 @@ func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					estGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, acceptance.Location()),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, acceptance.Location()),
 				),
 			},
 			{

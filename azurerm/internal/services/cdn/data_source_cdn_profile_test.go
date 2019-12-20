@@ -2,7 +2,6 @@ package cdn
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -18,12 +17,12 @@ func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: azurerm.testCheckAzureRMCdnProfileDestroy,
+		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					azurerm.testCheckAzureRMCdnProfileExists("data.azurerm_cdn_profile.test"),
+					testCheckAzureRMCdnProfileExists("data.azurerm_cdn_profile.test"),
 				),
 			},
 		},
@@ -39,12 +38,12 @@ func TestAccDataSourceAzureRMCdnProfile_withTags(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: azurerm.testCheckAzureRMCdnProfileDestroy,
+		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					azurerm.testCheckAzureRMCdnProfileExists(resourceName),
+					testCheckAzureRMCdnProfileExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
 					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
