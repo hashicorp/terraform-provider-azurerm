@@ -1,4 +1,4 @@
-package azurerm
+package netapp
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,7 +23,7 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: aznetapp.ValidateNetAppPoolName,
+				ValidateFunc: ValidateNetAppPoolName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -34,13 +33,13 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: aznetapp.ValidateNetAppAccountName,
+				ValidateFunc: ValidateNetAppAccountName,
 			},
 
 			"pool_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: aznetapp.ValidateNetAppPoolName,
+				ValidateFunc: ValidateNetAppPoolName,
 			},
 
 			"volume_path": {
