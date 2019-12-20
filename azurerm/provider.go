@@ -8,25 +8,24 @@ import (
 
 func Provider() terraform.ResourceProvider {
 	dataSources := map[string]*schema.Resource{
-		"azurerm_application_security_group":            dataSourceArmApplicationSecurityGroup(),
-		"azurerm_builtin_role_definition":               dataSourceArmBuiltInRoleDefinition(),
-		"azurerm_client_config":                         dataSourceArmClientConfig(),
-		"azurerm_image":                                 dataSourceArmImage(),
-		"azurerm_key_vault_access_policy":               dataSourceArmKeyVaultAccessPolicy(),
-		"azurerm_key_vault_key":                         dataSourceArmKeyVaultKey(),
-		"azurerm_key_vault_secret":                      dataSourceArmKeyVaultSecret(),
-		"azurerm_key_vault":                             dataSourceArmKeyVault(),
-		"azurerm_platform_image":                        dataSourceArmPlatformImage(),
-		"azurerm_proximity_placement_group":             dataSourceArmProximityPlacementGroup(),
-		"azurerm_resources":                             dataSourceArmResources(),
-		"azurerm_resource_group":                        dataSourceArmResourceGroup(),
-		"azurerm_storage_account_blob_container_sas":    dataSourceArmStorageAccountBlobContainerSharedAccessSignature(),
-		"azurerm_storage_account_sas":                   dataSourceArmStorageAccountSharedAccessSignature(),
-		"azurerm_storage_account":                       dataSourceArmStorageAccount(),
-		"azurerm_storage_management_policy":             dataSourceArmStorageManagementPolicy(),
-		"azurerm_subscription":                          dataSourceArmSubscription(),
-		"azurerm_subscriptions":                         dataSourceArmSubscriptions(),
-		"azurerm_traffic_manager_geographical_location": dataSourceArmTrafficManagerGeographicalLocation(),
+		"azurerm_application_security_group":         dataSourceArmApplicationSecurityGroup(),
+		"azurerm_builtin_role_definition":            dataSourceArmBuiltInRoleDefinition(),
+		"azurerm_client_config":                      dataSourceArmClientConfig(),
+		"azurerm_image":                              dataSourceArmImage(),
+		"azurerm_key_vault_access_policy":            dataSourceArmKeyVaultAccessPolicy(),
+		"azurerm_key_vault_key":                      dataSourceArmKeyVaultKey(),
+		"azurerm_key_vault_secret":                   dataSourceArmKeyVaultSecret(),
+		"azurerm_key_vault":                          dataSourceArmKeyVault(),
+		"azurerm_platform_image":                     dataSourceArmPlatformImage(),
+		"azurerm_proximity_placement_group":          dataSourceArmProximityPlacementGroup(),
+		"azurerm_resources":                          dataSourceArmResources(),
+		"azurerm_resource_group":                     dataSourceArmResourceGroup(),
+		"azurerm_storage_account_blob_container_sas": dataSourceArmStorageAccountBlobContainerSharedAccessSignature(),
+		"azurerm_storage_account_sas":                dataSourceArmStorageAccountSharedAccessSignature(),
+		"azurerm_storage_account":                    dataSourceArmStorageAccount(),
+		"azurerm_storage_management_policy":          dataSourceArmStorageManagementPolicy(),
+		"azurerm_subscription":                       dataSourceArmSubscription(),
+		"azurerm_subscriptions":                      dataSourceArmSubscriptions(),
 	}
 
 	resources := map[string]*schema.Resource{
@@ -59,10 +58,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_storage_share_directory":           resourceArmStorageShareDirectory(),
 		"azurerm_storage_table":                     resourceArmStorageTable(),
 		"azurerm_storage_table_entity":              resourceArmStorageTableEntity(),
-
-		"azurerm_template_deployment":      resourceArmTemplateDeployment(),
-		"azurerm_traffic_manager_endpoint": resourceArmTrafficManagerEndpoint(),
-		"azurerm_traffic_manager_profile":  resourceArmTrafficManagerProfile(),
+		"azurerm_template_deployment":               resourceArmTemplateDeployment(),
 	}
 
 	return provider.AzureProvider(dataSources, resources)
