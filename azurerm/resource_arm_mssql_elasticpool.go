@@ -340,7 +340,7 @@ func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup, serverName, name, err := parseArmSqlElasticPoolId(d.Id())
+	resGroup, serverName, name, err := parseArmMSSqlElasticPoolId(d.Id())
 	if err != nil {
 		return err
 	}
@@ -443,4 +443,13 @@ func flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(resp *sql.ElasticPoolPerD
 	}
 
 	return []interface{}{perDatabaseSettings}
+}
+
+func parseArmMSSqlElasticPoolId(sqlElasticPoolId string) (string, string, string, error) {
+	id, err := azure.ParseAzureResourceID(sqlElasticPoolId)
+	if err != nil {
+		return "", "", "", fmt.Errorf("[ERROR] Unable to parse SQL ElasticPool ID %q: %+v", sqlElasticPoolId, err)
+	}
+
+	return id.ResourceGroup, id.Path["servers"], id.Path["elasticPools"], nil
 }
