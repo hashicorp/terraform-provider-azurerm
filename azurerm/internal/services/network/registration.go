@@ -14,6 +14,7 @@ func (r Registration) Name() string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
+		"azurerm_application_security_group":                dataSourceArmApplicationSecurityGroup(),
 		"azurerm_express_route_circuit":                     dataSourceArmExpressRouteCircuit(),
 		"azurerm_firewall":                                  dataSourceArmFirewall(),
 		"azurerm_lb":                                        dataSourceArmLoadBalancer(),
@@ -43,6 +44,10 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
+		"azurerm_application_gateway":                  resourceArmApplicationGateway(),
+		"azurerm_application_security_group":           resourceArmApplicationSecurityGroup(),
+		"azurerm_bastion_host":                         resourceArmBastionHost(),
+		"azurerm_connection_monitor":                   resourceArmConnectionMonitor(),
 		"azurerm_ddos_protection_plan":                 resourceArmDDoSProtectionPlan(),
 		"azurerm_express_route_circuit_authorization":  resourceArmExpressRouteCircuitAuthorization(),
 		"azurerm_express_route_circuit_peering":        resourceArmExpressRouteCircuitPeering(),
