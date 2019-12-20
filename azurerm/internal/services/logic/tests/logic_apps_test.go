@@ -1,4 +1,4 @@
-package logic
+package tests
 
 import (
 	"fmt"

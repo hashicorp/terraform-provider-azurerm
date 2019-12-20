@@ -1,4 +1,4 @@
-package logic
+package tests
 
 import (
 	"fmt"
@@ -7,34 +7,28 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLogicAppWorkflow_empty(t *testing.T) {
-	resourceName := "azurerm_logic_app_workflow.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogicAppWorkflow_empty(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogicAppWorkflow_empty(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -45,22 +39,21 @@ func TestAccAzureRMLogicAppWorkflow_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_logic_app_workflow.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogicAppWorkflow_empty(ri, location),
+				Config: testAccAzureRMLogicAppWorkflow_empty(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(resourceName),
+					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMLogicAppWorkflow_requiresImport(ri, location),
+				Config:      testAccAzureRMLogicAppWorkflow_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_workflow"),
 			},
 		},
@@ -68,41 +61,32 @@ func TestAccAzureRMLogicAppWorkflow_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
-	resourceName := "azurerm_logic_app_workflow.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogicAppWorkflow_empty(ri, location),
+				Config: testAccAzureRMLogicAppWorkflow_empty(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMLogicAppWorkflow_tags(ri, location),
+				Config: testAccAzureRMLogicAppWorkflow_tags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Source", "AcceptanceTests"),
+					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Source", "AcceptanceTests"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -162,7 +146,7 @@ func testCheckAzureRMLogicAppWorkflowDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMLogicAppWorkflow_empty(rInt int, location string) string {
+func testAccAzureRMLogicAppWorkflow_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -174,11 +158,11 @@ resource "azurerm_logic_app_workflow" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMLogicAppWorkflow_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMLogicAppWorkflow_empty(rInt, location)
+func testAccAzureRMLogicAppWorkflow_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMLogicAppWorkflow_empty(data)
 	return fmt.Sprintf(`
 %s
 
@@ -190,7 +174,7 @@ resource "azurerm_logic_app_workflow" "import" {
 `, template)
 }
 
-func testAccAzureRMLogicAppWorkflow_tags(rInt int, location string) string {
+func testAccAzureRMLogicAppWorkflow_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -206,5 +190,5 @@ resource "azurerm_logic_app_workflow" "test" {
     "Source" = "AcceptanceTests"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
