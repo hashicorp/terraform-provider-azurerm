@@ -1,4 +1,4 @@
-package azurerm
+package postgres
 
 import (
 	"fmt"
@@ -9,16 +9,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgreSQLConfiguration() *schema.Resource {
+func resourceArmPostgreSQLFirewallRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgreSQLConfigurationCreateUpdate,
-		Read:   resourceArmPostgreSQLConfigurationRead,
-		Delete: resourceArmPostgreSQLConfigurationDelete,
+		Create: resourceArmPostgreSQLFirewallRuleCreate,
+		Read:   resourceArmPostgreSQLFirewallRuleRead,
+		Delete: resourceArmPostgreSQLFirewallRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -45,7 +47,13 @@ func resourceArmPostgreSQLConfiguration() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"value": {
+			"start_ip_address": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+
+			"end_ip_address": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -54,21 +62,36 @@ func resourceArmPostgreSQLConfiguration() *schema.Resource {
 	}
 }
 
-func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Postgres.ConfigurationsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Postgres.FirewallRulesClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Configuration creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Firewall Rule creation.")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
-	value := d.Get("value").(string)
+	startIPAddress := d.Get("start_ip_address").(string)
+	endIPAddress := d.Get("end_ip_address").(string)
 
-	properties := postgresql.Configuration{
-		ConfigurationProperties: &postgresql.ConfigurationProperties{
-			Value: utils.String(value),
+	if features.ShouldResourcesBeImported() {
+		existing, err := client.Get(ctx, resGroup, serverName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing PostgreSQL Firewall Rule %s (resource group %s) ID", name, resGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_postgresql_firewall_rule", *existing.ID)
+		}
+	}
+
+	properties := postgresql.FirewallRule{
+		FirewallRuleProperties: &postgresql.FirewallRuleProperties{
+			StartIPAddress: utils.String(startIPAddress),
+			EndIPAddress:   utils.String(endIPAddress),
 		},
 	}
 
@@ -86,16 +109,16 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Configuration %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read PostgreSQL Firewall Rule %s (resource group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmPostgreSQLConfigurationRead(d, meta)
+	return resourceArmPostgreSQLFirewallRuleRead(d, meta)
 }
 
-func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Postgres.ConfigurationsClient
+func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Postgres.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -105,29 +128,30 @@ func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interfa
 	}
 	resGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
-	name := id.Path["configurations"]
+	name := id.Path["firewallRules"]
 
 	resp, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] PostgreSQL Configuration '%s' was not found (resource group '%s')", name, resGroup)
+			log.Printf("[WARN] PostgreSQL Firewall Rule '%s' was not found (resource group '%s')", name, resGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure PostgreSQL Configuration %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure PostgreSQL Firewall Rule %s: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("server_name", serverName)
 	d.Set("resource_group_name", resGroup)
-	d.Set("value", resp.ConfigurationProperties.Value)
+	d.Set("server_name", serverName)
+	d.Set("start_ip_address", resp.StartIPAddress)
+	d.Set("end_ip_address", resp.EndIPAddress)
 
 	return nil
 }
 
-func resourceArmPostgreSQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Postgres.ConfigurationsClient
+func resourceArmPostgreSQLFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Postgres.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -137,22 +161,9 @@ func resourceArmPostgreSQLConfigurationDelete(d *schema.ResourceData, meta inter
 	}
 	resGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
-	name := id.Path["configurations"]
+	name := id.Path["firewallRules"]
 
-	// "delete" = resetting this to the default value
-	resp, err := client.Get(ctx, resGroup, serverName, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Postgresql Configuration '%s': %+v", name, err)
-	}
-
-	properties := postgresql.Configuration{
-		ConfigurationProperties: &postgresql.ConfigurationProperties{
-			// we can alternatively set `source: "system-default"`
-			Value: resp.DefaultValue,
-		},
-	}
-
-	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, properties)
+	future, err := client.Delete(ctx, resGroup, serverName, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
