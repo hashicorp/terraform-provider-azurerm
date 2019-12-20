@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -216,7 +217,7 @@ func testCheckAzureRMMonitorMetricAlertRuleDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(rInt int, location string, enabled bool) string {
-	template := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(rInt, location)
+	template := compute.testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(rInt, location)
 	return fmt.Sprintf(`
 %s
 
