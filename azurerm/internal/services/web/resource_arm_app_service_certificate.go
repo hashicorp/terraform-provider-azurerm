@@ -1,4 +1,4 @@
-package azurerm
+package web
 
 import (
 	"encoding/base64"
@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -28,7 +27,7 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 		Update: resourceArmAppServiceCertificateCreateUpdate,
 		Delete: resourceArmAppServiceCertificateDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := webSvc.ParseAppServiceCertificateID(id)
+			_, err := ParseAppServiceCertificateID(id)
 			return err
 		}),
 
@@ -209,7 +208,7 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := webSvc.ParseAppServiceCertificateID(d.Id())
+	id, err := ParseAppServiceCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -252,7 +251,7 @@ func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := webSvc.ParseAppServiceCertificateID(d.Id())
+	id, err := ParseAppServiceCertificateID(d.Id())
 	if err != nil {
 		return err
 	}

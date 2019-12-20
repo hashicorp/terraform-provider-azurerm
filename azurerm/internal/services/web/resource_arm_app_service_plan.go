@@ -1,4 +1,4 @@
-package azurerm
+package web
 
 import (
 	"fmt"
@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -29,7 +28,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 		Update: resourceArmAppServicePlanCreateUpdate,
 		Delete: resourceArmAppServicePlanDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := webSvc.ParseAppServicePlanID(id)
+			_, err := ParseAppServicePlanID(id)
 			return err
 		}),
 
@@ -273,7 +272,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := webSvc.ParseAppServicePlanID(d.Id())
+	id, err := ParseAppServicePlanID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -340,7 +339,7 @@ func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := webSvc.ParseAppServicePlanID(d.Id())
+	id, err := ParseAppServicePlanID(d.Id())
 	if err != nil {
 		return err
 	}

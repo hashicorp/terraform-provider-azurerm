@@ -1,4 +1,4 @@
-package azurerm
+package web
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -22,7 +21,7 @@ func resourceArmAppServiceActiveSlot() *schema.Resource {
 		Update: resourceArmAppServiceActiveSlotCreateUpdate,
 		Delete: resourceArmAppServiceActiveSlotDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := webSvc.ParseAppServiceID(id)
+			_, err := ParseAppServiceID(id)
 			return err
 		}),
 
@@ -98,7 +97,7 @@ func resourceArmAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := webSvc.ParseAppServiceID(d.Id())
+	id, err := ParseAppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
