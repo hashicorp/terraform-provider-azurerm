@@ -1,4 +1,4 @@
-package azurerm
+package healthcare
 
 import (
 	"fmt"
