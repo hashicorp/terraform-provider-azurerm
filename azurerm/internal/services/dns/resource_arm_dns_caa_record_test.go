@@ -1,4 +1,4 @@
-package azurerm
+package dns
 
 import (
 	"fmt"
@@ -14,20 +14,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
-	resourceName := "azurerm_dns_mx_record.test"
+func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
+	resourceName := "azurerm_dns_caa_record.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsMxRecord_basic(ri, acceptance.Location())
+	config := testAccAzureRMDnsCaaRecord_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
+		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsMxRecordExists(resourceName),
+					testCheckAzureRMDnsCaaRecordExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "fqdn"),
 				),
 			},
@@ -40,114 +40,88 @@ func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsMxRecord_rootrecord(t *testing.T) {
-	resourceName := "azurerm_dns_mx_record.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsMxRecord_rootrecord(ri, acceptance.Location())
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsMxRecordExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "fqdn"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMDnsMxRecord_requiresImport(t *testing.T) {
+func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
-	resourceName := "azurerm_dns_mx_record.test"
+	resourceName := "azurerm_dns_caa_record.test"
 	ri := tf.AccRandTimeInt()
 	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
+		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsMxRecord_basic(ri, location),
+				Config: testAccAzureRMDnsCaaRecord_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsMxRecordExists(resourceName),
+					testCheckAzureRMDnsCaaRecordExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDnsMxRecord_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_dns_mx_record"),
+				Config:      testAccAzureRMDnsCaaRecord_requiresImport(ri, location),
+				ExpectError: acceptance.RequiresImportError("azurerm_dns_caa_record"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMDnsMxRecord_updateRecords(t *testing.T) {
-	resourceName := "azurerm_dns_mx_record.test"
+func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
+	resourceName := "azurerm_dns_caa_record.test"
 	ri := tf.AccRandTimeInt()
 	location := acceptance.Location()
-	preConfig := testAccAzureRMDnsMxRecord_basic(ri, location)
-	postConfig := testAccAzureRMDnsMxRecord_updateRecords(ri, location)
+	preConfig := testAccAzureRMDnsCaaRecord_basic(ri, location)
+	postConfig := testAccAzureRMDnsCaaRecord_updateRecords(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
+		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsMxRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "record.#", "2"),
+					testCheckAzureRMDnsCaaRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "record.#", "4"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsMxRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "record.#", "3"),
+					testCheckAzureRMDnsCaaRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "record.#", "5"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMDnsMxRecord_withTags(t *testing.T) {
-	resourceName := "azurerm_dns_mx_record.test"
+func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
+	resourceName := "azurerm_dns_caa_record.test"
 	ri := tf.AccRandTimeInt()
 	location := acceptance.Location()
-	preConfig := testAccAzureRMDnsMxRecord_withTags(ri, location)
-	postConfig := testAccAzureRMDnsMxRecord_withTagsUpdate(ri, location)
+	preConfig := testAccAzureRMDnsCaaRecord_withTags(ri, location)
+	postConfig := testAccAzureRMDnsCaaRecord_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
+		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsMxRecordExists(resourceName),
+					testCheckAzureRMDnsCaaRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsMxRecordExists(resourceName),
+					testCheckAzureRMDnsCaaRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
@@ -160,7 +134,7 @@ func TestAccAzureRMDnsMxRecord_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDnsMxRecordExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMDnsCaaRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -168,42 +142,42 @@ func testCheckAzureRMDnsMxRecordExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		mxName := rs.Primary.Attributes["name"]
+		caaName := rs.Primary.Attributes["name"]
 		zoneName := rs.Primary.Attributes["zone_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DNS MX record: %s", mxName)
+			return fmt.Errorf("Bad: no resource group found in state for DNS CAA record: %s", caaName)
 		}
 
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, mxName, dns.MX)
+		resp, err := conn.Get(ctx, resourceGroup, zoneName, caaName, dns.CAA)
 		if err != nil {
-			return fmt.Errorf("Bad: Get MX RecordSet: %+v", err)
+			return fmt.Errorf("Bad: Get CAA RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS MX record %s (resource group: %s) does not exist", mxName, resourceGroup)
+			return fmt.Errorf("Bad: DNS CAA record %s (resource group: %s) does not exist", caaName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDnsMxRecordDestroy(s *terraform.State) error {
+func testCheckAzureRMDnsCaaRecordDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dns_mx_record" {
+		if rs.Type != "azurerm_dns_caa_record" {
 			continue
 		}
 
-		mxName := rs.Primary.Attributes["name"]
+		caaName := rs.Primary.Attributes["name"]
 		zoneName := rs.Primary.Attributes["zone_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, mxName, dns.MX)
+		resp, err := conn.Get(ctx, resourceGroup, zoneName, caaName, dns.CAA)
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
@@ -213,13 +187,13 @@ func testCheckAzureRMDnsMxRecordDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("DNS MX record still exists:\n%#v", resp.RecordSetProperties)
+		return fmt.Errorf("DNS CAA record still exists:\n%#v", resp.RecordSetProperties)
 	}
 
 	return nil
 }
 
-func testAccAzureRMDnsMxRecord_basic(rInt int, location string) string {
+func testAccAzureRMDnsCaaRecord_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -231,80 +205,78 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_dns_mx_record" "test" {
+resource "azurerm_dns_caa_record" "test" {
   name                = "myarecord%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_dns_zone.test.name}"
   ttl                 = 300
 
   record {
-    preference = "10"
-    exchange   = "mail1.contoso.com"
+    flags = 0
+    tag   = "issue"
+    value = "example.com"
   }
 
   record {
-    preference = "20"
-    exchange   = "mail2.contoso.com"
+    flags = 0
+    tag   = "issue"
+    value = "example.net"
+  }
+
+  record {
+    flags = 1
+    tag   = "issuewild"
+    value = ";"
+  }
+
+  record {
+    flags = 0
+    tag   = "iodef"
+    value = "mailto:terraform@nonexist.tld"
   }
 }
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsMxRecord_rootrecord(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_dns_mx_record" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_dns_zone.test.name}"
-  ttl                 = 300
-
-  record {
-    preference = "10"
-    exchange   = "mail1.contoso.com"
-  }
-
-  record {
-    preference = "20"
-    exchange   = "mail2.contoso.com"
-  }
-}
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMDnsMxRecord_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMDnsMxRecord_basic(rInt, location)
+func testAccAzureRMDnsCaaRecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMDnsCaaRecord_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_dns_mx_record" "import" {
-  name                = "${azurerm_dns_mx_record.test.name}"
-  resource_group_name = "${azurerm_dns_mx_record.test.resource_group_name}"
-  zone_name           = "${azurerm_dns_mx_record.test.zone_name}"
+resource "azurerm_dns_caa_record" "import" {
+  name                = "${azurerm_dns_caa_record.test.name}"
+  resource_group_name = "${azurerm_dns_caa_record.test.resource_group_name}"
+  zone_name           = "${azurerm_dns_caa_record.test.zone_name}"
   ttl                 = 300
 
   record {
-    preference = "10"
-    exchange   = "mail1.contoso.com"
+    flags = 0
+    tag   = "issue"
+    value = "example.com"
   }
 
   record {
-    preference = "20"
-    exchange   = "mail2.contoso.com"
+    flags = 0
+    tag   = "issue"
+    value = "example.net"
+  }
+
+  record {
+    flags = 1
+    tag   = "issuewild"
+    value = ";"
+  }
+
+  record {
+    flags = 0
+    tag   = "iodef"
+    value = "mailto:terraform@nonexist.tld"
   }
 }
 `, template)
 }
 
-func testAccAzureRMDnsMxRecord_updateRecords(rInt int, location string) string {
+func testAccAzureRMDnsCaaRecord_updateRecords(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -316,31 +288,46 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_dns_mx_record" "test" {
+resource "azurerm_dns_caa_record" "test" {
   name                = "myarecord%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_dns_zone.test.name}"
   ttl                 = 300
 
   record {
-    preference = "10"
-    exchange   = "mail1.contoso.com"
+    flags = 0
+    tag   = "issue"
+    value = "example.com"
   }
 
   record {
-    preference = "20"
-    exchange   = "mail2.contoso.com"
+    flags = 0
+    tag   = "issue"
+    value = "example.net"
   }
 
   record {
-    preference = "50"
-    exchange   = "mail3.contoso.com"
+    flags = 1
+    tag   = "issuewild"
+    value = ";"
+  }
+
+  record {
+    flags = 0
+    tag   = "iodef"
+    value = "mailto:terraform@nonexist.tld"
+  }
+
+  record {
+    flags = 0
+    tag   = "issue"
+    value = "letsencrypt.org"
   }
 }
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsMxRecord_withTags(rInt int, location string) string {
+func testAccAzureRMDnsCaaRecord_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -352,20 +339,22 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_dns_mx_record" "test" {
+resource "azurerm_dns_caa_record" "test" {
   name                = "myarecord%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_dns_zone.test.name}"
   ttl                 = 300
 
   record {
-    preference = "10"
-    exchange   = "mail1.contoso.com"
+    flags = 0
+    tag   = "issue"
+    value = "example.net"
   }
 
   record {
-    preference = "20"
-    exchange   = "mail2.contoso.com"
+    flags = 1
+    tag   = "issuewild"
+    value = ";"
   }
 
   tags = {
@@ -376,7 +365,7 @@ resource "azurerm_dns_mx_record" "test" {
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsMxRecord_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMDnsCaaRecord_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -388,20 +377,22 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_dns_mx_record" "test" {
+resource "azurerm_dns_caa_record" "test" {
   name                = "myarecord%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_dns_zone.test.name}"
   ttl                 = 300
 
   record {
-    preference = "10"
-    exchange   = "mail1.contoso.com"
+    flags = 0
+    tag   = "issue"
+    value = "example.net"
   }
 
   record {
-    preference = "20"
-    exchange   = "mail2.contoso.com"
+    flags = 1
+    tag   = "issuewild"
+    value = ";"
   }
 
   tags = {
