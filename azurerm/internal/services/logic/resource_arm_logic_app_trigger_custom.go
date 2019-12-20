@@ -1,4 +1,4 @@
-package azurerm
+package logic
 
 import (
 	"encoding/json"
@@ -12,12 +12,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func resourceArmLogicAppActionCustom() *schema.Resource {
+func resourceArmLogicAppTriggerCustom() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogicAppActionCustomCreateUpdate,
-		Read:   resourceArmLogicAppActionCustomRead,
-		Update: resourceArmLogicAppActionCustomCreateUpdate,
-		Delete: resourceArmLogicAppActionCustomDelete,
+		Create: resourceArmLogicAppTriggerCustomCreateUpdate,
+		Read:   resourceArmLogicAppTriggerCustomRead,
+		Update: resourceArmLogicAppTriggerCustomCreateUpdate,
+		Delete: resourceArmLogicAppTriggerCustomDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,24 +53,24 @@ func resourceArmLogicAppActionCustom() *schema.Resource {
 	}
 }
 
-func resourceArmLogicAppActionCustomCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogicAppTriggerCustomCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
 	bodyRaw := d.Get("body").(string)
 
 	var body map[string]interface{}
 	if err := json.Unmarshal([]byte(bodyRaw), &body); err != nil {
-		return fmt.Errorf("Error unmarshalling JSON for Custom Action %q: %+v", name, err)
+		return fmt.Errorf("Error unmarshalling JSON for Custom Trigger %q: %+v", name, err)
 	}
 
-	if err := resourceLogicAppActionUpdate(d, meta, logicAppId, name, body, "azurerm_logic_app_action_custom"); err != nil {
+	if err := resourceLogicAppTriggerUpdate(d, meta, logicAppId, name, body, "azurerm_logic_app_trigger_custom"); err != nil {
 		return err
 	}
 
-	return resourceArmLogicAppActionCustomRead(d, meta)
+	return resourceArmLogicAppTriggerCustomRead(d, meta)
 }
 
-func resourceArmLogicAppActionCustomRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogicAppTriggerCustomRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -78,15 +78,15 @@ func resourceArmLogicAppActionCustomRead(d *schema.ResourceData, meta interface{
 
 	resourceGroup := id.ResourceGroup
 	logicAppName := id.Path["workflows"]
-	name := id.Path["actions"]
+	name := id.Path["triggers"]
 
-	t, app, err := retrieveLogicAppAction(d, meta, resourceGroup, logicAppName, name)
+	t, app, err := retrieveLogicAppTrigger(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
 		return err
 	}
 
 	if t == nil {
-		log.Printf("[DEBUG] Logic App %q (Resource Group %q) does not contain Action %q - removing from state", logicAppName, resourceGroup, name)
+		log.Printf("[DEBUG] Logic App %q (Resource Group %q) does not contain Trigger %q - removing from state", logicAppName, resourceGroup, name)
 		d.SetId("")
 		return nil
 	}
@@ -98,17 +98,17 @@ func resourceArmLogicAppActionCustomRead(d *schema.ResourceData, meta interface{
 
 	body, err := json.Marshal(action)
 	if err != nil {
-		return fmt.Errorf("Error serializing `body` for Action %q: %+v", name, err)
+		return fmt.Errorf("Error serializing `body` for Trigger %q: %+v", name, err)
 	}
 
 	if err := d.Set("body", string(body)); err != nil {
-		return fmt.Errorf("Error setting `body` for Action %q: %+v", name, err)
+		return fmt.Errorf("Error setting `body` for Trigger %q: %+v", name, err)
 	}
 
 	return nil
 }
 
-func resourceArmLogicAppActionCustomDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogicAppTriggerCustomDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -116,11 +116,11 @@ func resourceArmLogicAppActionCustomDelete(d *schema.ResourceData, meta interfac
 
 	resourceGroup := id.ResourceGroup
 	logicAppName := id.Path["workflows"]
-	name := id.Path["actions"]
+	name := id.Path["triggers"]
 
-	err = resourceLogicAppActionRemove(d, meta, resourceGroup, logicAppName, name)
+	err = resourceLogicAppTriggerRemove(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
-		return fmt.Errorf("Error removing Action %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
+		return fmt.Errorf("Error removing Trigger %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
 	}
 
 	return nil
