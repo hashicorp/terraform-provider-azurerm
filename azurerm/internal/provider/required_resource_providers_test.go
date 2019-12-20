@@ -1,4 +1,4 @@
-package acceptance
+package provider
 
 import (
 	"context"
@@ -6,15 +6,12 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-azure-helpers/resourceproviders"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
-// NOTE: unfortunately this has to live here to avoid a circular reference for testing
-//       however since this is only used for testing, it's not the end of the world
-
 func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
-	config := GetAuthConfig(t)
+	config := acceptance.GetAuthConfig(t)
 	if config == nil {
 		return
 	}
@@ -34,7 +31,7 @@ func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	}
 
 	client := armClient.Resource.ProvidersClient
-	ctx := AzureProvider.StopContext()
+	ctx := acceptance.AzureProvider.StopContext()
 	providerList, err := client.List(ctx, nil, "")
 	if err != nil {
 		t.Fatalf("Unable to list provider registration status, it is possible that this is due to invalid "+
@@ -43,8 +40,8 @@ func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	}
 
 	availableResourceProviders := providerList.Values()
-	requiredResourceProviders := provider.RequiredResourceProviders()
-	err = provider.EnsureResourceProvidersAreRegistered(ctx, *client, availableResourceProviders, requiredResourceProviders)
+	requiredResourceProviders := RequiredResourceProviders()
+	err = EnsureResourceProvidersAreRegistered(ctx, *client, availableResourceProviders, requiredResourceProviders)
 	if err != nil {
 		t.Fatalf("Error registering Resource Providers: %+v", err)
 	}
