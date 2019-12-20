@@ -1,4 +1,4 @@
-package loganalytics
+package tests
 
 import (
 	"fmt"
@@ -8,15 +8,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLogAnalyticsLinkedService_basic(t *testing.T) {
-	resourceName := "azurerm_log_analytics_linked_service.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,19 +22,15 @@ func TestAccAzureRMLogAnalyticsLinkedService_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsLinkedService_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMLogAnalyticsLinkedService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", ri)),
-					resource.TestCheckResourceAttr(resourceName, "workspace_name", fmt.Sprintf("acctestlaw-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "linked_service_name", "automation"),
+					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "workspace_name", fmt.Sprintf("acctestlaw-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_name", "automation"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -47,9 +41,7 @@ func TestAccAzureRMLogAnalyticsLinkedService_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_log_analytics_linked_service.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -57,16 +49,16 @@ func TestAccAzureRMLogAnalyticsLinkedService_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsLinkedService_basic(ri, location),
+				Config: testAccAzureRMLogAnalyticsLinkedService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", ri)),
-					resource.TestCheckResourceAttr(resourceName, "workspace_name", fmt.Sprintf("acctestlaw-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "linked_service_name", "automation"),
+					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "workspace_name", fmt.Sprintf("acctestlaw-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_name", "automation"),
 				),
 			},
 			{
-				Config:      testAccAzureRMLogAnalyticsLinkedService_requiresImport(ri, location),
+				Config:      testAccAzureRMLogAnalyticsLinkedService_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_linked_service"),
 			},
 		},
@@ -74,8 +66,7 @@ func TestAccAzureRMLogAnalyticsLinkedService_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMLogAnalyticsLinkedService_complete(t *testing.T) {
-	resourceName := "azurerm_log_analytics_linked_service.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -83,24 +74,20 @@ func TestAccAzureRMLogAnalyticsLinkedService_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsLinkedService_complete(ri, acceptance.Location()),
+				Config: testAccAzureRMLogAnalyticsLinkedService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "linked_service_name", "automation"),
+					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_name", "automation"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 // Deprecated - remove in 2.0
 func TestAccAzureRMLogAnalyticsLinkedService_noResourceID(t *testing.T) {
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "ignored", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -108,7 +95,7 @@ func TestAccAzureRMLogAnalyticsLinkedService_noResourceID(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMLogAnalyticsLinkedService_noResourceID(ri, acceptance.Location()),
+				Config:      testAccAzureRMLogAnalyticsLinkedService_noResourceID(data),
 				ExpectError: regexp.MustCompile("A `resource_id` must be specified either using the `resource_id` field at the top level or within the `linked_service_properties` block"),
 			},
 		},
@@ -117,8 +104,7 @@ func TestAccAzureRMLogAnalyticsLinkedService_noResourceID(t *testing.T) {
 
 // Deprecated - remove in 2.0
 func TestAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(t *testing.T) {
-	resourceName := "azurerm_log_analytics_linked_service.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -126,16 +112,12 @@ func TestAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(t *testing.
 		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(ri, acceptance.Location()),
+				Config: testAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName),
+					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -202,8 +184,8 @@ func testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName string) resour
 	}
 }
 
-func testAccAzureRMLogAnalyticsLinkedService_basic(rInt int, location string) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_template(rInt, location)
+func testAccAzureRMLogAnalyticsLinkedService_basic(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsLinkedService_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -215,8 +197,8 @@ resource "azurerm_log_analytics_linked_service" "test" {
 `, template)
 }
 
-func testAccAzureRMLogAnalyticsLinkedService_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_basic(rInt, location)
+func testAccAzureRMLogAnalyticsLinkedService_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsLinkedService_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -228,8 +210,8 @@ resource "azurerm_log_analytics_linked_service" "import" {
 `, template)
 }
 
-func testAccAzureRMLogAnalyticsLinkedService_complete(rInt int, location string) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_template(rInt, location)
+func testAccAzureRMLogAnalyticsLinkedService_complete(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsLinkedService_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -242,8 +224,8 @@ resource "azurerm_log_analytics_linked_service" "test" {
 `, template)
 }
 
-func testAccAzureRMLogAnalyticsLinkedService_noResourceID(rInt int, location string) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_template(rInt, location)
+func testAccAzureRMLogAnalyticsLinkedService_noResourceID(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsLinkedService_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -254,8 +236,8 @@ resource "azurerm_log_analytics_linked_service" "test" {
 `, template)
 }
 
-func testAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(rInt int, location string) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_template(rInt, location)
+func testAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsLinkedService_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -269,7 +251,7 @@ resource "azurerm_log_analytics_linked_service" "test" {
 `, template)
 }
 
-func testAccAzureRMLogAnalyticsLinkedService_template(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsLinkedService_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -297,5 +279,5 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

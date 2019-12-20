@@ -51,7 +51,7 @@ As such the existing 'azurerm_log_analytics_workspace_linked_service' resource i
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validateAzureRmLogAnalyticsWorkspaceName,
+				ValidateFunc:     ValidateAzureRmLogAnalyticsWorkspaceName,
 			},
 
 			"linked_service_name": {
