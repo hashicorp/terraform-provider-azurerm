@@ -79,7 +79,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_private_link_endpoint":                                                  resourceArmPrivateLinkEndpoint(),
 		"azurerm_private_endpoint":                                                       resourceArmPrivateEndpoint(),
 		"azurerm_private_link_service":                                                   resourceArmPrivateLinkService(),
-		"azurerm_proximity_placement_group":                                              resourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
 		"azurerm_public_ip_prefix":                                                       resourceArmPublicIpPrefix(),
 		"azurerm_network_security_group":                                                 resourceArmNetworkSecurityGroup(),

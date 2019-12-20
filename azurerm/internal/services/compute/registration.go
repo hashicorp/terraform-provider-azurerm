@@ -33,6 +33,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_availability_set":                     resourceArmAvailabilitySet(),
 		"azurerm_managed_disk":                         resourceArmManagedDisk(),
 		"azurerm_image":                                resourceArmImage(),
+		"azurerm_proximity_placement_group":            resourceArmProximityPlacementGroup(),
 		"azurerm_marketplace_agreement":                resourceArmMarketplaceAgreement(),
 		"azurerm_shared_image_gallery":                 resourceArmSharedImageGallery(),
 		"azurerm_shared_image_version":                 resourceArmSharedImageVersion(),
