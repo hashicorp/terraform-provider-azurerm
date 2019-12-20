@@ -1,4 +1,4 @@
-package azurerm
+package portal
 
 import (
 	"encoding/json"
