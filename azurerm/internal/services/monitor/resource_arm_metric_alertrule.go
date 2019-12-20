@@ -1,4 +1,4 @@
-package azurerm
+package monitor
 
 import (
 	"fmt"
