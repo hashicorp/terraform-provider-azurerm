@@ -1,4 +1,4 @@
-package azurerm
+package streamanalytics
 
 import (
 	"fmt"
@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStreamAnalyticsStreamInputIoTHub() *schema.Resource {
+func resourceArmStreamAnalyticsOutputServiceBusQueue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate,
-		Read:   resourceArmStreamAnalyticsStreamInputIoTHubRead,
-		Update: resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate,
-		Delete: resourceArmStreamAnalyticsStreamInputIoTHubDelete,
+		Create: resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate,
+		Read:   resourceArmStreamAnalyticsOutputServiceBusQueueRead,
+		Update: resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate,
+		Delete: resourceArmStreamAnalyticsOutputServiceBusQueueDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,19 +51,13 @@ func resourceArmStreamAnalyticsStreamInputIoTHub() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"endpoint": {
+			"queue_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"iothub_namespace": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
-			"eventhub_consumer_group_name": {
+			"servicebus_namespace": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.NoEmptyStrings,
@@ -72,7 +66,6 @@ func resourceArmStreamAnalyticsStreamInputIoTHub() *schema.Resource {
 			"shared_access_policy_key": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				Sensitive:    true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
@@ -83,17 +76,17 @@ func resourceArmStreamAnalyticsStreamInputIoTHub() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"serialization": azure.SchemaStreamAnalyticsStreamInputSerialization(),
+			"serialization": azure.SchemaStreamAnalyticsOutputSerialization(),
 		},
 	}
 }
 
-func resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StreamAnalytics.InputsClient
+func resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input IoTHub creation.")
+	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output ServiceBus Queue creation.")
 	name := d.Get("name").(string)
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -102,39 +95,36 @@ func resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceD
 		existing, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_iothub", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_stream_analytics_output_servicebus_queue", *existing.ID)
 		}
 	}
 
-	consumerGroupName := d.Get("eventhub_consumer_group_name").(string)
-	endpoint := d.Get("endpoint").(string)
-	iotHubNamespace := d.Get("iothub_namespace").(string)
+	queueName := d.Get("queue_name").(string)
+	serviceBusNamespace := d.Get("servicebus_namespace").(string)
 	sharedAccessPolicyKey := d.Get("shared_access_policy_key").(string)
 	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := azure.ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
+	serialization, err := azure.ExpandStreamAnalyticsOutputSerialization(serializationRaw)
 	if err != nil {
 		return fmt.Errorf("Error expanding `serialization`: %+v", err)
 	}
 
-	props := streamanalytics.Input{
+	props := streamanalytics.Output{
 		Name: utils.String(name),
-		Properties: &streamanalytics.StreamInputProperties{
-			Type: streamanalytics.TypeStream,
-			Datasource: &streamanalytics.IoTHubStreamInputDataSource{
-				Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftDevicesIotHubs,
-				IoTHubStreamInputDataSourceProperties: &streamanalytics.IoTHubStreamInputDataSourceProperties{
-					ConsumerGroupName:      utils.String(consumerGroupName),
+		OutputProperties: &streamanalytics.OutputProperties{
+			Datasource: &streamanalytics.ServiceBusQueueOutputDataSource{
+				Type: streamanalytics.TypeMicrosoftServiceBusQueue,
+				ServiceBusQueueOutputDataSourceProperties: &streamanalytics.ServiceBusQueueOutputDataSourceProperties{
+					QueueName:              utils.String(queueName),
+					ServiceBusNamespace:    utils.String(serviceBusNamespace),
 					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
 					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
-					Endpoint:               utils.String(endpoint),
-					IotHubNamespace:        utils.String(iotHubNamespace),
 				},
 			},
 			Serialization: serialization,
@@ -143,29 +133,29 @@ func resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceD
 
 	if d.IsNewResource() {
 		if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
-			return fmt.Errorf("Error Creating Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error Creating Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 
 		read, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error retrieving Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 		if read.ID == nil {
-			return fmt.Errorf("Cannot read ID of Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
+			return fmt.Errorf("Cannot read ID of Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
 		}
 
 		d.SetId(*read.ID)
 	} else {
 		if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
-			return fmt.Errorf("Error Updating Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error Updating Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 	}
 
-	return resourceArmStreamAnalyticsStreamInputIoTHubRead(d, meta)
+	return resourceArmStreamAnalyticsOutputServiceBusQueueRead(d, meta)
 }
 
-func resourceArmStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StreamAnalytics.InputsClient
+func resourceArmStreamAnalyticsOutputServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -175,40 +165,34 @@ func resourceArmStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, met
 	}
 	resourceGroup := id.ResourceGroup
 	jobName := id.Path["streamingjobs"]
-	name := id.Path["inputs"]
+	name := id.Path["outputs"]
 
 	resp, err := client.Get(ctx, resourceGroup, jobName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Stream Input IoTHub %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
+			log.Printf("[DEBUG] Output ServiceBus Queue %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Stream Input IoTHub %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Stream Output EventHub %q (Stream Analytics Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("stream_analytics_job_name", jobName)
 
-	if props := resp.Properties; props != nil {
-		v, ok := props.AsStreamInputProperties()
+	if props := resp.OutputProperties; props != nil {
+		v, ok := props.Datasource.AsServiceBusQueueOutputDataSource()
 		if !ok {
-			return fmt.Errorf("Error converting Stream Input IoTHub to an Stream Input: %+v", err)
+			return fmt.Errorf("Error converting Output Data Source to a ServiceBus Queue Output: %+v", err)
 		}
 
-		eventHub, ok := v.Datasource.AsIoTHubStreamInputDataSource()
-		if !ok {
-			return fmt.Errorf("Error converting Stream Input IoTHub to an IoTHub Stream Input: %+v", err)
-		}
+		d.Set("queue_name", v.QueueName)
+		d.Set("servicebus_namespace", v.ServiceBusNamespace)
+		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
 
-		d.Set("eventhub_consumer_group_name", eventHub.ConsumerGroupName)
-		d.Set("endpoint", eventHub.Endpoint)
-		d.Set("iothub_namespace", eventHub.IotHubNamespace)
-		d.Set("shared_access_policy_name", eventHub.SharedAccessPolicyName)
-
-		if err := d.Set("serialization", azure.FlattenStreamAnalyticsStreamInputSerialization(v.Serialization)); err != nil {
+		if err := d.Set("serialization", azure.FlattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("Error setting `serialization`: %+v", err)
 		}
 	}
@@ -216,8 +200,8 @@ func resourceArmStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmStreamAnalyticsStreamInputIoTHubDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StreamAnalytics.InputsClient
+func resourceArmStreamAnalyticsOutputServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -227,11 +211,11 @@ func resourceArmStreamAnalyticsStreamInputIoTHubDelete(d *schema.ResourceData, m
 	}
 	resourceGroup := id.ResourceGroup
 	jobName := id.Path["streamingjobs"]
-	name := id.Path["inputs"]
+	name := id.Path["outputs"]
 
 	if resp, err := client.Delete(ctx, resourceGroup, jobName, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Stream Input IoTHub %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Output ServiceBus Queue %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
 		}
 	}
 

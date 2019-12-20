@@ -1,4 +1,4 @@
-package azurerm
+package streamanalytics
 
 import (
 	"fmt"
@@ -15,21 +15,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func TestAccAzureRMStreamAnalyticsOutputBlob_avro(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_blob.test"
+func TestAccAzureRMStreamAnalyticsStreamInputBlob_avro(t *testing.T) {
+	resourceName := "azurerm_stream_analytics_stream_input_blob.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(5)
+	rs := acctest.RandString(4)
 	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
+		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputBlob_avro(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsStreamInputBlob_avro(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputBlobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsStreamInputBlobExists(resourceName),
 				),
 			},
 			{
@@ -45,21 +45,21 @@ func TestAccAzureRMStreamAnalyticsOutputBlob_avro(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputBlob_csv(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_blob.test"
+func TestAccAzureRMStreamAnalyticsStreamInputBlob_csv(t *testing.T) {
+	resourceName := "azurerm_stream_analytics_stream_input_blob.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(5)
+	rs := acctest.RandString(4)
 	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
+		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputBlob_csv(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsStreamInputBlob_csv(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputBlobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsStreamInputBlobExists(resourceName),
 				),
 			},
 			{
@@ -75,21 +75,21 @@ func TestAccAzureRMStreamAnalyticsOutputBlob_csv(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputBlob_json(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_blob.test"
+func TestAccAzureRMStreamAnalyticsStreamInputBlob_json(t *testing.T) {
+	resourceName := "azurerm_stream_analytics_stream_input_blob.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(5)
+	rs := acctest.RandString(4)
 	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
+		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputBlob_json(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsStreamInputBlob_json(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputBlobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsStreamInputBlobExists(resourceName),
 				),
 			},
 			{
@@ -105,27 +105,27 @@ func TestAccAzureRMStreamAnalyticsOutputBlob_json(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputBlob_update(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_blob.test"
+func TestAccAzureRMStreamAnalyticsStreamInputBlob_update(t *testing.T) {
+	resourceName := "azurerm_stream_analytics_stream_input_blob.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(5)
+	rs := acctest.RandString(4)
 	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
+		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputBlob_json(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsStreamInputBlob_json(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputBlobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsStreamInputBlobExists(resourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputBlob_updated(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsStreamInputBlob_updated(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputBlobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsStreamInputBlobExists(resourceName),
 				),
 			},
 			{
@@ -141,37 +141,37 @@ func TestAccAzureRMStreamAnalyticsOutputBlob_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStreamAnalyticsOutputBlob_requiresImport(t *testing.T) {
+func TestAccAzureRMStreamAnalyticsStreamInputBlob_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
-	resourceName := "azurerm_stream_analytics_output_blob.test"
+	resourceName := "azurerm_stream_analytics_stream_input_blob.test"
 	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(5)
+	rs := acctest.RandString(4)
 	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputBlobDestroy,
+		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputBlob_json(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsStreamInputBlob_json(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputBlobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsStreamInputBlobExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMStreamAnalyticsOutputBlob_requiresImport(ri, rs, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_output_blob"),
+				Config:      testAccAzureRMStreamAnalyticsStreamInputBlob_requiresImport(ri, rs, location),
+				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_stream_input_blob"),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMStreamAnalyticsOutputBlobExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMStreamAnalyticsStreamInputBlobExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -183,26 +183,26 @@ func testCheckAzureRMStreamAnalyticsOutputBlobExists(resourceName string) resour
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.InputsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on streamAnalyticsOutputsClient: %+v", err)
+			return fmt.Errorf("Bad: Get on streamAnalyticsInputsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Stream Output %q (Stream Analytics Job %q / Resource Group %q) does not exist", name, jobName, resourceGroup)
+			return fmt.Errorf("Bad: Stream Input %q (Stream Analytics Job %q / Resource Group %q) does not exist", name, jobName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMStreamAnalyticsOutputBlobDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
+func testCheckAzureRMStreamAnalyticsStreamInputBlobDestroy(s *terraform.State) error {
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.InputsClient
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_stream_analytics_output_blob" {
+		if rs.Type != "azurerm_stream_analytics_stream_input_eventhub" {
 			continue
 		}
 
@@ -216,27 +216,27 @@ func testCheckAzureRMStreamAnalyticsOutputBlobDestroy(s *terraform.State) error 
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Stream Analytics Output ServiceBus Queue still exists:\n%#v", resp.OutputProperties)
+			return fmt.Errorf("Stream Analytics Stream Input EventHub still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMStreamAnalyticsOutputBlob_avro(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputBlob_template(rInt, rString, location)
+func testAccAzureRMStreamAnalyticsStreamInputBlob_avro(rInt int, rString string, location string) string {
+	template := testAccAzureRMStreamAnalyticsStreamInputBlob_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_stream_analytics_output_blob" "test" {
+resource "azurerm_stream_analytics_stream_input_blob" "test" {
   name                      = "acctestinput-%d"
   stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
   storage_account_name      = "${azurerm_storage_account.test.name}"
   storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
   storage_container_name    = "${azurerm_storage_container.test.name}"
-  path_pattern              = "some-other-pattern"
-  date_format               = "yyyy-MM-dd"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
   time_format               = "HH"
 
   serialization {
@@ -246,20 +246,20 @@ resource "azurerm_stream_analytics_output_blob" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMStreamAnalyticsOutputBlob_csv(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputBlob_template(rInt, rString, location)
+func testAccAzureRMStreamAnalyticsStreamInputBlob_csv(rInt int, rString string, location string) string {
+	template := testAccAzureRMStreamAnalyticsStreamInputBlob_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_stream_analytics_output_blob" "test" {
+resource "azurerm_stream_analytics_stream_input_blob" "test" {
   name                      = "acctestinput-%d"
   stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
   storage_account_name      = "${azurerm_storage_account.test.name}"
   storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
   storage_container_name    = "${azurerm_storage_container.test.name}"
-  path_pattern              = "some-pattern"
-  date_format               = "yyyy-MM-dd"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
   time_format               = "HH"
 
   serialization {
@@ -271,33 +271,32 @@ resource "azurerm_stream_analytics_output_blob" "test" {
 `, template, rInt)
 }
 
-func testAccAzureRMStreamAnalyticsOutputBlob_json(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputBlob_template(rInt, rString, location)
+func testAccAzureRMStreamAnalyticsStreamInputBlob_json(rInt int, rString string, location string) string {
+	template := testAccAzureRMStreamAnalyticsStreamInputBlob_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_stream_analytics_output_blob" "test" {
+resource "azurerm_stream_analytics_stream_input_blob" "test" {
   name                      = "acctestinput-%d"
   stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
   storage_account_name      = "${azurerm_storage_account.test.name}"
   storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
   storage_container_name    = "${azurerm_storage_container.test.name}"
-  path_pattern              = "some-pattern"
-  date_format               = "yyyy-MM-dd"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
   time_format               = "HH"
 
   serialization {
     type     = "Json"
     encoding = "UTF8"
-    format   = "LineSeparated"
   }
 }
 `, template, rInt)
 }
 
-func testAccAzureRMStreamAnalyticsOutputBlob_updated(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputBlob_template(rInt, rString, location)
+func testAccAzureRMStreamAnalyticsStreamInputBlob_updated(rInt int, rString string, location string) string {
+	template := testAccAzureRMStreamAnalyticsStreamInputBlob_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
@@ -310,13 +309,13 @@ resource "azurerm_storage_account" "updated" {
 }
 
 resource "azurerm_storage_container" "updated" {
-  name                  = "example"
+  name                  = "example2"
   resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.updated.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
 
-resource "azurerm_stream_analytics_output_blob" "test" {
+resource "azurerm_stream_analytics_stream_input_blob" "test" {
   name                      = "acctestinput-%d"
   stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
   resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
@@ -334,27 +333,27 @@ resource "azurerm_stream_analytics_output_blob" "test" {
 `, template, rString, rInt)
 }
 
-func testAccAzureRMStreamAnalyticsOutputBlob_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputBlob_json(rInt, rString, location)
+func testAccAzureRMStreamAnalyticsStreamInputBlob_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMStreamAnalyticsStreamInputBlob_json(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_stream_analytics_output_blob" "import" {
-  name                      = "${azurerm_stream_analytics_output_blob.test.name}"
-  stream_analytics_job_name = "${azurerm_stream_analytics_output_blob.test.stream_analytics_job_name}"
-  resource_group_name       = "${azurerm_stream_analytics_output_blob.test.resource_group_name}"
-  storage_account_name      = "${azurerm_stream_analytics_output_blob.test.storage_account_name}"
-  storage_account_key       = "${azurerm_stream_analytics_output_blob.test.storage_account_key}"
-  storage_container_name    = "${azurerm_stream_analytics_output_blob.test.storage_container_name}"
-  path_pattern              = "${azurerm_stream_analytics_output_blob.test.path_pattern}"
-  date_format               = "${azurerm_stream_analytics_output_blob.test.date_format}"
-  time_format               = "${azurerm_stream_analytics_output_blob.test.time_format}"
-  serialization             = "${azurerm_stream_analytics_output_blob.test.serialization}"
+resource "azurerm_stream_analytics_stream_input_blob" "import" {
+  name                      = "${azurerm_stream_analytics_stream_input_blob.test.name}"
+  stream_analytics_job_name = "${azurerm_stream_analytics_stream_input_blob.test.stream_analytics_job_name}"
+  resource_group_name       = "${azurerm_stream_analytics_stream_input_blob.test.resource_group_name}"
+  storage_account_name      = "${azurerm_stream_analytics_stream_input_blob.test.storage_account_name}"
+  storage_account_key       = "${azurerm_stream_analytics_stream_input_blob.test.storage_account_key}"
+  storage_container_name    = "${azurerm_stream_analytics_stream_input_blob.test.storage_container_name}"
+  path_pattern              = "${azurerm_stream_analytics_stream_input_blob.test.path_pattern}"
+  date_format               = "${azurerm_stream_analytics_stream_input_blob.test.date_format}"
+  time_format               = "${azurerm_stream_analytics_stream_input_blob.test.time_format}"
+  serialization             = "${azurerm_stream_analytics_stream_input_blob.test.serialization}"
 }
 `, template)
 }
 
-func testAccAzureRMStreamAnalyticsOutputBlob_template(rInt int, rString string, location string) string {
+func testAccAzureRMStreamAnalyticsStreamInputBlob_template(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
