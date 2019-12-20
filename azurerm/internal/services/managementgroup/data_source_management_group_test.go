@@ -1,4 +1,4 @@
-package azurerm
+package managementgroup
 
 import (
 	"fmt"
