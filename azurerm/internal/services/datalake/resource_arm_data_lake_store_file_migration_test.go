@@ -1,4 +1,4 @@
-package azurerm
+package datalake
 
 import (
 	"context"
