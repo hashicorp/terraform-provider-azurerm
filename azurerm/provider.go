@@ -11,9 +11,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_application_security_group": dataSourceArmApplicationSecurityGroup(),
 		"azurerm_builtin_role_definition":    dataSourceArmBuiltInRoleDefinition(),
 		"azurerm_client_config":              dataSourceArmClientConfig(),
-		"azurerm_image":                      dataSourceArmImage(),
-		"azurerm_platform_image":             dataSourceArmPlatformImage(),
-		"azurerm_proximity_placement_group":  dataSourceArmProximityPlacementGroup(),
 	}
 
 	resources := map[string]*schema.Resource{
@@ -23,12 +20,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_bastion_host":               resourceArmBastionHost(),
 		"azurerm_connection_monitor":         resourceArmConnectionMonitor(),
 		"azurerm_dashboard":                  resourceArmDashboard(),
-		"azurerm_image":                      resourceArmImage(),
 		"azurerm_management_lock":            resourceArmManagementLock(),
-		"azurerm_marketplace_agreement":      resourceArmMarketplaceAgreement(),
-		"azurerm_shared_image_gallery":       resourceArmSharedImageGallery(),
-		"azurerm_shared_image_version":       resourceArmSharedImageVersion(),
-		"azurerm_shared_image":               resourceArmSharedImage(),
 		"azurerm_template_deployment":        resourceArmTemplateDeployment(),
 	}
 
