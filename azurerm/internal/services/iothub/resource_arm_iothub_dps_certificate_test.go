@@ -1,4 +1,4 @@
-package azurerm
+package iothub
 
 import (
 	"fmt"
@@ -13,19 +13,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func TestAccAzureRMIotDPSCertificate_basic(t *testing.T) {
-	resourceName := "azurerm_iot_dps_certificate.test"
+func TestAccAzureRMIotHubDPSCertificate_basic(t *testing.T) {
+	resourceName := "azurerm_iothub_dps_certificate.test"
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotDPSCertificateDestroy,
+		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotDPSCertificate_basic(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotHubDPSCertificate_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotDPSCertificateExists(resourceName),
+					testCheckAzureRMIotHubDPSCertificateExists(resourceName),
 				),
 			},
 			{
@@ -40,48 +40,48 @@ func TestAccAzureRMIotDPSCertificate_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMIotDPSCertificate_requiresImport(t *testing.T) {
+func TestAccAzureRMIotHubDPSCertificate_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
-	resourceName := "azurerm_iot_dps_certificate.test"
+	resourceName := "azurerm_iothub_dps_certificate.test"
 	rInt := tf.AccRandTimeInt()
 	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotDPSCertificateDestroy,
+		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotDPSCertificate_basic(rInt, location),
+				Config: testAccAzureRMIotHubDPSCertificate_basic(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotDPSCertificateExists(resourceName),
+					testCheckAzureRMIotHubDPSCertificateExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMIotDPSCertificate_requiresImport(rInt, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_iotdps"),
+				Config:      testAccAzureRMIotHubDPSCertificate_requiresImport(rInt, location),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothubdps"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMIotDPSCertificate_update(t *testing.T) {
-	resourceName := "azurerm_iot_dps_certificate.test"
+func TestAccAzureRMIotHubDPSCertificate_update(t *testing.T) {
+	resourceName := "azurerm_iothub_dps_certificate.test"
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotDPSCertificateDestroy,
+		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotDPSCertificate_basic(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotHubDPSCertificate_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotDPSCertificateExists(resourceName),
+					testCheckAzureRMIotHubDPSCertificateExists(resourceName),
 				),
 			},
 			{
@@ -93,9 +93,9 @@ func TestAccAzureRMIotDPSCertificate_update(t *testing.T) {
 				},
 			},
 			{
-				Config: testAccAzureRMIotDPSCertificate_update(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotHubDPSCertificate_update(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotDPSCertificateExists(resourceName),
+					testCheckAzureRMIotHubDPSCertificateExists(resourceName),
 				),
 			},
 			{
@@ -110,12 +110,12 @@ func TestAccAzureRMIotDPSCertificate_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMIotDPSCertificateDestroy(s *terraform.State) error {
+func testCheckAzureRMIotHubDPSCertificateDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSCertificateClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iot_dps_certificate" {
+		if rs.Type != "azurerm_iothub_dps_certificate" {
 			continue
 		}
 
@@ -136,7 +136,7 @@ func testCheckAzureRMIotDPSCertificateDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMIotDPSCertificateExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMIotHubDPSCertificateExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -166,14 +166,14 @@ func testCheckAzureRMIotDPSCertificateExists(resourceName string) resource.TestC
 	}
 }
 
-func testAccAzureRMIotDPSCertificate_basic(rInt int, location string) string {
+func testAccAzureRMIotHubDPSCertificate_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_iot_dps" "test" {
+resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -185,39 +185,39 @@ resource "azurerm_iot_dps" "test" {
   }
 }
 
-resource "azurerm_iot_dps_certificate" "test" {
+resource "azurerm_iothub_dps_certificate" "test" {
   name                = "acctestIoTDPSCertificate-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  iot_dps_name        = "${azurerm_iot_dps.test.name}"
+  iot_dps_name        = "${azurerm_iothub_dps.test.name}"
 
   certificate_content = "${filebase64("testdata/batch_certificate.cer")}"
 }
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMIotDPSCertificate_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMIotDPS_basic(rInt, location)
+func testAccAzureRMIotHubDPSCertificate_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMIotHubDPS_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iot_dps_certificate" "test" {
-  name                = "${azurerm_iot_dps_certificate.test.name}"
+resource "azurerm_iothub_dps_certificate" "test" {
+  name                = "${azurerm_iothub_dps_certificate.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  iot_dps_name        = "${azurerm_iot_dps.test.name}"
+  iot_dps_name        = "${azurerm_iothub_dps.test.name}"
 
   certificate_content = "${filebase64("testdata/batch_certificate.cer")}"
 }
 `, template)
 }
 
-func testAccAzureRMIotDPSCertificate_update(rInt int, location string) string {
+func testAccAzureRMIotHubDPSCertificate_update(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_iot_dps" "test" {
+resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -233,10 +233,10 @@ resource "azurerm_iot_dps" "test" {
   }
 }
 
-resource "azurerm_iot_dps_certificate" "test" {
+resource "azurerm_iothub_dps_certificate" "test" {
   name                = "acctestIoTDPSCertificate-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  iot_dps_name        = "${azurerm_iot_dps.test.name}"
+  iot_dps_name        = "${azurerm_iothub_dps.test.name}"
 
   certificate_content = "${filebase64("testdata/application_gateway_test.cer")}"
 }

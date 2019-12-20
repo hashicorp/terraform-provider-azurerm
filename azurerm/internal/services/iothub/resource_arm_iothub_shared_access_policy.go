@@ -1,4 +1,4 @@
-package azurerm
+package iothub
 
 import (
 	"fmt"
@@ -137,8 +137,8 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 	iothubName := d.Get("iothub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	locks.ByName(iothubName, iothubResourceName)
-	defer locks.UnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, IothubResourceName)
+	defer locks.UnlockByName(iothubName, IothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -268,8 +268,8 @@ func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta inte
 	iothubName := parsedIothubSAPId.Path["IotHubs"]
 	keyName := parsedIothubSAPId.Path["IotHubKeys"]
 
-	locks.ByName(iothubName, iothubResourceName)
-	defer locks.UnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, IothubResourceName)
+	defer locks.UnlockByName(iothubName, IothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {

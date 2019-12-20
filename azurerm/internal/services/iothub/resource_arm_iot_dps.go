@@ -1,4 +1,4 @@
-package azurerm
+package iothub
 
 import (
 	"context"
@@ -25,16 +25,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotHubDPS() *schema.Resource {
+func resourceArmIotDPS() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubDPSCreateUpdate,
-		Read:   resourceArmIotHubDPSRead,
-		Update: resourceArmIotHubDPSCreateUpdate,
-		Delete: resourceArmIotHubDPSDelete,
+		Create: resourceArmIotDPSCreateUpdate,
+		Read:   resourceArmIotDPSRead,
+		Update: resourceArmIotDPSCreateUpdate,
+		Delete: resourceArmIotDPSDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		DeprecationMessage: `The 'azurerm_iot_dps' resource is deprecated in favour of the renamed version 'azurerm_iothub_dps'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+
+As such the existing 'azurerm_iot_dps' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -140,32 +146,12 @@ func resourceArmIotHubDPS() *schema.Resource {
 				},
 			},
 
-			"allocation_policy": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"device_provisioning_host_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"id_scope": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"service_operations_host_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmIotHubDPSCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotDPSCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -182,16 +168,16 @@ func resourceArmIotHubDPSCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_iothub_dps", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_iot_dps", *existing.ID)
 		}
 	}
 
 	iotdps := iothub.ProvisioningServiceDescription{
 		Location: utils.String(d.Get("location").(string)),
 		Name:     utils.String(name),
-		Sku:      expandIoTHubDPSSku(d),
+		Sku:      expandIoTDPSSku(d),
 		Properties: &iothub.IotDpsPropertiesDescription{
-			IotHubs: expandIoTHubDPSIoTHubs(d.Get("linked_hub").([]interface{})),
+			IotHubs: expandIoTDPSIoTHubs(d.Get("linked_hub").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -216,10 +202,10 @@ func resourceArmIotHubDPSCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(*resp.ID)
 
-	return resourceArmIotHubDPSRead(d, meta)
+	return resourceArmIotDPSRead(d, meta)
 }
 
-func resourceArmIotHubDPSRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotDPSRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -246,26 +232,21 @@ func resourceArmIotHubDPSRead(d *schema.ResourceData, meta interface{}) error {
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	sku := flattenIoTHubDPSSku(resp.Sku)
+	sku := flattenIoTDPSSku(resp.Sku)
 	if err := d.Set("sku", sku); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("linked_hub", flattenIoTHubDPSLinkedHub(props.IotHubs)); err != nil {
+		if err := d.Set("linked_hub", flattenIoTDPSLinkedHub(props.IotHubs)); err != nil {
 			return fmt.Errorf("Error setting `linked_hub`: %+v", err)
 		}
-
-		d.Set("service_operations_host_name", props.ServiceOperationsHostName)
-		d.Set("device_provisioning_host_name", props.DeviceProvisioningHostName)
-		d.Set("id_scope", props.IDScope)
-		d.Set("allocation_policy", props.AllocationPolicy)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmIotHubDPSDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotDPSDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -284,16 +265,16 @@ func resourceArmIotHubDPSDelete(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	return waitForIotHubDPSToBeDeleted(ctx, client, resourceGroup, name, d)
+	return waitForIotDPSToBeDeleted(ctx, client, resourceGroup, name, d)
 }
 
-func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iothub.IotDpsResourceClient, resourceGroup, name string, d *schema.ResourceData) error {
+func waitForIotDPSToBeDeleted(ctx context.Context, client *iothub.IotDpsResourceClient, resourceGroup, name string, d *schema.ResourceData) error {
 	// we can't use the Waiter here since the API returns a 404 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for IoT Device Provisioning Service %q (Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200"},
 		Target:  []string{"404"},
-		Refresh: iothubdpsStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
+		Refresh: iotdpsStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
 	}
 
 	if features.SupportsCustomTimeouts() {
@@ -309,7 +290,7 @@ func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iothub.IotDpsResou
 	return nil
 }
 
-func iothubdpsStateStatusCodeRefreshFunc(ctx context.Context, client *iothub.IotDpsResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
+func iotdpsStateStatusCodeRefreshFunc(ctx context.Context, client *iothub.IotDpsResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, name, resourceGroup)
 
@@ -326,7 +307,7 @@ func iothubdpsStateStatusCodeRefreshFunc(ctx context.Context, client *iothub.Iot
 	}
 }
 
-func expandIoTHubDPSSku(d *schema.ResourceData) *iothub.IotDpsSkuInfo {
+func expandIoTDPSSku(d *schema.ResourceData) *iothub.IotDpsSkuInfo {
 	skuList := d.Get("sku").([]interface{})
 	skuMap := skuList[0].(map[string]interface{})
 	capacity := int64(skuMap["capacity"].(int))
@@ -341,7 +322,7 @@ func expandIoTHubDPSSku(d *schema.ResourceData) *iothub.IotDpsSkuInfo {
 	}
 }
 
-func expandIoTHubDPSIoTHubs(input []interface{}) *[]iothub.DefinitionDescription {
+func expandIoTDPSIoTHubs(input []interface{}) *[]iothub.DefinitionDescription {
 	linkedHubs := make([]iothub.DefinitionDescription, 0)
 
 	for _, attr := range input {
@@ -359,7 +340,7 @@ func expandIoTHubDPSIoTHubs(input []interface{}) *[]iothub.DefinitionDescription
 	return &linkedHubs
 }
 
-func flattenIoTHubDPSSku(input *iothub.IotDpsSkuInfo) []interface{} {
+func flattenIoTDPSSku(input *iothub.IotDpsSkuInfo) []interface{} {
 	output := make(map[string]interface{})
 
 	output["name"] = string(input.Name)
@@ -371,7 +352,7 @@ func flattenIoTHubDPSSku(input *iothub.IotDpsSkuInfo) []interface{} {
 	return []interface{}{output}
 }
 
-func flattenIoTHubDPSLinkedHub(input *[]iothub.DefinitionDescription) []interface{} {
+func flattenIoTDPSLinkedHub(input *[]iothub.DefinitionDescription) []interface{} {
 	linkedHubs := make([]interface{}, 0)
 	if input == nil {
 		return linkedHubs
