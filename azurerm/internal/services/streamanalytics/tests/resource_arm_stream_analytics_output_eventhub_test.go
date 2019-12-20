@@ -1,4 +1,4 @@
-package streamanalytics
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsOutputEventHub_avro(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_eventhub.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,29 +21,19 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_avro(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputEventHub_avro(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputEventHub_avro(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "serialization.0.type", "Avro"),
+					testCheckAzureRMStreamAnalyticsOutputEventHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "serialization.0.type", "Avro"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsOutputEventHub_csv(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_eventhub.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,31 +41,21 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_csv(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputEventHub_csv(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputEventHub_csv(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "serialization.0.type", "Csv"),
-					resource.TestCheckResourceAttr(resourceName, "serialization.0.field_delimiter", ","),
-					resource.TestCheckResourceAttr(resourceName, "serialization.0.encoding", "UTF8"),
+					testCheckAzureRMStreamAnalyticsOutputEventHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "serialization.0.type", "Csv"),
+					resource.TestCheckResourceAttr(data.ResourceName, "serialization.0.field_delimiter", ","),
+					resource.TestCheckResourceAttr(data.ResourceName, "serialization.0.encoding", "UTF8"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsOutputEventHub_json(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_eventhub.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -86,29 +63,19 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_json(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputEventHub_json(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputEventHub_json(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "serialization.0.format", "LineSeparated"),
+					testCheckAzureRMStreamAnalyticsOutputEventHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "serialization.0.format", "LineSeparated"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_eventhub.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -116,31 +83,21 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "serialization.0.format", "Array"),
-					resource.TestCheckResourceAttr(resourceName, "serialization.0.type", "Json"),
-					resource.TestCheckResourceAttr(resourceName, "serialization.0.encoding", "UTF8"),
+					testCheckAzureRMStreamAnalyticsOutputEventHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "serialization.0.format", "Array"),
+					resource.TestCheckResourceAttr(data.ResourceName, "serialization.0.type", "Json"),
+					resource.TestCheckResourceAttr(data.ResourceName, "serialization.0.encoding", "UTF8"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsOutputEventHub_update(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_eventhub.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -148,27 +105,19 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputEventHub_json(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputEventHub_json(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
+					testCheckAzureRMStreamAnalyticsOutputEventHubExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputEventHub_updated(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputEventHub_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "serialization.0.type", "Avro"),
+					testCheckAzureRMStreamAnalyticsOutputEventHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "serialization.0.type", "Avro"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
@@ -179,25 +128,19 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_stream_analytics_output_eventhub.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_eventhub", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputEventHub_json(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputEventHub_json(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName),
+					testCheckAzureRMStreamAnalyticsOutputEventHubExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMStreamAnalyticsOutputEventHub_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_output_eventhub"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMStreamAnalyticsOutputEventHub_requiresImport),
 		},
 	})
 }
@@ -254,8 +197,8 @@ func testCheckAzureRMStreamAnalyticsOutputEventHubDestroy(s *terraform.State) er
 	return nil
 }
 
-func testAccAzureRMStreamAnalyticsOutputEventHub_avro(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputEventHub_template(rInt, location)
+func testAccAzureRMStreamAnalyticsOutputEventHub_avro(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsOutputEventHub_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -272,11 +215,11 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     type = "Avro"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputEventHub_csv(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputEventHub_template(rInt, location)
+func testAccAzureRMStreamAnalyticsOutputEventHub_csv(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsOutputEventHub_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -295,11 +238,11 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     field_delimiter = ","
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputEventHub_json(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputEventHub_template(rInt, location)
+func testAccAzureRMStreamAnalyticsOutputEventHub_json(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsOutputEventHub_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -318,11 +261,11 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     format   = "LineSeparated"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputEventHub_template(rInt, location)
+func testAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsOutputEventHub_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -341,11 +284,11 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     format   = "Array"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputEventHub_updated(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputEventHub_template(rInt, location)
+func testAccAzureRMStreamAnalyticsOutputEventHub_updated(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsOutputEventHub_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -378,11 +321,11 @@ resource "azurerm_stream_analytics_output_eventhub" "test" {
     type = "Avro"
   }
 }
-`, template, rInt, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputEventHub_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputEventHub_json(rInt, location)
+func testAccAzureRMStreamAnalyticsOutputEventHub_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsOutputEventHub_json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -398,7 +341,7 @@ resource "azurerm_stream_analytics_output_eventhub" "import" {
 `, template)
 }
 
-func testAccAzureRMStreamAnalyticsOutputEventHub_template(rInt int, location string) string {
+func testAccAzureRMStreamAnalyticsOutputEventHub_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -439,5 +382,5 @@ resource "azurerm_stream_analytics_job" "test" {
     FROM [YourInputAlias]
 QUERY
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

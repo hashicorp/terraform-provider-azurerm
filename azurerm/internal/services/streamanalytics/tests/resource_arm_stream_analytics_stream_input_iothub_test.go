@@ -1,4 +1,4 @@
-package streamanalytics
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_avro(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_stream_input_iothub.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,28 +21,18 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_avro(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsStreamInputIoTHub_avro(ri, location),
+				Config: testAccAzureRMStreamAnalyticsStreamInputIoTHub_avro(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(resourceName),
+					testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_csv(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_stream_input_iothub.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,28 +40,18 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_csv(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsStreamInputIoTHub_csv(ri, location),
+				Config: testAccAzureRMStreamAnalyticsStreamInputIoTHub_csv(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(resourceName),
+					testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_json(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_stream_input_iothub.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -82,28 +59,18 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_json(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsStreamInputIoTHub_json(ri, location),
+				Config: testAccAzureRMStreamAnalyticsStreamInputIoTHub_json(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(resourceName),
+					testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_update(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_stream_input_iothub.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -111,26 +78,18 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsStreamInputIoTHub_json(ri, location),
+				Config: testAccAzureRMStreamAnalyticsStreamInputIoTHub_json(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(resourceName),
+					testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMStreamAnalyticsStreamInputIoTHub_updated(ri, location),
+				Config: testAccAzureRMStreamAnalyticsStreamInputIoTHub_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(resourceName),
+					testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
@@ -141,9 +100,7 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_requiresImport(t *testing.T)
 		return
 	}
 
-	resourceName := "azurerm_stream_analytics_stream_input_iothub.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -151,13 +108,13 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_requiresImport(t *testing.T)
 		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsStreamInputIoTHub_json(ri, location),
+				Config: testAccAzureRMStreamAnalyticsStreamInputIoTHub_json(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(resourceName),
+					testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMStreamAnalyticsStreamInputIoTHub_requiresImport(ri, location),
+				Config:      testAccAzureRMStreamAnalyticsStreamInputIoTHub_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_stream_input_iothub"),
 			},
 		},
@@ -216,8 +173,8 @@ func testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy(s *terraform.State)
 	return nil
 }
 
-func testAccAzureRMStreamAnalyticsStreamInputIoTHub_avro(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsStreamInputIoTHub_template(rInt, location)
+func testAccAzureRMStreamAnalyticsStreamInputIoTHub_avro(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsStreamInputIoTHub_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -235,11 +192,11 @@ resource "azurerm_stream_analytics_stream_input_iothub" "test" {
     type = "Avro"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsStreamInputIoTHub_csv(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsStreamInputIoTHub_template(rInt, location)
+func testAccAzureRMStreamAnalyticsStreamInputIoTHub_csv(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsStreamInputIoTHub_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -259,11 +216,11 @@ resource "azurerm_stream_analytics_stream_input_iothub" "test" {
     field_delimiter = ","
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsStreamInputIoTHub_json(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsStreamInputIoTHub_template(rInt, location)
+func testAccAzureRMStreamAnalyticsStreamInputIoTHub_json(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsStreamInputIoTHub_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -282,11 +239,11 @@ resource "azurerm_stream_analytics_stream_input_iothub" "test" {
     encoding = "UTF8"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsStreamInputIoTHub_updated(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsStreamInputIoTHub_template(rInt, location)
+func testAccAzureRMStreamAnalyticsStreamInputIoTHub_updated(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsStreamInputIoTHub_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -316,11 +273,11 @@ resource "azurerm_stream_analytics_stream_input_iothub" "test" {
     type = "Avro"
   }
 }
-`, template, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsStreamInputIoTHub_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsStreamInputIoTHub_json(rInt, location)
+func testAccAzureRMStreamAnalyticsStreamInputIoTHub_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsStreamInputIoTHub_json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -338,7 +295,7 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "import" {
 `, template)
 }
 
-func testAccAzureRMStreamAnalyticsStreamInputIoTHub_template(rInt int, location string) string {
+func testAccAzureRMStreamAnalyticsStreamInputIoTHub_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -375,5 +332,5 @@ resource "azurerm_stream_analytics_job" "test" {
     FROM [YourInputAlias]
 QUERY
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

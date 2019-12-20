@@ -1,25 +1,19 @@
-package streamanalytics
+package tests
 
 import (
 	"fmt"
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsReferenceInputBlob_avro(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_reference_input_blob.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,29 +21,18 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_avro(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_avro(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_avro(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"storage_account_key",
-				},
-			},
+			data.ImportStep("storage_account_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsReferenceInputBlob_csv(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_reference_input_blob.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -57,29 +40,18 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_csv(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_csv(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_csv(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"storage_account_key",
-				},
-			},
+			data.ImportStep("storage_account_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsReferenceInputBlob_json(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_reference_input_blob.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -87,29 +59,18 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_json(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_json(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_json(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"storage_account_key",
-				},
-			},
+			data.ImportStep("storage_account_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsReferenceInputBlob_update(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_reference_input_blob.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -117,26 +78,18 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_json(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_json(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_updated(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"storage_account_key",
-				},
-			},
+			data.ImportStep("storage_account_key"),
 		},
 	})
 }
@@ -147,10 +100,7 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_requiresImport(t *testing.T
 		return
 	}
 
-	resourceName := "azurerm_stream_analytics_reference_input_blob.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -158,15 +108,12 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_requiresImport(t *testing.T
 		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_json(ri, rs, location),
+				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_json(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMStreamAnalyticsReferenceInputBlob_requiresImport(ri, rs, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_reference_input_blob"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMStreamAnalyticsReferenceInputBlob_requiresImport),
 		},
 	})
 }
@@ -223,8 +170,8 @@ func testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy(s *terraform.State
 	return nil
 }
 
-func testAccAzureRMStreamAnalyticsReferenceInputBlob_avro(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsReferenceInputBlob_template(rInt, rString, location)
+func testAccAzureRMStreamAnalyticsReferenceInputBlob_avro(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsReferenceInputBlob_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -243,11 +190,11 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     type = "Avro"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsReferenceInputBlob_csv(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsReferenceInputBlob_template(rInt, rString, location)
+func testAccAzureRMStreamAnalyticsReferenceInputBlob_csv(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsReferenceInputBlob_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -268,11 +215,11 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     field_delimiter = ","
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsReferenceInputBlob_json(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsReferenceInputBlob_template(rInt, rString, location)
+func testAccAzureRMStreamAnalyticsReferenceInputBlob_json(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsReferenceInputBlob_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -292,18 +239,18 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     encoding = "UTF8"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsReferenceInputBlob_updated(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsReferenceInputBlob_template(rInt, rString, location)
+func testAccAzureRMStreamAnalyticsReferenceInputBlob_updated(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsReferenceInputBlob_template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_account" "updated" {
   name                     = "acctestsa2%s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  data.Locations.Primary                 = "${azurerm_resource_group.test.data.Locations.Primary}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -330,11 +277,11 @@ resource "azurerm_stream_analytics_reference_input_blob" "test" {
     type = "Avro"
   }
 }
-`, template, rString, rInt)
+`, template, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsReferenceInputBlob_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStreamAnalyticsReferenceInputBlob_json(rInt, rString, location)
+func testAccAzureRMStreamAnalyticsReferenceInputBlob_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsReferenceInputBlob_json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -353,17 +300,17 @@ resource "azurerm_stream_analytics_reference_input_blob" "import" {
 `, template)
 }
 
-func testAccAzureRMStreamAnalyticsReferenceInputBlob_template(rInt int, rString string, location string) string {
+func testAccAzureRMStreamAnalyticsReferenceInputBlob_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = "%s"
+  data.Locations.Primary = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  data.Locations.Primary                 = "${azurerm_resource_group.test.data.Locations.Primary}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -378,7 +325,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
   resource_group_name                      = "${azurerm_resource_group.test.name}"
-  location                                 = "${azurerm_resource_group.test.location}"
+  data.Locations.Primary                                 = "${azurerm_resource_group.test.data.Locations.Primary}"
   compatibility_level                      = "1.0"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60
@@ -393,5 +340,5 @@ resource "azurerm_stream_analytics_job" "test" {
     FROM [YourInputAlias]
 QUERY
 }
-`, rInt, location, rString, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

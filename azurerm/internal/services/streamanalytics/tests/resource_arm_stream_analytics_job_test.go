@@ -1,4 +1,4 @@
-package streamanalytics
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsJob_basic(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_job.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,26 +21,20 @@ func TestAccAzureRMStreamAnalyticsJob_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsJob_basic(ri, location),
+				Config: testAccAzureRMStreamAnalyticsJob_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Test"),
+					testCheckAzureRMStreamAnalyticsJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Test"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsJob_complete(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_job.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -51,18 +42,14 @@ func TestAccAzureRMStreamAnalyticsJob_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsJob_complete(ri, location),
+				Config: testAccAzureRMStreamAnalyticsJob_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Test"),
+					testCheckAzureRMStreamAnalyticsJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Test"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -73,33 +60,25 @@ func TestAccAzureRMStreamAnalyticsJob_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_stream_analytics_job.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsJob_basic(ri, location),
+				Config: testAccAzureRMStreamAnalyticsJob_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsJobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsJobExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMStreamAnalyticsJob_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_job"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMStreamAnalyticsJob_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsJob_update(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_job.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -107,22 +86,18 @@ func TestAccAzureRMStreamAnalyticsJob_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsJob_basic(ri, location),
+				Config: testAccAzureRMStreamAnalyticsJob_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsJobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsJobExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMStreamAnalyticsJob_updated(ri, location),
+				Config: testAccAzureRMStreamAnalyticsJob_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsJobExists(resourceName),
+					testCheckAzureRMStreamAnalyticsJobExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -177,7 +152,7 @@ func testCheckAzureRMStreamAnalyticsJobDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMStreamAnalyticsJob_basic(rInt int, location string) string {
+func testAccAzureRMStreamAnalyticsJob_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -200,10 +175,10 @@ resource "azurerm_stream_analytics_job" "test" {
     FROM [YourInputAlias]
 QUERY
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsJob_complete(rInt int, location string) string {
+func testAccAzureRMStreamAnalyticsJob_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -232,11 +207,11 @@ resource "azurerm_stream_analytics_job" "test" {
     FROM [YourInputAlias]
 QUERY
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsJob_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsJob_basic(rInt, location)
+func testAccAzureRMStreamAnalyticsJob_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsJob_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -257,7 +232,7 @@ resource "azurerm_stream_analytics_job" "import" {
 `, template)
 }
 
-func testAccAzureRMStreamAnalyticsJob_updated(rInt int, location string) string {
+func testAccAzureRMStreamAnalyticsJob_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -282,5 +257,5 @@ resource "azurerm_stream_analytics_job" "test" {
     FROM [SomeOtherInputAlias]
 QUERY
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
