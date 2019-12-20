@@ -18,5 +18,10 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{}
+	return map[string]*schema.Resource{
+		"azurerm_mariadb_configuration":        resourceArmMariaDbConfiguration(),
+		"azurerm_mariadb_database":             resourceArmMariaDbDatabase(),
+		"azurerm_mariadb_firewall_rule":        resourceArmMariaDBFirewallRule(),
+		"azurerm_mariadb_server":               resourceArmMariaDbServer(),
+		"azurerm_mariadb_virtual_network_rule": resourceArmMariaDbVirtualNetworkRule()}
 }
