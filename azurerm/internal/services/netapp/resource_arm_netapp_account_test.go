@@ -2,7 +2,6 @@ package netapp
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -26,7 +25,7 @@ func TestAccAzureRMNetAppAccount(t *testing.T) {
 			"update":         testAccAzureRMNetAppAccount_update,
 		},
 		"DataSource": {
-			"basic": azurerm.testAccDataSourceAzureRMNetAppAccount_basic,
+			"basic": testAccDataSourceAzureRMNetAppAccount_basic,
 		},
 	}
 

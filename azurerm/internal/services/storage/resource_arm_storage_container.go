@@ -49,7 +49,7 @@ func resourceArmStorageContainer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageAccountName,
+				ValidateFunc: ValidateArmStorageAccountName,
 			},
 
 			"container_access_type": {

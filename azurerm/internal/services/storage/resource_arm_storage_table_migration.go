@@ -25,7 +25,7 @@ func resourceStorageTableStateResourceV0V1() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageAccountName,
+				ValidateFunc: ValidateArmStorageAccountName,
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 			"acl": {

@@ -22,6 +22,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -424,14 +425,14 @@ func resourceArmSchedulerJobActionStorageSchema() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validateArmStorageAccountName,
+				ValidateFunc:     storage.ValidateArmStorageAccountName,
 			},
 
 			"storage_queue_name": {
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validateArmStorageQueueName,
+				ValidateFunc:     storage.ValidateArmStorageAccountName,
 			},
 
 			"sas_token": {
