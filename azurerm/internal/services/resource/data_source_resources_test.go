@@ -21,7 +21,7 @@ func TestAccDataSourceAzureRMResources_ByName(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location),
+				Config: testAccDataSourceAzureRMResources_template(ri, rs, location),
 			},
 			{
 				Config: testAccDataSourceAzureRMResources_ByName(ri, rs, location),
@@ -44,7 +44,7 @@ func TestAccDataSourceAzureRMResources_ByResourceGroup(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location),
+				Config: testAccDataSourceAzureRMResources_template(ri, rs, location),
 			},
 			{
 				Config: testAccDataSourceAzureRMResources_ByResourceGroup(ri, rs, location),
@@ -67,7 +67,7 @@ func TestAccDataSourceAzureRMResources_ByResourceType(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location),
+				Config: testAccDataSourceAzureRMResources_template(ri, rs, location),
 			},
 			{
 				Config: testAccDataSourceAzureRMResources_ByResourceType(ri, rs, location),
@@ -90,7 +90,7 @@ func TestAccDataSourceAzureRMResources_FilteredByTags(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location),
+				Config: testAccDataSourceAzureRMResources_template(ri, rs, location),
 			},
 			{
 				Config: testAccDataSourceAzureRMResources_FilteredByTags(ri, rs, location),
@@ -103,7 +103,7 @@ func TestAccDataSourceAzureRMResources_FilteredByTags(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMResources_ByName(rInt int, rString string, location string) string {
-	r := testAccDataSourceAzureRMStorageAccount_basic(rInt, rString, location)
+	r := testAccDataSourceAzureRMResources_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
@@ -114,7 +114,7 @@ data "azurerm_resources" "test" {
 }
 
 func testAccDataSourceAzureRMResources_ByResourceGroup(rInt int, rString string, location string) string {
-	r := testAccDataSourceAzureRMStorageAccount_basic(rInt, rString, location)
+	r := testAccDataSourceAzureRMResources_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
@@ -125,7 +125,7 @@ data "azurerm_resources" "test" {
 }
 
 func testAccDataSourceAzureRMResources_ByResourceType(rInt int, rString string, location string) string {
-	r := testAccDataSourceAzureRMStorageAccount_basic(rInt, rString, location)
+	r := testAccDataSourceAzureRMResources_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
@@ -137,7 +137,7 @@ data "azurerm_resources" "test" {
 }
 
 func testAccDataSourceAzureRMResources_FilteredByTags(rInt int, rString string, location string) string {
-	r := testAccDataSourceAzureRMStorageAccount_basic(rInt, rString, location)
+	r := testAccDataSourceAzureRMResources_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
@@ -150,4 +150,26 @@ data "azurerm_resources" "test" {
   }
 }
 `, r)
+}
+
+func testAccDataSourceAzureRMResources_template(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "acctestsads%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString)
 }
