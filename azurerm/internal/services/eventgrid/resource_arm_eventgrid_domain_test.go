@@ -1,4 +1,4 @@
-package azurerm
+package eventgrid
 
 import (
 	"fmt"
@@ -10,23 +10,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
-	resourceName := "azurerm_eventgrid_topic.test"
+func TestAccAzureRMEventGridDomain_basic(t *testing.T) {
+	resourceName := "azurerm_eventgrid_domain.test"
 	ri := tf.AccRandTimeInt()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
+		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridTopic_basic(ri),
+				Config: testAccAzureRMEventGridDomain_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridTopicExists(resourceName),
+					testCheckAzureRMEventGridDomainExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "endpoint"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
@@ -41,52 +41,51 @@ func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridTopic_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
-	resourceName := "azurerm_eventgrid_topic.test"
+func TestAccAzureRMEventGridDomain_mapping(t *testing.T) {
+	resourceName := "azurerm_eventgrid_domain.test"
 	ri := tf.AccRandTimeInt()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
+		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridTopic_basic(ri),
+				Config: testAccAzureRMEventGridDomain_mapping(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridTopicExists(resourceName),
+					testCheckAzureRMEventGridDomainExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "input_mapping_fields.0.topic", "test"),
+					resource.TestCheckResourceAttr(resourceName, "input_mapping_fields.0.topic", "test"),
+					resource.TestCheckResourceAttr(resourceName, "input_mapping_default_values.0.data_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "input_mapping_default_values.0.subject", "DefaultSubject"),
 				),
 			},
 			{
-				Config:      testAccAzureRMEventGridTopic_requiresImport(ri),
-				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_topic"),
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
-func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
-	resourceName := "azurerm_eventgrid_topic.test"
+func TestAccAzureRMEventGridDomain_basicWithTags(t *testing.T) {
+	resourceName := "azurerm_eventgrid_domain.test"
 	ri := tf.AccRandTimeInt()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
+		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridTopic_basicWithTags(ri),
+				Config: testAccAzureRMEventGridDomain_basicWithTags(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridTopicExists(resourceName),
+					testCheckAzureRMEventGridDomainExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.foo", "bar"),
-					resource.TestCheckResourceAttrSet(resourceName, "endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
 			{
@@ -98,12 +97,12 @@ func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMEventGridTopicDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.TopicsClient
+func testCheckAzureRMEventGridDomainDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.DomainsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_eventgrid_topic" {
+		if rs.Type != "azurerm_eventgrid_domain" {
 			continue
 		}
 
@@ -120,14 +119,14 @@ func testCheckAzureRMEventGridTopicDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("EventGrid Topic still exists:\n%#v", resp)
+			return fmt.Errorf("EventGrid Domain still exists:\n%#v", resp)
 		}
 	}
 
 	return nil
 }
 
-func testCheckAzureRMEventGridTopicExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMEventGridDomainExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -138,35 +137,32 @@ func testCheckAzureRMEventGridTopicExists(resourceName string) resource.TestChec
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for EventGrid Topic: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for EventGrid Domain: %s", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.TopicsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.DomainsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: EventGrid Topic %q (resource group: %s) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: EventGrid Domain %q (resource group: %s) does not exist", name, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on eventGridTopicsClient: %s", err)
+			return fmt.Errorf("Bad: Get on eventGridDomainsClient: %s", err)
 		}
 
 		return nil
 	}
 }
 
-func testAccAzureRMEventGridTopic_basic(rInt int) string {
-	// TODO: confirm if this is still the case
-	// currently only supported in "West Central US" & "West US 2"
-	location := "westus2"
+func testAccAzureRMEventGridDomain_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_eventgrid_topic" "test" {
+resource "azurerm_eventgrid_domain" "test" {
   name                = "acctesteg-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -174,29 +170,41 @@ resource "azurerm_eventgrid_topic" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMEventGridTopic_requiresImport(rInt int) string {
-	template := testAccAzureRMEventGridTopic_basic(rInt)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_eventgrid_topic" "import" {
-  name                = "${azurerm_eventgrid_topic.test.name}"
-  location            = "${azurerm_eventgrid_topic.test.location}"
-  resource_group_name = "${azurerm_eventgrid_topic.test.resource_group_name}"
-}
-`, template)
-}
-
-func testAccAzureRMEventGridTopic_basicWithTags(rInt int) string {
-	// currently only supported in "West Central US" & "West US 2"
-	location := "westus2"
+func testAccAzureRMEventGridDomain_mapping(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_eventgrid_topic" "test" {
+resource "azurerm_eventgrid_domain" "test" {
+  name                = "acctesteg-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  input_schema = "CustomEventSchema"
+
+  input_mapping_fields {
+    topic      = "test"
+    event_type = "test"
+  }
+
+  input_mapping_default_values {
+    data_version = "1.0"
+    subject      = "DefaultSubject"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMEventGridDomain_basicWithTags(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_domain" "test" {
   name                = "acctesteg-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
