@@ -18,5 +18,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{}
+	return map[string]*schema.Resource{
+		"azurerm_eventgrid_domain":             resourceArmEventGridDomain(),
+		"azurerm_eventgrid_event_subscription": resourceArmEventGridEventSubscription(),
+		"azurerm_eventgrid_topic":              resourceArmEventGridTopic()}
 }
