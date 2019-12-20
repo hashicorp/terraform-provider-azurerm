@@ -3,6 +3,7 @@ package azurerm
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"log"
 	"net/http"
 	"strconv"
@@ -334,11 +335,11 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		subnetName := parsed.Path["subnets"]
 		virtualNetworkName := parsed.Path["virtualNetworks"]
 
-		locks.ByName(virtualNetworkName, virtualNetworkResourceName)
-		defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
+		locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
+		defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
 
-		locks.ByName(subnetName, subnetResourceName)
-		defer locks.UnlockByName(subnetName, subnetResourceName)
+		locks.ByName(subnetName, network.SubnetResourceName)
+		defer locks.UnlockByName(subnetName, network.SubnetResourceName)
 
 		parameters.SubnetID = utils.String(v.(string))
 	}
@@ -603,11 +604,11 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 		subnetName := parsed.Path["subnets"]
 		virtualNetworkName := parsed.Path["virtualNetworks"]
 
-		locks.ByName(virtualNetworkName, virtualNetworkResourceName)
-		defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
+		locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
+		defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
 
-		locks.ByName(subnetName, subnetResourceName)
-		defer locks.UnlockByName(subnetName, subnetResourceName)
+		locks.ByName(subnetName, network.SubnetResourceName)
+		defer locks.UnlockByName(subnetName, network.SubnetResourceName)
 	}
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {

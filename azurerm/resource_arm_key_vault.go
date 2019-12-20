@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"log"
 	"net/http"
 	"regexp"
@@ -289,13 +290,13 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		virtualNetworkName := id.Path["virtualNetworks"]
-		if !sliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+		if !network.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 		}
 	}
 
-	locks.MultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -441,7 +442,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 					}
 
 					virtualNetworkName := id.Path["virtualNetworks"]
-					if !sliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+					if !network.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 						virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 					}
 				}
@@ -449,8 +450,8 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	locks.MultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
