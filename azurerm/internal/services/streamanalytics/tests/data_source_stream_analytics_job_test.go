@@ -1,17 +1,15 @@
-package streamanalytics
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMStreamAnalyticsJob_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_stream_analytics_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "data.azurerm_stream_analytics_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -19,17 +17,17 @@ func TestAccDataSourceAzureRMStreamAnalyticsJob_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMStreamAnalyticsJob_basic(ri, acceptance.Location()),
+				Config: testAccDataSourceAzureRMStreamAnalyticsJob_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "job_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "job_id"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAzureRMStreamAnalyticsJob_basic(rInt int, location string) string {
-	config := testAccAzureRMStreamAnalyticsJob_basic(rInt, location)
+func testAccDataSourceAzureRMStreamAnalyticsJob_basic(data acceptance.TestData) string {
+	config := testAccAzureRMStreamAnalyticsJob_basic(data)
 	return fmt.Sprintf(`
 %s
 
