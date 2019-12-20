@@ -1,4 +1,4 @@
-package azurerm
+package keyvault
 
 import (
 	"encoding/base64"
