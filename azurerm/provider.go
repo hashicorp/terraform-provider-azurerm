@@ -95,7 +95,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_public_ip":                                             resourceArmPublicIp(),
 		"azurerm_public_ip_prefix":                                      resourceArmPublicIpPrefix(),
 		"azurerm_resource_group":                                        resourceArmResourceGroup(),
-		"azurerm_service_fabric_cluster":                                resourceArmServiceFabricCluster(),
 		"azurerm_shared_image_gallery":                                  resourceArmSharedImageGallery(),
 		"azurerm_shared_image_version":                                  resourceArmSharedImageVersion(),
 		"azurerm_shared_image":                                          resourceArmSharedImage(),
