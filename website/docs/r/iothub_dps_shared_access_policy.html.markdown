@@ -77,7 +77,11 @@ The following attributes are exported:
 
 * `primary_key` - The primary key used to create the authentication token.
 
+* `primary_connection_string` - The primary connection string of the Shared Access Policy.
+
 * `secondary_key` - The secondary key used to create the authentication token.
+
+* `secondary_connection_string` - The secondary connection string of the Shared Access Policy.
 
 ## Import
 
