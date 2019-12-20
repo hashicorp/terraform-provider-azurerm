@@ -15,12 +15,15 @@ func (r Registration) Name() string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_availability_set":     dataSourceArmAvailabilitySet(),
-		"azurerm_managed_disk":         dataSourceArmManagedDisk(),
-		"azurerm_shared_image_gallery": dataSourceArmSharedImageGallery(),
-		"azurerm_shared_image_version": dataSourceArmSharedImageVersion(),
-		"azurerm_shared_image":         dataSourceArmSharedImage(),
-		"azurerm_snapshot":             dataSourceArmSnapshot(),
+		"azurerm_availability_set":          dataSourceArmAvailabilitySet(),
+		"azurerm_managed_disk":              dataSourceArmManagedDisk(),
+		"azurerm_image":                     dataSourceArmImage(),
+		"azurerm_platform_image":            dataSourceArmPlatformImage(),
+		"azurerm_proximity_placement_group": dataSourceArmProximityPlacementGroup(),
+		"azurerm_shared_image_gallery":      dataSourceArmSharedImageGallery(),
+		"azurerm_shared_image_version":      dataSourceArmSharedImageVersion(),
+		"azurerm_shared_image":              dataSourceArmSharedImage(),
+		"azurerm_snapshot":                  dataSourceArmSnapshot(),
 	}
 }
 
@@ -29,6 +32,11 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 	resources := map[string]*schema.Resource{
 		"azurerm_availability_set":                     resourceArmAvailabilitySet(),
 		"azurerm_managed_disk":                         resourceArmManagedDisk(),
+		"azurerm_image":                                resourceArmImage(),
+		"azurerm_marketplace_agreement":                resourceArmMarketplaceAgreement(),
+		"azurerm_shared_image_gallery":                 resourceArmSharedImageGallery(),
+		"azurerm_shared_image_version":                 resourceArmSharedImageVersion(),
+		"azurerm_shared_image":                         resourceArmSharedImage(),
 		"azurerm_snapshot":                             resourceArmSnapshot(),
 		"azurerm_virtual_machine_data_disk_attachment": resourceArmVirtualMachineDataDiskAttachment(),
 		"azurerm_virtual_machine_extension":            resourceArmVirtualMachineExtensions(),
