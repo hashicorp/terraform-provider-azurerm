@@ -43,7 +43,7 @@ func resourceArmAppConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAppConfigurationName,
+				ValidateFunc: ValidateAppConfigurationName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -378,7 +378,7 @@ func resourceArmAppConfigurationDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func validateAppConfigurationName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateAppConfigurationName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{5,50}$`).Match([]byte(value)); !matched {
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 5-50 chars", k))

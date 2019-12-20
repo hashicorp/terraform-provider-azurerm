@@ -67,5 +67,5 @@ data "azurerm_api_management_user" "test" {
   api_management_name = "${azurerm_api_management_user.test.api_management_name}"
   resource_group_name = "${azurerm_api_management_user.test.resource_group_name}"
 }
-`, data.RandomInteger, &data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
