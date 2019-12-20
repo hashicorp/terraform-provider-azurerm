@@ -1,4 +1,4 @@
-package azurerm
+package hdinsight
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ import (
 
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
-var hdInsightKafkaClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightHBaseClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
 	MaxInstanceCount:         2,
@@ -26,15 +26,14 @@ var hdInsightKafkaClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
 
-var hdInsightKafkaClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightHBaseClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	MaxInstanceCount:        57,
-	CanSpecifyDisks:         true,
-	MaxNumberOfDisksPerNode: utils.Int(8),
+	MaxInstanceCount:        23,
+	CanSpecifyDisks:         false,
 }
 
-var hdInsightKafkaClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightHBaseClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
 	MaxInstanceCount:         3,
@@ -42,12 +41,12 @@ var hdInsightKafkaClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-func resourceArmHDInsightKafkaCluster() *schema.Resource {
+func resourceArmHDInsightHBaseCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightKafkaClusterCreate,
-		Read:   resourceArmHDInsightKafkaClusterRead,
-		Update: hdinsightClusterUpdate("Kafka", resourceArmHDInsightKafkaClusterRead),
-		Delete: hdinsightClusterDelete("Kafka"),
+		Create: resourceArmHDInsightHBaseClusterCreate,
+		Read:   resourceArmHDInsightHBaseClusterRead,
+		Update: hdinsightClusterUpdate("HBase", resourceArmHDInsightHBaseClusterRead),
+		Delete: hdinsightClusterDelete("HBase"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -76,7 +75,7 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"kafka": {
+						"hbase": {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
@@ -97,11 +96,11 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": azure.SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightKafkaClusterHeadNodeDefinition),
+						"head_node": azure.SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightHBaseClusterHeadNodeDefinition),
 
-						"worker_node": azure.SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightKafkaClusterWorkerNodeDefinition),
+						"worker_node": azure.SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightHBaseClusterWorkerNodeDefinition),
 
-						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightKafkaClusterZookeeperNodeDefinition),
+						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHBaseClusterZookeeperNodeDefinition),
 					},
 				},
 			},
@@ -121,7 +120,7 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 	}
 }
 
-func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +133,7 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 	tier := hdinsight.Tier(d.Get("tier").(string))
 
 	componentVersionsRaw := d.Get("component_version").([]interface{})
-	componentVersions := expandHDInsightKafkaComponentVersion(componentVersionsRaw)
+	componentVersions := expandHDInsightHBaseComponentVersion(componentVersionsRaw)
 
 	gatewayRaw := d.Get("gateway").([]interface{})
 	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
@@ -146,13 +145,13 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error expanding `storage_account`: %s", err)
 	}
 
-	kafkaRoles := hdInsightRoleDefinition{
-		HeadNodeDef:      hdInsightKafkaClusterHeadNodeDefinition,
-		WorkerNodeDef:    hdInsightKafkaClusterWorkerNodeDefinition,
-		ZookeeperNodeDef: hdInsightKafkaClusterZookeeperNodeDefinition,
+	hbaseRoles := hdInsightRoleDefinition{
+		HeadNodeDef:      hdInsightHBaseClusterHeadNodeDefinition,
+		WorkerNodeDef:    hdInsightHBaseClusterWorkerNodeDefinition,
+		ZookeeperNodeDef: hdInsightHBaseClusterZookeeperNodeDefinition,
 	}
 	rolesRaw := d.Get("roles").([]interface{})
-	roles, err := expandHDInsightRoles(rolesRaw, kafkaRoles)
+	roles, err := expandHDInsightRoles(rolesRaw, hbaseRoles)
 	if err != nil {
 		return fmt.Errorf("Error expanding `roles`: %+v", err)
 	}
@@ -161,12 +160,12 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing HDInsight HBase Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_hdinsight_hbase_cluster", *existing.ID)
 		}
 	}
 
@@ -177,7 +176,7 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 			OsType:         hdinsight.Linux,
 			ClusterVersion: utils.String(clusterVersion),
 			ClusterDefinition: &hdinsight.ClusterDefinition{
-				Kind:             utils.String("Kafka"),
+				Kind:             utils.String("HBase"),
 				ComponentVersion: componentVersions,
 				Configurations:   gateway,
 			},
@@ -193,28 +192,28 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
-		return fmt.Errorf("Error creating HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating HDInsight HBase Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation of HDInsight HBase Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving HDInsight HBase Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Error reading ID for HDInsight Kafka Cluster %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("Error reading ID for HDInsight HBase Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmHDInsightKafkaClusterRead(d, meta)
+	return resourceArmHDInsightHBaseClusterRead(d, meta)
 }
 
-func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHDInsightHBaseClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -231,17 +230,17 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] HDInsight Kafka Cluster %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] HDInsight HBase Cluster %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving HDInsight HBase Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	configuration, err := configurationsClient.Get(ctx, resourceGroup, name, "gateway")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Configuration for HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Configuration for HDInsight HBase Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -256,7 +255,7 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 		d.Set("tier", string(props.Tier))
 
 		if def := props.ClusterDefinition; def != nil {
-			if err := d.Set("component_version", flattenHDInsightKafkaComponentVersion(def.ComponentVersion)); err != nil {
+			if err := d.Set("component_version", flattenHDInsightHBaseComponentVersion(def.ComponentVersion)); err != nil {
 				return fmt.Errorf("Error flattening `component_version`: %+v", err)
 			}
 
@@ -265,12 +264,12 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 			}
 		}
 
-		kafkaRoles := hdInsightRoleDefinition{
-			HeadNodeDef:      hdInsightKafkaClusterHeadNodeDefinition,
-			WorkerNodeDef:    hdInsightKafkaClusterWorkerNodeDefinition,
-			ZookeeperNodeDef: hdInsightKafkaClusterZookeeperNodeDefinition,
+		hbaseRoles := hdInsightRoleDefinition{
+			HeadNodeDef:      hdInsightHBaseClusterHeadNodeDefinition,
+			WorkerNodeDef:    hdInsightHBaseClusterWorkerNodeDefinition,
+			ZookeeperNodeDef: hdInsightHBaseClusterZookeeperNodeDefinition,
 		}
-		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, kafkaRoles)
+		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, hbaseRoles)
 		if err := d.Set("roles", flattenedRoles); err != nil {
 			return fmt.Errorf("Error flattening `roles`: %+v", err)
 		}
@@ -284,23 +283,23 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func expandHDInsightKafkaComponentVersion(input []interface{}) map[string]*string {
+func expandHDInsightHBaseComponentVersion(input []interface{}) map[string]*string {
 	vs := input[0].(map[string]interface{})
 	return map[string]*string{
-		"kafka": utils.String(vs["kafka"].(string)),
+		"hbase": utils.String(vs["hbase"].(string)),
 	}
 }
 
-func flattenHDInsightKafkaComponentVersion(input map[string]*string) []interface{} {
-	kafkaVersion := ""
-	if v, ok := input["kafka"]; ok {
+func flattenHDInsightHBaseComponentVersion(input map[string]*string) []interface{} {
+	hbaseVersion := ""
+	if v, ok := input["hbase"]; ok {
 		if v != nil {
-			kafkaVersion = *v
+			hbaseVersion = *v
 		}
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"kafka": kafkaVersion,
+			"hbase": hbaseVersion,
 		},
 	}
 }
