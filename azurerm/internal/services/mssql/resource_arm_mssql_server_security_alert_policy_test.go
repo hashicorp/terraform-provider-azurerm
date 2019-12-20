@@ -2,6 +2,7 @@ package mssql
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -19,7 +20,7 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountSqlServerDestroy,
+		CheckDestroy: testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(ri, acceptance.Location()),
@@ -49,7 +50,7 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_update(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountSqlServerDestroy,
+		CheckDestroy: testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(ri, acceptance.Location()),
@@ -116,13 +117,29 @@ func testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName string) r
 	}
 }
 
-func testCheckAzureRMStorageAccountSqlServerDestroy(s *terraform.State) error {
-	err := testCheckAzureRMStorageAccountDestroy(s)
-	if err != nil {
-		return err
+func testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_mssql_server_security_alert_policy" {
+			continue
+		}
+
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["server_name"]
+
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		resp, err := client.Get(ctx, resourceGroup, serverName)
+		if err != nil {
+			return nil
+		}
+
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Security Alert Policy still exists:\n%#v", resp.SecurityAlertPolicyProperties)
+		}
 	}
 
-	return testCheckAzureRMSqlServerDestroy(s)
+	return nil
 }
 
 func testAccAzureRMMssqlServerSecurityAlertPolicy_basic(rInt int, location string) string {
