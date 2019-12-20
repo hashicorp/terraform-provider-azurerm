@@ -22,7 +22,7 @@ func TestAccDataSourceAzureRMMsSqlElasticPool_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMMsSqlElasticPool_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlElasticPoolExists(dataSourceName),
+					testCheckAzureRMMsSqlElasticPoolExists(dataSourceName),
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "server_name"),

@@ -58,7 +58,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageAccountName,
+				ValidateFunc: ValidateArmStorageAccountName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
@@ -1734,7 +1734,7 @@ func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
 	return bypass
 }
 
-func validateArmStorageAccountName(v interface{}, _ string) (warnings []string, errors []error) {
+func ValidateArmStorageAccountName(v interface{}, _ string) (warnings []string, errors []error) {
 	input := v.(string)
 
 	if !regexp.MustCompile(`\A([a-z0-9]{3,24})\z`).MatchString(input) {

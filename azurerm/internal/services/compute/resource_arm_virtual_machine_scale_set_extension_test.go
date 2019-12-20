@@ -278,7 +278,7 @@ func testCheckAzureRMVirtualMachineScaleSetExtensionExists(resourceName string) 
 
 		name := rs.Primary.Attributes["name"]
 		virtualMachineScaleSetIdRaw := rs.Primary.Attributes["virtual_machine_scale_set_id"]
-		virtualMachineScaleSetId, err := computeSvc.ParseVirtualMachineScaleSetID(virtualMachineScaleSetIdRaw)
+		virtualMachineScaleSetId, err := ParseVirtualMachineScaleSetID(virtualMachineScaleSetIdRaw)
 		if err != nil {
 			return err
 		}
@@ -307,7 +307,7 @@ func testCheckAzureRMVirtualMachineScaleSetExtensionDestroy(s *terraform.State) 
 
 		name := rs.Primary.Attributes["name"]
 		virtualMachineScaleSetIdRaw := rs.Primary.Attributes["virtual_machine_scale_set_id"]
-		virtualMachineScaleSetId, err := computeSvc.ParseVirtualMachineScaleSetID(virtualMachineScaleSetIdRaw)
+		virtualMachineScaleSetId, err := ParseVirtualMachineScaleSetID(virtualMachineScaleSetIdRaw)
 		if err != nil {
 			return err
 		}

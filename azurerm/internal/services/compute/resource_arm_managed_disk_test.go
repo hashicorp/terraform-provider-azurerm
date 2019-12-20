@@ -105,11 +105,11 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				//need to create a vm and then delete it so we can use the vhd to test import
-				Config:             compute2.testAccAzureRMVirtualMachine_basicLinuxMachine(ri, location),
+				Config:             testAccAzureRMVirtualMachine_basicLinuxMachine(ri, location),
 				Destroy:            false,
 				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
-					compute2.testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
+					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
 					testDeleteAzureRMVirtualMachine("azurerm_virtual_machine.test"),
 				),
 			},
