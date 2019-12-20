@@ -1,4 +1,4 @@
-package azurerm
+package frontdoor
 
 import (
 	"fmt"
@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	afd "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -87,7 +86,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			"custom_block_response_body": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: afd.ValidateCustomBlockResponseBody,
+				ValidateFunc: ValidateCustomBlockResponseBody,
 			},
 
 			"custom_rule": {
@@ -437,7 +436,7 @@ func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interfa
 			return fmt.Errorf("Error flattening `managed_rule`: %+v", err)
 		}
 
-		if err := d.Set("frontend_endpoint_ids", afd.FlattenFrontendEndpointLinkSlice(properties.FrontendEndpointLinks)); err != nil {
+		if err := d.Set("frontend_endpoint_ids", FlattenFrontendEndpointLinkSlice(properties.FrontendEndpointLinks)); err != nil {
 			return fmt.Errorf("Error flattening `frontend_endpoint_ids`: %+v", err)
 		}
 	}
@@ -695,7 +694,7 @@ func flattenArmFrontDoorFirewallMatchConditions(condition *[]frontdoor.MatchCond
 		output["match_variable"] = string(c.MatchVariable)
 		output["operator"] = string(c.Operator)
 		output["match_values"] = utils.FlattenStringSlice(c.MatchValue)
-		output["transforms"] = afd.FlattenTransformSlice(c.Transforms)
+		output["transforms"] = FlattenTransformSlice(c.Transforms)
 
 		if v := c.Selector; v != nil {
 			output["selector"] = *v
