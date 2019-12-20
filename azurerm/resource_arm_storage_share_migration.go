@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
 )
 
@@ -20,7 +21,7 @@ func resourceStorageShareStateResourceV0V1() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageShareName,
+				ValidateFunc: storage.ValidateArmStorageShareName,
 			},
 			"resource_group_name": azure.SchemaResourceGroupName(),
 			"storage_account_name": {
