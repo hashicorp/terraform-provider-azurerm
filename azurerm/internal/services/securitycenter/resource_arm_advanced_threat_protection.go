@@ -1,4 +1,4 @@
-package azurerm
+package securitycenter
 
 import (
 	"fmt"
@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -94,7 +93,7 @@ func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := securitycenter.ParseAdvancedThreatProtectionID(d.Id())
+	id, err := ParseAdvancedThreatProtectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -123,7 +122,7 @@ func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := securitycenter.ParseAdvancedThreatProtectionID(d.Id())
+	id, err := ParseAdvancedThreatProtectionID(d.Id())
 	if err != nil {
 		return err
 	}
