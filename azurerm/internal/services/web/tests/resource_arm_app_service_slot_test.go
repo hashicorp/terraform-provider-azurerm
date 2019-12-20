@@ -1,4 +1,4 @@
-package web
+package tests
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,26 +16,19 @@ import (
 )
 
 func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_basic(ri, acceptance.Location())
-
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -47,9 +39,7 @@ func TestAccAzureRMAppServiceSlot_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -57,23 +47,18 @@ func TestAccAzureRMAppServiceSlot_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceSlot_basic(ri, location),
+				Config: testAccAzureRMAppServiceSlot_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMAppServiceSlot_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_app_service_slot"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMAppServiceSlot_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_32Bit(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -81,25 +66,19 @@ func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_32Bit(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "true"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.use_32_bit_worker_process", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_alwaysOn(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_alwaysOn(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -107,25 +86,19 @@ func TestAccAzureRMAppServiceSlot_alwaysOn(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_alwaysOn(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.always_on", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_appCommandLine(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_appCommandLine(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -133,25 +106,20 @@ func TestAccAzureRMAppServiceSlot_appCommandLine(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_appCommandLine(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.app_command_line", "/sbin/myservice -b 0.0.0.0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.app_command_line", "/sbin/myservice -b 0.0.0.0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_appSettings(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -159,25 +127,20 @@ func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_appSettings(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "app_settings.foo", "bar"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.foo", "bar"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, acceptance.Location(), true)
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -185,10 +148,10 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_clientAffinityEnabled(data, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "true"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_affinity_enabled", "true"),
 				),
 			},
 		},
@@ -196,10 +159,7 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, acceptance.Location(), true)
-	updatedConfig := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, acceptance.Location(), false)
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -207,17 +167,17 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_clientAffinityEnabled(data, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "true"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_affinity_enabled", "true"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMAppServiceSlot_clientAffinityEnabled(data, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "false"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_affinity_enabled", "false"),
 				),
 			},
 		},
@@ -225,9 +185,7 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -235,27 +193,27 @@ func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceSlot_connectionStrings(ri, location),
+				Config: testAccAzureRMAppServiceSlot_connectionStrings(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.name", "First"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.value", "first-connection-string"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.type", "Custom"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.name", "Second"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.type", "PostgreSQL"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.3173438943.name", "First"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.3173438943.value", "first-connection-string"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.3173438943.type", "Custom"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.name", "Second"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.type", "PostgreSQL"),
 				),
 			},
 			{
-				Config: testAccAzureRMAppServiceSlot_connectionStringsUpdated(ri, location),
+				Config: testAccAzureRMAppServiceSlot_connectionStringsUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.name", "First"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.value", "first-connection-string"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.3173438943.type", "Custom"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.name", "Second"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(resourceName, "connection_string.2442860602.type", "PostgreSQL"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.3173438943.name", "First"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.3173438943.value", "first-connection-string"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.3173438943.type", "Custom"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.name", "Second"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.value", "some-postgresql-connection-string"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.type", "PostgreSQL"),
 				),
 			},
 		},
@@ -263,9 +221,7 @@ func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_corsSettings(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -273,24 +229,19 @@ func TestAccAzureRMAppServiceSlot_corsSettings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceSlot_corsSettings(ri, location),
+				Config: testAccAzureRMAppServiceSlot_corsSettings(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
-				)},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	config := testAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(ri, acceptance.Location(), tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -298,31 +249,25 @@ func TestAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(t *testing.T
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(data, tenantID),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.additional_login_params.test_key", "test_value"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.additional_login_params.test_key", "test_value"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	config := testAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(ri, acceptance.Location(), tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -330,32 +275,28 @@ func TestAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectU
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(data, tenantID),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.allowed_external_redirect_urls.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.allowed_external_redirect_urls.0", "https://terra.form"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.allowed_external_redirect_urls.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.allowed_external_redirect_urls.0", "https://terra.form"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	config := testAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(ri, acceptance.Location(), tenantID)
+	config := testAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(data, tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -365,29 +306,24 @@ func TestAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.runtime_version", "1.0"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.runtime_version", "1.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	config := testAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(ri, acceptance.Location(), tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -395,31 +331,25 @@ func TestAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(t *test
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(data, tenantID),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.token_refresh_extension_hours", "75"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.token_refresh_extension_hours", "75"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	config := testAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(ri, acceptance.Location(), tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -427,31 +357,26 @@ func TestAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(t *tes
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(data, tenantID),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.unauthenticated_client_action", "RedirectToLoginPage"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.unauthenticated_client_action", "RedirectToLoginPage"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	config := testAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(ri, acceptance.Location(), tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -459,31 +384,26 @@ func TestAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(data, tenantID),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.token_store_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.token_store_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_aadAuthSettings(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	config := testAccAzureRMAppServiceSlot_aadAuthSettings(ri, acceptance.Location(), tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -491,29 +411,24 @@ func TestAccAzureRMAppServiceSlot_aadAuthSettings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_aadAuthSettings(data, tenantID),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_facebookAuthSettings(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_facebookAuthSettings(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -521,28 +436,23 @@ func TestAccAzureRMAppServiceSlot_facebookAuthSettings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_facebookAuthSettings(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.facebook.0.app_id", "facebookappid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.facebook.0.app_secret", "facebookappsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.facebook.0.oauth_scopes.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.facebook.0.app_id", "facebookappid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.facebook.0.app_secret", "facebookappsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.facebook.0.oauth_scopes.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_googleAuthSettings(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_googleAuthSettings(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -550,28 +460,21 @@ func TestAccAzureRMAppServiceSlot_googleAuthSettings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_googleAuthSettings(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.google.0.client_id", "googleclientid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.google.0.client_secret", "googleclientsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.google.0.oauth_scopes.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.google.0.client_id", "googleclientid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.google.0.client_secret", "googleclientsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.google.0.oauth_scopes.#", "1"),
 				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_microsoftAuthSettings(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_microsoftAuthSettings(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -579,28 +482,22 @@ func TestAccAzureRMAppServiceSlot_microsoftAuthSettings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_microsoftAuthSettings(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.client_id", "microsoftclientid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.client_secret", "microsoftclientsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.oauth_scopes.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.microsoft.0.client_id", "microsoftclientid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.microsoft.0.client_secret", "microsoftclientsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.microsoft.0.oauth_scopes.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_twitterAuthSettings(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_twitterAuthSettings(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -608,29 +505,22 @@ func TestAccAzureRMAppServiceSlot_twitterAuthSettings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_twitterAuthSettings(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.twitter.0.consumer_key", "twitterconsumerkey"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.twitter.0.consumer_secret", "twitterconsumersecret"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.twitter.0.consumer_key", "twitterconsumerkey"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.twitter.0.consumer_secret", "twitterconsumersecret"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_multiAuthSettings(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	config1 := testAccAzureRMAppServiceSlot_aadAuthSettings(ri, acceptance.Location(), tenantID)
-	config2 := testAccAzureRMAppServiceSlot_aadMicrosoftAuthSettings(ri, acceptance.Location(), tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -638,48 +528,38 @@ func TestAccAzureRMAppServiceSlot_multiAuthSettings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config1,
+				Config: testAccAzureRMAppServiceSlot_aadAuthSettings(data, tenantID),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: config2,
+				Config: testAccAzureRMAppServiceSlot_aadMicrosoftAuthSettings(data, tenantID),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.client_id", "microsoftclientid"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.client_secret", "microsoftclientsecret"),
-					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.oauth_scopes.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.microsoft.0.client_id", "microsoftclientid"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.microsoft.0.client_secret", "microsoftclientsecret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.microsoft.0.oauth_scopes.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_defaultDocuments(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -687,12 +567,12 @@ func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_defaultDocuments(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.default_documents.0", "first.html"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.default_documents.1", "second.jsp"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.default_documents.2", "third.aspx"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.default_documents.0", "first.html"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.default_documents.1", "second.jsp"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.default_documents.2", "third.aspx"),
 				),
 			},
 		},
@@ -700,9 +580,7 @@ func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_enabled(ri, acceptance.Location(), false)
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -710,10 +588,10 @@ func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_enabled(data, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
 				),
 			},
 		},
@@ -721,10 +599,7 @@ func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_enabledUpdate(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_enabled(ri, acceptance.Location(), false)
-	updatedConfig := testAccAzureRMAppServiceSlot_enabled(ri, acceptance.Location(), true)
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -732,17 +607,17 @@ func TestAccAzureRMAppServiceSlot_enabledUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_enabled(data, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMAppServiceSlot_enabled(data, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 				),
 			},
 		},
@@ -750,9 +625,7 @@ func TestAccAzureRMAppServiceSlot_enabledUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_httpsOnly(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_httpsOnly(ri, acceptance.Location(), true)
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -760,10 +633,10 @@ func TestAccAzureRMAppServiceSlot_httpsOnly(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_httpsOnly(data, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "https_only", "true"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "https_only", "true"),
 				),
 			},
 		},
@@ -771,10 +644,7 @@ func TestAccAzureRMAppServiceSlot_httpsOnly(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_httpsOnly(ri, acceptance.Location(), true)
-	updatedConfig := testAccAzureRMAppServiceSlot_httpsOnly(ri, acceptance.Location(), false)
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -782,17 +652,17 @@ func TestAccAzureRMAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_httpsOnly(data, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "https_only", "true"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "https_only", "true"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMAppServiceSlot_httpsOnly(data, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "https_only", "false"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "https_only", "false"),
 				),
 			},
 		},
@@ -800,9 +670,7 @@ func TestAccAzureRMAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_http2Enabled(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_http2Enabled(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -810,10 +678,10 @@ func TestAccAzureRMAppServiceSlot_http2Enabled(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_http2Enabled(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.http2_enabled", "true"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.http2_enabled", "true"),
 				),
 			},
 		},
@@ -821,9 +689,7 @@ func TestAccAzureRMAppServiceSlot_http2Enabled(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_oneIpRestriction(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -831,11 +697,11 @@ func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_oneIpRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
 				),
 			},
 		},
@@ -843,9 +709,7 @@ func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -853,26 +717,18 @@ func TestAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_zeroedIpRestriction(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_oneIpRestriction(ri, acceptance.Location())
-	noBlocksConfig := testAccAzureRMAppServiceSlot_basic(ri, acceptance.Location())
-	blocksEmptyConfig := testAccAzureRMAppServiceSlot_zeroedIpRestriction(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -881,26 +737,26 @@ func TestAccAzureRMAppServiceSlot_zeroedIpRestriction(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// This configuration includes a single explicit ip_restriction
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_oneIpRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "1"),
 				),
 			},
 			{
 				// This configuration has no site_config blocks at all.
-				Config: noBlocksConfig,
+				Config: testAccAzureRMAppServiceSlot_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "1"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "1"),
 				),
 			},
 			{
 				// This configuration explicitly sets ip_restriction to [] using attribute syntax.
-				Config: blocksEmptyConfig,
+				Config: testAccAzureRMAppServiceSlot_zeroedIpRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "0"),
 				),
 			},
 		},
@@ -908,9 +764,7 @@ func TestAccAzureRMAppServiceSlot_zeroedIpRestriction(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_manyIpRestrictions(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -918,17 +772,17 @@ func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_manyIpRestrictions(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.1.ip_address", "20.20.20.0"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.1.subnet_mask", "255.255.255.0"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.0.0"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.2.subnet_mask", "255.255.0.0"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.3.ip_address", "192.168.1.2"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.3.subnet_mask", "255.255.255.0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.ip_address", "20.20.20.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.subnet_mask", "255.255.255.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.0.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.subnet_mask", "255.255.0.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.3.ip_address", "192.168.1.2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.3.subnet_mask", "255.255.255.0"),
 				),
 			},
 		},
@@ -936,9 +790,7 @@ func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_localMySql(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_localMySql(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -946,10 +798,10 @@ func TestAccAzureRMAppServiceSlot_localMySql(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_localMySql(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.local_mysql_enabled", "true"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.local_mysql_enabled", "true"),
 				),
 			},
 		},
@@ -957,9 +809,7 @@ func TestAccAzureRMAppServiceSlot_localMySql(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_managedPipelineMode(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_managedPipelineMode(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -967,10 +817,10 @@ func TestAccAzureRMAppServiceSlot_managedPipelineMode(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_managedPipelineMode(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.managed_pipeline_mode", "Classic"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.managed_pipeline_mode", "Classic"),
 				),
 			},
 		},
@@ -978,10 +828,7 @@ func TestAccAzureRMAppServiceSlot_managedPipelineMode(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_tags(ri, acceptance.Location())
-	updatedConfig := testAccAzureRMAppServiceSlot_tagsUpdated(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -989,20 +836,20 @@ func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_tags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Hello", "World"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMAppServiceSlot_tagsUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Hello", "World"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Terraform", "AcceptanceTests"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Terraform", "AcceptanceTests"),
 				),
 			},
 		},
@@ -1010,9 +857,7 @@ func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_remoteDebugging(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1020,11 +865,11 @@ func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_remoteDebugging(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.remote_debugging_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.remote_debugging_version", "VS2015"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.remote_debugging_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.remote_debugging_version", "VS2015"),
 				),
 			},
 		},
@@ -1032,9 +877,7 @@ func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_virtualNetwork(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1042,17 +885,17 @@ func TestAccAzureRMAppServiceSlot_virtualNetwork(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceSlot_virtualNetwork(ri, location),
+				Config: testAccAzureRMAppServiceSlot_virtualNetwork(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.virtual_network_name", fmt.Sprintf("acctestvn-%d", ri)),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.virtual_network_name", fmt.Sprintf("acctestvn-%d", data.RandomInteger)),
 				),
 			},
 			{
-				Config: testAccAzureRMAppServiceSlot_virtualNetworkUpdated(ri, location),
+				Config: testAccAzureRMAppServiceSlot_virtualNetworkUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.virtual_network_name", fmt.Sprintf("acctestvn2-%d", ri)),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.virtual_network_name", fmt.Sprintf("acctestvn2-%d", data.RandomInteger)),
 				),
 			},
 		},
@@ -1060,9 +903,7 @@ func TestAccAzureRMAppServiceSlot_virtualNetwork(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, acceptance.Location(), "v2.0")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1070,10 +911,10 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsDotNet(data, "v2.0"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v2.0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v2.0"),
 				),
 			},
 		},
@@ -1081,8 +922,7 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_updateManageServiceIdentity(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1090,18 +930,18 @@ func TestAccAzureRMAppServiceSlot_updateManageServiceIdentity(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceSlot_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMAppServiceSlot_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMAppServiceSlot_enableManageServiceIdentity(ri, acceptance.Location()),
+				Config: testAccAzureRMAppServiceSlot_enableManageServiceIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -1109,9 +949,7 @@ func TestAccAzureRMAppServiceSlot_updateManageServiceIdentity(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, acceptance.Location(), "v4.0")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1119,10 +957,10 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsDotNet(data, "v4.0"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v4.0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v4.0"),
 				),
 			},
 		},
@@ -1130,9 +968,7 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_userAssignedIdentity(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_userAssignedIdentity(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1140,13 +976,13 @@ func TestAccAzureRMAppServiceSlot_userAssignedIdentity(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_userAssignedIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "UserAssigned"),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.principal_id", ""),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.tenant_id", ""),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.principal_id", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.tenant_id", ""),
 				),
 			},
 		},
@@ -1154,9 +990,7 @@ func TestAccAzureRMAppServiceSlot_userAssignedIdentity(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_multipleAssignedIdentities(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_multipleAssignedIdentities(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1164,13 +998,13 @@ func TestAccAzureRMAppServiceSlot_multipleAssignedIdentities(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_multipleAssignedIdentities(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "1"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -1178,10 +1012,7 @@ func TestAccAzureRMAppServiceSlot_multipleAssignedIdentities(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, acceptance.Location(), "v2.0")
-	updatedConfig := testAccAzureRMAppServiceSlot_windowsDotNet(ri, acceptance.Location(), "v4.0")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1189,17 +1020,17 @@ func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsDotNet(data, "v2.0"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v2.0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v2.0"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMAppServiceSlot_windowsDotNet(data, "v4.0"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v4.0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v4.0"),
 				),
 			},
 		},
@@ -1207,9 +1038,7 @@ func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_windowsJava7Jetty(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsJava(ri, acceptance.Location(), "1.7", "JETTY", "9.3")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1217,12 +1046,12 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Jetty(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "1.7", "JETTY", "9.3"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.7"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.7"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "JETTY"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.3"),
 				),
 			},
 		},
@@ -1230,9 +1059,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Jetty(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsJava(ri, acceptance.Location(), "1.8", "JETTY", "9.3")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1240,21 +1067,19 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "1.8", "JETTY", "9.3"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.8"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "JETTY"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.3"),
 				),
 			},
 		},
 	})
 }
 func TestAccAzureRMAppServiceSlot_windowsJava11Jetty(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsJava(ri, acceptance.Location(), "11", "JETTY", "9.3")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1262,12 +1087,12 @@ func TestAccAzureRMAppServiceSlot_windowsJava11Jetty(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "11", "JETTY", "9.3"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "11"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "11"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "JETTY"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.3"),
 				),
 			},
 		},
@@ -1275,9 +1100,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava11Jetty(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsJava(ri, acceptance.Location(), "1.7", "TOMCAT", "9.0")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1285,12 +1108,12 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "1.7", "TOMCAT", "9.0"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.7"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.7"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.0"),
 				),
 			},
 		},
@@ -1298,9 +1121,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsJava(ri, acceptance.Location(), "1.8", "TOMCAT", "9.0")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1308,12 +1129,12 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "1.8", "TOMCAT", "9.0"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.8"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.0"),
 				),
 			},
 		},
@@ -1321,9 +1142,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsJava(ri, acceptance.Location(), "11", "TOMCAT", "9.0")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1331,12 +1150,12 @@ func TestAccAzureRMAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "11", "TOMCAT", "9.0"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "11"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "11"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.0"),
 				),
 			},
 		},
@@ -1344,9 +1163,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_windowsJava7Minor(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsJava(ri, acceptance.Location(), "1.7.0_80", "TOMCAT", "9.0")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1354,12 +1171,12 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Minor(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "1.7.0_80", "TOMCAT", "9.0"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.7.0_80"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.7.0_80"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.0"),
 				),
 			},
 		},
@@ -1367,9 +1184,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Minor(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_windowsJava8Minor(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsJava(ri, acceptance.Location(), "1.8.0_181", "TOMCAT", "9.0")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1377,12 +1192,12 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Minor(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "1.8.0_181", "TOMCAT", "9.0"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8.0_181"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_version", "1.8.0_181"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.java_container_version", "9.0"),
 				),
 			},
 		},
@@ -1390,9 +1205,7 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Minor(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsPHP(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1400,10 +1213,10 @@ func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsPHP(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.php_version", "7.3"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.php_version", "7.3"),
 				),
 			},
 		},
@@ -1411,9 +1224,7 @@ func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsPython(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1421,10 +1232,10 @@ func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_windowsPython(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.python_version", "3.4"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.python_version", "3.4"),
 				),
 			},
 		},
@@ -1432,9 +1243,7 @@ func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_webSockets(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1442,10 +1251,10 @@ func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_webSockets(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.websockets_enabled", "true"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.websockets_enabled", "true"),
 				),
 			},
 		},
@@ -1453,9 +1262,7 @@ func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_enableManageServiceIdentity(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1463,12 +1270,12 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_enableManageServiceIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -1476,10 +1283,7 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_minTls(ri, acceptance.Location(), "1.0")
-	updatedConfig := testAccAzureRMAppServiceSlot_minTls(ri, acceptance.Location(), "1.1")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1487,32 +1291,26 @@ func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_minTls(data, "1.0"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.min_tls_version", "1.0"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.min_tls_version", "1.0"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMAppServiceSlot_minTls(data, "1.1"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.min_tls_version", "1.1"),
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.min_tls_version", "1.1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_applicationBlobStorageLogs(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_applicationBlobStorageLogs(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1520,26 +1318,20 @@ func TestAccAzureRMAppServiceSlot_applicationBlobStorageLogs(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_applicationBlobStorageLogs(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "logs.0.application_logs.0.azure_blob_storage.0.level", "Information"),
-					resource.TestCheckResourceAttr(resourceName, "logs.0.application_logs.0.azure_blob_storage.0.sas_url", "https://example.com/"),
-					resource.TestCheckResourceAttr(resourceName, "logs.0.application_logs.0.azure_blob_storage.0.retention_in_days", "3"),
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.level", "Information"),
+					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.sas_url", "https://example.com/"),
+					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.retention_in_days", "3"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 func TestAccAzureRMAppServiceSlot_httpFileSystemLogs(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_httpFileSystemLogs(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1547,25 +1339,19 @@ func TestAccAzureRMAppServiceSlot_httpFileSystemLogs(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_httpFileSystemLogs(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "logs.0.http_logs.0.file_system.0.retention_in_days", "4"),
-					resource.TestCheckResourceAttr(resourceName, "logs.0.http_logs.0.file_system.0.retention_in_mb", "25"),
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.http_logs.0.file_system.0.retention_in_days", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.http_logs.0.file_system.0.retention_in_mb", "25"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 func TestAccAzureRMAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_httpBlobStorageLogs(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1573,26 +1359,20 @@ func TestAccAzureRMAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_httpBlobStorageLogs(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "logs.0.http_logs.0.azure_blob_storage.0.sas_url", "https://example.com/"),
-					resource.TestCheckResourceAttr(resourceName, "logs.0.http_logs.0.azure_blob_storage.0.retention_in_days", "3"),
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.http_logs.0.azure_blob_storage.0.sas_url", "https://example.com/"),
+					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.http_logs.0.azure_blob_storage.0.retention_in_days", "3"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceSlot_autoSwap(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_autoSwap(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1600,17 +1380,13 @@ func TestAccAzureRMAppServiceSlot_autoSwap(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_autoSwap(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.auto_swap_slot_name", "production"),
+					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.auto_swap_slot_name", "production"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -1672,7 +1448,7 @@ func testCheckAzureRMAppServiceSlotExists(slot string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMAppServiceSlot_basic(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1704,11 +1480,11 @@ resource "azurerm_app_service_slot" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_service_name    = "${azurerm_app_service.test.name}"
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMAppServiceSlot_basic(rInt, location)
+func testAccAzureRMAppServiceSlot_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceSlot_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1722,7 +1498,7 @@ resource "azurerm_app_service_slot" "import" {
 `, template)
 }
 
-func testAccAzureRMAppServiceSlot_32Bit(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_32Bit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1758,10 +1534,10 @@ resource "azurerm_app_service_slot" "test" {
     use_32_bit_worker_process = true
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_alwaysOn(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_alwaysOn(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1797,10 +1573,10 @@ resource "azurerm_app_service_slot" "test" {
     always_on = true
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_appCommandLine(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_appCommandLine(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1836,10 +1612,10 @@ resource "azurerm_app_service_slot" "test" {
     app_command_line = "/sbin/myservice -b 0.0.0.0"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_appSettings(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_appSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1875,10 +1651,10 @@ resource "azurerm_app_service_slot" "test" {
     "foo" = "bar"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_clientAffinityEnabled(rInt int, location string, clientAffinityEnabled bool) string {
+func testAccAzureRMAppServiceSlot_clientAffinityEnabled(data acceptance.TestData, clientAffinityEnabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1911,10 +1687,10 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name        = "${azurerm_app_service.test.name}"
   client_affinity_enabled = %t
 }
-`, rInt, location, rInt, rInt, rInt, clientAffinityEnabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientAffinityEnabled)
 }
 
-func testAccAzureRMAppServiceSlot_connectionStrings(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_connectionStrings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1958,10 +1734,10 @@ resource "azurerm_app_service_slot" "test" {
     type  = "PostgreSQL"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_connectionStringsUpdated(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_connectionStringsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2005,10 +1781,10 @@ resource "azurerm_app_service_slot" "test" {
     type  = "Custom"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_corsSettings(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_corsSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2051,10 +1827,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(rInt int, location string, tenantID string) string {
+func testAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2110,10 +1886,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt, tenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(rInt int, location string, tenantID string) string {
+func testAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2169,10 +1945,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt, tenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(rInt int, location string, tenantID string) string {
+func testAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2225,10 +2001,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt, tenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(rInt int, location string, tenantID string) string {
+func testAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2281,10 +2057,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt, tenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(rInt int, location string, tenantID string) string {
+func testAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2337,10 +2113,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt, tenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(rInt int, location string, tenantID string) string {
+func testAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2393,10 +2169,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt, tenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppServiceSlot_aadAuthSettings(rInt int, location string, tenantID string) string {
+func testAccAzureRMAppServiceSlot_aadAuthSettings(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2447,10 +2223,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt, tenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tenantID)
 }
 
-func testAccAzureRMAppServiceSlot_facebookAuthSettings(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_facebookAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2500,10 +2276,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_googleAuthSettings(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_googleAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2554,10 +2330,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_microsoftAuthSettings(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_microsoftAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2606,10 +2382,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_twitterAuthSettings(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_twitterAuthSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2655,10 +2431,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_aadMicrosoftAuthSettings(rInt int, location string, tenantID string) string {
+func testAccAzureRMAppServiceSlot_aadMicrosoftAuthSettings(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2720,10 +2496,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt, tenantID, web.AzureActiveDirectory)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tenantID, web.AzureActiveDirectory)
 }
 
-func testAccAzureRMAppServiceSlot_defaultDocuments(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_defaultDocuments(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2763,10 +2539,10 @@ resource "azurerm_app_service_slot" "test" {
     ]
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_enabled(rInt int, location string, enabled bool) string {
+func testAccAzureRMAppServiceSlot_enabled(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2799,10 +2575,10 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = "${azurerm_app_service.test.name}"
   enabled             = %t
 }
-`, rInt, location, rInt, rInt, rInt, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func testAccAzureRMAppServiceSlot_httpsOnly(rInt int, location string, httpsOnly bool) string {
+func testAccAzureRMAppServiceSlot_httpsOnly(data acceptance.TestData, httpsOnly bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2835,10 +2611,10 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = "${azurerm_app_service.test.name}"
   https_only          = %t
 }
-`, rInt, location, rInt, rInt, rInt, httpsOnly)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, httpsOnly)
 }
 
-func testAccAzureRMAppServiceSlot_http2Enabled(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_http2Enabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2874,10 +2650,10 @@ resource "azurerm_app_service_slot" "test" {
     http2_enabled = true
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_oneIpRestriction(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_oneIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2915,10 +2691,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -2970,10 +2746,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_zeroedIpRestriction(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_zeroedIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3009,10 +2785,10 @@ resource "azurerm_app_service_slot" "test" {
     ip_restriction = []
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_manyIpRestrictions(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_manyIpRestrictions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3065,10 +2841,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_localMySql(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_localMySql(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3104,10 +2880,10 @@ resource "azurerm_app_service_slot" "test" {
     local_mysql_enabled = true
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_managedPipelineMode(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_managedPipelineMode(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3143,10 +2919,10 @@ resource "azurerm_app_service_slot" "test" {
     managed_pipeline_mode = "Classic"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_tags(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3182,10 +2958,10 @@ resource "azurerm_app_service_slot" "test" {
     Hello = "World"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_tagsUpdated(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_tagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3222,10 +2998,10 @@ resource "azurerm_app_service_slot" "test" {
     "Terraform" = "AcceptanceTests"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_remoteDebugging(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_remoteDebugging(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3266,10 +3042,10 @@ resource "azurerm_app_service_slot" "test" {
     Hello = "World"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_virtualNetwork(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_virtualNetwork(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3317,10 +3093,10 @@ resource "azurerm_app_service_slot" "test" {
     virtual_network_name = "${azurerm_virtual_network.test.name}"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_virtualNetworkUpdated(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_virtualNetworkUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3380,10 +3156,10 @@ resource "azurerm_app_service_slot" "test" {
     virtual_network_name = "${azurerm_virtual_network.second.name}"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_windowsDotNet(rInt int, location, version string) string {
+func testAccAzureRMAppServiceSlot_windowsDotNet(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3419,10 +3195,10 @@ resource "azurerm_app_service_slot" "test" {
     dotnet_framework_version = "%s"
   }
 }
-`, rInt, location, rInt, rInt, rInt, version)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, version)
 }
 
-func testAccAzureRMAppServiceSlot_windowsJava(rInt int, location, javaVersion, container, containerVersion string) string {
+func testAccAzureRMAppServiceSlot_windowsJava(data acceptance.TestData, javaVersion, container, containerVersion string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3460,10 +3236,10 @@ resource "azurerm_app_service_slot" "test" {
     java_container_version = "%s"
   }
 }
-`, rInt, location, rInt, rInt, rInt, javaVersion, container, containerVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, javaVersion, container, containerVersion)
 }
 
-func testAccAzureRMAppServiceSlot_windowsPHP(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_windowsPHP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3499,10 +3275,10 @@ resource "azurerm_app_service_slot" "test" {
     php_version = "7.3"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_windowsPython(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_windowsPython(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3538,10 +3314,10 @@ resource "azurerm_app_service_slot" "test" {
     python_version = "3.4"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_webSockets(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_webSockets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3577,10 +3353,10 @@ resource "azurerm_app_service_slot" "test" {
     websockets_enabled = true
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_enableManageServiceIdentity(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_enableManageServiceIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3616,10 +3392,10 @@ resource "azurerm_app_service_slot" "test" {
     type = "SystemAssigned"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_userAssignedIdentity(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3662,10 +3438,10 @@ resource "azurerm_app_service_slot" "test" {
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_multipleAssignedIdentities(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_multipleAssignedIdentities(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3708,10 +3484,10 @@ resource "azurerm_app_service_slot" "test" {
     identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_minTls(rInt int, location string, tlsVersion string) string {
+func testAccAzureRMAppServiceSlot_minTls(data acceptance.TestData, tlsVersion string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3747,10 +3523,10 @@ resource "azurerm_app_service_slot" "test" {
     min_tls_version = "%s"
   }
 }
-`, rInt, location, rInt, rInt, rInt, tlsVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tlsVersion)
 }
 
-func testAccAzureRMAppServiceSlot_applicationBlobStorageLogs(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_applicationBlobStorageLogs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3792,10 +3568,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_httpFileSystemLogs(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_httpFileSystemLogs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3836,10 +3612,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_httpBlobStorageLogs(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_httpBlobStorageLogs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3880,10 +3656,10 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_autoSwap(rInt int, location string) string {
+func testAccAzureRMAppServiceSlot_autoSwap(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -3919,5 +3695,5 @@ resource "azurerm_app_service_slot" "test" {
     auto_swap_slot_name = "production"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
