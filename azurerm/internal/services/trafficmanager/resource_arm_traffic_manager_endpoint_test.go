@@ -1,4 +1,4 @@
-package azurerm
+package trafficmanager
 
 import (
 	"fmt"
