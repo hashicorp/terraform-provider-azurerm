@@ -1,4 +1,4 @@
-package azurerm
+package datafactory
 
 import (
 	"fmt"
@@ -13,20 +13,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryDatasetSQLServerTable_basic(t *testing.T) {
+func TestAccAzureRMDataFactoryDatasetPostgreSQL_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryDatasetSQLServerTable_basic(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory_dataset_sql_server_table.test"
+	config := testAccAzureRMDataFactoryDatasetPostgreSQL_basic(ri, acceptance.Location())
+	resourceName := "azurerm_data_factory_dataset_postgresql.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetSQLServerTableDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetPostgreSQLDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetSQLServerTableExists(resourceName),
+					testCheckAzureRMDataFactoryDatasetPostgreSQLExists(resourceName),
 				),
 			},
 			{
@@ -38,21 +38,21 @@ func TestAccAzureRMDataFactoryDatasetSQLServerTable_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataFactoryDatasetSQLServerTable_update(t *testing.T) {
+func TestAccAzureRMDataFactoryDatasetPostgreSQL_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryDatasetSQLServerTable_update1(ri, acceptance.Location())
-	config2 := testAccAzureRMDataFactoryDatasetSQLServerTable_update2(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory_dataset_sql_server_table.test"
+	config := testAccAzureRMDataFactoryDatasetPostgreSQL_update1(ri, acceptance.Location())
+	config2 := testAccAzureRMDataFactoryDatasetPostgreSQL_update2(ri, acceptance.Location())
+	resourceName := "azurerm_data_factory_dataset_postgresql.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetSQLServerTableDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetPostgreSQLDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetSQLServerTableExists(resourceName),
+					testCheckAzureRMDataFactoryDatasetPostgreSQLExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "schema_column.#", "1"),
@@ -63,7 +63,7 @@ func TestAccAzureRMDataFactoryDatasetSQLServerTable_update(t *testing.T) {
 			{
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetSQLServerTableExists(resourceName),
+					testCheckAzureRMDataFactoryDatasetPostgreSQLExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(resourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "schema_column.#", "2"),
@@ -80,7 +80,7 @@ func TestAccAzureRMDataFactoryDatasetSQLServerTable_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataFactoryDatasetSQLServerTableExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryDatasetPostgreSQLExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -104,19 +104,19 @@ func testCheckAzureRMDataFactoryDatasetSQLServerTableExists(name string) resourc
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Dataset SQL Server Table %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Dataset PostgreSQL %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryDatasetSQLServerTableDestroy(s *terraform.State) error {
+func testCheckAzureRMDataFactoryDatasetPostgreSQLDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_dataset_sql_server_table" {
+		if rs.Type != "azurerm_data_factory_dataset_postgredql" {
 			continue
 		}
 
@@ -131,14 +131,14 @@ func testCheckAzureRMDataFactoryDatasetSQLServerTableDestroy(s *terraform.State)
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Dataset SQL Server Table still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Dataset PostgreSQL still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryDatasetSQLServerTable_basic(rInt int, location string) string {
+func testAccAzureRMDataFactoryDatasetPostgreSQL_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -151,23 +151,23 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_data_factory_linked_service_sql_server" "test" {
+resource "azurerm_data_factory_linked_service_postgresql" "test" {
   name                = "acctestlssql%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
-  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+  connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
 }
 
-resource "azurerm_data_factory_dataset_sql_server_table" "test" {
+resource "azurerm_data_factory_dataset_postgresql" "test" {
   name                = "acctestds%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
-  linked_service_name = "${azurerm_data_factory_linked_service_sql_server.test.name}"
+  linked_service_name = "${azurerm_data_factory_linked_service_postgresql.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt)
 }
 
-func testAccAzureRMDataFactoryDatasetSQLServerTable_update1(rInt int, location string) string {
+func testAccAzureRMDataFactoryDatasetPostgreSQL_update1(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -180,18 +180,18 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_data_factory_linked_service_sql_server" "test" {
+resource "azurerm_data_factory_linked_service_postgresql" "test" {
   name                = "acctestlssql%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
-  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+  connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
 }
 
-resource "azurerm_data_factory_dataset_sql_server_table" "test" {
+resource "azurerm_data_factory_dataset_postgresql" "test" {
   name                = "acctestds%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
-  linked_service_name = "${azurerm_data_factory_linked_service_sql_server.test.name}"
+  linked_service_name = "${azurerm_data_factory_linked_service_postgresql.test.name}"
 
   description = "test description"
   annotations = ["test1", "test2", "test3"]
@@ -217,7 +217,7 @@ resource "azurerm_data_factory_dataset_sql_server_table" "test" {
 `, rInt, location, rInt, rInt, rInt)
 }
 
-func testAccAzureRMDataFactoryDatasetSQLServerTable_update2(rInt int, location string) string {
+func testAccAzureRMDataFactoryDatasetPostgreSQL_update2(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -230,18 +230,18 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_data_factory_linked_service_sql_server" "test" {
+resource "azurerm_data_factory_linked_service_postgresql" "test" {
   name                = "acctestlssql%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
-  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+  connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
 }
 
-resource "azurerm_data_factory_dataset_sql_server_table" "test" {
+resource "azurerm_data_factory_dataset_postgresql" "test" {
   name                = "acctestds%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
-  linked_service_name = "${azurerm_data_factory_linked_service_sql_server.test.name}"
+  linked_service_name = "${azurerm_data_factory_linked_service_postgresql.test.name}"
 
   description = "test description 2"
   annotations = ["test1", "test2"]

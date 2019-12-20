@@ -1,4 +1,4 @@
-package azurerm
+package datafactory
 
 import (
 	"fmt"
@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
+func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetPostgreSQLCreateUpdate,
-		Read:   resourceArmDataFactoryDatasetPostgreSQLRead,
-		Update: resourceArmDataFactoryDatasetPostgreSQLCreateUpdate,
-		Delete: resourceArmDataFactoryDatasetPostgreSQLDelete,
+		Create: resourceArmDataFactoryDatasetSQLServerTableCreateUpdate,
+		Read:   resourceArmDataFactoryDatasetSQLServerTableRead,
+		Update: resourceArmDataFactoryDatasetSQLServerTableCreateUpdate,
+		Delete: resourceArmDataFactoryDatasetSQLServerTableDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -145,7 +145,7 @@ func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetSQLServerTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,16 +158,16 @@ func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData,
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_dataset_postgresql", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_dataset_sql_server", *existing.ID)
 		}
 	}
 
-	postgresqlDatasetProperties := datafactory.RelationalTableDatasetTypeProperties{
+	sqlServerDatasetProperties := datafactory.SQLServerTableDatasetTypeProperties{
 		TableName: d.Get("table_name").(string),
 	}
 
@@ -179,61 +179,61 @@ func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData,
 	}
 
 	description := d.Get("description").(string)
-	postgresqlTableset := datafactory.RelationalTableDataset{
-		RelationalTableDatasetTypeProperties: &postgresqlDatasetProperties,
-		LinkedServiceName:                    linkedService,
-		Description:                          &description,
+	sqlServerTableset := datafactory.SQLServerTableDataset{
+		SQLServerTableDatasetTypeProperties: &sqlServerDatasetProperties,
+		LinkedServiceName:                   linkedService,
+		Description:                         &description,
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
 		name := v.(string)
-		postgresqlTableset.Folder = &datafactory.DatasetFolder{
+		sqlServerTableset.Folder = &datafactory.DatasetFolder{
 			Name: &name,
 		}
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		postgresqlTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		sqlServerTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
-		postgresqlTableset.Annotations = &annotations
+		sqlServerTableset.Annotations = &annotations
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		postgresqlTableset.AdditionalProperties = v.(map[string]interface{})
+		sqlServerTableset.AdditionalProperties = v.(map[string]interface{})
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		postgresqlTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		sqlServerTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeRelationalTable)
+	datasetType := string(datafactory.TypeSQLServerTable)
 	dataset := datafactory.DatasetResource{
-		Properties: &postgresqlTableset,
+		Properties: &sqlServerTableset,
 		Type:       &datasetType,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, dataset, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating Data Factory Dataset SQL Server Table  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Cannot read Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetPostgreSQLRead(d, meta)
+	return resourceArmDataFactoryDatasetSQLServerTableRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetSQLServerTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -253,41 +253,41 @@ func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("data_factory_name", dataFactoryName)
 
-	postgresqlTable, ok := resp.Properties.AsRelationalTableDataset()
+	sqlServerTable, ok := resp.Properties.AsSQLServerTableDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSQLServerTable, *resp.Type)
 	}
 
-	d.Set("additional_properties", postgresqlTable.AdditionalProperties)
+	d.Set("additional_properties", sqlServerTable.AdditionalProperties)
 
-	if postgresqlTable.Description != nil {
-		d.Set("description", postgresqlTable.Description)
+	if sqlServerTable.Description != nil {
+		d.Set("description", sqlServerTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(postgresqlTable.Parameters)
+	parameters := flattenDataFactoryParameters(sqlServerTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("Error setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(postgresqlTable.Annotations)
+	annotations := flattenDataFactoryAnnotations(sqlServerTable.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
 		return fmt.Errorf("Error setting `annotations`: %+v", err)
 	}
 
-	if linkedService := postgresqlTable.LinkedServiceName; linkedService != nil {
+	if linkedService := sqlServerTable.LinkedServiceName; linkedService != nil {
 		if linkedService.ReferenceName != nil {
 			d.Set("linked_service_name", linkedService.ReferenceName)
 		}
 	}
 
-	if properties := postgresqlTable.RelationalTableDatasetTypeProperties; properties != nil {
+	if properties := sqlServerTable.SQLServerTableDatasetTypeProperties; properties != nil {
 		val, ok := properties.TableName.(string)
 		if !ok {
 			log.Printf("[DEBUG] Skipping `table_name` since it's not a string")
@@ -296,13 +296,13 @@ func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta in
 		}
 	}
 
-	if folder := postgresqlTable.Folder; folder != nil {
+	if folder := sqlServerTable.Folder; folder != nil {
 		if folder.Name != nil {
 			d.Set("folder", folder.Name)
 		}
 	}
 
-	structureColumns := flattenDataFactoryStructureColumns(postgresqlTable.Structure)
+	structureColumns := flattenDataFactoryStructureColumns(sqlServerTable.Structure)
 	if err := d.Set("schema_column", structureColumns); err != nil {
 		return fmt.Errorf("Error setting `schema_column`: %+v", err)
 	}
@@ -310,7 +310,7 @@ func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmDataFactoryDatasetPostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetSQLServerTableDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -326,7 +326,7 @@ func resourceArmDataFactoryDatasetPostgreSQLDelete(d *schema.ResourceData, meta 
 	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Dataset PostgreSQL %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Dataset SQL Server Table %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 		}
 	}
 
