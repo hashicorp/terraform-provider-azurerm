@@ -1,4 +1,4 @@
-package trafficmanager
+package tests
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testing.T) {
-	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_geographical_location", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -18,8 +18,8 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testin
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("Europe"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "id", "GEO-EU"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", "Europe"),
+					resource.TestCheckResourceAttr(data.ResourceName, "id", "GEO-EU"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "Europe"),
 				),
 			},
 		},
@@ -27,7 +27,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testin
 }
 
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany(t *testing.T) {
-	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_geographical_location", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -36,8 +36,8 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany(t *testi
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("Germany"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "id", "DE"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", "Germany"),
+					resource.TestCheckResourceAttr(data.ResourceName, "id", "DE"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "Germany"),
 				),
 			},
 		},
@@ -45,7 +45,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany(t *testi
 }
 
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom(t *testing.T) {
-	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_geographical_location", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -54,8 +54,8 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom(t 
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("United Kingdom"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "id", "GB"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", "United Kingdom"),
+					resource.TestCheckResourceAttr(data.ResourceName, "id", "GB"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "United Kingdom"),
 				),
 			},
 		},
@@ -63,7 +63,7 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom(t 
 }
 
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_world(t *testing.T) {
-	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_geographical_location", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -72,8 +72,8 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_world(t *testing
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("World"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "id", "WORLD"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", "World"),
+					resource.TestCheckResourceAttr(data.ResourceName, "id", "WORLD"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "World"),
 				),
 			},
 		},

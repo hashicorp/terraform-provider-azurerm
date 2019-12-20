@@ -1,4 +1,4 @@
-package subscription
+package tests
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
-	resourceName := "data.azurerm_subscription.current"
+	data := acceptance.BuildTestData(t, "data.azurerm_subscription", "current")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -21,11 +21,11 @@ func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMSubscription_currentConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "subscription_id"),
-					testCheckAzureRMSubscriptionId(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "display_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "tenant_id"),
-					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
+					testCheckAzureRMSubscriptionId(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "tenant_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "state", "Enabled"),
 				),
 			},
 		},
@@ -33,7 +33,7 @@ func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMSubscription_specific(t *testing.T) {
-	resourceName := "data.azurerm_subscription.specific"
+	data := acceptance.BuildTestData(t, "data.azurerm_subscription", "specific")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -42,13 +42,13 @@ func TestAccDataSourceAzureRMSubscription_specific(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMSubscription_specificConfig(os.Getenv("ARM_SUBSCRIPTION_ID")),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "subscription_id"),
-					testCheckAzureRMSubscriptionId(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "display_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "tenant_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "location_placement_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "quota_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "spending_limit"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
+					testCheckAzureRMSubscriptionId(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "tenant_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "location_placement_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "quota_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "spending_limit"),
 				),
 			},
 		},
