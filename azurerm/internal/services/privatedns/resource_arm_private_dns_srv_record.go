@@ -1,4 +1,4 @@
-package azurerm
+package privatedns
 
 import (
 	"fmt"
@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPrivateDnsPtrRecord() *schema.Resource {
+func resourceArmPrivateDnsSrvRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPrivateDnsPtrRecordCreateUpdate,
-		Read:   resourceArmPrivateDnsPtrRecordRead,
-		Update: resourceArmPrivateDnsPtrRecordCreateUpdate,
-		Delete: resourceArmPrivateDnsPtrRecordDelete,
+		Create: resourceArmPrivateDnsSrvRecordCreateUpdate,
+		Read:   resourceArmPrivateDnsSrvRecordRead,
+		Update: resourceArmPrivateDnsSrvRecordCreateUpdate,
+		Delete: resourceArmPrivateDnsSrvRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,11 +53,36 @@ func resourceArmPrivateDnsPtrRecord() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"records": {
+			"record": {
 				Type:     schema.TypeSet,
 				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"priority": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 65535),
+						},
+
+						"weight": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 65535),
+						},
+
+						"port": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 65535),
+						},
+
+						"target": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+					},
+				},
 			},
 
 			"ttl": {
@@ -71,7 +96,7 @@ func resourceArmPrivateDnsPtrRecord() *schema.Resource {
 	}
 }
 
-func resourceArmPrivateDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPrivateDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -81,15 +106,15 @@ func resourceArmPrivateDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta int
 	zoneName := d.Get("zone_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, zoneName, privatedns.PTR, name)
+		existing, err := client.Get(ctx, resGroup, zoneName, privatedns.SRV, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Private DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Private DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_private_dns_ptr_record", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_private_dns_srv_record", *existing.ID)
 		}
 	}
 
@@ -101,31 +126,29 @@ func resourceArmPrivateDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta int
 		RecordSetProperties: &privatedns.RecordSetProperties{
 			Metadata:   tags.Expand(t),
 			TTL:        &ttl,
-			PtrRecords: expandAzureRmPrivateDnsPtrRecords(d),
+			SrvRecords: expandAzureRmPrivateDnsSrvRecords(d),
 		},
 	}
 
-	eTag := ""
-	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, privatedns.PTR, name, parameters, eTag, ifNoneMatch); err != nil {
-		return fmt.Errorf("Error creating/updating Private DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, privatedns.SRV, name, parameters, "", ""); err != nil {
+		return fmt.Errorf("Error creating/updating Private DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resGroup, zoneName, privatedns.PTR, name)
+	resp, err := client.Get(ctx, resGroup, zoneName, privatedns.SRV, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Private DNS PTR Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
+		return fmt.Errorf("Error retrieving Private DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Private DNS PTR Record %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Private DNS SRV Record %s (resource group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmPrivateDnsPtrRecordRead(d, meta)
+	return resourceArmPrivateDnsSrvRecordRead(d, meta)
 }
 
-func resourceArmPrivateDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPrivateDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -136,16 +159,16 @@ func resourceArmPrivateDnsPtrRecordRead(d *schema.ResourceData, meta interface{}
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["PTR"]
+	name := id.Path["SRV"]
 	zoneName := id.Path["privateDnsZones"]
 
-	resp, err := dnsClient.Get(ctx, resGroup, zoneName, privatedns.PTR, name)
+	resp, err := dnsClient.Get(ctx, resGroup, zoneName, privatedns.SRV, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Private DNS PTR record %s: %+v", name, err)
+		return fmt.Errorf("Error reading Private DNS SRV record %s: %+v", name, err)
 	}
 
 	d.Set("name", name)
@@ -153,16 +176,14 @@ func resourceArmPrivateDnsPtrRecordRead(d *schema.ResourceData, meta interface{}
 	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
 
-	if props := resp.RecordSetProperties; props != nil {
-		if err := d.Set("records", flattenAzureRmPrivateDnsPtrRecords(resp.PtrRecords)); err != nil {
-			return fmt.Errorf("Error setting `records`: %+v", err)
-		}
+	if err := d.Set("record", flattenAzureRmPrivateDnsSrvRecords(resp.SrvRecords)); err != nil {
+		return err
 	}
 
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
-func resourceArmPrivateDnsPtrRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPrivateDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -173,41 +194,60 @@ func resourceArmPrivateDnsPtrRecordDelete(d *schema.ResourceData, meta interface
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["PTR"]
+	name := id.Path["SRV"]
 	zoneName := id.Path["privateDnsZones"]
 
-	_, err = dnsClient.Delete(ctx, resGroup, zoneName, privatedns.PTR, name, "")
+	_, err = dnsClient.Delete(ctx, resGroup, zoneName, privatedns.SRV, name, "")
 	if err != nil {
-		return fmt.Errorf("Error deleting Private DNS PTR Record %s: %+v", name, err)
+		return fmt.Errorf("Error deleting Private DNS SRV Record %s: %+v", name, err)
 	}
 
 	return nil
 }
 
-func flattenAzureRmPrivateDnsPtrRecords(records *[]privatedns.PtrRecord) []string {
-	results := make([]string, 0)
+func flattenAzureRmPrivateDnsSrvRecords(records *[]privatedns.SrvRecord) []map[string]interface{} {
+	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
 		for _, record := range *records {
-			if record.Ptrdname == nil {
+			if record.Priority == nil ||
+				record.Weight == nil ||
+				record.Port == nil ||
+				record.Target == nil {
 				continue
 			}
-			results = append(results, *record.Ptrdname)
+
+			results = append(results, map[string]interface{}{
+				"priority": *record.Priority,
+				"weight":   *record.Weight,
+				"port":     *record.Port,
+				"target":   *record.Target,
+			})
 		}
 	}
 
 	return results
 }
 
-func expandAzureRmPrivateDnsPtrRecords(d *schema.ResourceData) *[]privatedns.PtrRecord {
-	recordStrings := d.Get("records").(*schema.Set).List()
-	records := make([]privatedns.PtrRecord, len(recordStrings))
+func expandAzureRmPrivateDnsSrvRecords(d *schema.ResourceData) *[]privatedns.SrvRecord {
+	recordStrings := d.Get("record").(*schema.Set).List()
+	records := make([]privatedns.SrvRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
-		fqdn := v.(string)
-		records[i] = privatedns.PtrRecord{
-			Ptrdname: &fqdn,
+		record := v.(map[string]interface{})
+		priority := int32(record["priority"].(int))
+		weight := int32(record["weight"].(int))
+		port := int32(record["port"].(int))
+		target := record["target"].(string)
+
+		srvRecord := privatedns.SrvRecord{
+			Priority: &priority,
+			Weight:   &weight,
+			Port:     &port,
+			Target:   &target,
 		}
+
+		records[i] = srvRecord
 	}
 
 	return &records

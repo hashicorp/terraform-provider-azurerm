@@ -1,4 +1,4 @@
-package azurerm
+package privatedns
 
 import (
 	"fmt"
@@ -14,20 +14,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func TestAccAzureRMPrivateDnsSrvRecord_basic(t *testing.T) {
-	resourceName := "azurerm_private_dns_srv_record.test"
+func TestAccAzureRMPrivateDnsMxRecord_basic(t *testing.T) {
+	resourceName := "azurerm_private_dns_mx_record.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPrivateDnsSrvRecord_basic(ri, acceptance.Location())
+	config := testAccAzureRMPrivateDnsMxRecord_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsSrvRecordDestroy,
+		CheckDestroy: testCheckAzureRMPrivateDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsSrvRecordExists(resourceName),
+					testCheckAzureRMPrivateDnsMxRecordExists(resourceName),
 				),
 			},
 			{
@@ -39,58 +39,58 @@ func TestAccAzureRMPrivateDnsSrvRecord_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPrivateDnsSrvRecord_requiresImport(t *testing.T) {
+func TestAccAzureRMPrivateDnsMxRecord_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
-	resourceName := "azurerm_private_dns_srv_record.test"
+	resourceName := "azurerm_private_dns_mx_record.test"
 	ri := tf.AccRandTimeInt()
 	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsSrvRecordDestroy,
+		CheckDestroy: testCheckAzureRMPrivateDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPrivateDnsSrvRecord_basic(ri, location),
+				Config: testAccAzureRMPrivateDnsMxRecord_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsSrvRecordExists(resourceName),
+					testCheckAzureRMPrivateDnsMxRecordExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMPrivateDnsSrvRecord_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_private_dns_srv_record"),
+				Config:      testAccAzureRMPrivateDnsMxRecord_requiresImport(ri, location),
+				ExpectError: acceptance.RequiresImportError("azurerm_private_dns_mx_record"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMPrivateDnsSrvRecord_updateRecords(t *testing.T) {
-	resourceName := "azurerm_private_dns_srv_record.test"
+func TestAccAzureRMPrivateDnsMxRecord_updateRecords(t *testing.T) {
+	resourceName := "azurerm_private_dns_mx_record.test"
 	ri := tf.AccRandTimeInt()
 	location := acceptance.Location()
-	preConfig := testAccAzureRMPrivateDnsSrvRecord_basic(ri, location)
-	postConfig := testAccAzureRMPrivateDnsSrvRecord_updateRecords(ri, location)
+	preConfig := testAccAzureRMPrivateDnsMxRecord_basic(ri, location)
+	postConfig := testAccAzureRMPrivateDnsMxRecord_updateRecords(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsSrvRecordDestroy,
+		CheckDestroy: testCheckAzureRMPrivateDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsSrvRecordExists(resourceName),
+					testCheckAzureRMPrivateDnsMxRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "record.#", "2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsSrvRecordExists(resourceName),
+					testCheckAzureRMPrivateDnsMxRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "record.#", "3"),
 				),
 			},
@@ -98,29 +98,29 @@ func TestAccAzureRMPrivateDnsSrvRecord_updateRecords(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPrivateDnsSrvRecord_withTags(t *testing.T) {
-	resourceName := "azurerm_private_dns_srv_record.test"
+func TestAccAzureRMPrivateDnsMxRecord_withTags(t *testing.T) {
+	resourceName := "azurerm_private_dns_mx_record.test"
 	ri := tf.AccRandTimeInt()
 	location := acceptance.Location()
-	preConfig := testAccAzureRMPrivateDnsSrvRecord_withTags(ri, location)
-	postConfig := testAccAzureRMPrivateDnsSrvRecord_withTagsUpdate(ri, location)
+	preConfig := testAccAzureRMPrivateDnsMxRecord_withTags(ri, location)
+	postConfig := testAccAzureRMPrivateDnsMxRecord_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsSrvRecordDestroy,
+		CheckDestroy: testCheckAzureRMPrivateDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsSrvRecordExists(resourceName),
+					testCheckAzureRMPrivateDnsMxRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsSrvRecordExists(resourceName),
+					testCheckAzureRMPrivateDnsMxRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
@@ -133,7 +133,32 @@ func TestAccAzureRMPrivateDnsSrvRecord_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMPrivateDnsSrvRecordExists(resourceName string) resource.TestCheckFunc {
+func TestAccAzureRMPrivateDnsMxRecord_emptyName(t *testing.T) {
+	resourceName := "azurerm_private_dns_mx_record.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMPrivateDnsMxRecord_emptyName(ri, acceptance.Location())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPrivateDnsMxRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateDnsMxRecordExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testCheckAzureRMPrivateDnsMxRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -141,42 +166,42 @@ func testCheckAzureRMPrivateDnsSrvRecordExists(resourceName string) resource.Tes
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		srvName := rs.Primary.Attributes["name"]
+		mxName := rs.Primary.Attributes["name"]
 		zoneName := rs.Primary.Attributes["zone_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Private DNS SRV record: %s", srvName)
+			return fmt.Errorf("Bad: no resource group found in state for Private DNS MX record: %s", mxName)
 		}
 
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.SRV, srvName)
+		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.MX, mxName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get SRV RecordSet: %+v", err)
+			return fmt.Errorf("Bad: Get MX RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Private DNS SRV record %s (resource group: %s) does not exist", srvName, resourceGroup)
+			return fmt.Errorf("Bad: Private DNS MX record %s (resource group: %s) does not exist", mxName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMPrivateDnsSrvRecordDestroy(s *terraform.State) error {
+func testCheckAzureRMPrivateDnsMxRecordDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_private_dns_srv_record" {
+		if rs.Type != "azurerm_private_dns_mx_record" {
 			continue
 		}
 
-		srvName := rs.Primary.Attributes["name"]
+		mxName := rs.Primary.Attributes["name"]
 		zoneName := rs.Primary.Attributes["zone_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.SRV, srvName)
+		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.MX, mxName)
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
@@ -186,13 +211,13 @@ func testCheckAzureRMPrivateDnsSrvRecordDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("Private DNS SRV record still exists:\n%#v", resp.RecordSetProperties)
+		return fmt.Errorf("Private DNS MX record still exists:\n%#v", resp.RecordSetProperties)
 	}
 
 	return nil
 }
 
-func testAccAzureRMPrivateDnsSrvRecord_basic(rInt int, location string) string {
+func testAccAzureRMPrivateDnsMxRecord_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-prvdns-%d"
@@ -204,58 +229,79 @@ resource "azurerm_private_dns_zone" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_private_dns_srv_record" "test" {
-  name                = "testaccsrv%d"
+resource "azurerm_private_dns_mx_record" "test" {
+  name                = "testaccmx%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_private_dns_zone.test.name}"
   ttl                 = 300
   record {
-    priority = 1
-    weight   = 5
-    port     = 8080
-    target   = "target1.contoso.com"
+    preference = 10
+    exchange   = "mx1.contoso.com"
   }
 
   record {
-    priority = 10
-    weight   = 10
-    port     = 8080
-    target   = "target2.contoso.com"
+    preference = 10
+    exchange   = "mx2.contoso.com"
   }
 }
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMPrivateDnsSrvRecord_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMPrivateDnsSrvRecord_basic(rInt, location)
+func testAccAzureRMPrivateDnsMxRecord_emptyName(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-prvdns-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "testzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_private_dns_mx_record" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_private_dns_zone.test.name}"
+  ttl                 = 300
+  record {
+    preference = 10
+    exchange   = "mx1.contoso.com"
+  }
+
+  record {
+    preference = 10
+    exchange   = "mx2.contoso.com"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMPrivateDnsMxRecord_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMPrivateDnsMxRecord_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_private_dns_srv_record" "import" {
-  name                = "${azurerm_private_dns_srv_record.test.name}"
-  resource_group_name = "${azurerm_private_dns_srv_record.test.resource_group_name}"
-  zone_name           = "${azurerm_private_dns_srv_record.test.zone_name}"
+resource "azurerm_private_dns_mx_record" "import" {
+  name                = "${azurerm_private_dns_mx_record.test.name}"
+  resource_group_name = "${azurerm_private_dns_mx_record.test.resource_group_name}"
+  zone_name           = "${azurerm_private_dns_mx_record.test.zone_name}"
   ttl                 = 300
   record {
-    priority = 1
-    weight   = 5
-    port     = 8080
-    target   = "target1.contoso.com"
+    preference = 10
+    exchange   = "mx1.contoso.com"
   }
   record {
-    priority = 10
-    weight   = 10
-    port     = 8080
-    target   = "target2.contoso.com"
+    preference = 10
+    exchange   = "mx2.contoso.com"
   }
 }
 `, template)
 }
 
-func testAccAzureRMPrivateDnsSrvRecord_updateRecords(rInt int, location string) string {
+func testAccAzureRMPrivateDnsMxRecord_updateRecords(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
+	name     = "acctestRG-prvdns-%d"
 	location = "%s"
 }
 	
@@ -264,37 +310,31 @@ resource "azurerm_private_dns_zone" "test" {
 	resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_private_dns_srv_record" "test" {
-  name                = "test%d"
+resource "azurerm_private_dns_mx_record" "test" {
+  name                = "testaccmx%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_private_dns_zone.test.name}"
   ttl                 = 300
   record {
-    priority = 1
-    weight   = 5
-    port     = 8080
-    target   = "target1.contoso.com"
+    preference = 10
+    exchange   = "mx1.contoso.com"
   }
   record {
-    priority = 10
-    weight   = 10
-    port     = 8080
-    target   = "target2.contoso.com"
+    preference = 10
+    exchange   = "mx2.contoso.com"
   }
   record {
-    priority = 20
-    weight   = 100
-    port     = 8080
-    target   = "target3.contoso.com"
+    preference = 20
+    exchange   = "backupmx.contoso.com"
   }
 }
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMPrivateDnsSrvRecord_withTags(rInt int, location string) string {
+func testAccAzureRMPrivateDnsMxRecord_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
+	name     = "acctestRG-prvdns-%d"
 	location = "%s"
 }
   
@@ -303,22 +343,18 @@ resource "azurerm_private_dns_zone" "test" {
 	resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_private_dns_srv_record" "test" {
-  name                = "test%d"
+resource "azurerm_private_dns_mx_record" "test" {
+  name                = "testaccmx%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_private_dns_zone.test.name}"
   ttl                 = 300
   record {
-    priority = 1
-    weight   = 5
-    port     = 8080
-    target   = "target1.contoso.com"
+    preference = 10
+    exchange   = "mx1.contoso.com"
   }
   record {
-    priority = 10
-    weight   = 10
-    port     = 8080
-    target   = "target2.contoso.com"
+    preference = 10
+    exchange   = "mx2.contoso.com"
   }
 
   tags = {
@@ -329,10 +365,10 @@ resource "azurerm_private_dns_srv_record" "test" {
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMPrivateDnsSrvRecord_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMPrivateDnsMxRecord_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
+	name     = "acctestRG-prvdns-%d"
 	location = "%s"
 }
 
@@ -341,22 +377,18 @@ resource "azurerm_private_dns_zone" "test" {
 	resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_private_dns_srv_record" "test" {
-  name                = "test%d"
+resource "azurerm_private_dns_mx_record" "test" {
+  name                = "testaccmx%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_private_dns_zone.test.name}"
   ttl                 = 300
   record {
-    priority = 1
-    weight   = 5
-    port     = 8080
-    target   = "target1.contoso.com"
+    preference = 10
+    exchange   = "mx1.contoso.com"
   }
   record {
-    priority = 10
-    weight   = 10
-    port     = 8080
-    target   = "target2.contoso.com"
+    preference = 10
+    exchange   = "mx2.contoso.com"
   }
 
   tags = {

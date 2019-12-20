@@ -1,4 +1,4 @@
-package azurerm
+package privatedns
 
 import (
 	"fmt"
