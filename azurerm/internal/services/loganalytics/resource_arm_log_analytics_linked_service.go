@@ -44,7 +44,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validateAzureRmLogAnalyticsWorkspaceName,
+				ValidateFunc:     ValidateAzureRmLogAnalyticsWorkspaceName,
 			},
 
 			"linked_service_name": {

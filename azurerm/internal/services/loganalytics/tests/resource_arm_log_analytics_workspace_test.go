@@ -1,4 +1,4 @@
-package loganalytics
+package tests
 
 import (
 	"fmt"
@@ -8,10 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 )
 
 func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
@@ -47,7 +47,7 @@ func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateAzureRmLogAnalyticsWorkspaceName(tc.Value, "azurerm_log_analytics")
+		_, errors := loganalytics.ValidateAzureRmLogAnalyticsWorkspaceName(tc.Value, "azurerm_log_analytics")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the AzureRM Log Analytics Workspace Name to trigger a validation error for '%s'", tc.Value)
@@ -56,8 +56,7 @@ func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
 }
 
 func TestAccAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
-	resourceName := "azurerm_log_analytics_workspace.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -65,16 +64,12 @@ func TestAccAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsWorkspace_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMLogAnalyticsWorkspace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName),
+					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -85,9 +80,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_log_analytics_workspace.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -95,13 +88,13 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsWorkspace_basic(ri, location),
+				Config: testAccAzureRMLogAnalyticsWorkspace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName),
+					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMLogAnalyticsWorkspace_requiresImport(ri, location),
+				Config:      testAccAzureRMLogAnalyticsWorkspace_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_workspace"),
 			},
 		},
@@ -109,8 +102,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMLogAnalyticsWorkspace_complete(t *testing.T) {
-	resourceName := "azurerm_log_analytics_workspace.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -118,16 +110,12 @@ func TestAccAzureRMLogAnalyticsWorkspace_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsWorkspace_complete(ri, acceptance.Location()),
+				Config: testAccAzureRMLogAnalyticsWorkspace_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName),
+					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -187,7 +175,7 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.T
 		return nil
 	}
 }
-func testAccAzureRMLogAnalyticsWorkspace_basic(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsWorkspace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -200,11 +188,11 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsWorkspace_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMLogAnalyticsWorkspace_basic(rInt, location)
+func testAccAzureRMLogAnalyticsWorkspace_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsWorkspace_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -217,7 +205,7 @@ resource "azurerm_log_analytics_workspace" "import" {
 `, template)
 }
 
-func testAccAzureRMLogAnalyticsWorkspace_complete(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsWorkspace_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -235,5 +223,5 @@ resource "azurerm_log_analytics_workspace" "test" {
     Environment = "Test"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

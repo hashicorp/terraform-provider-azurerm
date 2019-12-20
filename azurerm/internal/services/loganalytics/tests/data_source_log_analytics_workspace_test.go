@@ -1,18 +1,15 @@
-package loganalytics
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_log_analytics_workspace.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "data.azurerm_log_analytics_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -20,18 +17,18 @@ func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "sku", "pergb2018"),
-					resource.TestCheckResourceAttr(dataSourceName, "retention_in_days", "30"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "pergb2018"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_in_days", "30"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(rInt int, location string) string {
-	config := testAccAzureRMLogAnalyticsWorkspace_complete(rInt, location)
+func testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(data acceptance.TestData) string {
+	config := testAccAzureRMLogAnalyticsWorkspace_complete(data)
 	return fmt.Sprintf(`
 %s
 
