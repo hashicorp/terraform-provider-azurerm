@@ -47,7 +47,7 @@ func resourceArmDashboard() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: normalizeJson,
+				StateFunc: azure.NormalizeJson,
 			},
 		},
 	}

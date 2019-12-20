@@ -1,4 +1,4 @@
-package azurerm
+package resource
 
 import (
 	"context"
@@ -49,7 +49,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: normalizeJson,
+				StateFunc: azure.NormalizeJson,
 			},
 
 			"parameters": {
@@ -64,7 +64,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 			"parameters_body": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				StateFunc:     normalizeJson,
+				StateFunc:     azure.NormalizeJson,
 				ConflictsWith: []string{"parameters"},
 			},
 
@@ -300,19 +300,6 @@ func expandTemplateBody(template string) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("Error Expanding the template_body for Azure RM Template Deployment")
 	}
 	return templateBody, nil
-}
-
-func normalizeJson(jsonString interface{}) string {
-	if jsonString == nil || jsonString == "" {
-		return ""
-	}
-	var j interface{}
-
-	if err := json.Unmarshal([]byte(jsonString.(string)), &j); err != nil {
-		return fmt.Sprintf("Error parsing JSON: %+v", err)
-	}
-	b, _ := json.Marshal(j)
-	return string(b[:])
 }
 
 func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string, d *schema.ResourceData) error {
