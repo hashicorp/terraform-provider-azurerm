@@ -1,4 +1,4 @@
-package azurerm
+package resource
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -27,7 +26,7 @@ func resourceArmResourceGroup() *schema.Resource {
 		Update: resourceArmResourceGroupCreateUpdate,
 		Delete: resourceArmResourceGroupDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := resource.ParseResourceGroupID(id)
+			_, err := ParseResourceGroupID(id)
 			return err
 		}),
 
@@ -94,7 +93,7 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := resource.ParseResourceGroupID(d.Id())
+	id, err := ParseResourceGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -124,7 +123,7 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := resource.ParseResourceGroupID(d.Id())
+	id, err := ParseResourceGroupID(d.Id())
 	if err != nil {
 		return err
 	}
