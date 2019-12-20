@@ -1,4 +1,4 @@
-package azurerm
+package streamanalytics
 
 import (
 	"fmt"
@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStreamAnalyticsOutputBlob() *schema.Resource {
+func resourceArmStreamAnalyticsOutputServiceBusTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStreamAnalyticsOutputBlobCreateUpdate,
-		Read:   resourceArmStreamAnalyticsOutputBlobRead,
-		Update: resourceArmStreamAnalyticsOutputBlobCreateUpdate,
-		Delete: resourceArmStreamAnalyticsOutputBlobDelete,
+		Create: resourceArmStreamAnalyticsOutputServiceBusTopicCreateUpdate,
+		Read:   resourceArmStreamAnalyticsOutputServiceBusTopicRead,
+		Update: resourceArmStreamAnalyticsOutputServiceBusTopicCreateUpdate,
+		Delete: resourceArmStreamAnalyticsOutputServiceBusTopicDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,37 +51,26 @@ func resourceArmStreamAnalyticsOutputBlob() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"date_format": {
+			"topic_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"path_pattern": {
-				Type:     schema.TypeString,
-				Required: true,
+			"servicebus_namespace": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"storage_account_key": {
+			"shared_access_policy_key": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"storage_account_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
-			"storage_container_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
-			"time_format": {
+			"shared_access_policy_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.NoEmptyStrings,
@@ -92,12 +81,12 @@ func resourceArmStreamAnalyticsOutputBlob() *schema.Resource {
 	}
 }
 
-func resourceArmStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStreamAnalyticsOutputServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output Blob creation.")
+	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output ServiceBus Topic creation.")
 	name := d.Get("name").(string)
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -106,21 +95,19 @@ func resourceArmStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, me
 		existing, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Stream Analytics Output Blob %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Stream Analytics Output ServiceBus Topic %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_output_blob", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_stream_analytics_output_servicebus_topic", *existing.ID)
 		}
 	}
 
-	containerName := d.Get("storage_container_name").(string)
-	dateFormat := d.Get("date_format").(string)
-	pathPattern := d.Get("path_pattern").(string)
-	storageAccountKey := d.Get("storage_account_key").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
-	timeFormat := d.Get("time_format").(string)
+	topicName := d.Get("topic_name").(string)
+	serviceBusNamespace := d.Get("servicebus_namespace").(string)
+	sharedAccessPolicyKey := d.Get("shared_access_policy_key").(string)
+	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
 	serialization, err := azure.ExpandStreamAnalyticsOutputSerialization(serializationRaw)
@@ -131,19 +118,13 @@ func resourceArmStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, me
 	props := streamanalytics.Output{
 		Name: utils.String(name),
 		OutputProperties: &streamanalytics.OutputProperties{
-			Datasource: &streamanalytics.BlobOutputDataSource{
-				Type: streamanalytics.TypeMicrosoftStorageBlob,
-				BlobOutputDataSourceProperties: &streamanalytics.BlobOutputDataSourceProperties{
-					StorageAccounts: &[]streamanalytics.StorageAccount{
-						{
-							AccountKey:  utils.String(storageAccountKey),
-							AccountName: utils.String(storageAccountName),
-						},
-					},
-					Container:   utils.String(containerName),
-					DateFormat:  utils.String(dateFormat),
-					PathPattern: utils.String(pathPattern),
-					TimeFormat:  utils.String(timeFormat),
+			Datasource: &streamanalytics.ServiceBusTopicOutputDataSource{
+				Type: streamanalytics.TypeMicrosoftServiceBusTopic,
+				ServiceBusTopicOutputDataSourceProperties: &streamanalytics.ServiceBusTopicOutputDataSourceProperties{
+					TopicName:              utils.String(topicName),
+					ServiceBusNamespace:    utils.String(serviceBusNamespace),
+					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
+					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
 				},
 			},
 			Serialization: serialization,
@@ -152,28 +133,28 @@ func resourceArmStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, me
 
 	if d.IsNewResource() {
 		if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
-			return fmt.Errorf("Error Creating Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error Creating Stream Analytics Output ServiceBus Topic %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 
 		read, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error retrieving Stream Analytics Output ServiceBus Topic %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 		if read.ID == nil {
-			return fmt.Errorf("Cannot read ID of Stream Analytics Output Blob %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
+			return fmt.Errorf("Cannot read ID of Stream Analytics Output ServiceBus Topic %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
 		}
 
 		d.SetId(*read.ID)
 	} else {
 		if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
-			return fmt.Errorf("Error Updating Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error Updating Stream Analytics Output ServiceBus Topic %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 	}
 
-	return resourceArmStreamAnalyticsOutputBlobRead(d, meta)
+	return resourceArmStreamAnalyticsOutputServiceBusTopicRead(d, meta)
 }
 
-func resourceArmStreamAnalyticsOutputBlobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStreamAnalyticsOutputServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -189,7 +170,7 @@ func resourceArmStreamAnalyticsOutputBlobRead(d *schema.ResourceData, meta inter
 	resp, err := client.Get(ctx, resourceGroup, jobName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Output Blob %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
+			log.Printf("[DEBUG] Output ServiceBus Topic %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
@@ -202,20 +183,14 @@ func resourceArmStreamAnalyticsOutputBlobRead(d *schema.ResourceData, meta inter
 	d.Set("stream_analytics_job_name", jobName)
 
 	if props := resp.OutputProperties; props != nil {
-		v, ok := props.Datasource.AsBlobOutputDataSource()
+		v, ok := props.Datasource.AsServiceBusTopicOutputDataSource()
 		if !ok {
-			return fmt.Errorf("Error converting Output Data Source to a Blob Output: %+v", err)
+			return fmt.Errorf("Error converting Output Data Source to a ServiceBus Topic Output: %+v", err)
 		}
 
-		d.Set("date_format", v.DateFormat)
-		d.Set("path_pattern", v.PathPattern)
-		d.Set("storage_container_name", v.Container)
-		d.Set("time_format", v.TimeFormat)
-
-		if accounts := v.StorageAccounts; accounts != nil && len(*accounts) > 0 {
-			account := (*accounts)[0]
-			d.Set("storage_account_name", account.AccountName)
-		}
+		d.Set("topic_name", v.TopicName)
+		d.Set("servicebus_namespace", v.ServiceBusNamespace)
+		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
 
 		if err := d.Set("serialization", azure.FlattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("Error setting `serialization`: %+v", err)
@@ -225,7 +200,7 @@ func resourceArmStreamAnalyticsOutputBlobRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmStreamAnalyticsOutputBlobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStreamAnalyticsOutputServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +215,7 @@ func resourceArmStreamAnalyticsOutputBlobDelete(d *schema.ResourceData, meta int
 
 	if resp, err := client.Delete(ctx, resourceGroup, jobName, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Output Blob %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Output ServiceBus Topic %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
 		}
 	}
 

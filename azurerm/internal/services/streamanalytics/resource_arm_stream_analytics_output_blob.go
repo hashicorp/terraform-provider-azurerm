@@ -1,4 +1,4 @@
-package azurerm
+package streamanalytics
 
 import (
 	"fmt"
@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmStreamAnalyticsOutputServiceBusQueue() *schema.Resource {
+func resourceArmStreamAnalyticsOutputBlob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate,
-		Read:   resourceArmStreamAnalyticsOutputServiceBusQueueRead,
-		Update: resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate,
-		Delete: resourceArmStreamAnalyticsOutputServiceBusQueueDelete,
+		Create: resourceArmStreamAnalyticsOutputBlobCreateUpdate,
+		Read:   resourceArmStreamAnalyticsOutputBlobRead,
+		Update: resourceArmStreamAnalyticsOutputBlobCreateUpdate,
+		Delete: resourceArmStreamAnalyticsOutputBlobDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,26 +51,37 @@ func resourceArmStreamAnalyticsOutputServiceBusQueue() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"queue_name": {
+			"date_format": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"servicebus_namespace": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+			"path_pattern": {
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
-			"shared_access_policy_key": {
+			"storage_account_key": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"shared_access_policy_name": {
+			"storage_account_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
+			"storage_container_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
+			"time_format": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.NoEmptyStrings,
@@ -81,12 +92,12 @@ func resourceArmStreamAnalyticsOutputServiceBusQueue() *schema.Resource {
 	}
 }
 
-func resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output ServiceBus Queue creation.")
+	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Output Blob creation.")
 	name := d.Get("name").(string)
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -95,19 +106,21 @@ func resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *schema.Resou
 		existing, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Stream Analytics Output Blob %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_output_servicebus_queue", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_stream_analytics_output_blob", *existing.ID)
 		}
 	}
 
-	queueName := d.Get("queue_name").(string)
-	serviceBusNamespace := d.Get("servicebus_namespace").(string)
-	sharedAccessPolicyKey := d.Get("shared_access_policy_key").(string)
-	sharedAccessPolicyName := d.Get("shared_access_policy_name").(string)
+	containerName := d.Get("storage_container_name").(string)
+	dateFormat := d.Get("date_format").(string)
+	pathPattern := d.Get("path_pattern").(string)
+	storageAccountKey := d.Get("storage_account_key").(string)
+	storageAccountName := d.Get("storage_account_name").(string)
+	timeFormat := d.Get("time_format").(string)
 
 	serializationRaw := d.Get("serialization").([]interface{})
 	serialization, err := azure.ExpandStreamAnalyticsOutputSerialization(serializationRaw)
@@ -118,13 +131,19 @@ func resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *schema.Resou
 	props := streamanalytics.Output{
 		Name: utils.String(name),
 		OutputProperties: &streamanalytics.OutputProperties{
-			Datasource: &streamanalytics.ServiceBusQueueOutputDataSource{
-				Type: streamanalytics.TypeMicrosoftServiceBusQueue,
-				ServiceBusQueueOutputDataSourceProperties: &streamanalytics.ServiceBusQueueOutputDataSourceProperties{
-					QueueName:              utils.String(queueName),
-					ServiceBusNamespace:    utils.String(serviceBusNamespace),
-					SharedAccessPolicyKey:  utils.String(sharedAccessPolicyKey),
-					SharedAccessPolicyName: utils.String(sharedAccessPolicyName),
+			Datasource: &streamanalytics.BlobOutputDataSource{
+				Type: streamanalytics.TypeMicrosoftStorageBlob,
+				BlobOutputDataSourceProperties: &streamanalytics.BlobOutputDataSourceProperties{
+					StorageAccounts: &[]streamanalytics.StorageAccount{
+						{
+							AccountKey:  utils.String(storageAccountKey),
+							AccountName: utils.String(storageAccountName),
+						},
+					},
+					Container:   utils.String(containerName),
+					DateFormat:  utils.String(dateFormat),
+					PathPattern: utils.String(pathPattern),
+					TimeFormat:  utils.String(timeFormat),
 				},
 			},
 			Serialization: serialization,
@@ -133,28 +152,28 @@ func resourceArmStreamAnalyticsOutputServiceBusQueueCreateUpdate(d *schema.Resou
 
 	if d.IsNewResource() {
 		if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
-			return fmt.Errorf("Error Creating Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error Creating Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 
 		read, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error retrieving Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 		if read.ID == nil {
-			return fmt.Errorf("Cannot read ID of Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
+			return fmt.Errorf("Cannot read ID of Stream Analytics Output Blob %q (Job %q / Resource Group %q)", name, jobName, resourceGroup)
 		}
 
 		d.SetId(*read.ID)
 	} else {
 		if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
-			return fmt.Errorf("Error Updating Stream Analytics Output ServiceBus Queue %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error Updating Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 		}
 	}
 
-	return resourceArmStreamAnalyticsOutputServiceBusQueueRead(d, meta)
+	return resourceArmStreamAnalyticsOutputBlobRead(d, meta)
 }
 
-func resourceArmStreamAnalyticsOutputServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStreamAnalyticsOutputBlobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -170,7 +189,7 @@ func resourceArmStreamAnalyticsOutputServiceBusQueueRead(d *schema.ResourceData,
 	resp, err := client.Get(ctx, resourceGroup, jobName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Output ServiceBus Queue %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
+			log.Printf("[DEBUG] Output Blob %q was not found in Stream Analytics Job %q / Resource Group %q - removing from state!", name, jobName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
@@ -183,14 +202,20 @@ func resourceArmStreamAnalyticsOutputServiceBusQueueRead(d *schema.ResourceData,
 	d.Set("stream_analytics_job_name", jobName)
 
 	if props := resp.OutputProperties; props != nil {
-		v, ok := props.Datasource.AsServiceBusQueueOutputDataSource()
+		v, ok := props.Datasource.AsBlobOutputDataSource()
 		if !ok {
-			return fmt.Errorf("Error converting Output Data Source to a ServiceBus Queue Output: %+v", err)
+			return fmt.Errorf("Error converting Output Data Source to a Blob Output: %+v", err)
 		}
 
-		d.Set("queue_name", v.QueueName)
-		d.Set("servicebus_namespace", v.ServiceBusNamespace)
-		d.Set("shared_access_policy_name", v.SharedAccessPolicyName)
+		d.Set("date_format", v.DateFormat)
+		d.Set("path_pattern", v.PathPattern)
+		d.Set("storage_container_name", v.Container)
+		d.Set("time_format", v.TimeFormat)
+
+		if accounts := v.StorageAccounts; accounts != nil && len(*accounts) > 0 {
+			account := (*accounts)[0]
+			d.Set("storage_account_name", account.AccountName)
+		}
 
 		if err := d.Set("serialization", azure.FlattenStreamAnalyticsOutputSerialization(props.Serialization)); err != nil {
 			return fmt.Errorf("Error setting `serialization`: %+v", err)
@@ -200,7 +225,7 @@ func resourceArmStreamAnalyticsOutputServiceBusQueueRead(d *schema.ResourceData,
 	return nil
 }
 
-func resourceArmStreamAnalyticsOutputServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStreamAnalyticsOutputBlobDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.OutputsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -215,7 +240,7 @@ func resourceArmStreamAnalyticsOutputServiceBusQueueDelete(d *schema.ResourceDat
 
 	if resp, err := client.Delete(ctx, resourceGroup, jobName, name); err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Output ServiceBus Queue %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Output Blob %q (Stream Analytics Job %q / Resource Group %q) %+v", name, jobName, resourceGroup, err)
 		}
 	}
 

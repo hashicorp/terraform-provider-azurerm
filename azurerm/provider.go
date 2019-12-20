@@ -34,7 +34,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_public_ip_prefix":                          dataSourceArmPublicIpPrefix(),
 		"azurerm_resources":                                 dataSourceArmResources(),
 		"azurerm_resource_group":                            dataSourceArmResourceGroup(),
-		"azurerm_stream_analytics_job":                      dataSourceArmStreamAnalyticsJob(),
 		"azurerm_storage_account_blob_container_sas":        dataSourceArmStorageAccountBlobContainerSharedAccessSignature(),
 		"azurerm_storage_account_sas":                       dataSourceArmStorageAccountSharedAccessSignature(),
 		"azurerm_storage_account":                           dataSourceArmStorageAccount(),
@@ -102,20 +101,10 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_storage_share_directory":                      resourceArmStorageShareDirectory(),
 		"azurerm_storage_table":                                resourceArmStorageTable(),
 		"azurerm_storage_table_entity":                         resourceArmStorageTableEntity(),
-		"azurerm_stream_analytics_job":                         resourceArmStreamAnalyticsJob(),
-		"azurerm_stream_analytics_function_javascript_udf":     resourceArmStreamAnalyticsFunctionUDF(),
-		"azurerm_stream_analytics_output_blob":                 resourceArmStreamAnalyticsOutputBlob(),
-		"azurerm_stream_analytics_output_mssql":                resourceArmStreamAnalyticsOutputSql(),
-		"azurerm_stream_analytics_output_eventhub":             resourceArmStreamAnalyticsOutputEventHub(),
-		"azurerm_stream_analytics_output_servicebus_queue":     resourceArmStreamAnalyticsOutputServiceBusQueue(),
-		"azurerm_stream_analytics_output_servicebus_topic":     resourceArmStreamAnalyticsOutputServiceBusTopic(),
-		"azurerm_stream_analytics_reference_input_blob":        resourceArmStreamAnalyticsReferenceInputBlob(),
-		"azurerm_stream_analytics_stream_input_blob":           resourceArmStreamAnalyticsStreamInputBlob(),
-		"azurerm_stream_analytics_stream_input_eventhub":       resourceArmStreamAnalyticsStreamInputEventHub(),
-		"azurerm_stream_analytics_stream_input_iothub":         resourceArmStreamAnalyticsStreamInputIoTHub(),
-		"azurerm_template_deployment":                          resourceArmTemplateDeployment(),
-		"azurerm_traffic_manager_endpoint":                     resourceArmTrafficManagerEndpoint(),
-		"azurerm_traffic_manager_profile":                      resourceArmTrafficManagerProfile(),
+
+		"azurerm_template_deployment":      resourceArmTemplateDeployment(),
+		"azurerm_traffic_manager_endpoint": resourceArmTrafficManagerEndpoint(),
+		"azurerm_traffic_manager_profile":  resourceArmTrafficManagerProfile(),
 	}
 
 	return provider.AzureProvider(dataSources, resources)
