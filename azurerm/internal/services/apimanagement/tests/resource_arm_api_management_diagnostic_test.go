@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,8 @@ import (
 )
 
 func TestAccAzureRMApiManagementDiagnostic_basic(t *testing.T) {
-	resourceName := "azurerm_api_management_diagnostic.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagementDiagnostic_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
+	config := testAccAzureRMApiManagementDiagnostic_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,11 +24,11 @@ func TestAccAzureRMApiManagementDiagnostic_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementDiagnosticExists(resourceName),
+					testCheckAzureRMApiManagementDiagnosticExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -43,10 +41,7 @@ func TestAccAzureRMApiManagementDiagnostic_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_api_management_diagnostic.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,15 +49,12 @@ func TestAccAzureRMApiManagementDiagnostic_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementDiagnostic_basic(ri, location),
+				Config: testAccAzureRMApiManagementDiagnostic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementDiagnosticExists(resourceName),
+					testCheckAzureRMApiManagementDiagnosticExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMApiManagementDiagnostic_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_api_management_diagnostic"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementDiagnostic_requiresImport),
 		},
 	})
 }
@@ -117,7 +109,7 @@ func testCheckAzureRMApiManagementDiagnosticExists(resourceName string) resource
 	}
 }
 
-func testAccAzureRMApiManagementDiagnostic_basic(rInt int, location string) string {
+func testAccAzureRMApiManagementDiagnostic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -139,11 +131,11 @@ resource "azurerm_api_management_diagnostic" "test" {
   api_management_name = "${azurerm_api_management.test.name}"
   enabled             = true
 }
-`, rInt, location, rInt)
+`, data.ResourceName, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementDiagnostic_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMApiManagementDiagnostic_basic(rInt, location)
+func testAccAzureRMApiManagementDiagnostic_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementDiagnostic_basic(data)
 	return fmt.Sprintf(`
 %s
 

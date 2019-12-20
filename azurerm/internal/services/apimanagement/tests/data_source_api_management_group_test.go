@@ -1,37 +1,34 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMApiManagementGroup_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_api_management_group.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceApiManagementGroup_basic(rInt, location),
+				Config: testAccDataSourceApiManagementGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "display_name", "Test Group"),
-					resource.TestCheckResourceAttr(dataSourceName, "description", ""),
-					resource.TestCheckResourceAttr(dataSourceName, "external_id", ""),
-					resource.TestCheckResourceAttr(dataSourceName, "type", "custom"),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Group"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "external_id", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "type", "custom"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceApiManagementGroup_basic(rInt int, location string) string {
+func testAccDataSourceApiManagementGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -63,5 +60,5 @@ data "azurerm_api_management_group" "test" {
   api_management_name = "${azurerm_api_management_group.test.api_management_name}"
   resource_group_name = "${azurerm_api_management_group.test.resource_group_name}"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

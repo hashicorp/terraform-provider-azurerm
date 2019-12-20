@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,7 @@ import (
 )
 
 func TestAccAzureRMApiManagementAPIPolicy_basic(t *testing.T) {
-	resourceName := "azurerm_api_management_api_policy.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,13 +21,13 @@ func TestAccAzureRMApiManagementAPIPolicy_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementAPIPolicy_basic(ri, location),
+				Config: testAccAzureRMApiManagementAPIPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIPolicyExists(resourceName),
+					testCheckAzureRMApiManagementAPIPolicyExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"xml_link"},
@@ -44,10 +41,7 @@ func TestAccAzureRMApiManagementAPIPolicy_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_api_management_api_policy.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,23 +49,18 @@ func TestAccAzureRMApiManagementAPIPolicy_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementAPIPolicy_basic(ri, location),
+				Config: testAccAzureRMApiManagementAPIPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIPolicyExists(resourceName),
+					testCheckAzureRMApiManagementAPIPolicyExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMApiManagementAPIPolicy_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_api_management_api_policy"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementAPIPolicy_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMApiManagementAPIPolicy_update(t *testing.T) {
-	resourceName := "azurerm_api_management_api_policy.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -79,19 +68,19 @@ func TestAccAzureRMApiManagementAPIPolicy_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementAPIPolicy_basic(ri, location),
+				Config: testAccAzureRMApiManagementAPIPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIPolicyExists(resourceName),
+					testCheckAzureRMApiManagementAPIPolicyExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMApiManagementAPIPolicy_customPolicy(ri, location),
+				Config: testAccAzureRMApiManagementAPIPolicy_customPolicy(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIPolicyExists(resourceName),
+					testCheckAzureRMApiManagementAPIPolicyExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"xml_link"},
@@ -101,9 +90,7 @@ func TestAccAzureRMApiManagementAPIPolicy_update(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementAPIPolicy_customPolicy(t *testing.T) {
-	resourceName := "azurerm_api_management_api_policy.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -111,13 +98,13 @@ func TestAccAzureRMApiManagementAPIPolicy_customPolicy(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementAPIPolicy_customPolicy(ri, location),
+				Config: testAccAzureRMApiManagementAPIPolicy_customPolicy(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIPolicyExists(resourceName),
+					testCheckAzureRMApiManagementAPIPolicyExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"xml_link"},
@@ -180,7 +167,7 @@ func testCheckAzureRMApiManagementAPIPolicyDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMApiManagementAPIPolicy_basic(rInt int, location string) string {
+func testAccAzureRMApiManagementAPIPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -216,11 +203,11 @@ resource "azurerm_api_management_api_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   xml_link            = "https://gist.githubusercontent.com/riordanp/ca22f8113afae0eb38cc12d718fd048d/raw/d6ac89a2f35a6881a7729f8cb4883179dc88eea1/example.xml"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementAPIPolicy_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMApiManagementAPIPolicy_basic(rInt, location)
+func testAccAzureRMApiManagementAPIPolicy_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementAPIPolicy_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -233,7 +220,7 @@ resource "azurerm_api_management_api_policy" "import" {
 `, template)
 }
 
-func testAccAzureRMApiManagementAPIPolicy_customPolicy(rInt int, location string) string {
+func testAccAzureRMApiManagementAPIPolicy_customPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -277,5 +264,5 @@ resource "azurerm_api_management_api_policy" "test" {
 </policies>
 XML
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

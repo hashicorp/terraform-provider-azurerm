@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,8 @@ import (
 )
 
 func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
-	resourceName := "azurerm_api_management_group.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAPIManagementGroup_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
+	config := testAccAzureRMAPIManagementGroup_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,13 +24,13 @@ func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Group"),
-					resource.TestCheckResourceAttr(resourceName, "type", "custom"),
+					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Group"),
+					resource.TestCheckResourceAttr(data.ResourceName, "type", "custom"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -45,10 +43,7 @@ func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_api_management_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,25 +51,22 @@ func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementGroup_basic(ri, location),
+				Config: testAccAzureRMAPIManagementGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Group"),
-					resource.TestCheckResourceAttr(resourceName, "type", "custom"),
+					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Group"),
+					resource.TestCheckResourceAttr(data.ResourceName, "type", "custom"),
 				),
 			},
-			{
-				Config:      testAccAzureRMAPIManagementGroup_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_api_management_group"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMAPIManagementGroup_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
-	resourceName := "azurerm_api_management_group.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAPIManagementGroup_complete(ri, acceptance.Location(), "Test Group", "A test description.")
+	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
+
+	config := testAccAzureRMAPIManagementGroup_complete(data, "Test Group", "A test description.")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -84,14 +76,14 @@ func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "Test Group"),
-					resource.TestCheckResourceAttr(resourceName, "description", "A test description."),
-					resource.TestCheckResourceAttr(resourceName, "type", "external"),
+					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Group"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "A test description."),
+					resource.TestCheckResourceAttr(data.ResourceName, "type", "external"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -100,10 +92,9 @@ func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 }
 
 func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T) {
-	resourceName := "azurerm_api_management_group.test"
-	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMAPIManagementGroup_complete(ri, acceptance.Location(), "Original Group", "The original description.")
-	postConfig := testAccAzureRMAPIManagementGroup_complete(ri, acceptance.Location(), "Modified Group", "A modified description.")
+	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
+	preConfig := testAccAzureRMAPIManagementGroup_complete(data, "Original Group", "The original description.")
+	postConfig := testAccAzureRMAPIManagementGroup_complete(data, "Modified Group", "A modified description.")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -113,28 +104,28 @@ func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T)
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "Original Group"),
-					resource.TestCheckResourceAttr(resourceName, "description", "The original description."),
-					resource.TestCheckResourceAttr(resourceName, "type", "external"),
+					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Original Group"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "The original description."),
+					resource.TestCheckResourceAttr(data.ResourceName, "type", "external"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "Modified Group"),
-					resource.TestCheckResourceAttr(resourceName, "description", "A modified description."),
-					resource.TestCheckResourceAttr(resourceName, "type", "external"),
+					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Modified Group"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "A modified description."),
+					resource.TestCheckResourceAttr(data.ResourceName, "type", "external"),
 				),
 			},
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", "Original Group"),
-					resource.TestCheckResourceAttr(resourceName, "description", "The original description."),
-					resource.TestCheckResourceAttr(resourceName, "type", "external"),
+					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Original Group"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "The original description."),
+					resource.TestCheckResourceAttr(data.ResourceName, "type", "external"),
 				),
 			},
 		},
@@ -191,7 +182,7 @@ func testCheckAzureRMAPIManagementGroupExists(resourceName string) resource.Test
 	}
 }
 
-func testAccAzureRMAPIManagementGroup_basic(rInt int, location string) string {
+func testAccAzureRMAPIManagementGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -214,11 +205,11 @@ resource "azurerm_api_management_group" "test" {
   api_management_name = "${azurerm_api_management.test.name}"
   display_name        = "Test Group"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementGroup_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMAPIManagementGroup_basic(rInt, location)
+func testAccAzureRMAPIManagementGroup_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAPIManagementGroup_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -231,7 +222,7 @@ resource "azurerm_api_management_group" "import" {
 `, template)
 }
 
-func testAccAzureRMAPIManagementGroup_complete(rInt int, location string, displayName, description string) string {
+func testAccAzureRMAPIManagementGroup_complete(data acceptance.TestData, displayName, description string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -256,5 +247,5 @@ resource "azurerm_api_management_group" "test" {
   description         = "%s"
   type                = "external"
 }
-`, rInt, location, rInt, rInt, displayName, description)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, displayName, description)
 }
