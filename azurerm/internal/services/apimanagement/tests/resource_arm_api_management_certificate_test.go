@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,7 @@ import (
 )
 
 func TestAccAzureRMAPIManagementCertificate_basic(t *testing.T) {
-	resourceName := "azurerm_api_management_certificate.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,16 +21,16 @@ func TestAccAzureRMAPIManagementCertificate_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementCertificate_basic(ri, location),
+				Config: testAccAzureRMAPIManagementCertificate_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementCertificateExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "expiration"),
-					resource.TestCheckResourceAttrSet(resourceName, "subject"),
-					resource.TestCheckResourceAttrSet(resourceName, "thumbprint"),
+					testCheckAzureRMAPIManagementCertificateExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "expiration"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subject"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "thumbprint"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -51,10 +48,7 @@ func TestAccAzureRMAPIManagementCertificate_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_api_management_certificate.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -62,15 +56,12 @@ func TestAccAzureRMAPIManagementCertificate_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementCertificate_basic(ri, location),
+				Config: testAccAzureRMAPIManagementCertificate_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementCertificateExists(resourceName),
+					testCheckAzureRMAPIManagementCertificateExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMAPIManagementCertificate_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_api_management_certificate"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMAPIManagementCertificate_requiresImport),
 		},
 	})
 }
@@ -125,7 +116,7 @@ func testCheckAzureRMAPIManagementCertificateExists(resourceName string) resourc
 	}
 }
 
-func testAccAzureRMAPIManagementCertificate_basic(rInt int, location string) string {
+func testAccAzureRMAPIManagementCertificate_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -152,11 +143,11 @@ resource "azurerm_api_management_certificate" "test" {
   data                = "${filebase64("testdata/keyvaultcert.pfx")}"
   password            = ""
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementCertificate_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMAPIManagementCertificate_basic(rInt, location)
+func testAccAzureRMAPIManagementCertificate_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAPIManagementCertificate_basic(data)
 	return fmt.Sprintf(`
 %s
 

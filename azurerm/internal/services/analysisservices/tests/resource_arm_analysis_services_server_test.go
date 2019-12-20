@@ -1,4 +1,4 @@
-package analysisservices
+package tests
 
 import (
 	"fmt"
@@ -6,18 +6,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAnalysisServicesServer_basic(t *testing.T) {
-	resourceName := "azurerm_analysis_services_server.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,13 +22,13 @@ func TestAccAzureRMAnalysisServicesServer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAnalysisServicesServer_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMAnalysisServicesServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -40,10 +37,9 @@ func TestAccAzureRMAnalysisServicesServer_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
-	resourceName := "azurerm_analysis_services_server.test"
-	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMAnalysisServicesServer_withTags(ri, acceptance.Location())
-	postConfig := testAccAzureRMAnalysisServicesServer_withTagsUpdate(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	preConfig := testAccAzureRMAnalysisServicesServer_withTags(data)
+	postConfig := testAccAzureRMAnalysisServicesServer_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,18 +49,18 @@ func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.label", "test"),
+					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.label", "test1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.ENV", "prod"),
+					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "prod"),
 				),
 			},
 		},
@@ -72,10 +68,9 @@ func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMAnalysisServicesServer_querypoolConnectionMode(t *testing.T) {
-	resourceName := "azurerm_analysis_services_server.test"
-	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(ri, acceptance.Location(), "All")
-	postConfig := testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(ri, acceptance.Location(), "ReadOnly")
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	preConfig := testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data, "All")
+	postConfig := testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data, "ReadOnly")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -85,15 +80,15 @@ func TestAccAzureRMAnalysisServicesServer_querypoolConnectionMode(t *testing.T) 
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "querypool_connection_mode", "All"),
+					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "querypool_connection_mode", "All"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "querypool_connection_mode", "ReadOnly"),
+					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "querypool_connection_mode", "ReadOnly"),
 				),
 			},
 		},
@@ -101,14 +96,12 @@ func TestAccAzureRMAnalysisServicesServer_querypoolConnectionMode(t *testing.T) 
 }
 
 func TestAccAzureRMAnalysisServicesServer_firewallSettings(t *testing.T) {
-	resourceName := "azurerm_analysis_services_server.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	config1 := testAccAzureRMAnalysisServicesServer_firewallSettings1(data, true)
 
-	config1 := testAccAzureRMAnalysisServicesServer_firewallSettings1(ri, acceptance.Location(), true)
+	config2 := testAccAzureRMAnalysisServicesServer_firewallSettings2(data, false)
 
-	config2 := testAccAzureRMAnalysisServicesServer_firewallSettings2(ri, acceptance.Location(), false)
-
-	config3 := testAccAzureRMAnalysisServicesServer_firewallSettings3(ri, acceptance.Location(), true)
+	config3 := testAccAzureRMAnalysisServicesServer_firewallSettings3(data, true)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -118,34 +111,34 @@ func TestAccAzureRMAnalysisServicesServer_firewallSettings(t *testing.T) {
 			{
 				Config: config1,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enable_power_bi_service", "true"),
-					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rule.#", "0"),
+					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_power_bi_service", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.#", "0"),
 				),
 			},
 			{
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enable_power_bi_service", "false"),
-					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rule.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rule.0.name", "test1"),
-					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rule.0.range_start", "92.123.234.11"),
-					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rule.0.range_end", "92.123.234.12"),
+					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_power_bi_service", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.0.name", "test1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.0.range_start", "92.123.234.11"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.0.range_end", "92.123.234.12"),
 				),
 			},
 			{
 				Config: config3,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enable_power_bi_service", "true"),
-					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rule.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rule.0.name", "test1"),
-					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rule.0.range_start", "92.123.234.11"),
-					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rule.0.range_end", "92.123.234.13"),
-					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rule.1.name", "test2"),
-					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rule.1.range_start", "226.202.187.57"),
-					resource.TestCheckResourceAttr(resourceName, "ipv4_firewall_rule.1.range_end", "226.208.192.47"),
+					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_power_bi_service", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.0.name", "test1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.0.range_start", "92.123.234.11"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.0.range_end", "92.123.234.13"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.1.name", "test2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.1.range_start", "226.202.187.57"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.1.range_end", "226.208.192.47"),
 				),
 			},
 		},
@@ -161,14 +154,13 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_analysis_services_server.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	email1 := os.Getenv(ArmAccAdminEmail1)
 	email2 := os.Getenv(ArmAccAdminEmail2)
 	preAdminUsers := []string{email1}
 	postAdminUsers := []string{email1, email2}
-	preConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, acceptance.Location(), preAdminUsers)
-	postConfig := testAccAzureRMAnalysisServicesServer_adminUsers(ri, acceptance.Location(), postAdminUsers)
+	preConfig := testAccAzureRMAnalysisServicesServer_adminUsers(data, preAdminUsers)
+	postConfig := testAccAzureRMAnalysisServicesServer_adminUsers(data, postAdminUsers)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -179,7 +171,7 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 				Config: preConfig,
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -187,7 +179,7 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 				Config: postConfig,
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -196,8 +188,7 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 }
 
 func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
-	resourceName := "azurerm_analysis_services_server.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -205,14 +196,14 @@ func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAnalysisServicesServer_serverFullName(ri, acceptance.Location()),
+				Config: testAccAzureRMAnalysisServicesServer_serverFullName(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "server_full_name"),
+					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "server_full_name"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -221,9 +212,7 @@ func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
 }
 
 func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
-	resourceName := "azurerm_analysis_services_server.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -231,17 +220,17 @@ func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(ri, acceptance.Location(), rs),
+				Config: testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "backup_blob_container_uri"),
+					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "backup_blob_container_uri"),
 				),
 			},
 		},
 	})
 }
 
-func testAccAzureRMAnalysisServicesServer_basic(rInt int, location string) string {
+func testAccAzureRMAnalysisServicesServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -254,10 +243,10 @@ resource "azurerm_analysis_services_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "B1"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAnalysisServicesServer_withTags(rInt int, location string) string {
+func testAccAzureRMAnalysisServicesServer_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -274,10 +263,10 @@ resource "azurerm_analysis_services_server" "test" {
     label = "test"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAnalysisServicesServer_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMAnalysisServicesServer_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -295,10 +284,10 @@ resource "azurerm_analysis_services_server" "test" {
     ENV   = "prod"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(rInt int, location, connectionMode string) string {
+func testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data acceptance.TestData, connectionMode string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -312,10 +301,10 @@ resource "azurerm_analysis_services_server" "test" {
   sku                       = "B1"
   querypool_connection_mode = "%s"
 }
-`, rInt, location, rInt, connectionMode)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, connectionMode)
 }
 
-func testAccAzureRMAnalysisServicesServer_firewallSettings1(rInt int, location string, enablePowerBIService bool) string {
+func testAccAzureRMAnalysisServicesServer_firewallSettings1(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -329,10 +318,10 @@ resource "azurerm_analysis_services_server" "test" {
   sku                     = "B1"
   enable_power_bi_service = %t
 }
-`, rInt, location, rInt, enablePowerBIService)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
 }
 
-func testAccAzureRMAnalysisServicesServer_firewallSettings2(rInt int, location string, enablePowerBIService bool) string {
+func testAccAzureRMAnalysisServicesServer_firewallSettings2(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -352,10 +341,10 @@ resource "azurerm_analysis_services_server" "test" {
     range_end   = "92.123.234.12"
   }
 }
-`, rInt, location, rInt, enablePowerBIService)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
 }
 
-func testAccAzureRMAnalysisServicesServer_firewallSettings3(rInt int, location string, enablePowerBIService bool) string {
+func testAccAzureRMAnalysisServicesServer_firewallSettings3(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -381,10 +370,10 @@ resource "azurerm_analysis_services_server" "test" {
     range_end   = "226.208.192.47"
   }
 }
-`, rInt, location, rInt, enablePowerBIService)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
 }
 
-func testAccAzureRMAnalysisServicesServer_adminUsers(rInt int, location string, adminUsers []string) string {
+func testAccAzureRMAnalysisServicesServer_adminUsers(data acceptance.TestData, adminUsers []string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -398,10 +387,10 @@ resource "azurerm_analysis_services_server" "test" {
   sku                 = "B1"
   admin_users         = ["%s"]
 }
-`, rInt, location, rInt, strings.Join(adminUsers, "\", \""))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, strings.Join(adminUsers, "\", \""))
 }
 
-func testAccAzureRMAnalysisServicesServer_serverFullName(rInt int, location string) string {
+func testAccAzureRMAnalysisServicesServer_serverFullName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -414,10 +403,10 @@ resource "azurerm_analysis_services_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "B1"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(rInt int, location string, rString string) string {
+func testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -465,7 +454,7 @@ resource "azurerm_analysis_services_server" "test" {
 
   backup_blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}${data.azurerm_storage_account_blob_container_sas.test.sas}"
 }
-`, rInt, location, rString, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {

@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,7 @@ import (
 )
 
 func TestAccAzureRMApiManagementLogger_basicEventHub(t *testing.T) {
-	resourceName := "azurerm_api_management_logger.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,17 +21,17 @@ func TestAccAzureRMApiManagementLogger_basicEventHub(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementLogger_basicEventHub(ri, location),
+				Config: testAccAzureRMApiManagementLogger_basicEventHub(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
+					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.connection_string"),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"eventhub.0.connection_string"},
@@ -48,10 +45,7 @@ func TestAccAzureRMApiManagementLogger_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_api_management_logger.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -59,27 +53,22 @@ func TestAccAzureRMApiManagementLogger_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementLogger_basicEventHub(ri, location),
+				Config: testAccAzureRMApiManagementLogger_basicEventHub(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
+					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.connection_string"),
 				),
 			},
-			{
-				Config:      testAccAzureRMApiManagementLogger_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_api_management_logger"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementLogger_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMApiManagementLogger_basicApplicationInsights(t *testing.T) {
-	resourceName := "azurerm_api_management_logger.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -87,17 +76,17 @@ func TestAccAzureRMApiManagementLogger_basicApplicationInsights(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementLogger_basicApplicationInsights(ri, location),
+				Config: testAccAzureRMApiManagementLogger_basicApplicationInsights(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
+					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "application_insights.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "application_insights.0.instrumentation_key"),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key"},
@@ -107,9 +96,7 @@ func TestAccAzureRMApiManagementLogger_basicApplicationInsights(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementLogger_complete(t *testing.T) {
-	resourceName := "azurerm_api_management_logger.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -117,18 +104,18 @@ func TestAccAzureRMApiManagementLogger_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementLogger_complete(ri, location, "Logger from Terraform test", "false"),
+				Config: testAccAzureRMApiManagementLogger_complete(data, "Logger from Terraform test", "false"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform test"),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "false"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
+					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Logger from Terraform test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "application_insights.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "application_insights.0.instrumentation_key"),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"application_insights.#", "application_insights.0.instrumentation_key"},
@@ -138,9 +125,7 @@ func TestAccAzureRMApiManagementLogger_complete(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementLogger_update(t *testing.T) {
-	resourceName := "azurerm_api_management_logger.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -148,69 +133,69 @@ func TestAccAzureRMApiManagementLogger_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementLogger_basicApplicationInsights(ri, location),
+				Config: testAccAzureRMApiManagementLogger_basicApplicationInsights(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
+					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "application_insights.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "application_insights.0.instrumentation_key"),
 				),
 			},
 			{
-				Config: testAccAzureRMApiManagementLogger_basicEventHub(ri, location),
+				Config: testAccAzureRMApiManagementLogger_basicEventHub(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
+					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.connection_string"),
 				),
 			},
 			{
-				Config: testAccAzureRMApiManagementLogger_complete(ri, location, "Logger from Terraform test", "false"),
+				Config: testAccAzureRMApiManagementLogger_complete(data, "Logger from Terraform test", "false"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "false"),
-					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform test"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
+					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Logger from Terraform test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "application_insights.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "application_insights.0.instrumentation_key"),
 				),
 			},
 			{
-				Config: testAccAzureRMApiManagementLogger_complete(ri, location, "Logger from Terraform update test", "true"),
+				Config: testAccAzureRMApiManagementLogger_complete(data, "Logger from Terraform update test", "true"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform update test"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
+					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Logger from Terraform update test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "application_insights.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "application_insights.0.instrumentation_key"),
 				),
 			},
 			{
-				Config: testAccAzureRMApiManagementLogger_complete(ri, location, "Logger from Terraform test", "false"),
+				Config: testAccAzureRMApiManagementLogger_complete(data, "Logger from Terraform test", "false"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "false"),
-					resource.TestCheckResourceAttr(resourceName, "description", "Logger from Terraform test"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "application_insights.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "application_insights.0.instrumentation_key"),
+					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Logger from Terraform test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "application_insights.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "application_insights.0.instrumentation_key"),
 				),
 			},
 			{
-				Config: testAccAzureRMApiManagementLogger_basicEventHub(ri, location),
+				Config: testAccAzureRMApiManagementLogger_basicEventHub(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementLoggerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "buffered", "true"),
-					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "eventhub.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.name"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub.0.connection_string"),
+					testCheckAzureRMApiManagementLoggerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "buffered", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub.0.connection_string"),
 				),
 			},
 		},
@@ -267,7 +252,7 @@ func testCheckAzureRMApiManagementLoggerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMApiManagementLogger_basicEventHub(rInt int, location string) string {
+func testAccAzureRMApiManagementLogger_basicEventHub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -309,11 +294,11 @@ resource "azurerm_api_management_logger" "test" {
     connection_string = "${azurerm_eventhub_namespace.test.default_primary_connection_string}"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementLogger_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMApiManagementLogger_basicEventHub(rInt, location)
+func testAccAzureRMApiManagementLogger_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementLogger_basicEventHub(data)
 	return fmt.Sprintf(`
 %s
 
@@ -330,7 +315,7 @@ resource "azurerm_api_management_logger" "import" {
 `, template)
 }
 
-func testAccAzureRMApiManagementLogger_basicApplicationInsights(rInt int, location string) string {
+func testAccAzureRMApiManagementLogger_basicApplicationInsights(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -363,10 +348,10 @@ resource "azurerm_api_management_logger" "test" {
     instrumentation_key = "${azurerm_application_insights.test.instrumentation_key}"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementLogger_complete(rInt int, location string, description, buffered string) string {
+func testAccAzureRMApiManagementLogger_complete(data acceptance.TestData, description, buffered string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -401,5 +386,5 @@ resource "azurerm_api_management_logger" "test" {
     instrumentation_key = "${azurerm_application_insights.test.instrumentation_key}"
   }
 }
-`, rInt, location, rInt, rInt, rInt, description, buffered)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, description, buffered)
 }

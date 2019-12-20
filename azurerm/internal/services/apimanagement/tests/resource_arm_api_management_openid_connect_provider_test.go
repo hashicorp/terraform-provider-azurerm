@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,7 @@ import (
 )
 
 func TestAccAzureRMApiManagementOpenIDConnectProvider_basic(t *testing.T) {
-	resourceName := "azurerm_api_management_openid_connect_provider.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,13 +21,13 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementOpenIDConnectProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementOpenIDConnectProvider_basic(ri, location),
+				Config: testAccAzureRMApiManagementOpenIDConnectProvider_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementOpenIDConnectProviderExists(resourceName),
+					testCheckAzureRMApiManagementOpenIDConnectProviderExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -43,10 +40,7 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_requiresImport(t *testing.
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_api_management_openid_connect_provider.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,23 +48,18 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_requiresImport(t *testing.
 		CheckDestroy: testCheckAzureRMApiManagementOpenIDConnectProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementOpenIDConnectProvider_basic(ri, location),
+				Config: testAccAzureRMApiManagementOpenIDConnectProvider_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementOpenIDConnectProviderExists(resourceName),
+					testCheckAzureRMApiManagementOpenIDConnectProviderExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMApiManagementOpenIDConnectProvider_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_api_management_openid_connect_provider"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementOpenIDConnectProvider_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMApiManagementOpenIDConnectProvider_update(t *testing.T) {
-	resourceName := "azurerm_api_management_openid_connect_provider.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,19 +67,19 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementOpenIDConnectProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementOpenIDConnectProvider_basic(ri, location),
+				Config: testAccAzureRMApiManagementOpenIDConnectProvider_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementOpenIDConnectProviderExists(resourceName),
+					testCheckAzureRMApiManagementOpenIDConnectProviderExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMApiManagementOpenIDConnectProvider_complete(ri, location),
+				Config: testAccAzureRMApiManagementOpenIDConnectProvider_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementOpenIDConnectProviderExists(resourceName),
+					testCheckAzureRMApiManagementOpenIDConnectProviderExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -148,8 +137,8 @@ func testCheckAzureRMApiManagementOpenIDConnectProviderDestroy(s *terraform.Stat
 	return nil
 }
 
-func testAccAzureRMApiManagementOpenIDConnectProvider_basic(rInt int, location string) string {
-	template := testAccAzureRMApiManagementOpenIDConnectProvider_template(rInt, location)
+func testAccAzureRMApiManagementOpenIDConnectProvider_basic(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementOpenIDConnectProvider_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -162,11 +151,11 @@ resource "azurerm_api_management_openid_connect_provider" "test" {
   display_name        = "Initial Name"
   metadata_endpoint   = "https://azacctest.hashicorptest.com/example/foo"
 }
-`, template, rInt, rInt, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementOpenIDConnectProvider_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMApiManagementOpenIDConnectProvider_basic(rInt, location)
+func testAccAzureRMApiManagementOpenIDConnectProvider_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementOpenIDConnectProvider_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -182,8 +171,8 @@ resource "azurerm_api_management_openid_connect_provider" "import" {
 `, template)
 }
 
-func testAccAzureRMApiManagementOpenIDConnectProvider_complete(rInt int, location string) string {
-	template := testAccAzureRMApiManagementOpenIDConnectProvider_template(rInt, location)
+func testAccAzureRMApiManagementOpenIDConnectProvider_complete(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementOpenIDConnectProvider_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -197,10 +186,10 @@ resource "azurerm_api_management_openid_connect_provider" "test" {
   description         = "Example description"
   metadata_endpoint   = "https://azacctest.hashicorptest.com/example/updated"
 }
-`, template, rInt, rInt, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementOpenIDConnectProvider_template(rInt int, location string) string {
+func testAccAzureRMApiManagementOpenIDConnectProvider_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -219,5 +208,5 @@ resource "azurerm_api_management" "test" {
     capacity = 1
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

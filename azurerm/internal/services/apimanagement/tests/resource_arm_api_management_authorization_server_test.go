@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,7 @@ import (
 )
 
 func TestAccAzureRMAPIManagementAuthorizationServer_basic(t *testing.T) {
-	resourceName := "azurerm_api_management_authorization_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,13 +21,13 @@ func TestAccAzureRMAPIManagementAuthorizationServer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementAuthorizationServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementAuthorizationServer_basic(ri, location),
+				Config: testAccAzureRMAPIManagementAuthorizationServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementAuthorizationServerExists(resourceName),
+					testCheckAzureRMAPIManagementAuthorizationServerExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -43,10 +40,7 @@ func TestAccAzureRMAPIManagementAuthorizationServer_requiresImport(t *testing.T)
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_api_management_authorization_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,23 +48,18 @@ func TestAccAzureRMAPIManagementAuthorizationServer_requiresImport(t *testing.T)
 		CheckDestroy: testCheckAzureRMAPIManagementAuthorizationServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementAuthorizationServer_basic(ri, location),
+				Config: testAccAzureRMAPIManagementAuthorizationServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementAuthorizationServerExists(resourceName),
+					testCheckAzureRMAPIManagementAuthorizationServerExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMAPIManagementAuthorizationServer_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_api_management_authorization_server"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMAPIManagementAuthorizationServer_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMAPIManagementAuthorizationServer_complete(t *testing.T) {
-	resourceName := "azurerm_api_management_authorization_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,13 +67,13 @@ func TestAccAzureRMAPIManagementAuthorizationServer_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementAuthorizationServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementAuthorizationServer_complete(ri, location),
+				Config: testAccAzureRMAPIManagementAuthorizationServer_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementAuthorizationServerExists(resourceName),
+					testCheckAzureRMAPIManagementAuthorizationServerExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -142,8 +131,8 @@ func testCheckAzureRMAPIManagementAuthorizationServerExists(resourceName string)
 	}
 }
 
-func testAccAzureRMAPIManagementAuthorizationServer_basic(rInt int, location string) string {
-	template := testAccAzureRMAPIManagementAuthorizationServer_template(rInt, location)
+func testAccAzureRMAPIManagementAuthorizationServer_basic(data acceptance.TestData) string {
+	template := testAccAzureRMAPIManagementAuthorizationServer_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -164,11 +153,11 @@ resource "azurerm_api_management_authorization_server" "test" {
     "GET",
   ]
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementAuthorizationServer_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMAPIManagementAuthorizationServer_basic(rInt, location)
+func testAccAzureRMAPIManagementAuthorizationServer_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAPIManagementAuthorizationServer_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -189,8 +178,8 @@ resource "azurerm_api_management_authorization_server" "import" {
 `, template)
 }
 
-func testAccAzureRMAPIManagementAuthorizationServer_complete(rInt int, location string) string {
-	template := testAccAzureRMAPIManagementAuthorizationServer_template(rInt, location)
+func testAccAzureRMAPIManagementAuthorizationServer_complete(data acceptance.TestData) string {
+	template := testAccAzureRMAPIManagementAuthorizationServer_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -223,10 +212,10 @@ resource "azurerm_api_management_authorization_server" "test" {
   resource_owner_password = "C-193P"
   support_state           = true
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementAuthorizationServer_template(rInt int, location string) string {
+func testAccAzureRMAPIManagementAuthorizationServer_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -245,5 +234,5 @@ resource "azurerm_api_management" "test" {
     capacity = 1
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

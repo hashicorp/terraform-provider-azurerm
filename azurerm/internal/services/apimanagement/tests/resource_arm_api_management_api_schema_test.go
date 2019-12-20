@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,7 @@ import (
 )
 
 func TestAccAzureRMApiManagementApiSchema_basic(t *testing.T) {
-	resourceName := "azurerm_api_management_api_schema.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,13 +21,13 @@ func TestAccAzureRMApiManagementApiSchema_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementApiSchemaDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementApiSchema_basic(ri, location),
+				Config: testAccAzureRMApiManagementApiSchema_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiSchemaExists(resourceName),
+					testCheckAzureRMApiManagementApiSchemaExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -43,10 +40,7 @@ func TestAccAzureRMApiManagementApiSchema_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_api_management_api_schema.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,15 +48,12 @@ func TestAccAzureRMApiManagementApiSchema_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementApiSchemaDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementApiSchema_basic(ri, location),
+				Config: testAccAzureRMApiManagementApiSchema_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiSchemaExists(resourceName),
+					testCheckAzureRMApiManagementApiSchemaExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMApiManagementApiSchema_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_api_management_api_schema"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementApiSchema_requiresImport),
 		},
 	})
 }
@@ -125,8 +116,8 @@ func testCheckAzureRMApiManagementApiSchemaExists(name string) resource.TestChec
 	}
 }
 
-func testAccAzureRMApiManagementApiSchema_basic(rInt int, location string) string {
-	template := testAccAzureRMApiManagementApiSchema_template(rInt, location)
+func testAccAzureRMApiManagementApiSchema_basic(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApiSchema_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -138,11 +129,11 @@ resource "azurerm_api_management_api_schema" "test" {
   content_type        = "application/vnd.ms-azure-apim.xsd+xml"
   value               = "${file("testdata/api_management_api_schema.xml")}"
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApiSchema_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMApiManagementApiSchema_template(rInt, location)
+func testAccAzureRMApiManagementApiSchema_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApiSchema_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -154,10 +145,10 @@ resource "azurerm_api_management_api_schema" "test" {
   content_type        = "application/vnd.ms-azure-apim.xsd+xml"
   value               = "${file("testdata/api_management_api_schema.xml")}"
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApiSchema_template(rInt int, location string) string {
+func testAccAzureRMApiManagementApiSchema_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -186,5 +177,5 @@ resource "azurerm_api_management_api" "test" {
   protocols           = ["https"]
   revision            = "1"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
