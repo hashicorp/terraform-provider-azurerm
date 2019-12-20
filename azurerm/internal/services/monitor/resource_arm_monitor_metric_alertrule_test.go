@@ -1,8 +1,7 @@
-package azurerm
+package monitor
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -11,10 +10,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestValidateMetricAlertRuleTags(t *testing.T) {
+func TestValidateMonitorMetricAlertRuleTags(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Value    map[string]interface{}
@@ -60,7 +60,7 @@ func TestValidateMetricAlertRuleTags(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateMetricAlertRuleTags(tc.Value, "azurerm_metric_alert_rule")
+		_, errors := validateMonitorMetricAlertRuleTags(tc.Value, "azurerm_metric_alert_rule")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected %q to return %d errors but returned %d", tc.Name, tc.ErrCount, len(errors))
@@ -68,21 +68,21 @@ func TestValidateMetricAlertRuleTags(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
-	resourceName := "azurerm_metric_alertrule.test"
+func TestAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(t *testing.T) {
+	resourceName := "azurerm_monitor_metric_alertrule.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, acceptance.Location(), true)
-	postConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, acceptance.Location(), false)
+	preConfig := testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(ri, acceptance.Location(), true)
+	postConfig := testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(ri, acceptance.Location(), false)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
+		CheckDestroy: testCheckAzureRMMonitorMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMetricAlertRuleExists(resourceName),
+					testCheckAzureRMMonitorMetricAlertRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
 				),
@@ -90,7 +90,7 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMetricAlertRuleExists(resourceName),
+					testCheckAzureRMMonitorMetricAlertRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
 				),
@@ -100,7 +100,7 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMetricAlertRuleExists(resourceName),
+					testCheckAzureRMMonitorMetricAlertRuleExists(resourceName),
 					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
 				),
 			},
@@ -108,49 +108,49 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMetricAlertRule_requiresImport(t *testing.T) {
+func TestAccAzureRMMonitorMetricAlertRule_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
-	resourceName := "azurerm_metric_alertrule.test"
+	resourceName := "azurerm_monitor_metric_alertrule.test"
 	ri := tf.AccRandTimeInt()
 	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
+		CheckDestroy: testCheckAzureRMMonitorMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMetricAlertRule_virtualMachineCpu(ri, location, true),
+				Config: testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(ri, location, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMetricAlertRuleExists(resourceName),
+					testCheckAzureRMMonitorMetricAlertRuleExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMetricAlertRule_requiresImport(ri, location, true),
-				ExpectError: acceptance.RequiresImportError("azurerm_metric_alertrule"),
+				Config:      testAccAzureRMMonitorMetricAlertRule_requiresImport(ri, location, true),
+				ExpectError: acceptance.RequiresImportError("azurerm_monitor_metric_alertrule"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
-	resourceName := "azurerm_metric_alertrule.test"
+func TestAccAzureRMMonitorMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
+	resourceName := "azurerm_monitor_metric_alertrule.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMetricAlertRule_sqlDatabaseStorage(ri, acceptance.Location())
+	config := testAccAzureRMMonitorMetricAlertRule_sqlDatabaseStorage(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
+		CheckDestroy: testCheckAzureRMMonitorMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMetricAlertRuleExists(resourceName),
+					testCheckAzureRMMonitorMetricAlertRuleExists(resourceName),
 					resource.TestCheckNoResourceAttr(resourceName, "tags.$type"),
 				),
 			},
@@ -158,7 +158,7 @@ func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMMetricAlertRuleExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMMonitorMetricAlertRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -188,12 +188,12 @@ func testCheckAzureRMMetricAlertRuleExists(resourceName string) resource.TestChe
 	}
 }
 
-func testCheckAzureRMMetricAlertRuleDestroy(s *terraform.State) error {
+func testCheckAzureRMMonitorMetricAlertRuleDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AlertRulesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_metric_alertrule" {
+		if rs.Type != "azurerm_monitor_metric_alertrule" {
 			continue
 		}
 
@@ -216,12 +216,12 @@ func testCheckAzureRMMetricAlertRuleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMetricAlertRule_virtualMachineCpu(rInt int, location string, enabled bool) string {
+func testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(rInt int, location string, enabled bool) string {
 	template := compute.testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(rInt, location)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_metric_alertrule" "test" {
+resource "azurerm_monitor_metric_alertrule" "test" {
   name                = "${azurerm_virtual_machine.test.name}-cpu"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -257,17 +257,17 @@ resource "azurerm_metric_alertrule" "test" {
 `, template, enabled)
 }
 
-func testAccAzureRMMetricAlertRule_requiresImport(rInt int, location string, enabled bool) string {
-	template := testAccAzureRMMetricAlertRule_virtualMachineCpu(rInt, location, enabled)
+func testAccAzureRMMonitorMetricAlertRule_requiresImport(rInt int, location string, enabled bool) string {
+	template := testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(rInt, location, enabled)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_metric_alertrule" "import" {
-  name                = "${azurerm_metric_alertrule.test.name}"
-  resource_group_name = "${azurerm_metric_alertrule.test.resource_group_name}"
-  location            = "${azurerm_metric_alertrule.test.location}"
-  description         = "${azurerm_metric_alertrule.test.description}"
-  enabled             = "${azurerm_metric_alertrule.test.enabled}"
+resource "azurerm_monitor_metric_alertrule" "import" {
+  name                = "${azurerm_monitor_metric_alertrule.test.name}"
+  resource_group_name = "${azurerm_monitor_metric_alertrule.test.resource_group_name}"
+  location            = "${azurerm_monitor_metric_alertrule.test.location}"
+  description         = "${azurerm_monitor_metric_alertrule.test.description}"
+  enabled             = "${azurerm_monitor_metric_alertrule.test.enabled}"
 
   resource_id = "${azurerm_virtual_machine.test.id}"
   metric_name = "Percentage CPU"
@@ -296,13 +296,13 @@ resource "azurerm_metric_alertrule" "import" {
 `, template)
 }
 
-func testAccAzureRMMetricAlertRule_sqlDatabaseStorage(rInt int, location string) string {
+func testAccAzureRMMonitorMetricAlertRule_sqlDatabaseStorage(rInt int, location string) string {
 	basicSqlServerDatabase := testAccAzureRMSqlDatabase_basic(rInt, location)
 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_metric_alertrule" "test" {
+resource "azurerm_monitor_metric_alertrule" "test" {
   name                = "${azurerm_sql_database.test.name}-storage"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
