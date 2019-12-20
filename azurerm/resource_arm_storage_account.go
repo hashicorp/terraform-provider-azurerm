@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"log"
 	"net/http"
 	"regexp"
@@ -1308,8 +1309,8 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	locks.MultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, network.VirtualNetworkResourceName)
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
