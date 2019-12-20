@@ -124,7 +124,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_local_network_gateway":                                 resourceArmLocalNetworkGateway(),
 		"azurerm_management_lock":                                       resourceArmManagementLock(),
 		"azurerm_marketplace_agreement":                                 resourceArmMarketplaceAgreement(),
-		"azurerm_media_services_account":                                resourceArmMediaServicesAccount(),
 		"azurerm_metric_alertrule":                                      resourceArmMetricAlertRule(),
 		"azurerm_monitor_autoscale_setting":                             resourceArmMonitorAutoScaleSetting(),
 		"azurerm_monitor_action_group":                                  resourceArmMonitorActionGroup(),
