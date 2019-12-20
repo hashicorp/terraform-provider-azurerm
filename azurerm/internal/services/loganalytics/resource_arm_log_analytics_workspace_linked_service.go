@@ -1,4 +1,4 @@
-package azurerm
+package loganalytics
 
 import (
 	"fmt"
@@ -18,12 +18,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsLinkedService() *schema.Resource {
+func resourceArmLogAnalyticsWorkspaceLinkedService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsLinkedServiceCreateUpdate,
-		Read:   resourceArmLogAnalyticsLinkedServiceRead,
-		Update: resourceArmLogAnalyticsLinkedServiceCreateUpdate,
-		Delete: resourceArmLogAnalyticsLinkedServiceDelete,
+		DeprecationMessage: `The 'azurerm_log_analytics_workspace_linked_service' resource is deprecated in favour of the renamed version 'azurerm_log_analytics_linked_service'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+
+As such the existing 'azurerm_log_analytics_workspace_linked_service' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
+
+		Create: resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate,
+		Read:   resourceArmLogAnalyticsWorkspaceLinkedServiceRead,
+		Update: resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate,
+		Delete: resourceArmLogAnalyticsWorkspaceLinkedServiceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -97,7 +104,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 	}
 }
 
-func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogAnalyticsWorkspaceLinkedServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -117,14 +124,14 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_linked_service", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_log_analytics_workspace_linked_service", *existing.ID)
 		}
 	}
 
 	resourceId := d.Get("resource_id").(string)
 	if resourceId == "" {
 		props := d.Get("linked_service_properties").([]interface{})
-		resourceId = expandLogAnalyticsLinkedServiceProperties(props)
+		resourceId = expandLogAnalyticsWorkspaceLinkedServiceProperties(props)
 		if resourceId == "" {
 			return fmt.Errorf("A `resource_id` must be specified either using the `resource_id` field at the top level or within the `linked_service_properties` block")
 		}
@@ -152,10 +159,10 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 
 	d.SetId(*read.ID)
 
-	return resourceArmLogAnalyticsLinkedServiceRead(d, meta)
+	return resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d, meta)
 }
 
-func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogAnalyticsWorkspaceLinkedServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -187,7 +194,7 @@ func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta inter
 		d.Set("resource_id", props.ResourceID)
 	}
 
-	linkedServiceProperties := flattenLogAnalyticsLinkedServiceProperties(resp.LinkedServiceProperties)
+	linkedServiceProperties := flattenLogAnalyticsWorkspaceLinkedServiceProperties(resp.LinkedServiceProperties)
 	if err := d.Set("linked_service_properties", linkedServiceProperties); err != nil {
 		return fmt.Errorf("Error setting `linked_service_properties`: %+v", err)
 	}
@@ -195,7 +202,7 @@ func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta inter
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogAnalyticsWorkspaceLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.LinkedServicesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -221,7 +228,7 @@ func resourceArmLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta int
 	return nil
 }
 
-func expandLogAnalyticsLinkedServiceProperties(input []interface{}) string {
+func expandLogAnalyticsWorkspaceLinkedServiceProperties(input []interface{}) string {
 	if len(input) == 0 {
 		return ""
 	}
@@ -230,7 +237,7 @@ func expandLogAnalyticsLinkedServiceProperties(input []interface{}) string {
 	return props["resource_id"].(string)
 }
 
-func flattenLogAnalyticsLinkedServiceProperties(input *operationalinsights.LinkedServiceProperties) []interface{} {
+func flattenLogAnalyticsWorkspaceLinkedServiceProperties(input *operationalinsights.LinkedServiceProperties) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

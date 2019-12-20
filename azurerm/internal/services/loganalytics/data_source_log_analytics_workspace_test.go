@@ -1,4 +1,4 @@
-package azurerm
+package loganalytics
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
