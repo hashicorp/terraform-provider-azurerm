@@ -8,9 +8,7 @@ import (
 
 func Provider() terraform.ResourceProvider {
 	dataSources := map[string]*schema.Resource{
-
-		"azurerm_builtin_role_definition": dataSourceArmBuiltInRoleDefinition(),
-		"azurerm_client_config":           dataSourceArmClientConfig(),
+		"azurerm_client_config": dataSourceArmClientConfig(),
 	}
 
 	resources := map[string]*schema.Resource{
