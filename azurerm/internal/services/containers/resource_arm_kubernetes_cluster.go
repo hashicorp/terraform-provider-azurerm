@@ -1,4 +1,4 @@
-package azurerm
+package containers
 
 import (
 	"fmt"
@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -31,7 +30,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 		Delete: resourceArmKubernetesClusterDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := containers.ParseKubernetesClusterID(id)
+			_, err := ParseKubernetesClusterID(id)
 			return err
 		}),
 
@@ -109,7 +108,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"default_node_pool": containers.SchemaDefaultNodePool(),
+			"default_node_pool": SchemaDefaultNodePool(),
 
 			// TODO: remove in 2.0
 			"agent_pool_profile": {
@@ -261,7 +260,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			// Optional
-			"addon_profile": containers.SchemaKubernetesAddOnProfiles(),
+			"addon_profile": SchemaKubernetesAddOnProfiles(),
 
 			"api_server_authorized_ip_ranges": {
 				Type:     schema.TypeSet,
@@ -638,7 +637,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	linuxProfileRaw := d.Get("linux_profile").([]interface{})
 	linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
 
-	agentProfiles, err := containers.ExpandDefaultNodePool(d)
+	agentProfiles, err := ExpandDefaultNodePool(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `default_node_pool`: %+v", err)
 	}
@@ -655,7 +654,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	addOnProfilesRaw := d.Get("addon_profile").([]interface{})
-	addonProfiles := containers.ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
+	addonProfiles := ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
 
 	networkProfileRaw := d.Get("network_profile").([]interface{})
 	networkProfile := expandKubernetesClusterNetworkProfile(networkProfileRaw)
@@ -747,7 +746,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster update.")
 
-	id, err := containers.ParseKubernetesClusterID(d.Id())
+	id, err := ParseKubernetesClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -795,7 +794,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("addon_profile") {
 		updateCluster = true
 		addOnProfilesRaw := d.Get("addon_profile").([]interface{})
-		addonProfiles := containers.ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
+		addonProfiles := ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
 		existing.ManagedClusterProperties.AddonProfiles = addonProfiles
 	}
 
@@ -873,7 +872,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("default_node_pool") || d.HasChange("agent_pool_profile") {
 		log.Printf("[DEBUG] Updating of Default Node Pool..")
 
-		agentProfiles, err := containers.ExpandDefaultNodePool(d)
+		agentProfiles, err := ExpandDefaultNodePool(d)
 		if err != nil {
 			return fmt.Errorf("Error expanding `default_node_pool`: %+v", err)
 		}
@@ -889,7 +888,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			agentProfiles = &agentProfilesLegacy
 		}
 
-		agentProfile := containers.ConvertDefaultNodePoolToAgentPool(agentProfiles)
+		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
 		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, resourceGroup, name, *agentProfile.Name, agentProfile)
 		if err != nil {
 			return fmt.Errorf("Error updating Default Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -937,7 +936,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := containers.ParseKubernetesClusterID(d.Id())
+	id, err := ParseKubernetesClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -982,7 +981,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
 		}
 
-		addonProfiles := containers.FlattenKubernetesAddOnProfiles(props.AddonProfiles)
+		addonProfiles := FlattenKubernetesAddOnProfiles(props.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {
 			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
 		}
@@ -993,7 +992,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
 		}
 
-		flattenedDefaultNodePool, err := containers.FlattenDefaultNodePool(props.AgentPoolProfiles, d)
+		flattenedDefaultNodePool, err := FlattenDefaultNodePool(props.AgentPoolProfiles, d)
 		if err != nil {
 			return fmt.Errorf("Error flattening `default_node_pool`: %+v", err)
 		}
@@ -1062,7 +1061,7 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := containers.ParseKubernetesClusterID(d.Id())
+	id, err := ParseKubernetesClusterID(d.Id())
 	if err != nil {
 		return err
 	}

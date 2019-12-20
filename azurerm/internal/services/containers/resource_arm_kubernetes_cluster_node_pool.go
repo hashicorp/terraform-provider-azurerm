@@ -1,4 +1,4 @@
-package azurerm
+package containers
 
 import (
 	"fmt"
@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -27,7 +26,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 		Delete: resourceArmKubernetesClusterNodePoolDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := containers.ParseKubernetesNodePoolID(id)
+			_, err := ParseKubernetesNodePoolID(id)
 			return err
 		}),
 
@@ -46,7 +45,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				ValidateFunc: validate.KubernetesAgentPoolName,
 			},
 
-			"kubernetes_cluster_id": containers.KubernetesClusterIDSchema(),
+			"kubernetes_cluster_id": KubernetesClusterIDSchema(),
 
 			"node_count": {
 				Type:         schema.TypeInt,
@@ -141,7 +140,7 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	kubernetesClusterId, err := containers.ParseKubernetesClusterID(d.Get("kubernetes_cluster_id").(string))
+	kubernetesClusterId, err := ParseKubernetesClusterID(d.Get("kubernetes_cluster_id").(string))
 	if err != nil {
 		return err
 	}
@@ -288,7 +287,7 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := containers.ParseKubernetesNodePoolID(d.Id())
+	id, err := ParseKubernetesNodePoolID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -401,7 +400,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := containers.ParseKubernetesNodePoolID(d.Id())
+	id, err := ParseKubernetesNodePoolID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -489,7 +488,7 @@ func resourceArmKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := containers.ParseKubernetesNodePoolID(d.Id())
+	id, err := ParseKubernetesNodePoolID(d.Id())
 	if err != nil {
 		return err
 	}
