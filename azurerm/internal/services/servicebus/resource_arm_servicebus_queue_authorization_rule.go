@@ -1,4 +1,4 @@
-package azurerm
+package servicebus
 
 import (
 	"fmt"
@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
+func resourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusTopicAuthorizationRuleCreateUpdate,
-		Read:   resourceArmServiceBusTopicAuthorizationRuleRead,
-		Update: resourceArmServiceBusTopicAuthorizationRuleCreateUpdate,
-		Delete: resourceArmServiceBusTopicAuthorizationRuleDelete,
+		Create: resourceArmServiceBusQueueAuthorizationRuleCreateUpdate,
+		Read:   resourceArmServiceBusQueueAuthorizationRuleRead,
+		Update: resourceArmServiceBusQueueAuthorizationRuleCreateUpdate,
+		Delete: resourceArmServiceBusQueueAuthorizationRuleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -48,11 +48,11 @@ func resourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
-			"topic_name": {
+			"queue_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusTopicName(),
+				ValidateFunc: azure.ValidateServiceBusQueueName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -62,27 +62,28 @@ func resourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusTopicAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.TopicsClient
+func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Topic Authorization Rule creation.")
+
+	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Queue Authorization Rule creation.")
 
 	name := d.Get("name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-	topicName := d.Get("topic_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	namespaceName := d.Get("namespace_name").(string)
+	queueName := d.Get("queue_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, topicName, name)
+		existing, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing ServiceBus Topic Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing ServiceBus Queue Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_servicebus_topic_authorization_rule", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_servicebus_queue_authorization_rule", *existing.ID)
 		}
 	}
 
@@ -93,26 +94,26 @@ func resourceArmServiceBusTopicAuthorizationRuleCreateUpdate(d *schema.ResourceD
 		},
 	}
 
-	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, topicName, name, parameters); err != nil {
-		return fmt.Errorf("Error creating/updating ServiceBus Topic Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name, parameters); err != nil {
+		return fmt.Errorf("Error creating/updating ServiceBus Queue Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, topicName, name)
+	read, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
 	if err != nil {
-		return fmt.Errorf("Error getting ServiceBus Topic Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ServiceBus Topic Authorization Rule %s (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read ServiceBus Namespace Queue Authorization Rule %q (Queue %q / Namespace %q / Resource Group %q) ID", name, queueName, namespaceName, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmServiceBusTopicAuthorizationRuleRead(d, meta)
+	return resourceArmServiceBusQueueAuthorizationRuleRead(d, meta)
 }
 
-func resourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.TopicsClient
+func resourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -123,33 +124,34 @@ func resourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, met
 
 	resGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
-	topicName := id.Path["topics"]
 	name := id.Path["authorizationRules"]
+	queueName := id.Path["queues"]
 
-	resp, err := client.GetAuthorizationRule(ctx, resGroup, namespaceName, topicName, name)
+	resp, err := client.GetAuthorizationRule(ctx, resGroup, namespaceName, queueName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Topic Authorization Rule %s: %+v", name, err)
+
+		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue Authorization Rule %q (Queue %q / Namespace %q / Resource Group %q): %+v", name, queueName, namespaceName, resGroup, err)
 	}
 
 	d.Set("name", name)
-	d.Set("topic_name", topicName)
-	d.Set("namespace_name", namespaceName)
 	d.Set("resource_group_name", resGroup)
+	d.Set("namespace_name", namespaceName)
+	d.Set("queue_name", queueName)
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
 		listen, send, manage := azure.FlattenServiceBusAuthorizationRuleRights(properties.Rights)
+		d.Set("manage", manage)
 		d.Set("listen", listen)
 		d.Set("send", send)
-		d.Set("manage", manage)
 	}
 
-	keysResp, err := client.ListKeys(ctx, resGroup, namespaceName, topicName, name)
+	keysResp, err := client.ListKeys(ctx, resGroup, namespaceName, queueName, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Topic Authorization Rule List Keys %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue Authorization Rule List Keys %q: %+v", name, err)
 	}
 
 	d.Set("primary_key", keysResp.PrimaryKey)
@@ -160,8 +162,8 @@ func resourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmServiceBusTopicAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ServiceBus.TopicsClient
+func resourceArmServiceBusQueueAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ServiceBus.QueuesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -172,11 +174,11 @@ func resourceArmServiceBusTopicAuthorizationRuleDelete(d *schema.ResourceData, m
 
 	resGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
-	topicName := id.Path["topics"]
 	name := id.Path["authorizationRules"]
+	queueName := id.Path["queues"]
 
-	if _, err = client.DeleteAuthorizationRule(ctx, resGroup, namespaceName, topicName, name); err != nil {
-		return fmt.Errorf("Error issuing Azure ARM delete request of ServiceBus Topic Authorization Rule %q (Resource Group %q): %+v", name, resGroup, err)
+	if _, err = client.DeleteAuthorizationRule(ctx, resGroup, namespaceName, queueName, name); err != nil {
+		return fmt.Errorf("Error issuing delete request of ServiceBus Queue Authorization Rule %q (Queue %q / Namespace %q / Resource Group %q): %+v", name, queueName, namespaceName, resGroup, err)
 	}
 
 	return nil
