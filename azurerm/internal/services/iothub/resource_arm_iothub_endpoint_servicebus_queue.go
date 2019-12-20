@@ -1,4 +1,4 @@
-package azurerm
+package iothub
 
 import (
 	"fmt"
@@ -78,8 +78,8 @@ func resourceArmIotHubEndpointServiceBusQueueCreateUpdate(d *schema.ResourceData
 	iothubName := d.Get("iothub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	locks.ByName(iothubName, iothubResourceName)
-	defer locks.UnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, IothubResourceName)
+	defer locks.UnlockByName(iothubName, IothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -207,8 +207,8 @@ func resourceArmIotHubEndpointServiceBusQueueDelete(d *schema.ResourceData, meta
 	iothubName := parsedIothubEndpointId.Path["IotHubs"]
 	endpointName := parsedIothubEndpointId.Path["Endpoints"]
 
-	locks.ByName(iothubName, iothubResourceName)
-	defer locks.UnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, IothubResourceName)
+	defer locks.UnlockByName(iothubName, IothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {

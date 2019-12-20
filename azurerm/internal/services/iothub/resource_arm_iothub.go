@@ -1,4 +1,4 @@
-package azurerm
+package iothub
 
 import (
 	"context"
@@ -26,7 +26,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var iothubResourceName = "azurerm_iothub"
+var IothubResourceName = "azurerm_iothub"
 
 func suppressIfTypeIsNot(t string) schema.SchemaDiffSuppressFunc {
 	return func(k, old, new string, d *schema.ResourceData) bool {
@@ -438,8 +438,8 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	locks.ByName(name, iothubResourceName)
-	defer locks.UnlockByName(name, iothubResourceName)
+	locks.ByName(name, IothubResourceName)
+	defer locks.UnlockByName(name, IothubResourceName)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -634,8 +634,8 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	name := id.Path["IotHubs"]
 	resourceGroup := id.ResourceGroup
 
-	locks.ByName(name, iothubResourceName)
-	defer locks.UnlockByName(name, iothubResourceName)
+	locks.ByName(name, IothubResourceName)
+	defer locks.UnlockByName(name, IothubResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

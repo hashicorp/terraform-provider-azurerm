@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"log"
 	"net/http"
 	"regexp"
@@ -842,8 +843,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
 
-	locks.ByName(storageAccountName, iothubResourceName)
-	defer locks.UnlockByName(storageAccountName, iothubResourceName)
+	locks.ByName(storageAccountName, iothub.IothubResourceName)
+	defer locks.UnlockByName(storageAccountName, iothub.IothubResourceName)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
