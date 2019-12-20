@@ -1,4 +1,4 @@
-package azurerm
+package securitycenter
 
 import (
 	"fmt"
@@ -12,13 +12,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 )
 
 func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
 	rn := "azurerm_advanced_threat_protection.test"
 	ri := tf.AccRandTimeInt()
-	var id securitycenter.AdvancedThreatProtectionResourceID
+	var id AdvancedThreatProtectionResourceID
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -62,7 +61,7 @@ func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
 func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 	rn := "azurerm_advanced_threat_protection.test"
 	ri := tf.AccRandTimeInt()
-	var id securitycenter.AdvancedThreatProtectionResourceID
+	var id AdvancedThreatProtectionResourceID
 
 	// the API errors on deleting the cosmos DB account some of the time so lets skip this test for now
 	// TODO: remove once this is fixed: https://github.com/Azure/azure-sdk-for-go/issues/6310
@@ -116,7 +115,7 @@ func TestAccAzureRMAdvancedThreatProtection_requiresImport(t *testing.T) {
 
 	rn := "azurerm_advanced_threat_protection.test"
 	ri := tf.AccRandTimeInt()
-	var id securitycenter.AdvancedThreatProtectionResourceID
+	var id AdvancedThreatProtectionResourceID
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -143,7 +142,7 @@ func TestAccAzureRMAdvancedThreatProtection_requiresImport(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMAdvancedThreatProtectionExists(resourceName string, idToReturn *securitycenter.AdvancedThreatProtectionResourceID) resource.TestCheckFunc {
+func testCheckAzureRMAdvancedThreatProtectionExists(resourceName string, idToReturn *AdvancedThreatProtectionResourceID) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure resource group exists in API
 		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
@@ -155,7 +154,7 @@ func testCheckAzureRMAdvancedThreatProtectionExists(resourceName string, idToRet
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := securitycenter.ParseAdvancedThreatProtectionID(rs.Primary.ID)
+		id, err := ParseAdvancedThreatProtectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -175,7 +174,7 @@ func testCheckAzureRMAdvancedThreatProtectionExists(resourceName string, idToRet
 	}
 }
 
-func testCheckAzureRMAdvancedThreatProtectionIsFalse(id *securitycenter.AdvancedThreatProtectionResourceID) resource.TestCheckFunc {
+func testCheckAzureRMAdvancedThreatProtectionIsFalse(id *AdvancedThreatProtectionResourceID) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -206,7 +205,7 @@ func testCheckAzureRMAdvancedThreatProtectionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := securitycenter.ParseAdvancedThreatProtectionID(rs.Primary.ID)
+		id, err := ParseAdvancedThreatProtectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
