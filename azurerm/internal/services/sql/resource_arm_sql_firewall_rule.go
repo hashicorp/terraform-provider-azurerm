@@ -1,4 +1,4 @@
-package azurerm
+package sql
 
 import (
 	"fmt"
