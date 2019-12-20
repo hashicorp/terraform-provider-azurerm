@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	mapsint "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -78,8 +79,8 @@ func resourceArmMapsAccount() *schema.Resource {
 }
 
 func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Maps.AccountsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Maps.AccountsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
@@ -129,8 +130,8 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Maps.AccountsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Maps.AccountsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -170,8 +171,8 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmMapsAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Maps.AccountsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Maps.AccountsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

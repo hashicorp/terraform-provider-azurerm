@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -22,9 +23,10 @@ import (
 
 func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryReplicatedItemCreate,
-		Read:   resourceArmRecoveryReplicatedItemRead,
-		Delete: resourceArmRecoveryReplicatedItemDelete,
+		DeprecationMessage: "`azurerm_recovery_replicated_vm` resource is deprecated in favor of `azurerm_site_recovery_replicated_vm` and will be removed in v2.0 of the AzureRM Provider",
+		Create:             resourceArmRecoveryReplicatedItemCreate,
+		Read:               resourceArmRecoveryReplicatedItemRead,
+		Delete:             resourceArmRecoveryReplicatedItemDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -184,8 +186,8 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 		targetAvailabilitySetID = nil
 	}
 
-	client := meta.(*ArmClient).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -261,8 +263,8 @@ func resourceArmRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfac
 	protectionContainerName := id.Path["replicationProtectionContainers"]
 	name := id.Path["replicationProtectedItems"]
 
-	client := meta.(*ArmClient).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resp, err := client.Get(ctx, fabricName, protectionContainerName, name)
@@ -325,8 +327,8 @@ func resourceArmRecoveryReplicatedItemDelete(d *schema.ResourceData, meta interf
 		},
 	}
 
-	client := meta.(*ArmClient).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	future, err := client.Delete(ctx, fabricName, protectionContainerName, name, disableProtectionInput)
 	if err != nil {

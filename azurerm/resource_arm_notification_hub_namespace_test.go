@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -17,12 +19,12 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHubNamespace_free(ri, testLocation()),
+				Config: testAccAzureRMNotificationHubNamespace_free(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
 				),
@@ -42,12 +44,12 @@ func TestAccAzureRMNotificationHubNamespace_freeClassic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHubNamespace_freeClassic(ri, testLocation()),
+				Config: testAccAzureRMNotificationHubNamespace_freeClassic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
 				),
@@ -66,12 +68,12 @@ func TestAccAzureRMNotificationHubNamespace_freeNotDefined(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMNotificationHubNamespace_freeNotDefined(ri, testLocation()),
+				Config:      testAccAzureRMNotificationHubNamespace_freeNotDefined(ri, acceptance.Location()),
 				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
 			},
 		},
@@ -88,19 +90,19 @@ func TestAccAzureRMNotificationHubNamespace_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHubNamespace_free(ri, testLocation()),
+				Config: testAccAzureRMNotificationHubNamespace_free(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMNotificationHubNamespace_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_notification_hub_namespace"),
+				Config:      testAccAzureRMNotificationHubNamespace_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_notification_hub_namespace"),
 			},
 		},
 	})
@@ -113,8 +115,8 @@ func testCheckAzureRMNotificationHubNamespaceExists(resourceName string) resourc
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).NotificationHubs.NamespacesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.NamespacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		namespaceName := rs.Primary.Attributes["name"]
@@ -133,8 +135,8 @@ func testCheckAzureRMNotificationHubNamespaceExists(resourceName string) resourc
 }
 
 func testCheckAzureRMNotificationHubNamespaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).NotificationHubs.NamespacesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.NamespacesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_notification_hub_namespace" {

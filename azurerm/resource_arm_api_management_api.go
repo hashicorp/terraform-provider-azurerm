@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -192,8 +193,8 @@ func resourceArmApiManagementApi() *schema.Resource {
 }
 
 func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ApiManagement.ApiClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ApiManagement.ApiClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -202,6 +203,12 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	revision := d.Get("revision").(string)
 	path := d.Get("path").(string)
 	apiId := fmt.Sprintf("%s;rev=%s", name, revision)
+	version := d.Get("version").(string)
+	versionSetId := d.Get("version_set_id").(string)
+
+	if version != "" && versionSetId == "" {
+		return fmt.Errorf("Error setting `version` without the required `version_set_id`")
+	}
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId)
@@ -216,6 +223,18 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
+	var apiType apimanagement.APIType
+	var soapApiType apimanagement.SoapAPIType
+
+	soapPassThrough := d.Get("soap_pass_through").(bool)
+	if soapPassThrough {
+		apiType = apimanagement.Soap
+		soapApiType = apimanagement.SoapPassThrough
+	} else {
+		apiType = apimanagement.HTTP
+		soapApiType = apimanagement.SoapToRest
+	}
+
 	// If import is used, we need to send properties to Azure API in two operations.
 	// First we execute import and then updated the other props.
 	if vs, hasImport := d.GetOk("import"); hasImport {
@@ -227,9 +246,12 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		log.Printf("[DEBUG] Importing API Management API %q of type %q", name, contentFormat)
 		apiParams := apimanagement.APICreateOrUpdateParameter{
 			APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
+				APIType:       apiType,
+				SoapAPIType:   soapApiType,
 				ContentFormat: apimanagement.ContentFormat(contentFormat),
 				ContentValue:  utils.String(contentValue),
 				Path:          utils.String(path),
+				APIVersion:    utils.String(version),
 			},
 		}
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
@@ -244,6 +266,10 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 			}
 		}
 
+		if versionSetId != "" {
+			apiParams.APICreateOrUpdateProperties.APIVersionSetID = utils.String(versionSetId)
+		}
+
 		if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, apiParams, ""); err != nil {
 			return fmt.Errorf("Error creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -253,30 +279,16 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	displayName := d.Get("display_name").(string)
 	serviceUrl := d.Get("service_url").(string)
 
-	version := d.Get("version").(string)
-	versionSetId := d.Get("version_set_id").(string)
-
-	if version != "" && versionSetId == "" {
-		return fmt.Errorf("Error setting `version` without the required `version_set_id`")
-	}
-
 	protocolsRaw := d.Get("protocols").(*schema.Set).List()
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
 
 	subscriptionKeyParameterNamesRaw := d.Get("subscription_key_parameter_names").([]interface{})
 	subscriptionKeyParameterNames := expandApiManagementApiSubscriptionKeyParamNames(subscriptionKeyParameterNamesRaw)
 
-	var apiType apimanagement.APIType
-	soapPassThrough := d.Get("soap_pass_through").(bool)
-	if soapPassThrough {
-		apiType = apimanagement.APIType(apimanagement.SoapPassThrough)
-	} else {
-		apiType = apimanagement.APIType(apimanagement.SoapToRest)
-	}
-
 	params := apimanagement.APICreateOrUpdateParameter{
 		APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
 			APIType:                       apiType,
+			SoapAPIType:                   soapApiType,
 			Description:                   utils.String(description),
 			DisplayName:                   utils.String(displayName),
 			Path:                          utils.String(path),
@@ -309,8 +321,8 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ApiManagement.ApiClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ApiManagement.ApiClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -369,8 +381,8 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmApiManagementApiDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ApiManagement.ApiClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ApiManagement.ApiClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

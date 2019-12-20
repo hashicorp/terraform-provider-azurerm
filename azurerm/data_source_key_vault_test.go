@@ -6,17 +6,18 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMKeyVault_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMKeyVault_basic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -39,12 +40,12 @@ func TestAccDataSourceAzureRMKeyVault_basic(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVault_basicClassic(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMKeyVault_basic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -67,12 +68,12 @@ func TestAccDataSourceAzureRMKeyVault_basicClassic(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMKeyVault_complete(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -96,12 +97,12 @@ func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVault_networkAcls(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMKeyVault_networkAcls(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{

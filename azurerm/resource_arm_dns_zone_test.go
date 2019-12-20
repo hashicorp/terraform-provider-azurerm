@@ -8,17 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsZone_basic(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsZone_basic(ri, testLocation())
+	config := testAccAzureRMDnsZone_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,11 +46,11 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dns_zone.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +61,7 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDnsZone_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_dns_zone"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dns_zone"),
 			},
 		},
 	})
@@ -68,11 +70,11 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsZone_withVNets(ri, testLocation())
+	config := testAccAzureRMDnsZone_withVNets(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -93,13 +95,13 @@ func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsZone_withTags(ri, location)
 	postConfig := testAccAzureRMDnsZone_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -139,8 +141,8 @@ func testCheckAzureRMDnsZoneExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for DNS zone: %s", zoneName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Dns.ZonesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Dns.ZonesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, zoneName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get DNS zone: %+v", err)
@@ -155,8 +157,8 @@ func testCheckAzureRMDnsZoneExists(resourceName string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Dns.ZonesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.ZonesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_zone" {

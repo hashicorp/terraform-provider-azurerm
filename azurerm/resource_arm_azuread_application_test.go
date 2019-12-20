@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,8 +18,8 @@ func TestAccAzureRMActiveDirectoryApplication_basic(t *testing.T) {
 	config := testAccAzureRMActiveDirectoryApplication_basic(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,8 +46,8 @@ func TestAccAzureRMActiveDirectoryApplication_availableToOtherTenants(t *testing
 	config := testAccAzureRMActiveDirectoryApplication_availableToOtherTenants(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -70,8 +72,8 @@ func TestAccAzureRMActiveDirectoryApplication_complete(t *testing.T) {
 	config := testAccAzureRMActiveDirectoryApplication_complete(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -103,8 +105,8 @@ func TestAccAzureRMActiveDirectoryApplication_update(t *testing.T) {
 	updatedConfig := testAccAzureRMActiveDirectoryApplication_complete(updatedId)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -138,8 +140,8 @@ func testCheckAzureRMActiveDirectoryApplicationExists(resourceName string) resou
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Graph.ApplicationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ApplicationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
 		if err != nil {
@@ -159,8 +161,8 @@ func testCheckAzureRMActiveDirectoryApplicationDestroy(s *terraform.State) error
 			continue
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Graph.ApplicationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ApplicationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
 		if err != nil {

@@ -12,9 +12,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -62,8 +63,8 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 }
 
 func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Datalake.StoreFilesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Datalake.StoreFilesClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	chunkSize := 4 * 1024 * 1024
 
@@ -93,7 +94,11 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("error opening file %q: %+v", localFilePath, err)
 	}
-	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Data Lake Store File %q", localFilePath))
+	defer func(c io.Closer) {
+		if err := c.Close(); err != nil {
+			log.Printf("[DEBUG] Error closing Data Lake Store File %q: %+v", localFilePath, err)
+		}
+	}(file)
 
 	if _, err = client.Create(ctx, accountName, remoteFilePath, nil, nil, filesystem.DATA, nil, nil); err != nil {
 		return fmt.Errorf("Error issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)
@@ -122,8 +127,8 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Datalake.StoreFilesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Datalake.StoreFilesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
@@ -149,8 +154,8 @@ func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Datalake.StoreFilesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Datalake.StoreFilesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)

@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -16,12 +18,12 @@ func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationDscNodeConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationDscNodeConfiguration_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationDscNodeConfiguration_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "configuration_name", "acctest"),
@@ -46,11 +48,11 @@ func TestAccAzureRMAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_automation_dsc_nodeconfiguration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationDscNodeConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,15 +63,15 @@ func TestAccAzureRMAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAutomationDscNodeConfiguration_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_automation_dsc_nodeconfiguration"),
+				ExpectError: acceptance.RequiresImportError("azurerm_automation_dsc_nodeconfiguration"),
 			},
 		},
 	})
 }
 
 func testCheckAzureRMAutomationDscNodeConfigurationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Automation.DscNodeConfigurationClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.DscNodeConfigurationClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_automation_dsc_nodeconfiguration" {
@@ -116,8 +118,8 @@ func testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName string) r
 			return fmt.Errorf("Bad: no resource group found in state for Automation Dsc Node Configuration: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Automation.DscNodeConfigurationClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.DscNodeConfigurationClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 
@@ -167,7 +169,7 @@ resource "azurerm_automation_dsc_nodeconfiguration" "test" {
   content_embedded = <<mofcontent
 instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
 {
-  ResourceID = "[File]bla";
+  TargetResourceID = "[File]bla";
   Ensure = "Present";
   Contents = "bogus Content";
   DestinationPath = "c:\\bogus.txt";

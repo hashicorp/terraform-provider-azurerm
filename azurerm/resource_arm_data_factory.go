@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -11,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -37,13 +37,10 @@ func resourceArmDataFactory() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`),
-					`Invalid name for Data Factory, see https://docs.microsoft.com/en-us/azure/data-factory/naming-rules`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.DataFactoryName(),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -161,8 +158,8 @@ func resourceArmDataFactory() *schema.Resource {
 }
 
 func resourceArmDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DataFactory.FactoriesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DataFactory.FactoriesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -224,8 +221,8 @@ func resourceArmDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DataFactory.FactoriesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DataFactory.FactoriesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -277,8 +274,8 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmDataFactoryDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DataFactory.FactoriesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DataFactory.FactoriesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -15,12 +16,12 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMBatchPool_complete(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

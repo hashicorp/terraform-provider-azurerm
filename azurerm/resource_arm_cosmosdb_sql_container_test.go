@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,13 +18,13 @@ func TestAccAzureRMCosmosDbSqlContainer_basic(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_sql_container.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbSqlContainer_basic(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlContainerExists(resourceName),
 				),
@@ -41,13 +43,13 @@ func TestAccAzureRMCosmosDbSqlContainer_complete(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_sql_container.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_complete(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbSqlContainer_complete(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlContainerExists(resourceName),
 				),
@@ -66,22 +68,29 @@ func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_sql_container.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbSqlContainer_complete(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlContainerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "600"),
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_complete(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbSqlContainer_update(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlContainerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),
 				),
 			},
 			{
@@ -94,8 +103,8 @@ func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDbSqlContainerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cosmosdb_sql_container" {
@@ -124,8 +133,8 @@ func testCheckAzureRMCosmosDbSqlContainerDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDbSqlContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -179,6 +188,26 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
+  throughput = 600
+}
+
+`, testAccAzureRMCosmosDbSqlDatabase_basic(rInt, location), rInt)
+}
+
+func testAccAzureRMCosmosDbSqlContainer_update(rInt int, location string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-CSQLC-%[2]d"
+  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
+  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  database_name       = "${azurerm_cosmosdb_sql_database.test.name}"
+  partition_key_path  = "/definition/id"
+  unique_key {
+	paths = ["/definition/id1", "/definition/id2"]
+  }
+  throughput = 400
 }
 
 `, testAccAzureRMCosmosDbSqlDatabase_basic(rInt, location), rInt)

@@ -8,17 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_avro(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_servicebus_topic.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -43,11 +45,11 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_avro(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_csv(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_servicebus_topic.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -72,11 +74,11 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_csv(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_json(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_servicebus_topic.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -101,11 +103,11 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_json(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_update(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_servicebus_topic.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -141,11 +143,11 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_requiresImport(t *testin
 
 	resourceName := "azurerm_stream_analytics_output_servicebus_topic.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -156,7 +158,7 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusTopic_requiresImport(t *testin
 			},
 			{
 				Config:      testAccAzureRMStreamAnalyticsOutputServiceBusTopic_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_stream_analytics_output_servicebus_topic"),
+				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_output_servicebus_topic"),
 			},
 		},
 	})
@@ -174,8 +176,8 @@ func testCheckAzureRMStreamAnalyticsOutputServiceBusTopicExists(resourceName str
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.OutputsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on streamAnalyticsOutputsClient: %+v", err)
@@ -190,7 +192,7 @@ func testCheckAzureRMStreamAnalyticsOutputServiceBusTopicExists(resourceName str
 }
 
 func testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.OutputsClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_output_servicebus_topic" {
@@ -200,7 +202,7 @@ func testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy(s *terraform.St
 		name := rs.Primary.Attributes["name"]
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return nil

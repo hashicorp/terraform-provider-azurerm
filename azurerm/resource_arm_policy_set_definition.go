@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -117,8 +118,8 @@ func policyDefinitionsDiffSuppressFunc(k, old, new string, d *schema.ResourceDat
 }
 
 func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Policy.SetDefinitionsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Policy.SetDefinitionsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -223,8 +224,8 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Policy.SetDefinitionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Policy.SetDefinitionsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name, err := parsePolicySetDefinitionNameFromId(d.Id())
@@ -289,8 +290,8 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmPolicySetDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Policy.SetDefinitionsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Policy.SetDefinitionsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name, err := parsePolicySetDefinitionNameFromId(d.Id())

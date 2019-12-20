@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -16,10 +17,11 @@ import (
 
 func resourceArmRecoveryServicesProtectionContainer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryServicesProtectionContainerCreate,
-		Read:   resourceArmRecoveryServicesProtectionContainerRead,
-		Update: nil,
-		Delete: resourceArmSiteRecoveryProtectionContainerDelete,
+		DeprecationMessage: "`azurerm_recovery_services_protection_container` resource is deprecated in favor of `azurerm_site_recovery_protection_container` and will be removed in v2.0 of the AzureRM Provider",
+		Create:             resourceArmRecoveryServicesProtectionContainerCreate,
+		Read:               resourceArmRecoveryServicesProtectionContainerRead,
+		Update:             nil,
+		Delete:             resourceArmRecoveryServicesProtectionContainerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -62,8 +64,8 @@ func resourceArmRecoveryServicesProtectionContainerCreate(d *schema.ResourceData
 	fabricName := d.Get("recovery_fabric_name").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -112,8 +114,8 @@ func resourceArmRecoveryServicesProtectionContainerRead(d *schema.ResourceData, 
 	fabricName := id.Path["replicationFabrics"]
 	name := id.Path["replicationProtectionContainers"]
 
-	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resp, err := client.Get(ctx, fabricName, name)
@@ -132,7 +134,7 @@ func resourceArmRecoveryServicesProtectionContainerRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmSiteRecoveryProtectionContainerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRecoveryServicesProtectionContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -143,8 +145,8 @@ func resourceArmSiteRecoveryProtectionContainerDelete(d *schema.ResourceData, me
 	fabricName := id.Path["replicationFabrics"]
 	name := id.Path["replicationProtectionContainers"]
 
-	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	future, err := client.Delete(ctx, fabricName, name)

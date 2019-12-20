@@ -8,16 +8,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLogicAppWorkflow_empty(t *testing.T) {
 	resourceName := "azurerm_logic_app_workflow.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogicAppWorkflow_empty(ri, testLocation())
+	config := testAccAzureRMLogicAppWorkflow_empty(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,10 +47,10 @@ func TestAccAzureRMLogicAppWorkflow_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_logic_app_workflow.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +61,7 @@ func TestAccAzureRMLogicAppWorkflow_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLogicAppWorkflow_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_logic_app_workflow"),
+				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_workflow"),
 			},
 		},
 	})
@@ -68,10 +70,10 @@ func TestAccAzureRMLogicAppWorkflow_requiresImport(t *testing.T) {
 func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 	resourceName := "azurerm_logic_app_workflow.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -118,8 +120,8 @@ func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Logic App Workflow: %s", workflowName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Logic.WorkflowsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
 		if err != nil {
@@ -135,8 +137,8 @@ func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMLogicAppWorkflowDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Logic.WorkflowsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_logic_app_workflow" {

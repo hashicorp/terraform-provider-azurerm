@@ -14,15 +14,15 @@ Allows you to manage an Azure Search Service.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_search_service" "test" {
+resource "azurerm_search_service" "example" {
   name                = "acceptanceTestSearchService1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   sku                 = "standard"
 
   tags = {
@@ -58,6 +58,18 @@ The following attributes are exported:
 * `primary_key` - The Search Service Administration primary key.
 
 * `secondary_key` - The Search Service Administration secondary key.
+
+* `query_keys` - A `query_keys` block as defined below.
+
+---
+
+A `query_keys` block exports the following:
+
+* `name` - The name of the query key.
+
+* `key` - The value of the query key.
+
+---
 
 ## Import
 

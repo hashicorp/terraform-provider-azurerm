@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMMariaDbServer_basic(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbServer_basic(ri, testLocation())
+	config := testAccAzureRMMariaDbServer_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,11 +52,11 @@ func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -65,7 +67,7 @@ func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMMariaDbServer_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_mariadb_server"),
+				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_server"),
 			},
 		},
 	})
@@ -74,11 +76,11 @@ func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
 func TestAccAzureRMMariaDbServer_basicMaxStorage(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbServer_basicMaxStorage(ri, testLocation())
+	config := testAccAzureRMMariaDbServer_basicMaxStorage(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -105,11 +107,11 @@ func TestAccAzureRMMariaDbServer_basicMaxStorage(t *testing.T) {
 func TestAccAzureRMMariaDbServer_generalPurpose(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbServer_generalPurpose(ri, testLocation())
+	config := testAccAzureRMMariaDbServer_generalPurpose(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -133,11 +135,11 @@ func TestAccAzureRMMariaDbServer_generalPurpose(t *testing.T) {
 func TestAccAzureRMMariaDbServer_memoryOptimized(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbServer_memoryOptimizedGeoRedundant(ri, testLocation())
+	config := testAccAzureRMMariaDbServer_memoryOptimizedGeoRedundant(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -161,13 +163,13 @@ func TestAccAzureRMMariaDbServer_memoryOptimized(t *testing.T) {
 func TestAccAzureRMMariaDbServer_updatePassword(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMMariaDbServer_basic(ri, location)
 	updatedConfig := testAccAzureRMMariaDbServer_basicUpdatedPassword(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -189,13 +191,13 @@ func TestAccAzureRMMariaDbServer_updatePassword(t *testing.T) {
 func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMMariaDbServer_basic(ri, location)
 	updatedConfig := testAccAzureRMMariaDbServer_basicUpdated(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -225,13 +227,13 @@ func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
 func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMMariaDbServer_generalPurpose(ri, location)
 	updatedConfig := testAccAzureRMMariaDbServer_memoryOptimized(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -265,13 +267,13 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 func TestAccAzureRMMariaDbServer_storageAutogrow(t *testing.T) {
 	resourceName := "azurerm_mariadb_server.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMMariaDbServer_basic(ri, location)
 	updatedConfig := testAccAzureRMMariaDbServer_storageAutogrowUpdated(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -306,8 +308,8 @@ func testCheckAzureRMMariaDbServerExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for MariaDB Server: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).MariaDB.ServersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.ServersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -323,8 +325,8 @@ func testCheckAzureRMMariaDbServerExists(resourceName string) resource.TestCheck
 }
 
 func testCheckAzureRMMariaDbServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).MariaDB.ServersClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.ServersClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mariadb_server" {

@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -69,6 +70,11 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 						},
 
 						"zones": azure.SchemaZonesComputed(),
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -95,8 +101,8 @@ func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	client := meta.(*ArmClient).Network.LoadBalancersClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.LoadBalancersClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
@@ -156,6 +162,10 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.F
 		ipConfig := make(map[string]interface{})
 		if config.Name != nil {
 			ipConfig["name"] = *config.Name
+		}
+
+		if config.ID != nil {
+			ipConfig["id"] = *config.ID
 		}
 
 		zones := make([]string, 0)

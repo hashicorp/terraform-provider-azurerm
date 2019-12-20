@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMApiManagementAPIOperationPolicy_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIOperationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,11 +47,11 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_requiresImport(t *testing.T) 
 
 	resourceName := "azurerm_api_management_api_operation_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIOperationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -60,7 +62,7 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_requiresImport(t *testing.T) 
 			},
 			{
 				Config:      testAccAzureRMApiManagementAPIOperationPolicy_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_api_policy"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_api_policy"),
 			},
 		},
 	})
@@ -69,11 +71,11 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_requiresImport(t *testing.T) 
 func TestAccAzureRMApiManagementAPIOperationPolicy_update(t *testing.T) {
 	resourceName := "azurerm_api_management_api_operation_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementAPIOperationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -111,8 +113,8 @@ func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		operationID := rs.Primary.Attributes["operation_id"]
 
-		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiOperationPoliciesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationPoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationID)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -127,7 +129,7 @@ func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) 
 }
 
 func testCheckAzureRMApiManagementAPIOperationPolicyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiOperationPoliciesClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationPoliciesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api_operation_policy" {
@@ -139,7 +141,7 @@ func testCheckAzureRMApiManagementAPIOperationPolicyDestroy(s *terraform.State) 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		operationID := rs.Primary.Attributes["operation_id"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationID)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_key"
 sidebar_current: "docs-azurerm-datasource-key-vault-key"
@@ -18,13 +18,13 @@ Use this data source to access information about an existing Key Vault Key.
 ## Example Usage
 
 ```hcl
-data "azurerm_key_vault_key" "test" {
+data "azurerm_key_vault_key" "example" {
   name         = "secret-sauce"
   key_vault_id = "${data.azurerm_key_vault.existing.id}"
 }
 
 output "key_type" {
-  value = "${data.azurerm_key_vault_secret.test.key_type}"
+  value = "${data.azurerm_key_vault_secret.example.key_type}"
 }
 ```
 

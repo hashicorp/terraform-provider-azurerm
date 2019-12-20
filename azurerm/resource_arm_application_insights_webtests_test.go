@@ -8,17 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMApplicationInsightsWebTests_basic(t *testing.T) {
 	resourceName := "azurerm_application_insights_web_test.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsWebTests_basic(ri, testLocation())
+	config := testAccAzureRMApplicationInsightsWebTests_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -41,12 +43,12 @@ func TestAccAzureRMApplicationInsightsWebTests_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationInsightsWebTests_complete(ri, testLocation()),
+				Config: testAccAzureRMApplicationInsightsWebTests_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsWebTestExists(resourceName),
 				),
@@ -63,11 +65,11 @@ func TestAccAzureRMApplicationInsightsWebTests_complete(t *testing.T) {
 func TestAccAzureRMApplicationInsightsWebTests_update(t *testing.T) {
 	resourceName := "azurerm_application_insights_web_test.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -109,12 +111,12 @@ func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_application_insights_web_test.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMApplicationInsightsWebTests_basic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -125,15 +127,15 @@ func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApplicationInsightsWebTests_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_application_insights_web_test"),
+				ExpectError: acceptance.RequiresImportError("azurerm_application_insights_web_test"),
 			},
 		},
 	})
 }
 
 func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).AppInsights.WebTestsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.WebTestsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_application_insights_web_test" {
@@ -167,8 +169,8 @@ func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resou
 
 		name := rs.Primary.Attributes["name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
-		conn := testAccProvider.Meta().(*ArmClient).AppInsights.WebTestsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.WebTestsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, name)
 		if err != nil {

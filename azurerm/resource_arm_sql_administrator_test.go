@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -16,12 +18,12 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlAdministrator_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlAdministrator_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlAdministratorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin"),
@@ -33,7 +35,7 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMSqlAdministrator_withUpdates(ri, testLocation()),
+				Config: testAccAzureRMSqlAdministrator_withUpdates(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlAdministratorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin2"),
@@ -51,20 +53,20 @@ func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlAdministrator_basic(ri, testLocation()),
+				Config: testAccAzureRMSqlAdministrator_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlAdministratorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin"),
 				),
 			},
 			{
-				Config:      testAccAzureRMSqlAdministrator_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_sql_active_directory_administrator"),
+				Config:      testAccAzureRMSqlAdministrator_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_sql_active_directory_administrator"),
 			},
 		},
 	})
@@ -73,11 +75,11 @@ func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
 func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_active_directory_administrator.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
+	config := testAccAzureRMSqlAdministrator_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -102,8 +104,8 @@ func testCheckAzureRMSqlAdministratorExists(resourceName string) resource.TestCh
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Sql.ServerAzureADAdministratorsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServerAzureADAdministratorsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		_, err := client.Get(ctx, resourceGroup, serverName)
 		return err
@@ -120,8 +122,8 @@ func testCheckAzureRMSqlAdministratorDisappears(resourceName string) resource.Te
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Sql.ServerAzureADAdministratorsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServerAzureADAdministratorsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName); err != nil {
 			return fmt.Errorf("Bad: Delete on sqlAdministratorClient: %+v", err)
@@ -140,8 +142,8 @@ func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Sql.ServerAzureADAdministratorsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServerAzureADAdministratorsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName)
 		if err != nil {

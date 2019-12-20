@@ -7,13 +7,16 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,9 +26,10 @@ func resourceArmResourceGroup() *schema.Resource {
 		Read:   resourceArmResourceGroupRead,
 		Update: resourceArmResourceGroupCreateUpdate,
 		Delete: resourceArmResourceGroupDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := resource.ParseResourceGroupID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(90 * time.Minute),
@@ -45,8 +49,8 @@ func resourceArmResourceGroup() *schema.Resource {
 }
 
 func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Resource.GroupsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Resource.GroupsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -72,12 +76,12 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
-		return fmt.Errorf("Error creating resource group: %+v", err)
+		return fmt.Errorf("Error creating Resource Group %q: %+v", name, err)
 	}
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving resource group: %+v", err)
+		return fmt.Errorf("Error retrieving Resource Group %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -86,16 +90,16 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Resource.GroupsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Resource.GroupsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := resource.ParseResourceGroupID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
+		return err
 	}
 
-	name := id.ResourceGroup
+	name := id.Name
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
@@ -116,16 +120,16 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Resource.GroupsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Resource.GroupsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := resource.ParseResourceGroupID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
+		return err
 	}
 
-	name := id.ResourceGroup
+	name := id.Name
 
 	deleteFuture, err := client.Delete(ctx, name)
 	if err != nil {

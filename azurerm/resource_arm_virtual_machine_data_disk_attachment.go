@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -90,8 +91,8 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 }
 
 func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.VMClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.VMClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	virtualMachineId := d.Get("virtual_machine_id").(string)
@@ -194,8 +195,8 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.VMClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.VMClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -252,8 +253,8 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 }
 
 func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.VMClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.VMClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -305,8 +306,8 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 }
 
 func retrieveDataDiskAttachmentManagedDisk(d *schema.ResourceData, meta interface{}, id string) (*compute.Disk, error) {
-	client := meta.(*ArmClient).Compute.DisksClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.DisksClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	parsedId, err := azure.ParseAzureResourceID(id)

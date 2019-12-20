@@ -2,11 +2,13 @@ package azurerm
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -63,13 +65,23 @@ func dataSourceArmSubnet() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+
+			"enforce_private_link_endpoint_network_policies": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"enforce_private_link_service_network_policies": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.SubnetsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.SubnetsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -91,6 +103,14 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
+
+		if pe := props.PrivateEndpointNetworkPolicies; pe != nil {
+			d.Set("enforce_private_link_endpoint_network_policies", strings.EqualFold("Disabled", *pe))
+		}
+
+		if ps := props.PrivateLinkServiceNetworkPolicies; ps != nil {
+			d.Set("enforce_private_link_service_network_policies", strings.EqualFold("Disabled", *ps))
+		}
 
 		if props.NetworkSecurityGroup != nil {
 			d.Set("network_security_group_id", props.NetworkSecurityGroup.ID)

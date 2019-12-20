@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -15,11 +17,11 @@ import (
 func TestAccAzureRMApiManagementProduct_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,11 +54,11 @@ func TestAccAzureRMApiManagementProduct_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -67,14 +69,14 @@ func TestAccAzureRMApiManagementProduct_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApiManagementProduct_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_product"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_product"),
 			},
 		},
 	})
 }
 
 func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductsClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product" {
@@ -84,7 +86,7 @@ func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
 		productId := rs.Primary.Attributes["product_id"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -103,11 +105,11 @@ func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
 func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -165,11 +167,11 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 func TestAccAzureRMApiManagementProduct_subscriptionsLimit(t *testing.T) {
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -193,11 +195,11 @@ func TestAccAzureRMApiManagementProduct_subscriptionsLimit(t *testing.T) {
 func TestAccAzureRMApiManagementProduct_complete(t *testing.T) {
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -226,11 +228,11 @@ func TestAccAzureRMApiManagementProduct_complete(t *testing.T) {
 func TestAccAzureRMApiManagementProduct_approvalRequiredError(t *testing.T) {
 	resourceName := "azurerm_api_management_product.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -255,8 +257,8 @@ func testCheckAzureRMApiManagementProductExists(resourceName string) resource.Te
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

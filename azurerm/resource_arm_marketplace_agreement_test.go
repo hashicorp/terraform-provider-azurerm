@@ -6,6 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -35,8 +37,8 @@ func testAccAzureRMMarketplaceAgreement_basic(t *testing.T) {
 	resourceName := "azurerm_marketplace_agreement.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMarketplaceAgreementDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -65,8 +67,8 @@ func testAccAzureRMMarketplaceAgreement_requiresImport(t *testing.T) {
 	resourceName := "azurerm_marketplace_agreement.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMarketplaceAgreementDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -77,7 +79,7 @@ func testAccAzureRMMarketplaceAgreement_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMMarketplaceAgreement_requiresImportConfig(),
-				ExpectError: testRequiresImportError("azurerm_marketplace_agreement"),
+				ExpectError: acceptance.RequiresImportError("azurerm_marketplace_agreement"),
 			},
 		},
 	})
@@ -94,8 +96,8 @@ func testCheckAzureRMMarketplaceAgreementExists(resourceName string) resource.Te
 		plan := rs.Primary.Attributes["plan"]
 		publisher := rs.Primary.Attributes["publisher"]
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.MarketplaceAgreementsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.MarketplaceAgreementsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, publisher, offer, plan)
 		if err != nil {
@@ -119,8 +121,8 @@ func testCheckAzureRMMarketplaceAgreementDestroy(s *terraform.State) error {
 		plan := rs.Primary.Attributes["plan"]
 		publisher := rs.Primary.Attributes["publisher"]
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.MarketplaceAgreementsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.MarketplaceAgreementsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, publisher, offer, plan)
 		if err != nil {

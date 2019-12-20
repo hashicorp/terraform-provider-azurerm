@@ -14,25 +14,25 @@ Allows you to manage an Azure SQL Database
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_sql_server" "example" {
   name                         = "mysqlserver"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  resource_group_name          = "${azurerm_resource_group.example.name}"
   location                     = "West US"
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
-resource "azurerm_sql_database" "test" {
+resource "azurerm_sql_database" "example" {
   name                = "mysqldatabase"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "West US"
-  server_name         = "${azurerm_sql_server.test.name}"
+  server_name         = "${azurerm_sql_server.example.name}"
 
   tags = {
     environment = "production"
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `server_name` - (Required) The name of the SQL Server on which to create the database.
 
-* `create_mode` - (Optional) Specifies how to create the database. Must be either `Default` to create a new database or `PointInTimeRestore` to restore from a snapshot. Defaults to `Default`.
+* `create_mode` - (Optional) Specifies how to create the database. Valid values are: `Default`, `Copy`, `OnlineSecondary`, `NonReadableSecondary`,  `PointInTimeRestore`, `Recovery`, `Restore` or `RestoreLongTermRetentionBackup`. Must be `Default` to create a new database. Defaults to `Default`. Please see [Azure SQL Database REST API](https://docs.microsoft.com/en-us/rest/api/sql/databases/createorupdate#createmode)
 
 * `import` - (Optional) A Database Import block as documented below. `create_mode` must be set to `Default`.
 

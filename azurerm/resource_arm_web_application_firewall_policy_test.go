@@ -7,17 +7,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMWebApplicationFirewallPolicy_basic(t *testing.T) {
 	resourceName := "azurerm_web_application_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWebApplicationFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -38,11 +40,11 @@ func TestAccAzureRMWebApplicationFirewallPolicy_basic(t *testing.T) {
 func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
 	resourceName := "azurerm_web_application_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWebApplicationFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -94,11 +96,11 @@ func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
 func TestAccAzureRMWebApplicationFirewallPolicy_update(t *testing.T) {
 	resourceName := "azurerm_web_application_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWebApplicationFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -163,8 +165,8 @@ func testCheckAzureRMWebApplicationFirewallPolicyExists(resourceName string) res
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.WebApplicationFirewallPoliciesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WebApplicationFirewallPoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -178,8 +180,8 @@ func testCheckAzureRMWebApplicationFirewallPolicyExists(resourceName string) res
 }
 
 func testCheckAzureRMWebApplicationFirewallPolicyDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.WebApplicationFirewallPoliciesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WebApplicationFirewallPoliciesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_web_application_firewall_policy" {

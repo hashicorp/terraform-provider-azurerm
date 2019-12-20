@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -17,10 +18,11 @@ import (
 
 func resourceArmRecoveryServicesReplicationPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryServicesReplicationPolicyCreate,
-		Read:   resourceArmRecoveryServicesReplicationPolicyRead,
-		Update: resourceArmRecoveryServicesReplicationPolicyUpdate,
-		Delete: resourceArmSiteRecoveryReplicationPolicyDelete,
+		DeprecationMessage: "`azurerm_recovery_services_replication_policy` resource is deprecated in favor of `azurerm_site_recovery_replication_policy` and will be removed in v2.0 of the AzureRM Provider",
+		Create:             resourceArmRecoveryServicesReplicationPolicyCreate,
+		Read:               resourceArmRecoveryServicesReplicationPolicyRead,
+		Update:             resourceArmRecoveryServicesReplicationPolicyUpdate,
+		Delete:             resourceArmRecoveryServicesReplicationPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -68,8 +70,8 @@ func resourceArmRecoveryServicesReplicationPolicyCreate(d *schema.ResourceData, 
 	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -120,8 +122,8 @@ func resourceArmRecoveryServicesReplicationPolicyUpdate(d *schema.ResourceData, 
 	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	recoveryPoint := int32(d.Get("recovery_point_retention_in_minutes").(int))
@@ -164,8 +166,8 @@ func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, me
 	vaultName := id.Path["vaults"]
 	name := id.Path["replicationPolicies"]
 
-	client := meta.(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resp, err := client.Get(ctx, name)
@@ -187,7 +189,7 @@ func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceArmSiteRecoveryReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmRecoveryServicesReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -197,8 +199,8 @@ func resourceArmSiteRecoveryReplicationPolicyDelete(d *schema.ResourceData, meta
 	vaultName := id.Path["vaults"]
 	name := id.Path["replicationPolicies"]
 
-	client := meta.(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	future, err := client.Delete(ctx, name)

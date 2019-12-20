@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMPublicIP_static(t *testing.T) {
@@ -16,12 +17,12 @@ func TestAccDataSourceAzureRMPublicIP_static(t *testing.T) {
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMPublicIP_static(name, resourceGroupName, ri, testLocation()),
+				Config: testAccDataSourceAzureRMPublicIP_static(name, resourceGroupName, ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),
 					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
@@ -46,12 +47,12 @@ func TestAccDataSourceAzureRMPublicIP_dynamic(t *testing.T) {
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMPublicIP_dynamic(ri, testLocation(), "Ipv4"),
+				Config: testAccDataSourceAzureRMPublicIP_dynamic(ri, acceptance.Location(), "Ipv4"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),
 					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),

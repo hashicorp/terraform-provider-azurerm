@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -63,6 +64,13 @@ func resourceArmApplicationInsights() *schema.Resource {
 				}, true),
 			},
 
+			"sampling_percentage": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Default:      100,
+				ValidateFunc: validation.FloatBetween(0, 100),
+			},
+
 			"tags": tags.Schema(),
 
 			"app_id": {
@@ -80,8 +88,8 @@ func resourceArmApplicationInsights() *schema.Resource {
 }
 
 func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AppInsights.ComponentsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights creation.")
@@ -103,12 +111,14 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	applicationType := d.Get("application_type").(string)
+	samplingPercentage := utils.Float(d.Get("sampling_percentage").(float64))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
-		ApplicationID:   &name,
-		ApplicationType: insights.ApplicationType(applicationType),
+		ApplicationID:      &name,
+		ApplicationType:    insights.ApplicationType(applicationType),
+		SamplingPercentage: samplingPercentage,
 	}
 
 	insightProperties := insights.ApplicationInsightsComponent{
@@ -143,8 +153,8 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AppInsights.ComponentsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -176,14 +186,15 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("application_type", string(props.ApplicationType))
 		d.Set("app_id", props.AppID)
 		d.Set("instrumentation_key", props.InstrumentationKey)
+		d.Set("sampling_percentage", props.SamplingPercentage)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AppInsights.ComponentsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

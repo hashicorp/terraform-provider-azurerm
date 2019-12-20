@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -16,8 +18,8 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,8 +48,8 @@ func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -58,7 +60,7 @@ func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAzureRMPolicyDefinition_requiresImport(ri),
-				ExpectError: testRequiresImportError("azurerm_policy_definition"),
+				ExpectError: acceptance.RequiresImportError("azurerm_policy_definition"),
 			},
 		},
 	})
@@ -69,8 +71,8 @@ func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -94,8 +96,8 @@ func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -123,8 +125,8 @@ func testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(policyName string) resour
 		policyName := rs.Primary.Attributes["name"]
 		managementGroupID := rs.Primary.Attributes["management_group_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).Policy.DefinitionsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.DefinitionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.GetAtManagementGroup(ctx, policyName, managementGroupID)
 		if err != nil {
@@ -148,8 +150,8 @@ func testCheckAzureRMPolicyDefinitionExists(resourceName string) resource.TestCh
 
 		policyName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Policy.DefinitionsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.DefinitionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, policyName)
 		if err != nil {
@@ -165,8 +167,8 @@ func testCheckAzureRMPolicyDefinitionExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMPolicyDefinitionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Policy.DefinitionsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.DefinitionsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_policy_definition" {

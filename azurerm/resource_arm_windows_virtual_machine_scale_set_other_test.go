@@ -7,17 +7,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherAdditionalUnattendConfig(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,11 +46,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnostics(t *testing
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -110,11 +111,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnostics(t *testing
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherComputerNamePrefix(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -140,11 +141,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherComputerNamePrefix(t *test
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -206,11 +207,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherCustomData(t *testing.T) {
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachines(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -236,11 +237,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverPr
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherEnableAutomaticUpdatesDisabled(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -299,11 +300,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherEnableAutomaticUpdatesDisa
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowDeallocate(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -329,11 +330,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowDeallocate(t *t
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowDelete(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -359,11 +360,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowDelete(t *testi
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -406,11 +407,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(t *
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityRegular(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -440,11 +441,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherRequiresImport(t *testing.
 	}
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -455,7 +456,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherRequiresImport(t *testing.
 			},
 			{
 				Config:      testAccAzureRMWindowsVirtualMachineScaleSet_otherRequiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_windows_virtual_machine_scale_set"),
+				ExpectError: acceptance.RequiresImportError("azurerm_windows_virtual_machine_scale_set"),
 			},
 		},
 	})
@@ -465,11 +466,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherSecret(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -533,11 +534,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherSecret(t *testing.T) {
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherTags(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -597,11 +598,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherTags(t *testing.T) {
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherTimeZone(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -627,11 +628,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherTimeZone(t *testing.T) {
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVMAgent(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -657,11 +658,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVMAgent(t *testing.T) {
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVMAgentDisabled(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -687,11 +688,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVMAgentDisabled(t *testing
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherWinRMHTTP(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -717,11 +718,11 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherWinRMHTTP(t *testing.T) {
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherWinRMHTTPS(t *testing.T) {
 	resourceName := "azurerm_windows_virtual_machine_scale_set.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{

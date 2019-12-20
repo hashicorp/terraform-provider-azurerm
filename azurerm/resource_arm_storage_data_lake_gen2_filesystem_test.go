@@ -9,8 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,11 +21,11 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_basic(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -51,11 +53,11 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -66,7 +68,7 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_storage_data_lake_gen2_filesystem"),
+				ExpectError: acceptance.RequiresImportError("azurerm_storage_data_lake_gen2_filesystem"),
 			},
 		},
 	})
@@ -77,11 +79,11 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_properties(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -117,11 +119,11 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName string) re
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Storage.FileSystemsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		fileSystemName := rs.Primary.Attributes["name"]
-		storageID, err := storage.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
 		if err != nil {
 			return err
 		}
@@ -145,11 +147,11 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemDestroy(s *terraform.State) er
 			continue
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Storage.FileSystemsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		fileSystemName := rs.Primary.Attributes["name"]
-		storageID, err := storage.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
 		if err != nil {
 			return err
 		}

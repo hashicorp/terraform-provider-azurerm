@@ -8,6 +8,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -90,8 +92,8 @@ func testCheckAzureRMAutomationVariableExists(resourceName string, varType strin
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["automation_account_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Automation.VariableClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Automation.VariableClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -105,8 +107,8 @@ func testCheckAzureRMAutomationVariableExists(resourceName string, varType strin
 }
 
 func testCheckAzureRMAutomationVariableDestroy(s *terraform.State, varType string) error {
-	client := testAccProvider.Meta().(*ArmClient).Automation.VariableClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Automation.VariableClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	resourceName := fmt.Sprintf("azurerm_automation_variable_%s", strings.ToLower(varType))
 

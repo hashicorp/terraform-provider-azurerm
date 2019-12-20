@@ -8,13 +8,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -171,8 +172,8 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 }
 
 func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Monitor.DiagnosticSettingsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
@@ -283,8 +284,8 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Monitor.DiagnosticSettingsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parseMonitorDiagnosticId(d.Id())
@@ -327,8 +328,8 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Monitor.DiagnosticSettingsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Monitor.DiagnosticSettingsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parseMonitorDiagnosticId(d.Id())

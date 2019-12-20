@@ -17,6 +17,8 @@ github.com/Azure/azure-sdk-for-go v34.1.0+incompatible h1:uW/dgSzmRQEPXwaRUN8WzB
 github.com/Azure/azure-sdk-for-go v34.1.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/azure-sdk-for-go v35.0.0+incompatible h1:PkmdmQUmeSdQQ5258f4SyCf2Zcz0w67qztEg37cOR7U=
 github.com/Azure/azure-sdk-for-go v35.0.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
+github.com/Azure/azure-sdk-for-go v36.2.0+incompatible h1:09cv2WoH0g6jl6m2iT+R9qcIPZKhXEL0sbmLhxP895s=
+github.com/Azure/azure-sdk-for-go v36.2.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/go-autorest v10.15.4+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/Azure/go-autorest v13.0.0+incompatible h1:56c11ykhsFSPNNQuS73Ri8h/ezqVhr2h6t9LJIEKVO0=
 github.com/Azure/go-autorest v13.0.0+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
@@ -24,10 +26,13 @@ github.com/Azure/go-autorest/autorest v0.9.0 h1:MRvx8gncNaXJqOoLmhNjUAKh33JJF8Ly
 github.com/Azure/go-autorest/autorest v0.9.0/go.mod h1:xyHB1BMZT0cuDHU7I0+g046+BFDTQ8rEZB0s4Yfa6bI=
 github.com/Azure/go-autorest/autorest v0.9.2 h1:6AWuh3uWrsZJcNoCHrCF/+g4aKPCU39kaMO6/qrnK/4=
 github.com/Azure/go-autorest/autorest v0.9.2/go.mod h1:xyHB1BMZT0cuDHU7I0+g046+BFDTQ8rEZB0s4Yfa6bI=
+github.com/Azure/go-autorest/autorest v0.9.3 h1:OZEIaBbMdUE/Js+BQKlpO81XlISgipr6yDJ+PSwsgi4=
+github.com/Azure/go-autorest/autorest v0.9.3/go.mod h1:GsRuLYvwzLjjjRoWEIyMUaYq8GNUx2nRB378IPt/1p0=
 github.com/Azure/go-autorest/autorest/adal v0.5.0 h1:q2gDruN08/guU9vAjuPWff0+QIrpH6ediguzdAzXAUU=
 github.com/Azure/go-autorest/autorest/adal v0.5.0/go.mod h1:8Z9fGy2MpX0PvDjB1pEgQTmVqjGhiHBW7RJJEciWzS0=
 github.com/Azure/go-autorest/autorest/adal v0.6.0 h1:UCTq22yE3RPgbU/8u4scfnnzuCW6pwQ9n+uBtV78ouo=
 github.com/Azure/go-autorest/autorest/adal v0.6.0/go.mod h1:Z6vX6WXXuyieHAXwMj0S6HY6e6wcHn37qQMBQlvY3lc=
+github.com/Azure/go-autorest/autorest/adal v0.8.0/go.mod h1:Z6vX6WXXuyieHAXwMj0S6HY6e6wcHn37qQMBQlvY3lc=
 github.com/Azure/go-autorest/autorest/adal v0.8.1-0.20191028180845-3492b2aff503 h1:Hxqlh1uAA8aGpa1dFhDNhll7U/rkWtG8ZItFvRMr7l0=
 github.com/Azure/go-autorest/autorest/adal v0.8.1-0.20191028180845-3492b2aff503/go.mod h1:Z6vX6WXXuyieHAXwMj0S6HY6e6wcHn37qQMBQlvY3lc=
 github.com/Azure/go-autorest/autorest/azure/auth v0.3.0/go.mod h1:CI4BQYBct8NS7BXNBBX+RchsFsUu5+oz+OSyR/ZIi7U=
@@ -192,6 +197,10 @@ github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgf
 github.com/grpc-ecosystem/grpc-gateway v1.8.5 h1:2+KSC78XiO6Qy0hIjfc1OD9H+hsaJdJlb8Kqsd41CTE=
 github.com/grpc-ecosystem/grpc-gateway v1.8.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
 github.com/hashicorp/aws-sdk-go-base v0.3.0/go.mod h1:ZIWACGGi0N7a4DZbf15yuE1JQORmWLtBcVM6F5SXNFU=
+github.com/hashicorp/azure-sdk-for-go v36.2.1-hashi+incompatible h1:JuiGr8Ys+Gtp/O0EFi37se0Z5rY7PIqWNnUwjASWVEM=
+github.com/hashicorp/azure-sdk-for-go v36.2.1-hashi+incompatible/go.mod h1:9MzMWzN0gJiWgGzEfgaJaj/sHWDDDwU0LUYAnE+GbHQ=
+github.com/hashicorp/azure-sdk-for-go v36.2.2-hashi+incompatible h1:iWg/0ZhDQ4lmvTyGarUXqkcgVbtSXb+Bsqa5vuHD08E=
+github.com/hashicorp/azure-sdk-for-go v36.2.2-hashi+incompatible/go.mod h1:9MzMWzN0gJiWgGzEfgaJaj/sHWDDDwU0LUYAnE+GbHQ=
 github.com/hashicorp/consul v0.0.0-20171026175957-610f3c86a089/go.mod h1:mFrjN1mfidgJfYP1xrJCF+AfRhr6Eaqhb2+sfyn/OOI=
 github.com/hashicorp/errwrap v0.0.0-20180715044906-d6c0cd880357/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/errwrap v1.0.0 h1:hLrqtEDnRye3+sgx6z4qVLNuviH3MR5aQ0ykNJa/UYA=
@@ -406,6 +415,10 @@ github.com/terraform-providers/terraform-provider-openstack v1.15.0/go.mod h1:2a
 github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tombuildsstuff/giovanni v0.6.0 h1:8RwaDJJqbp8mMN/HOKEbGUvhW/yaGMzxN2XbkQ3lHuA=
 github.com/tombuildsstuff/giovanni v0.6.0/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
+github.com/tombuildsstuff/giovanni v0.7.0 h1:+8wrCOTiE60qzB2VGzTlqNarWT2ymFusStOHRDWOPTQ=
+github.com/tombuildsstuff/giovanni v0.7.0/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
+github.com/tombuildsstuff/giovanni v0.7.1 h1:QJG5TJNIjcRbMsaQGF1HtWEpZbu8xLAOmZuMIk7wf14=
+github.com/tombuildsstuff/giovanni v0.7.1/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
 github.com/ugorji/go v0.0.0-20180813092308-00b869d2f4a5/go.mod h1:hnLbHMwcvSihnDhEfx2/BzKp2xb0Y+ErdfYcrs9tkJQ=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8 h1:3SVOIvH7Ae1KRYyQWRjXWJEA9sS/c/pjvH++55Gr648=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
@@ -447,6 +460,8 @@ golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5/go.mod h1:yigFU9vqHzYiE8U
 golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586 h1:7KByu05hhLed2MO29w7p1XfZvZ13m8mub3shuVftRs0=
 golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
+golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413 h1:ULYEB3JvPRE/IfO+9uO7vKV/xzVTO7XPAwm8xbf4w2g=
+golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522/go.mod h1:ZjyILWgesfNpC6sMxTJOJm9Kp84zZh5NQWvqDGG3Qr8=
 golang.org/x/image v0.0.0-20190227222117-0694c2d4d067/go.mod h1:kZ7UVZpmo3dzQBMxlp+ypCbDeSB+sBbTgSJuh5dn5js=

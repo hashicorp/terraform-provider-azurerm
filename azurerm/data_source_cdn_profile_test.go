@@ -6,16 +6,17 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMCdnProfile_basic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -31,12 +32,12 @@ func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
 func TestAccDataSourceAzureRMCdnProfile_withTags(t *testing.T) {
 	resourceName := "data.azurerm_cdn_profile.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccDataSourceAzureRMCdnProfile_withTags(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{

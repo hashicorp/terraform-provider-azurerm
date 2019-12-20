@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -61,9 +62,9 @@ func resourceArmStorageShareDirectory() *schema.Resource {
 }
 
 func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interface{}) error {
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*ArmClient).Storage
+	storageClient := meta.(*clients.Client).Storage
 
 	accountName := d.Get("storage_account_name").(string)
 	shareName := d.Get("share_name").(string)
@@ -130,9 +131,9 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmStorageShareDirectoryUpdate(d *schema.ResourceData, meta interface{}) error {
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*ArmClient).Storage
+	storageClient := meta.(*clients.Client).Storage
 
 	id, err := directories.ParseResourceID(d.Id())
 	if err != nil {
@@ -163,9 +164,9 @@ func resourceArmStorageShareDirectoryUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmStorageShareDirectoryRead(d *schema.ResourceData, meta interface{}) error {
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*ArmClient).Storage
+	storageClient := meta.(*clients.Client).Storage
 
 	id, err := directories.ParseResourceID(d.Id())
 	if err != nil {
@@ -204,9 +205,9 @@ func resourceArmStorageShareDirectoryRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmStorageShareDirectoryDelete(d *schema.ResourceData, meta interface{}) error {
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*ArmClient).Storage
+	storageClient := meta.(*clients.Client).Storage
 
 	id, err := directories.ParseResourceID(d.Id())
 	if err != nil {

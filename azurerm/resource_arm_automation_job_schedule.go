@@ -11,6 +11,8 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -93,8 +95,8 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 }
 
 func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Automation.JobScheduleClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Automation.JobScheduleClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Job Schedule creation.")
@@ -106,7 +108,7 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 	runbookName := d.Get("runbook_name").(string)
 	scheduleName := d.Get("schedule_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, accountName, jobScheduleUUID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -165,11 +167,11 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Automation.JobScheduleClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Automation.JobScheduleClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -211,11 +213,11 @@ func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmAutomationJobScheduleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Automation.JobScheduleClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Automation.JobScheduleClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

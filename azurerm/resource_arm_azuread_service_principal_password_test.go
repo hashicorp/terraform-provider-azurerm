@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,8 +28,8 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_basic(t *testing.T) {
 	config := testAccAzureRMActiveDirectoryServicePrincipalPassword_basic(applicationId, value)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,8 +63,8 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_requiresImport(t *tes
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,7 +75,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_requiresImport(t *tes
 			},
 			{
 				Config:      testAccAzureRMActiveDirectoryServicePrincipalPassword_requiresImport(applicationId, value),
-				ExpectError: testRequiresImportError("azurerm_azuread_service_principal_password"),
+				ExpectError: acceptance.RequiresImportError("azurerm_azuread_service_principal_password"),
 			},
 		},
 	})
@@ -96,8 +98,8 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_customKeyId(t *testin
 	config := testAccAzureRMActiveDirectoryServicePrincipalPassword_customKeyId(applicationId, keyId, value)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -121,8 +123,8 @@ func testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(resourceName 
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Graph.ServicePrincipalsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ServicePrincipalsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		id := strings.Split(rs.Primary.ID, "/")
 		objectId := id[0]

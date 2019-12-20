@@ -10,14 +10,15 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -34,6 +35,12 @@ func resourceArmIotDPS() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		DeprecationMessage: `The 'azurerm_iot_dps' resource is deprecated in favour of the renamed version 'azurerm_iothub_dps'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+
+As such the existing 'azurerm_iot_dps' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -145,8 +152,8 @@ func resourceArmIotDPS() *schema.Resource {
 }
 
 func resourceArmIotDPSCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).IoTHub.DPSResourceClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).IoTHub.DPSResourceClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -199,8 +206,8 @@ func resourceArmIotDPSCreateUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmIotDPSRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).IoTHub.DPSResourceClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).IoTHub.DPSResourceClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -240,8 +247,8 @@ func resourceArmIotDPSRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmIotDPSDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).IoTHub.DPSResourceClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).IoTHub.DPSResourceClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

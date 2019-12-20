@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMAPIManagementGroupUser_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_group_user.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,11 +46,11 @@ func TestAccAzureRMAPIManagementGroupUser_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_group_user.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupUserDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,14 +61,14 @@ func TestAccAzureRMAPIManagementGroupUser_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAPIManagementGroupUser_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_group_user"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_group_user"),
 			},
 		},
 	})
 }
 
 func testCheckAzureRMAPIManagementGroupUserDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).ApiManagement.GroupUsersClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupUsersClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_group_user" {
 			continue
@@ -77,7 +79,7 @@ func testCheckAzureRMAPIManagementGroupUserDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
@@ -102,8 +104,8 @@ func testCheckAzureRMAPIManagementGroupUserExists(resourceName string) resource.
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).ApiManagement.GroupUsersClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupUsersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {

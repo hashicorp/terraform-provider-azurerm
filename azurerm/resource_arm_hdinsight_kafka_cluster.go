@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -88,6 +89,8 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
+			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
+
 			"roles": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -119,8 +122,8 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 }
 
 func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).HDInsight.ClustersClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).HDInsight.ClustersClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -137,7 +140,8 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
-	storageAccounts, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw)
+	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
+	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
 		return fmt.Errorf("Error expanding `storage_account`: %s", err)
 	}
@@ -184,7 +188,8 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 				Roles: roles,
 			},
 		},
-		Tags: tags.Expand(t),
+		Tags:     tags.Expand(t),
+		Identity: identity,
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
@@ -210,9 +215,9 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).HDInsight.ClustersClient
-	configurationsClient := meta.(*ArmClient).HDInsight.ConfigurationsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
+	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

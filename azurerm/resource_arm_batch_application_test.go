@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,11 +18,11 @@ func TestAccAzureRMBatchApplication_basic(t *testing.T) {
 	resourceName := "azurerm_batch_application.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -42,12 +44,12 @@ func TestAccAzureRMBatchApplication_update(t *testing.T) {
 	resourceName := "azurerm_batch_application.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 	displayName := fmt.Sprintf("TestAccDisplayName-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -78,8 +80,8 @@ func testCheckAzureRMBatchApplicationExists(resourceName string) resource.TestCh
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Batch.ApplicationClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Batch.ApplicationClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -93,8 +95,8 @@ func testCheckAzureRMBatchApplicationExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMBatchApplicationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Batch.ApplicationClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Batch.ApplicationClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_batch_application" {

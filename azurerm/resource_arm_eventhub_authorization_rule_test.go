@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,12 +34,12 @@ func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage 
 	resourceName := "azurerm_eventhub_authorization_rule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), listen, send, manage),
+				Config: testAccAzureRMEventHubAuthorizationRule_base(tf.AccRandTimeInt(), acceptance.Location(), listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -70,11 +72,11 @@ func TestAccAzureRMEventHubAuthorizationRule_requiresImport(t *testing.T) {
 	resourceName := "azurerm_eventhub_authorization_rule.test"
 	rInt := tf.AccRandTimeInt()
 
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -85,7 +87,7 @@ func TestAccAzureRMEventHubAuthorizationRule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMEventHubAuthorizationRule_requiresImport(rInt, location, true, true, true),
-				ExpectError: testRequiresImportError("azurerm_eventhub_authorization_rule"),
+				ExpectError: acceptance.RequiresImportError("azurerm_eventhub_authorization_rule"),
 			},
 		},
 	})
@@ -95,12 +97,12 @@ func TestAccAzureRMEventHubAuthorizationRule_rightsUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub_authorization_rule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, false, false),
+				Config: testAccAzureRMEventHubAuthorizationRule_base(tf.AccRandTimeInt(), acceptance.Location(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
@@ -109,7 +111,7 @@ func TestAccAzureRMEventHubAuthorizationRule_rightsUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), true, true, true),
+				Config: testAccAzureRMEventHubAuthorizationRule_base(tf.AccRandTimeInt(), acceptance.Location(), true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -133,8 +135,8 @@ func TestAccAzureRMEventHubAuthorizationRule_rightsUpdate(t *testing.T) {
 }
 
 func testCheckAzureRMEventHubAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Eventhub.EventHubsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub_authorization_rule" {
@@ -173,8 +175,8 @@ func testCheckAzureRMEventHubAuthorizationRuleExists(resourceName string) resour
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Eventhub.EventHubsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

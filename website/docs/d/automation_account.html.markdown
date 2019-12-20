@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_registration_info"
 sidebar_current: "docs-azurerm-datasource-automation-registration-info"
@@ -14,12 +14,12 @@ Use this data source to access information about an existing Automation Account 
 ## Example Usage
 
 ```hcl
-data "azurerm_automation_account_registration_info" "test" {
+data "azurerm_automation_account_registration_info" "example" {
   name                = "automation-account"
   resource_group_name = "automation-resource-group"
 }
 output "automation_account_id" {
-  value = "${data.azurerm_automation_account_registration_info.test.id}"
+  value = "${data.azurerm_automation_account_registration_info.example.id}"
 }
 ```
 

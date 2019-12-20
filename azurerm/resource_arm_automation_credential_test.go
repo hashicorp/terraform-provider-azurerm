@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -16,12 +18,12 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationCredential_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationCredential_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationCredentialExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "username", "test_user"),
@@ -45,11 +47,11 @@ func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_automation_credential.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -60,7 +62,7 @@ func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAutomationCredential_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_automation_credential"),
+				ExpectError: acceptance.RequiresImportError("azurerm_automation_credential"),
 			},
 		},
 	})
@@ -71,12 +73,12 @@ func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationCredential_complete(ri, testLocation()),
+				Config: testAccAzureRMAutomationCredential_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationCredentialExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "username", "test_user"),
@@ -94,8 +96,8 @@ func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationCredentialDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Automation.CredentialClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.CredentialClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_automation_credential" {
@@ -142,8 +144,8 @@ func testCheckAzureRMAutomationCredentialExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Automation Credential: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Automation.CredentialClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.CredentialClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 

@@ -19,7 +19,7 @@ Manages a Service Principal associated with an Application within Azure Active D
 ## Example Usage
 
 ```hcl
-resource "azurerm_azuread_application" "test" {
+resource "azurerm_azuread_application" "example" {
   name                       = "example"
   homepage                   = "http://homepage"
   identifier_uris            = ["http://uri"]
@@ -28,8 +28,8 @@ resource "azurerm_azuread_application" "test" {
   oauth2_allow_implicit_flow = true
 }
 
-resource "azurerm_azuread_service_principal" "test" {
-  application_id = "${azurerm_azuread_application.test.application_id}"
+resource "azurerm_azuread_service_principal" "example" {
+  application_id = "${azurerm_azuread_application.example.application_id}"
 }
 ```
 
@@ -52,5 +52,5 @@ The following attributes are exported:
 Azure Active Directory Service Principals can be imported using the `object id`, e.g.
 
 ```shell
-terraform import azurerm_azuread_service_principal.test 00000000-0000-0000-0000-000000000000
+terraform import azurerm_azuread_service_principal.example 00000000-0000-0000-0000-000000000000
 ```

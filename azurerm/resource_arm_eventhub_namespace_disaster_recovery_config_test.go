@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,12 +17,12 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName),
 				),
@@ -43,12 +45,12 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(t *testing.T
 	t.Skip()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName),
 				),
@@ -67,18 +69,18 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) 
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName),
 				),
@@ -89,15 +91,15 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) 
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated_removed(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated_removed(ri, acceptance.Location(), acceptance.AltLocation()),
 			},
 		},
 	})
 }
 
 func testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Eventhub.DisasterRecoveryConfigsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub_namespace_disaster_recovery_config" {
@@ -121,8 +123,8 @@ func testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigDestroy(s *terraform
 
 func testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Eventhub.DisasterRecoveryConfigsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.DisasterRecoveryConfigsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -150,7 +152,7 @@ func testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName 
 func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(rInt int, location string, altlocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
 }
 
@@ -181,7 +183,7 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(rInt int, location string, altlocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
 }
 
@@ -213,7 +215,7 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated(rInt int, location string, altlocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
 }
 
@@ -251,7 +253,7 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated_removed(rInt int, location string, altlocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
 }
 

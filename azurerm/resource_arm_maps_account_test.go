@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,12 +18,12 @@ func TestAccAzureRMMapsAccount_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMapsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMapsAccount_basic(ri, testLocation()),
+				Config: testAccAzureRMMapsAccount_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "x_ms_client_id"),
@@ -44,12 +46,12 @@ func TestAccAzureRMMapsAccount_sku(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMapsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMapsAccount_sku(ri, testLocation()),
+				Config: testAccAzureRMMapsAccount_sku(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "x_ms_client_id"),
@@ -70,11 +72,11 @@ func TestAccAzureRMMapsAccount_sku(t *testing.T) {
 func TestAccAzureRMMapsAccount_tags(t *testing.T) {
 	resourceName := "azurerm_maps_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMapsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -117,8 +119,8 @@ func testCheckAzureRMMapsAccountExists(resourceName string) resource.TestCheckFu
 		mapsAccountName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Maps.AccountsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Maps.AccountsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, mapsAccountName)
 		if err != nil {
@@ -134,8 +136,8 @@ func testCheckAzureRMMapsAccountExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMMapsAccountDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Maps.AccountsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Maps.AccountsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_maps_account" {

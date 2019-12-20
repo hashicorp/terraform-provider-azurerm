@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -16,8 +18,8 @@ func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 	resourceName := "azurerm_management_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,8 +46,8 @@ func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
 	resourceName := "azurerm_management_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -56,7 +58,7 @@ func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAzureRMManagementGroup_requiresImport(),
-				ExpectError: testRequiresImportError("azurerm_management_group"),
+				ExpectError: acceptance.RequiresImportError("azurerm_management_group"),
 			},
 		},
 	})
@@ -64,8 +66,8 @@ func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
 
 func TestAccAzureRMManagementGroup_nested(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -86,8 +88,8 @@ func TestAccAzureRMManagementGroup_nested(t *testing.T) {
 
 func TestAccAzureRMManagementGroup_multiLevel(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -109,8 +111,8 @@ func TestAccAzureRMManagementGroup_multiLevel(t *testing.T) {
 
 func TestAccAzureRMManagementGroup_multiLevelUpdated(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -137,8 +139,8 @@ func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -156,8 +158,8 @@ func TestAccAzureRMManagementGroup_updateName(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -182,8 +184,8 @@ func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -220,8 +222,8 @@ func testCheckAzureRMManagementGroupExists(resourceName string) resource.TestChe
 
 		groupName := rs.Primary.Attributes["group_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).ManagementGroups.GroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ManagementGroups.GroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		recurse := false
 		resp, err := client.Get(ctx, groupName, "", &recurse, "", "no-cache")
@@ -238,8 +240,8 @@ func testCheckAzureRMManagementGroupExists(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).ManagementGroups.GroupsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).ManagementGroups.GroupsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_management_group" {

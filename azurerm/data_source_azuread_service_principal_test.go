@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(t *testing.T) {
@@ -14,8 +15,8 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(t *testing.
 	config := testAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -37,8 +38,8 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(t *testing.T)
 	config := testAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -60,8 +61,8 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byObjectId(t *testing.T) {
 	config := testAccDataSourceAzureRMAzureADServicePrincipal_byObjectId(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{

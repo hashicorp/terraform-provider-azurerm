@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -119,9 +120,9 @@ func resourceArmStorageShare() *schema.Resource {
 	}
 }
 func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) error {
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*ArmClient).Storage
+	storageClient := meta.(*clients.Client).Storage
 
 	accountName := d.Get("storage_account_name").(string)
 	shareName := d.Get("name").(string)
@@ -179,9 +180,9 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error {
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*ArmClient).Storage
+	storageClient := meta.(*clients.Client).Storage
 
 	id, err := shares.ParseResourceID(d.Id())
 	if err != nil {
@@ -239,9 +240,9 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) error {
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*ArmClient).Storage
+	storageClient := meta.(*clients.Client).Storage
 
 	id, err := shares.ParseResourceID(d.Id())
 	if err != nil {
@@ -301,9 +302,9 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) error {
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	storageClient := meta.(*ArmClient).Storage
+	storageClient := meta.(*clients.Client).Storage
 
 	id, err := shares.ParseResourceID(d.Id())
 	if err != nil {

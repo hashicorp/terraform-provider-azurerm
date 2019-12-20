@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
@@ -185,8 +186,8 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 }
 
 func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Cosmos.DatabaseClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)

@@ -6,17 +6,18 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_network_security_group.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMNetworkSecurityGroupBasic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -34,12 +35,12 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 func TestAccDataSourceAzureRMNetworkSecurityGroup_rules(t *testing.T) {
 	dataSourceName := "data.azurerm_network_security_group.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMNetworkSecurityGroupWithRules(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -66,12 +67,12 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_rules(t *testing.T) {
 func TestAccDataSourceAzureRMNetworkSecurityGroup_tags(t *testing.T) {
 	dataSourceName := "data.azurerm_network_security_group.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMNetworkSecurityGroupTags(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{

@@ -15,15 +15,15 @@ Manages a Shared Image within a Shared Image Gallery.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_shared_image_gallery" "test" {
+resource "azurerm_shared_image_gallery" "example" {
   name                = "example_image_gallery"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   description         = "Shared images and things."
 
   tags = {
@@ -32,11 +32,11 @@ resource "azurerm_shared_image_gallery" "test" {
   }
 }
 
-resource "azurerm_shared_image" "test" {
+resource "azurerm_shared_image" "example" {
   name                = "my-image"
-  gallery_name        = "${azurerm_shared_image_gallery.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  gallery_name        = "${azurerm_shared_image_gallery.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   os_type             = "Linux"
 
   identifier {

@@ -14,15 +14,15 @@ Manages a custom virtual machine image that can be used to create virtual machin
 ## Example Usage Creating from VHD
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctest"
   location = "West US"
 }
 
-resource "azurerm_image" "test" {
+resource "azurerm_image" "example" {
   name                = "acctest"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   os_disk {
     os_type  = "Linux"
@@ -36,15 +36,15 @@ resource "azurerm_image" "test" {
 ## Example Usage Creating from Virtual Machine (VM must be generalized beforehand)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctest"
   location = "West US"
 }
 
-resource "azurerm_image" "test" {
+resource "azurerm_image" "example" {
   name                      = "acctest"
   location                  = "West US"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
+  resource_group_name       = "${azurerm_resource_group.example.name}"
   source_virtual_machine_id = "{vm_id}"
 }
 ```
@@ -64,12 +64,13 @@ The following arguments are supported:
 * `data_disk` - (Optional) One or more `data_disk` elements as defined below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 * `zone_resilient` - (Optional) Is zone resiliency enabled?  Defaults to `false`.  Changing this forces a new resource to be created.
+* `hyper_v_generation` - (Optional) The HyperVGenerationType of the VirtualMachine created from the image as `V1`, `V2`. The default is `V1`.
 
 ~> **Note**: `zone_resilient` can only be set to `true` if the image is stored in a region that supports availability zones.
 
 `os_disk` supports the following:
 
-* `os_type` - (Required) Specifies the type of operating system contained in the the virtual machine image. Possible values are: Windows or Linux.
+* `os_type` - (Required) Specifies the type of operating system contained in the virtual machine image. Possible values are: Windows or Linux.
 * `os_state` - (Required) Specifies the state of the operating system contained in the blob. Currently, the only value is Generalized.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
@@ -95,5 +96,5 @@ The following attributes are exported:
 Image can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_image.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/images/image1
+terraform import azurerm_image.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/images/image1
 ```

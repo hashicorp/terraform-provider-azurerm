@@ -6,20 +6,21 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_shared_image_version.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	username := "testadmin"
 	password := "Password1234!"
 	hostname := fmt.Sprintf("tftestcustomimagesrc%d", rInt)
 	resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -37,6 +38,7 @@ func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "managed_image_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "target_region.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "target_region.0.storage_account_type", "Standard_LRS"),
 				),
 			},
 		},

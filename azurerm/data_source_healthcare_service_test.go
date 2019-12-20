@@ -6,16 +6,19 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccAzureRMDataSourceHealthcareService_basic(t *testing.T) {
+func TestAccAzureRMDataSourceHealthCareService_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_healthcare_service.test"
 	ri := tf.AccRandTimeInt() / 10
-	location := testLocation()
+	// currently only supported in "ukwest", "northcentralus", "westus2".
+	location := "westus2"
+
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMHealthcareServiceDestroy,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceHealthcareService_basic(ri, location),
@@ -33,7 +36,7 @@ func TestAccAzureRMDataSourceHealthcareService_basic(t *testing.T) {
 }
 
 func testAccAzureRMDataSourceHealthcareService_basic(rInt int, location string) string {
-	resource := testAccAzureRMHealthcareService_basic(rInt)
+	resource := testAccAzureRMHealthCareService_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 

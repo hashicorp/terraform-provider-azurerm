@@ -12,8 +12,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +27,10 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 		Read:   resourceArmAppServiceCertificateRead,
 		Update: resourceArmAppServiceCertificateCreateUpdate,
 		Delete: resourceArmAppServiceCertificateDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := webSvc.ParseAppServiceCertificateID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -115,9 +119,9 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 }
 
 func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
-	client := meta.(*ArmClient).Web.CertificatesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	client := meta.(*clients.Client).Web.CertificatesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
@@ -201,17 +205,17 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.CertificatesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.CertificatesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := webSvc.ParseAppServiceCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["certificates"]
+	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -244,16 +248,17 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.CertificatesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.CertificatesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := webSvc.ParseAppServiceCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
+
 	resourceGroup := id.ResourceGroup
-	name := id.Path["certificates"]
+	name := id.Name
 
 	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", name, resourceGroup)
 

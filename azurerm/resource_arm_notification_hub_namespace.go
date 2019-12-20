@@ -8,13 +8,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -116,8 +117,8 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 }
 
 func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).NotificationHubs.NamespacesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	// Remove in 2.0
@@ -210,8 +211,8 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).NotificationHubs.NamespacesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -261,8 +262,8 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).NotificationHubs.NamespacesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).NotificationHubs.NamespacesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

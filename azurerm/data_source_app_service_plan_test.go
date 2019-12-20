@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -13,11 +14,11 @@ import (
 func TestAccDataSourceAzureRMAppServicePlan_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service_plan.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServicePlan_basic(rInt, location),
@@ -38,11 +39,11 @@ func TestAccDataSourceAzureRMAppServicePlan_basic(t *testing.T) {
 func TestAccDataSourceAzureRMAppServicePlan_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service_plan.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServicePlan_complete(rInt, location),
@@ -64,11 +65,11 @@ func TestAccDataSourceAzureRMAppServicePlan_complete(t *testing.T) {
 func TestAccDataSourceAzureRMAppServicePlan_premiumSKU(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service_plan.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServicePlan_premiumSKU(rInt, location),
@@ -87,11 +88,11 @@ func TestAccDataSourceAzureRMAppServicePlan_premiumSKU(t *testing.T) {
 func TestAccDataSourceAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service_plan.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServicePlan_basicWindowsContainer(rInt, location),

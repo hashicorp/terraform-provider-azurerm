@@ -8,18 +8,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(ri, testLocation())
-	config2 := testAccAzureRMDataFactoryLinkedServiceSQLServer_update(ri, testLocation())
+	config := testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(ri, acceptance.Location())
+	config2 := testAccAzureRMDataFactoryLinkedServiceSQLServer_update(ri, acceptance.Location())
 	resourceName := "azurerm_data_factory_linked_service_sql_server.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -68,8 +70,8 @@ func testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(name string) resour
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).DataFactory.LinkedServiceClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
@@ -85,8 +87,8 @@ func testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(name string) resour
 }
 
 func testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).DataFactory.LinkedServiceClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_factory_linked_service_sql_server" {

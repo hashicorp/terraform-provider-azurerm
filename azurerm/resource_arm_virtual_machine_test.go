@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -18,10 +20,10 @@ func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachine_winTimeZone(ri, testLocation())
+	config := testAccAzureRMVirtualMachine_winTimeZone(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -39,10 +41,10 @@ func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualMachineSystemAssignedIdentity(ri, testLocation())
+	config := testAccAzureRMVirtualMachineSystemAssignedIdentity(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -63,10 +65,10 @@ func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
-	config := testAccAzureRMVirtualMachineUserAssignedIdentity(ri, testLocation(), rs)
+	config := testAccAzureRMVirtualMachineUserAssignedIdentity(ri, acceptance.Location(), rs)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -87,10 +89,10 @@ func TestAccAzureRMVirtualMachine_multipleAssignedIdentity(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
-	config := testAccAzureRMVirtualMachineMultipleAssignedIdentity(ri, testLocation(), rs)
+	config := testAccAzureRMVirtualMachineMultipleAssignedIdentity(ri, acceptance.Location(), rs)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -113,12 +115,12 @@ func TestAccAzureRMVirtualMachine_withPPG(t *testing.T) {
 	rs := acctest.RandString(14)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualMachinePPG(ri, testLocation(), rs),
+				Config: testAccAzureRMVirtualMachinePPG(ri, acceptance.Location(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttrSet(resourceName, "proximity_placement_group_id"),
@@ -142,8 +144,8 @@ func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.Virtu
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.VMClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vmName, "")
 		if err != nil {
@@ -161,8 +163,8 @@ func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.Virtu
 }
 
 func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Compute.VMClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_machine" {

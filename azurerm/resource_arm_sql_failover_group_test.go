@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -16,12 +18,12 @@ func TestAccAzureRMSqlFailoverGroup_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlFailoverGroup_basic(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMSqlFailoverGroup_basic(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlFailoverGroupExists(resourceName),
 				),
@@ -44,19 +46,19 @@ func TestAccAzureRMSqlFailoverGroup_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlFailoverGroup_basic(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMSqlFailoverGroup_basic(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlFailoverGroupExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMSqlFailoverGroup_requiresImport(ri, testLocation(), testAltLocation()),
-				ExpectError: testRequiresImportError("azurerm_sql_failover_group"),
+				Config:      testAccAzureRMSqlFailoverGroup_requiresImport(ri, acceptance.Location(), acceptance.AltLocation()),
+				ExpectError: acceptance.RequiresImportError("azurerm_sql_failover_group"),
 			},
 		},
 	})
@@ -67,12 +69,12 @@ func TestAccAzureRMSqlFailoverGroup_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlFailoverGroup_basic(ri, testLocation(), testAltLocation()),
+				Config: testAccAzureRMSqlFailoverGroup_basic(ri, acceptance.Location(), acceptance.AltLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlFailoverGroupExists(resourceName),
 					testCheckAzureRMSqlFailoverGroupDisappears(resourceName),
@@ -86,14 +88,14 @@ func TestAccAzureRMSqlFailoverGroup_disappears(t *testing.T) {
 func TestAccAzureRMSqlFailoverGroup_withTags(t *testing.T) {
 	resourceName := "azurerm_sql_failover_group.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
-	altLocation := testAltLocation()
+	location := acceptance.Location()
+	altLocation := acceptance.AltLocation()
 	preConfig := testAccAzureRMSqlFailoverGroup_withTags(ri, location, altLocation)
 	postConfig := testAccAzureRMSqlFailoverGroup_withTagsUpdate(ri, location, altLocation)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -124,8 +126,8 @@ func testCheckAzureRMSqlFailoverGroupExists(resourceName string) resource.TestCh
 		serverName := rs.Primary.Attributes["server_name"]
 		name := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Sql.FailoverGroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FailoverGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -152,8 +154,8 @@ func testCheckAzureRMSqlFailoverGroupDisappears(resourceName string) resource.Te
 		serverName := rs.Primary.Attributes["server_name"]
 		name := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Sql.FailoverGroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FailoverGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -178,8 +180,8 @@ func testCheckAzureRMSqlFailoverGroupDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Sql.FailoverGroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FailoverGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {

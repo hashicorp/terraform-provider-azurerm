@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -123,8 +124,8 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 }
 
 func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AnalysisServices.ServerClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).AnalysisServices.ServerClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
@@ -184,8 +185,8 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AnalysisServices.ServerClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).AnalysisServices.ServerClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -243,8 +244,8 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AnalysisServices.ServerClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).AnalysisServices.ServerClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
@@ -280,8 +281,8 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAnalysisServicesServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).AnalysisServices.ServerClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).AnalysisServices.ServerClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

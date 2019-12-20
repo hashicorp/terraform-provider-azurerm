@@ -18,6 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -26,10 +27,11 @@ import (
 
 func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate,
-		Read:   resourceArmRecoveryServicesProtectionPolicyVmRead,
-		Update: resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate,
-		Delete: resourceArmRecoveryServicesProtectionPolicyVmDelete,
+		DeprecationMessage: "`azurerm_recovery_services_protection_policy_vm` resource is deprecated in favor of `azurerm_backup_policy_vm` and will be removed in v2.0 of the AzureRM Provider",
+		Create:             resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate,
+		Read:               resourceArmRecoveryServicesProtectionPolicyVmRead,
+		Update:             resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate,
+		Delete:             resourceArmRecoveryServicesProtectionPolicyVmDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -283,8 +285,8 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 }
 
 func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).RecoveryServices.ProtectionPoliciesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	policyName := d.Get("name").(string)
@@ -346,8 +348,8 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 }
 
 func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).RecoveryServices.ProtectionPoliciesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -423,8 +425,8 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 }
 
 func resourceArmRecoveryServicesProtectionPolicyVmDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).RecoveryServices.ProtectionPoliciesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

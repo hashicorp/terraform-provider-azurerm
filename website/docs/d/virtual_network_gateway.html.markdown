@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_gateway"
 sidebar_current: "docs-azurerm-datasource-virtual-network-gateway"
@@ -14,13 +14,13 @@ Use this data source to access information about an existing Virtual Network Gat
 ## Example Usage
 
 ```hcl
-data "azurerm_virtual_network_gateway" "test" {
+data "azurerm_virtual_network_gateway" "example" {
   name                = "production"
   resource_group_name = "networking"
 }
 
 output "virtual_network_gateway_id" {
-  value = "${data.azurerm_virtual_network_gateway.test.id}"
+  value = "${data.azurerm_virtual_network_gateway.example.id}"
 }
 ```
 
@@ -50,6 +50,8 @@ output "virtual_network_gateway_id" {
     [Azure documentation on forced tunneling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
 
 * `sku` - Configuration of the size and capacity of the Virtual Network Gateway.
+
+* `generation` - The Generation of the Virtual Network Gateway.
 
 * `ip_configuration` - One or two `ip_configuration` blocks documented below.
 

@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -16,12 +18,12 @@ func TestAccAzureRMPostgreSQLFirewallRule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
@@ -47,12 +49,12 @@ func TestAccAzureRMPostgreSQLFirewallRule_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLFirewallRule_basic(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLFirewallRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
@@ -60,8 +62,8 @@ func TestAccAzureRMPostgreSQLFirewallRule_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMPostgreSQLFirewallRule_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_postgresql_firewall_rule"),
+				Config:      testAccAzureRMPostgreSQLFirewallRule_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_postgresql_firewall_rule"),
 			},
 		},
 	})
@@ -82,8 +84,8 @@ func testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Firewall Rule: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Postgres.FirewallRulesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.FirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -99,8 +101,8 @@ func testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName string) resource.
 }
 
 func testCheckAzureRMPostgreSQLFirewallRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Postgres.DatabasesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.DatabasesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_postgresql_firewall_rule" {

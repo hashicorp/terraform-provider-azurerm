@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_application_security_group.test"
-	config := testAccAzureRMApplicationSecurityGroup_basic(ri, testLocation())
+	config := testAccAzureRMApplicationSecurityGroup_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -39,12 +41,12 @@ func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
 	}
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_application_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -55,7 +57,7 @@ func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApplicationSecurityGroup_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_app_service_custom_hostname_binding"),
+				ExpectError: acceptance.RequiresImportError("azurerm_app_service_custom_hostname_binding"),
 			},
 		},
 	})
@@ -64,11 +66,11 @@ func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
 func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_application_security_group.test"
-	config := testAccAzureRMApplicationSecurityGroup_complete(ri, testLocation())
+	config := testAccAzureRMApplicationSecurityGroup_complete(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -85,12 +87,12 @@ func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 
 func TestAccAzureRMApplicationSecurityGroup_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_application_security_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -121,8 +123,8 @@ func testCheckAzureRMApplicationSecurityGroupDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.ApplicationSecurityGroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationSecurityGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 
@@ -154,8 +156,8 @@ func testCheckAzureRMApplicationSecurityGroupExists(resourceName string) resourc
 			return fmt.Errorf("Bad: no resource group found in state for Application Security Group: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.ApplicationSecurityGroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationSecurityGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {

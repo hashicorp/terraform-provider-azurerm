@@ -14,20 +14,20 @@ Enables you to manage DNS TXT Records within Azure DNS.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_dns_zone" "test" {
+resource "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_dns_txt_record" "test" {
+resource "azurerm_dns_txt_record" "example" {
   name                = "test"
-  zone_name           = "${azurerm_dns_zone.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   ttl                 = 300
 
   record {
@@ -68,11 +68,12 @@ The `record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS TXT Record ID.
+* `fqdn` - The FQDN of the DNS TXT Record.
 
 ## Import
 
 TXT records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_txt_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/TXT/myrecord1
+terraform import azurerm_dns_txt_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/TXT/myrecord1
 ```

@@ -3,14 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -38,17 +38,14 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryPipelineName,
+				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 			},
 
 			"data_factory_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`),
-					`Invalid data_factory_name, see https://docs.microsoft.com/en-us/azure/data-factory/naming-rules`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.DataFactoryName(),
 			},
 
 			// There's a bug in the Azure API where this is returned in lower-case
@@ -88,8 +85,8 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 }
 
 func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DataFactory.PipelinesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DataFactory.PipelinesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Data Factory Pipeline creation.")
@@ -149,8 +146,8 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DataFactory.PipelinesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DataFactory.PipelinesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -197,8 +194,8 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDataFactoryPipelineDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DataFactory.PipelinesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DataFactory.PipelinesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -214,13 +211,4 @@ func resourceArmDataFactoryPipelineDelete(d *schema.ResourceData, meta interface
 	}
 
 	return nil
-}
-
-func validateAzureRMDataFactoryPipelineName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if regexp.MustCompile(`^[.+?/<>*%&:\\]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("any of '.', '+', '?', '/', '<', '>', '*', '%%', '&', ':', '\\', are not allowed in %q: %q", k, value))
-	}
-
-	return warnings, errors
 }

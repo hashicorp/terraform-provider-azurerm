@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -63,8 +64,8 @@ func resourceArmSqlAdministrator() *schema.Resource {
 }
 
 func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Sql.ServerAzureADAdministratorsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Sql.ServerAzureADAdministratorsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	serverName := d.Get("server_name").(string)
@@ -115,8 +116,8 @@ func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceDa
 }
 
 func resourceArmSqlActiveDirectoryAdministratorRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Sql.ServerAzureADAdministratorsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Sql.ServerAzureADAdministratorsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -148,8 +149,8 @@ func resourceArmSqlActiveDirectoryAdministratorRead(d *schema.ResourceData, meta
 }
 
 func resourceArmSqlActiveDirectoryAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Sql.ServerAzureADAdministratorsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Sql.ServerAzureADAdministratorsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -15,21 +17,17 @@ import (
 func TestAccAzureRMVirtualWan_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_wan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualWanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualWan_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualWanExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "disable_vpn_encryption"),
-					resource.TestCheckResourceAttrSet(resourceName, "allow_branch_to_branch_traffic"),
-					resource.TestCheckResourceAttrSet(resourceName, "allow_vnet_to_vnet_traffic"),
-					resource.TestCheckResourceAttrSet(resourceName, "office365_local_breakout_category"),
 				),
 			},
 			{
@@ -40,6 +38,7 @@ func TestAccAzureRMVirtualWan_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMVirtualWan_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -49,24 +48,19 @@ func TestAccAzureRMVirtualWan_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualWanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualWan_basic(ri, testLocation()),
+				Config: testAccAzureRMVirtualWan_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualWanExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "disable_vpn_encryption"),
-					resource.TestCheckResourceAttrSet(resourceName, "security_provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "allow_branch_to_branch_traffic"),
-					resource.TestCheckResourceAttrSet(resourceName, "allow_vnet_to_vnet_traffic"),
-					resource.TestCheckResourceAttrSet(resourceName, "office365_local_breakout_category"),
 				),
 			},
 			{
-				Config:      testAccAzureRMVirtualWan_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_virtual_wan"),
+				Config:      testAccAzureRMVirtualWan_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_virtual_wan"),
 			},
 		},
 	})
@@ -77,22 +71,14 @@ func TestAccAzureRMVirtualWan_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualWanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualWan_complete(ri, testLocation()),
+				Config: testAccAzureRMVirtualWan_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualWanExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "disable_vpn_encryption", "false"),
-					resource.TestCheckResourceAttr(resourceName, "security_provider_name", ""),
-					resource.TestCheckResourceAttr(resourceName, "allow_branch_to_branch_traffic", "true"),
-					resource.TestCheckResourceAttr(resourceName, "allow_vnet_to_vnet_traffic", "true"),
-					resource.TestCheckResourceAttr(resourceName, "office365_local_breakout_category", "All"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Hello", "There"),
-					resource.TestCheckResourceAttr(resourceName, "tags.World", "Example"),
 				),
 			},
 			{
@@ -105,8 +91,8 @@ func TestAccAzureRMVirtualWan_complete(t *testing.T) {
 }
 
 func testCheckAzureRMVirtualWanDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.VirtualWanClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualWanClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_wan" {
@@ -146,8 +132,8 @@ func testCheckAzureRMVirtualWanExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for Virtual WAN: %s", virtualWanName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.VirtualWanClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualWanClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualWanName)
 		if err != nil {
@@ -171,22 +157,21 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_wan" "test" {
   name                = "acctestvwan%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 `, rInt, location, rInt)
 }
 
 func testAccAzureRMVirtualWan_requiresImport(rInt int, location string) string {
 	template := testAccAzureRMVirtualWan_basic(rInt, location)
-
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_virtual_wan" "import" {
-  name                = "${azurerm_virtual_wan.test.name}"
-  resource_group_name = "${azurerm_virtual_wan.test.resource_group_name}"
-  location            = "${azurerm_virtual_wan.test.location}"
+  name                = azurerm_virtual_wan.test.name
+  resource_group_name = azurerm_virtual_wan.test.resource_group_name
+  location            = azurerm_virtual_wan.test.location
 }
 `, template)
 }
@@ -200,14 +185,12 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_wan" "test" {
   name                = "acctestvwan%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
-  disable_vpn_encryption = false
-
-  allow_branch_to_branch_traffic = true
-  allow_vnet_to_vnet_traffic     = true
-
+  disable_vpn_encryption            = false
+  allow_branch_to_branch_traffic    = true
+  allow_vnet_to_vnet_traffic        = true
   office365_local_breakout_category = "All"
 
   tags = {

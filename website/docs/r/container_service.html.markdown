@@ -19,15 +19,15 @@ Manages an Azure Container Service Instance
 ## Example Usage (DCOS)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctestRG1"
   location = "West US"
 }
 
-resource "azurerm_container_service" "test" {
+resource "azurerm_container_service" "example" {
   name                   = "acctestcontservice1"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  location               = "${azurerm_resource_group.example.location}"
+  resource_group_name    = "${azurerm_resource_group.example.name}"
   orchestration_platform = "DCOS"
 
   master_profile {
@@ -63,15 +63,15 @@ resource "azurerm_container_service" "test" {
 ## Example Usage (Kubernetes)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctestRG1"
   location = "West US"
 }
 
-resource "azurerm_container_service" "test" {
+resource "azurerm_container_service" "example" {
   name                   = "acctestcontservice1"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  location               = "${azurerm_resource_group.example.location}"
+  resource_group_name    = "${azurerm_resource_group.example.name}"
   orchestration_platform = "Kubernetes"
 
   master_profile {
@@ -112,15 +112,15 @@ resource "azurerm_container_service" "test" {
 ## Example Usage (Swarm)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctestRG1"
   location = "West US"
 }
 
-resource "azurerm_container_service" "test" {
+resource "azurerm_container_service" "example" {
   name                   = "acctestcontservice1"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  location               = "${azurerm_resource_group.example.location}"
+  resource_group_name    = "${azurerm_resource_group.example.name}"
   orchestration_platform = "Swarm"
 
   master_profile {

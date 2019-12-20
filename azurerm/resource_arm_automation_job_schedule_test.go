@@ -7,7 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	uuid "github.com/satori/go.uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,12 +20,12 @@ func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationJobSchedule_basic(ri, acceptance.Location()),
 				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
 			},
 			{
@@ -38,12 +42,12 @@ func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationJobSchedule_complete(ri, testLocation()),
+				Config: testAccAzureRMAutomationJobSchedule_complete(ri, acceptance.Location()),
 				Check:  checkAccAzureRMAutomationJobSchedule_complete(resourceName),
 			},
 			{
@@ -60,20 +64,20 @@ func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationJobSchedule_basic(ri, acceptance.Location()),
 				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
 			},
 			{
-				Config: testAccAzureRMAutomationJobSchedule_complete(ri, testLocation()),
+				Config: testAccAzureRMAutomationJobSchedule_complete(ri, acceptance.Location()),
 				Check:  checkAccAzureRMAutomationJobSchedule_complete(resourceName),
 			},
 			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(ri, testLocation()),
+				Config: testAccAzureRMAutomationJobSchedule_basic(ri, acceptance.Location()),
 				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
 			},
 			{
@@ -86,18 +90,18 @@ func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
 	resourceName := "azurerm_automation_job_schedule.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -106,22 +110,22 @@ func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAutomationJobSchedule_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_automation_job_schedule"),
+				ExpectError: acceptance.RequiresImportError("azurerm_automation_job_schedule"),
 			},
 		},
 	})
 }
 
 func testCheckAzureRMAutomationJobScheduleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Automation.JobScheduleClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.JobScheduleClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_automation_job_schedule" {
 			continue
 		}
 
-		id, err := parseAzureResourceID(rs.Primary.Attributes["id"])
+		id, err := azure.ParseAzureResourceID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}
@@ -152,8 +156,8 @@ func testCheckAzureRMAutomationJobScheduleDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAutomationJobScheduleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).Automation.JobScheduleClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.JobScheduleClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -161,7 +165,7 @@ func testCheckAzureRMAutomationJobScheduleExists(resourceName string) resource.T
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parseAzureResourceID(rs.Primary.Attributes["id"])
+		id, err := azure.ParseAzureResourceID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}

@@ -7,17 +7,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMResources_ByName(t *testing.T) {
 	dataSourceName := "data.azurerm_resources.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location),
@@ -36,11 +37,11 @@ func TestAccDataSourceAzureRMResources_ByResourceGroup(t *testing.T) {
 	dataSourceName := "data.azurerm_resources.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location),
@@ -59,11 +60,11 @@ func TestAccDataSourceAzureRMResources_ByResourceType(t *testing.T) {
 	dataSourceName := "data.azurerm_resources.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location),
@@ -82,11 +83,11 @@ func TestAccDataSourceAzureRMResources_FilteredByTags(t *testing.T) {
 	dataSourceName := "data.azurerm_resources.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location),

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -12,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -28,6 +30,13 @@ func resourceArmMetricAlertRule() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		DeprecationMessage: `The 'azurerm_metric_alertrule' resource is deprecated in favour of the renamed version 'azurerm_monitor_metric_alertrule'.
 
 Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
@@ -167,8 +176,8 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 }
 
 func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Monitor.AlertRulesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Monitor.AlertRulesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Alert Rule creation.")
@@ -222,8 +231,8 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Monitor.AlertRulesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Monitor.AlertRulesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
@@ -320,8 +329,8 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Monitor.AlertRulesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Monitor.AlertRulesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())

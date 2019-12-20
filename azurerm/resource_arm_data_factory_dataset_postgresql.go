@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -12,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -44,13 +44,10 @@ func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
 			},
 
 			"data_factory_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`),
-					`Invalid name for Data Factory, see https://docs.microsoft.com/en-us/azure/data-factory/naming-rules`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.DataFactoryName(),
 			},
 
 			// There's a bug in the Azure API where this is returned in lower-case
@@ -149,8 +146,8 @@ func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
 }
 
 func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DataFactory.DatasetClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DataFactory.DatasetClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -237,8 +234,8 @@ func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData,
 }
 
 func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DataFactory.DatasetClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DataFactory.DatasetClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -314,8 +311,8 @@ func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta in
 }
 
 func resourceArmDataFactoryDatasetPostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).DataFactory.DatasetClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).DataFactory.DatasetClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

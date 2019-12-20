@@ -6,16 +6,17 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLogicAppTriggerHttpRequest_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -42,10 +43,10 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -56,7 +57,7 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLogicAppTriggerHttpRequest_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_logic_app_trigger_http_request"),
+				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_trigger_http_request"),
 			},
 		},
 	})
@@ -65,10 +66,10 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_requiresImport(t *testing.T) {
 func TestAccAzureRMLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -90,10 +91,10 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_fullSchema(t *testing.T) {
 func TestAccAzureRMLogicAppTriggerHttpRequest_method(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -115,10 +116,10 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_method(t *testing.T) {
 func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 	resourceName := "azurerm_logic_app_trigger_http_request.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -140,10 +141,10 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_relativePath(t *testing.T) {
 
 func TestAccAzureRMLogicAppTriggerHttpRequest_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{

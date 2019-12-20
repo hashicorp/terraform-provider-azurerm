@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -139,6 +140,7 @@ func resourceArmMySqlServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.FiveFullStopSix),
 					string(mysql.FiveFullStopSeven),
+					"8.0", //TODO: Update to EightFullStopZero ServerVersion constant when available in Azure Go SDK https://github.com/Azure/azure-rest-api-specs/pull/7864
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ForceNew:         true,
@@ -214,8 +216,8 @@ func resourceArmMySqlServer() *schema.Resource {
 }
 
 func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.ServersClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).MySQL.ServersClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
@@ -285,8 +287,8 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.ServersClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).MySQL.ServersClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server update.")
@@ -336,8 +338,8 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.ServersClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).MySQL.ServersClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -383,8 +385,8 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.ServersClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).MySQL.ServersClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

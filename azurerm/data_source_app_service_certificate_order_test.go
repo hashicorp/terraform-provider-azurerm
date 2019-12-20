@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
@@ -17,11 +18,11 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 
 	dataSourceName := "data.azurerm_app_service_certificate_order.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServiceCertificateOrder_basic(rInt, location),
@@ -44,11 +45,11 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 
 	dataSourceName := "data.azurerm_app_service_certificate_order.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServiceCertificateOrder_wildcard(rInt, location),
@@ -71,11 +72,11 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 
 	dataSourceName := "data.azurerm_app_service_certificate_order.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServiceCertificateOrder_complete(rInt, location),

@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -17,11 +19,11 @@ import (
 func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
+	config := testAccAzureRMKeyVaultSecret_basic(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -43,11 +45,11 @@ func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 func TestAccAzureRMKeyVaultSecret_basicClassic(t *testing.T) {
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basicClasic(rs, testLocation())
+	config := testAccAzureRMKeyVaultSecret_basicClasic(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -74,11 +76,11 @@ func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -90,7 +92,7 @@ func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMKeyVaultSecret_requiresImport(rs, location),
-				ExpectError: testRequiresImportError("azurerm_key_vault_secret"),
+				ExpectError: acceptance.RequiresImportError("azurerm_key_vault_secret"),
 			},
 		},
 	})
@@ -99,11 +101,11 @@ func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
+	config := testAccAzureRMKeyVaultSecret_basic(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -120,11 +122,11 @@ func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
 
 func TestAccAzureRMKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
+	config := testAccAzureRMKeyVaultSecret_basic(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -142,17 +144,19 @@ func TestAccAzureRMKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing
 func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_complete(rs, testLocation())
+	config := testAccAzureRMKeyVaultSecret_complete(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultSecretExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "not_before_date", "2019-01-01T01:02:03Z"),
+					resource.TestCheckResourceAttr(resourceName, "expiration_date", "2020-01-01T01:02:03Z"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
@@ -169,12 +173,12 @@ func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
 	resourceName := "azurerm_key_vault_secret.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
-	updatedConfig := testAccAzureRMKeyVaultSecret_basicUpdated(rs, testLocation())
+	config := testAccAzureRMKeyVaultSecret_basic(rs, acceptance.Location())
+	updatedConfig := testAccAzureRMKeyVaultSecret_basicUpdated(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -196,8 +200,8 @@ func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
 }
 
 func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).KeyVault.ManagementClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_key_vault_secret" {
@@ -208,7 +212,7 @@ func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
-		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).KeyVault.VaultsClient, keyVaultId)
+		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
@@ -234,8 +238,8 @@ func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 
 func testCheckAzureRMKeyVaultSecretExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).KeyVault.ManagementClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -246,7 +250,7 @@ func testCheckAzureRMKeyVaultSecretExists(resourceName string) resource.TestChec
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
-		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).KeyVault.VaultsClient, keyVaultId)
+		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
@@ -270,8 +274,8 @@ func testCheckAzureRMKeyVaultSecretExists(resourceName string) resource.TestChec
 
 func testCheckAzureRMKeyVaultSecretDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).KeyVault.ManagementClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -282,7 +286,7 @@ func testCheckAzureRMKeyVaultSecretDisappears(resourceName string) resource.Test
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 
-		ok, err := azure.KeyVaultExists(ctx, testAccProvider.Meta().(*ArmClient).KeyVault.VaultsClient, keyVaultId)
+		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
@@ -445,10 +449,12 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_secret" "test" {
-  name         = "secret-%s"
-  value        = "<rick><morty /></rick>"
-  key_vault_id = "${azurerm_key_vault.test.id}"
-  content_type = "application/xml"
+  name            = "secret-%s"
+  value           = "<rick><morty /></rick>"
+  key_vault_id    = "${azurerm_key_vault.test.id}"
+  content_type    = "application/xml"
+  not_before_date = "2019-01-01T01:02:03Z"
+  expiration_date = "2020-01-01T01:02:03Z"
 
   tags = {
     "hello" = "world"

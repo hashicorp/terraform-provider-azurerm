@@ -5,20 +5,22 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDevTestVirtualMachine_basic(t *testing.T) {
 	resourceName := "azurerm_dev_test_windows_virtual_machine.test"
-	rInt := acctest.RandIntRange(11111, 99999)
-	location := testLocation()
+	rInt := tf.AccRandTimeInt()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -51,12 +53,12 @@ func TestAccAzureRMDevTestVirtualMachine_requiresImport(t *testing.T) {
 	}
 
 	resourceName := "azurerm_dev_test_windows_virtual_machine.test"
-	rInt := acctest.RandIntRange(11111, 99999)
-	location := testLocation()
+	rInt := tf.AccRandTimeInt()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -67,7 +69,7 @@ func TestAccAzureRMDevTestVirtualMachine_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDevTestWindowsVirtualMachine_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_dev_test_windows_virtual_machine"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_windows_virtual_machine"),
 			},
 		},
 	})
@@ -75,12 +77,12 @@ func TestAccAzureRMDevTestVirtualMachine_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 	resourceName := "azurerm_dev_test_windows_virtual_machine.test"
-	rInt := acctest.RandIntRange(11111, 99999)
-	location := testLocation()
+	rInt := tf.AccRandTimeInt()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -111,12 +113,12 @@ func TestAccAzureRMDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 
 func TestAccAzureRMDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
 	resourceName := "azurerm_dev_test_windows_virtual_machine.test"
-	rInt := acctest.RandIntRange(11111, 99999)
-	location := testLocation()
+	rInt := tf.AccRandTimeInt()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -153,8 +155,8 @@ func testCheckAzureRMDevTestWindowsVirtualMachineExists(resourceName string) res
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).DevTestLabs.VirtualMachinesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualMachinesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, labName, virtualMachineName, "")
 		if err != nil {
@@ -170,8 +172,8 @@ func testCheckAzureRMDevTestWindowsVirtualMachineExists(resourceName string) res
 }
 
 func testCheckAzureRMDevTestWindowsVirtualMachineDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).DevTestLabs.VirtualMachinesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualMachinesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dev_test_windows_virtual_machine" {
@@ -222,7 +224,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, rInt)
+`, template, rInt%1000000)
 }
 
 func testAccAzureRMDevTestWindowsVirtualMachine_requiresImport(rInt int, location string) string {
@@ -291,7 +293,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
     "Acceptance" = "Test"
   }
 }
-`, template, rInt)
+`, template, rInt%1000000)
 }
 
 func testAccAzureRMDevTestWindowsVirtualMachine_storage(rInt int, location, storageType string) string {
@@ -318,7 +320,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, rInt, storageType)
+`, template, rInt%1000000, storageType)
 }
 
 func testAccAzureRMDevTestWindowsVirtualMachine_template(rInt int, location string) string {

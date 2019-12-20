@@ -44,7 +44,7 @@ The (simplified) Terraform configuration below provisions a virtual machine with
 ```hcl
 data "azurerm_subscription" "current" {}
 
-resource "azurerm_virtual_machine" "test" {
+resource "azurerm_virtual_machine" "example" {
   # ...
 
   identity {
@@ -56,11 +56,11 @@ data "azurerm_builtin_role_definition" "contributor" {
   name = "Contributor"
 }
 
-resource "azurerm_role_assignment" "test" {
-  name               = "${azurerm_virtual_machine.test.name}"
+resource "azurerm_role_assignment" "example" {
+  name               = "${azurerm_virtual_machine.example.name}"
   scope              = "${data.azurerm_subscription.primary.id}"
   role_definition_id = "${data.azurerm_subscription.subscription.id}${data.azurerm_builtin_role_definition.contributor.id}"
-  principal_id       = "${lookup(azurerm_virtual_machine.test.identity[0], "principal_id")}"
+  principal_id       = "${lookup(azurerm_virtual_machine.example.identity[0], "principal_id")}"
 }
 ```
 

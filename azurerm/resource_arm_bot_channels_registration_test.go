@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -25,8 +27,10 @@ func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 			"complete": testAccAzureRMBotConnection_complete,
 		},
 		"channel": {
-			"slackBasic":  testAccAzureRMBotChannelSlack_basic,
-			"slackUpdate": testAccAzureRMBotChannelSlack_update,
+			"slackBasic":    testAccAzureRMBotChannelSlack_basic,
+			"slackUpdate":   testAccAzureRMBotChannelSlack_update,
+			"msteamsBasic":  testAccAzureRMBotChannelMsTeams_basic,
+			"msteamsUpdate": testAccAzureRMBotChannelMsTeams_update,
 		},
 		"web_app": {
 			"basic":    testAccAzureRMBotWebApp_basic,
@@ -50,12 +54,12 @@ func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 
 func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelsRegistration_basicConfig(ri, testLocation())
+	config := testAccAzureRMBotChannelsRegistration_basicConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_channels_registration.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -76,13 +80,13 @@ func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 
 func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelsRegistration_basicConfig(ri, testLocation())
-	config2 := testAccAzureRMBotChannelsRegistration_updateConfig(ri, testLocation())
+	config := testAccAzureRMBotChannelsRegistration_basicConfig(ri, acceptance.Location())
+	config2 := testAccAzureRMBotChannelsRegistration_updateConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_channels_registration.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -115,12 +119,12 @@ func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 
 func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelsRegistration_completeConfig(ri, testLocation())
+	config := testAccAzureRMBotChannelsRegistration_completeConfig(ri, acceptance.Location())
 	resourceName := "azurerm_bot_channels_registration.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -153,8 +157,8 @@ func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channels Registration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Bot.BotClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.BotClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -170,8 +174,8 @@ func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestChe
 }
 
 func testCheckAzureRMBotChannelsRegistrationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Bot.BotClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.BotClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_bot" {

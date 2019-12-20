@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -20,11 +22,11 @@ func TestAccAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 
 	resourceName := "azurerm_app_service_certificate_order.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceCertificateOrder_basic(ri, testLocation())
+	config := testAccAzureRMAppServiceCertificateOrder_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -54,11 +56,11 @@ func TestAccAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 
 	resourceName := "azurerm_app_service_certificate_order.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceCertificateOrder_wildcard(ri, testLocation())
+	config := testAccAzureRMAppServiceCertificateOrder_wildcard(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -93,11 +95,11 @@ func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_app_service_certificate_order.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -108,7 +110,7 @@ func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAppServiceCertificateOrder_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_app_service_certificate_order"),
+				ExpectError: acceptance.RequiresImportError("azurerm_app_service_certificate_order"),
 			},
 		},
 	})
@@ -122,11 +124,11 @@ func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 
 	resourceName := "azurerm_app_service_certificate_order.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceCertificateOrder_complete(ri, testLocation(), 4096)
+	config := testAccAzureRMAppServiceCertificateOrder_complete(ri, acceptance.Location(), 4096)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -161,12 +163,12 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceCertificateOrder_basic(ri, testLocation()),
+				Config: testAccAzureRMAppServiceCertificateOrder_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceCertificateOrderExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "csr"),
@@ -176,7 +178,7 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMAppServiceCertificateOrder_complete(ri, testLocation(), 2048), // keySize cannot be updated
+				Config: testAccAzureRMAppServiceCertificateOrder_complete(ri, acceptance.Location(), 2048), // keySize cannot be updated
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceCertificateOrderExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
@@ -185,7 +187,7 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMAppServiceCertificateOrder_basic(ri, testLocation()),
+				Config: testAccAzureRMAppServiceCertificateOrder_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceCertificateOrderExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
@@ -204,7 +206,7 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 }
 
 func testCheckAzureRMAppServiceCertificateOrderDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Web.CertificatesOrderClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.CertificatesOrderClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service" {
@@ -214,7 +216,7 @@ func testCheckAzureRMAppServiceCertificateOrderDestroy(s *terraform.State) error
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -244,8 +246,8 @@ func testCheckAzureRMAppServiceCertificateOrderExists(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for App Service Certificate Order: %s", appServiceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Web.CertificatesOrderClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.CertificatesOrderClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, appServiceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

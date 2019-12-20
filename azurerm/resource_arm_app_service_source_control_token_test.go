@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,8 +21,8 @@ func TestAccAzureRMAppServiceSourceControlToken(t *testing.T) {
 	config := testAccAzureRMAppServiceSourceControlToken(token, tokenSecret)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceSourceControlTokenDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -51,8 +53,8 @@ resource "azurerm_app_service_source_control_token" "test" {
 }
 
 func testCheckAzureRMAppServiceSourceControlTokenDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Web.BaseClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Web.BaseClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_source_control_token" {

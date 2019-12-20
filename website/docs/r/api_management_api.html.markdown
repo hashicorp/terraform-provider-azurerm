@@ -14,25 +14,25 @@ Manages an API within an API Management Service.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_api_management" "test" {
+resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
   sku_name = "Developer_1"
 }
 
-resource "azurerm_api_management_api" "test" {
+resource "azurerm_api_management_api" "example" {
   name                = "example-api"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  api_management_name = "${azurerm_api_management.example.name}"
   revision            = "1"
   display_name        = "Example API"
   path                = "example"
@@ -128,5 +128,5 @@ In addition to all arguments above, the following attributes are exported:
 API Management API's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_api.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1
+terraform import azurerm_api_management_api.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1
 ```

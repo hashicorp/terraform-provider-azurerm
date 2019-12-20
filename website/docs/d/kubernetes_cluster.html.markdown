@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
 sidebar_current: "docs-azurerm-data-source-kubernetes-cluster"
@@ -17,7 +17,7 @@ Use this data source to access information about an existing Managed Kubernetes 
 ## Example Usage
 
 ```hcl
-data "azurerm_kubernetes_cluster" "test" {
+data "azurerm_kubernetes_cluster" "example" {
   name                = "myakscluster"
   resource_group_name = "my-example-resource-group"
 }
@@ -37,6 +37,10 @@ The following attributes are exported:
 
 * `id` - The ID of the Kubernetes Managed Cluster.
 
+* `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the masters.
+
+-> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
+
 * `addon_profile` - A `addon_profile` block as documented below.
 
 * `agent_pool_profile` - An `agent_pool_profile` block as documented below.
@@ -44,6 +48,10 @@ The following attributes are exported:
 * `dns_prefix` - The DNS Prefix of the managed Kubernetes cluster.
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
+
+* `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located                   
+
+-> **NOTE:**  At this time Private Link is in Public Preview.
 
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 
@@ -54,6 +62,10 @@ The following attributes are exported:
 * `kube_config_raw` - Base64 encoded Kubernetes configuration.
 
 * `kubernetes_version` - The version of Kubernetes used on the managed Kubernetes Cluster.
+
+* `private_link_enabled` - Does this Kubernetes Cluster have the Kubernetes API exposed via Private Link?                           
+
+-> **NOTE:** At this time Private Link is in Public Preview
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 

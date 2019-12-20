@@ -5,13 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_key(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Key Management"),
@@ -28,8 +29,8 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_key(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secret(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Secret Management"),
@@ -46,8 +47,8 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secret(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_certificate(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Certificate Management"),
@@ -64,8 +65,8 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_certificate(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecret(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Key & Secret Management"),
@@ -82,8 +83,8 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecret(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keyCertificate(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Key & Certificate Management"),
@@ -100,8 +101,8 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keyCertificate(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secretCertificate(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Secret & Certificate Management"),
@@ -118,8 +119,8 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secretCertificate(t *testing.T
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecretCertificate(t *testing.T) {
 	dataSourceName := "data.azurerm_key_vault_access_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Key, Secret, & Certificate Management"),

@@ -9,6 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -18,11 +21,11 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,11 +53,11 @@ func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -65,7 +68,7 @@ func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMStorageContainer_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_storage_container"),
+				ExpectError: acceptance.RequiresImportError("azurerm_storage_container"),
 			},
 		},
 	})
@@ -76,11 +79,11 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -111,11 +114,11 @@ func TestAccAzureRMStorageContainer_metaData(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -159,11 +162,11 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 	resourceName := "azurerm_storage_container.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -183,11 +186,11 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -211,11 +214,11 @@ func TestAccAzureRMStorageContainer_web(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -241,8 +244,8 @@ func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
@@ -280,8 +283,8 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
@@ -313,8 +316,8 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
@@ -496,7 +499,7 @@ func TestValidateArmStorageContainerName(t *testing.T) {
 		"$web",
 	}
 	for _, v := range validNames {
-		_, errors := validateArmStorageContainerName(v, "name")
+		_, errors := validate.StorageContainerName(v, "name")
 		if len(errors) != 0 {
 			t.Fatalf("%q should be a valid Storage Container Name: %q", v, errors)
 		}
@@ -513,7 +516,7 @@ func TestValidateArmStorageContainerName(t *testing.T) {
 		strings.Repeat("w", 65),
 	}
 	for _, v := range invalidNames {
-		_, errors := validateArmStorageContainerName(v, "name")
+		_, errors := validate.StorageContainerName(v, "name")
 		if len(errors) == 0 {
 			t.Fatalf("%q should be an invalid Storage Container Name", v)
 		}

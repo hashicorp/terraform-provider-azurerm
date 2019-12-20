@@ -1,8 +1,8 @@
 ---
-subcategory: "Messaging"
+subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_shared_access_policy"
-sidebar_current: "docs-azurerm-resource-messaging-iothub-shared-access-policy-x"
+sidebar_current: "docs-azurerm-resource-iothub-shared-access-policy-x"
 description: |-
   Manages an IotHub Shared Access Policy
 ---

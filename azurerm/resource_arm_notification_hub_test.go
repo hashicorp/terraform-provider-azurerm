@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -16,12 +18,12 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHub_basic(ri, testLocation()),
+				Config: testAccAzureRMNotificationHub_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
@@ -47,12 +49,12 @@ func TestAccAzureRMNotificationHub_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHub_basic(ri, testLocation()),
+				Config: testAccAzureRMNotificationHub_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
@@ -60,8 +62,8 @@ func TestAccAzureRMNotificationHub_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMNotificationHub_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_notification_hub"),
+				Config:      testAccAzureRMNotificationHub_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_notification_hub"),
 			},
 		},
 	})
@@ -74,8 +76,8 @@ func testCheckAzureRMNotificationHubExists(resourceName string) resource.TestChe
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).NotificationHubs.HubsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		namespaceName := rs.Primary.Attributes["namespace_name"]
@@ -95,8 +97,8 @@ func testCheckAzureRMNotificationHubExists(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).NotificationHubs.HubsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).NotificationHubs.HubsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_notification_hub" {

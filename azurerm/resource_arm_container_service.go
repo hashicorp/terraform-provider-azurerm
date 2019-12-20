@@ -2,17 +2,19 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -25,6 +27,13 @@ func resourceArmContainerService() *schema.Resource {
 		Read:   resourceArmContainerServiceRead,
 		Update: resourceArmContainerServiceCreateUpdate,
 		Delete: resourceArmContainerServiceDelete,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(90 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(90 * time.Minute),
+			Delete: schema.DefaultTimeout(90 * time.Minute),
+		},
 
 		DeprecationMessage: `Azure Container Service (ACS) has been deprecated in favour of Azure (Managed) Kubernetes Service (AKS).
 
@@ -200,8 +209,8 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 }
 
 func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	containerServiceClient := client.Containers.ServicesClient
 
@@ -271,7 +280,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Updating", "Creating"},
 		Target:     []string{"Succeeded"},
-		Refresh:    containerServiceStateRefreshFunc(client, resGroup, name),
+		Refresh:    containerServiceStateRefreshFunc(ctx, client, resGroup, name),
 		MinTimeout: 15 * time.Second,
 	}
 
@@ -295,8 +304,8 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) error {
-	containerServiceClient := meta.(*ArmClient).Containers.ServicesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	containerServiceClient := meta.(*clients.Client).Containers.ServicesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -347,8 +356,8 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	containerServiceClient := client.Containers.ServicesClient
 
@@ -562,9 +571,8 @@ func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []contai
 	return profiles
 }
 
-func containerServiceStateRefreshFunc(client *ArmClient, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
+func containerServiceStateRefreshFunc(ctx context.Context, client *clients.Client, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		ctx := client.StopContext
 		res, err := client.Containers.ServicesClient.Get(ctx, resourceGroupName, containerServiceName)
 		if err != nil {
 			return nil, "", fmt.Errorf("Error issuing read request in containerServiceStateRefreshFunc to Azure ARM for Container Service '%s' (RG: '%s'): %s", containerServiceName, resourceGroupName, err)

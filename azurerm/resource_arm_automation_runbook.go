@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -135,8 +136,8 @@ func resourceArmAutomationRunbook() *schema.Resource {
 }
 
 func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Automation.RunbookClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Automation.RunbookClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
@@ -188,7 +189,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	if v, ok := d.GetOk("content"); ok {
 		content := v.(string)
 		reader := ioutil.NopCloser(bytes.NewBufferString(content))
-		draftClient := meta.(*ArmClient).Automation.RunbookDraftClient
+		draftClient := meta.(*clients.Client).Automation.RunbookDraftClient
 
 		if _, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader); err != nil {
 			return fmt.Errorf("Error setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
@@ -214,8 +215,8 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Automation.RunbookClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Automation.RunbookClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -274,8 +275,8 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Automation.RunbookClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Automation.RunbookClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -14,19 +14,19 @@ Manages a Firewall Rule for a MySQL Server
 ## Example Usage (Single IP Address)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_mysql_server" "test" {
+resource "azurerm_mysql_server" "example" {
   # ...
 }
 
-resource "azurerm_mysql_firewall_rule" "test" {
+resource "azurerm_mysql_firewall_rule" "example" {
   name                = "office"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  server_name         = "${azurerm_mysql_server.example.name}"
   start_ip_address    = "40.112.8.12"
   end_ip_address      = "40.112.8.12"
 }
@@ -35,19 +35,19 @@ resource "azurerm_mysql_firewall_rule" "test" {
 ## Example Usage (IP Range)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_mysql_server" "test" {
+resource "azurerm_mysql_server" "example" {
   # ...
 }
 
-resource "azurerm_mysql_firewall_rule" "test" {
+resource "azurerm_mysql_firewall_rule" "example" {
   name                = "office"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  server_name         = "${azurerm_mysql_server.example.name}"
   start_ip_address    = "40.112.0.0"
   end_ip_address      = "40.112.255.255"
 }

@@ -5,14 +5,15 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testing.T) {
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("Europe"),
@@ -29,8 +30,8 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany(t *testi
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("Germany"),
@@ -47,8 +48,8 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom(t 
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("United Kingdom"),
@@ -65,8 +66,8 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_world(t *testing
 	dataSourceName := "data.azurerm_traffic_manager_geographical_location.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("World"),

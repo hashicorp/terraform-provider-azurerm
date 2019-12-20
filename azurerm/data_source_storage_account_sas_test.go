@@ -8,20 +8,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceArmStorageAccountSas_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_storage_account_sas.test"
 	rInt := tf.AccRandTimeInt()
 	rString := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	utcNow := time.Now().UTC()
 	startDate := utcNow.Format(time.RFC3339)
 	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMStorageAccountSas_basic(rInt, rString, location, startDate, endDate),
@@ -39,7 +40,7 @@ func TestAccDataSourceArmStorageAccountSas_basic(t *testing.T) {
 func testAccDataSourceAzureRMStorageAccountSas_basic(rInt int, rString string, location string, startDate string, endDate string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestsa-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
