@@ -11,9 +11,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_client_config": dataSourceArmClientConfig(),
 	}
 
-	resources := map[string]*schema.Resource{
-		"azurerm_autoscale_setting": resourceArmAutoScaleSetting(),
-	}
+	resources := map[string]*schema.Resource{}
 
 	return provider.AzureProvider(dataSources, resources)
 }
