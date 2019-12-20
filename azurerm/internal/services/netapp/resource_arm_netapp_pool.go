@@ -1,4 +1,4 @@
-package azurerm
+package netapp
 
 import (
 	"context"
@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -43,7 +42,7 @@ func resourceArmNetAppPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznetapp.ValidateNetAppPoolName,
+				ValidateFunc: ValidateNetAppPoolName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -54,7 +53,7 @@ func resourceArmNetAppPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznetapp.ValidateNetAppAccountName,
+				ValidateFunc: ValidateNetAppAccountName,
 			},
 
 			"service_level": {

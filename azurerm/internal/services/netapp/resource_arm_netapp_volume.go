@@ -1,4 +1,4 @@
-package azurerm
+package netapp
 
 import (
 	"context"
@@ -17,7 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -45,7 +44,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznetapp.ValidateNetAppVolumeName,
+				ValidateFunc: ValidateNetAppVolumeName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -56,21 +55,21 @@ func resourceArmNetAppVolume() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznetapp.ValidateNetAppAccountName,
+				ValidateFunc: ValidateNetAppAccountName,
 			},
 
 			"pool_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznetapp.ValidateNetAppPoolName,
+				ValidateFunc: ValidateNetAppPoolName,
 			},
 
 			"volume_path": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznetapp.ValidateNetAppVolumeVolumePath,
+				ValidateFunc: ValidateNetAppVolumeVolumePath,
 			},
 
 			"service_level": {
