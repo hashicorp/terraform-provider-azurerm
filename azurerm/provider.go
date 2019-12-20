@@ -3,7 +3,6 @@ package azurerm
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
@@ -14,7 +13,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_app_service":                               dataSourceArmAppService(),
 		"azurerm_app_service_certificate_order":             dataSourceArmAppServiceCertificateOrder(),
 		"azurerm_application_security_group":                dataSourceArmApplicationSecurityGroup(),
-		"azurerm_availability_set":                          dataSourceArmAvailabilitySet(),
 		"azurerm_azuread_application":                       dataSourceArmAzureADApplication(),
 		"azurerm_azuread_service_principal":                 dataSourceArmActiveDirectoryServicePrincipal(),
 		"azurerm_builtin_role_definition":                   dataSourceArmBuiltInRoleDefinition(),
@@ -43,7 +41,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_lb_backend_address_pool":                   dataSourceArmLoadBalancerBackendAddressPool(),
 		"azurerm_log_analytics_workspace":                   dataSourceLogAnalyticsWorkspace(),
 		"azurerm_logic_app_workflow":                        dataSourceArmLogicAppWorkflow(),
-		"azurerm_managed_disk":                              dataSourceArmManagedDisk(),
 		"azurerm_management_group":                          dataSourceArmManagementGroup(),
 		"azurerm_monitor_action_group":                      dataSourceArmMonitorActionGroup(),
 		"azurerm_monitor_diagnostic_categories":             dataSourceArmMonitorDiagnosticCategories(),
@@ -79,10 +76,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_scheduler_job_collection":                  dataSourceArmSchedulerJobCollection(),
 		"azurerm_servicebus_namespace":                      dataSourceArmServiceBusNamespace(),
 		"azurerm_servicebus_namespace_authorization_rule":   dataSourceArmServiceBusNamespaceAuthorizationRule(),
-		"azurerm_shared_image_gallery":                      dataSourceArmSharedImageGallery(),
-		"azurerm_shared_image_version":                      dataSourceArmSharedImageVersion(),
-		"azurerm_shared_image":                              dataSourceArmSharedImage(),
-		"azurerm_snapshot":                                  dataSourceArmSnapshot(),
 		"azurerm_sql_server":                                dataSourceSqlServer(),
 		"azurerm_sql_database":                              dataSourceSqlDatabase(),
 		"azurerm_stream_analytics_job":                      dataSourceArmStreamAnalyticsJob(),
@@ -116,7 +109,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_application_gateway":                                   resourceArmApplicationGateway(),
 		"azurerm_application_security_group":                            resourceArmApplicationSecurityGroup(),
 		"azurerm_autoscale_setting":                                     resourceArmAutoScaleSetting(),
-		"azurerm_availability_set":                                      resourceArmAvailabilitySet(),
 		"azurerm_azuread_application":                                   resourceArmActiveDirectoryApplication(),
 		"azurerm_azuread_service_principal_password":                    resourceArmActiveDirectoryServicePrincipalPassword(),
 		"azurerm_azuread_service_principal":                             resourceArmActiveDirectoryServicePrincipal(),
@@ -245,7 +237,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_logic_app_trigger_http_request":                        resourceArmLogicAppTriggerHttpRequest(),
 		"azurerm_logic_app_trigger_recurrence":                          resourceArmLogicAppTriggerRecurrence(),
 		"azurerm_logic_app_workflow":                                    resourceArmLogicAppWorkflow(),
-		"azurerm_managed_disk":                                          resourceArmManagedDisk(),
 		"azurerm_management_group":                                      resourceArmManagementGroup(),
 		"azurerm_management_lock":                                       resourceArmManagementLock(),
 		"azurerm_maps_account":                                          resourceArmMapsAccount(),
@@ -358,7 +349,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_site_recovery_protection_container_mapping":                             resourceArmSiteRecoveryProtectionContainerMapping(),
 		"azurerm_site_recovery_replicated_vm":                                            resourceArmSiteRecoveryReplicatedVM(),
 		"azurerm_site_recovery_replication_policy":                                       resourceArmSiteRecoveryReplicationPolicy(),
-		"azurerm_snapshot":                                                               resourceArmSnapshot(),
 		"azurerm_sql_active_directory_administrator":                                     resourceArmSqlAdministrator(),
 		"azurerm_sql_database":                                                           resourceArmSqlDatabase(),
 		"azurerm_sql_elasticpool":                                                        resourceArmSqlElasticPool(),
@@ -397,10 +387,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_traffic_manager_profile":                                                resourceArmTrafficManagerProfile(),
 		"azurerm_user_assigned_identity":                                                 resourceArmUserAssignedIdentity(),
 		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
-		"azurerm_virtual_machine_data_disk_attachment":                                   resourceArmVirtualMachineDataDiskAttachment(),
-		"azurerm_virtual_machine_extension":                                              resourceArmVirtualMachineExtensions(),
-		"azurerm_virtual_machine_scale_set":                                              resourceArmVirtualMachineScaleSet(),
-		"azurerm_virtual_machine":                                                        resourceArmVirtualMachine(),
 		"azurerm_virtual_network_gateway_connection":                                     resourceArmVirtualNetworkGatewayConnection(),
 		"azurerm_virtual_network_gateway":                                                resourceArmVirtualNetworkGateway(),
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
@@ -409,13 +395,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_vpn_gateway":                                                            resourceArmVPNGateway(),
 		"azurerm_vpn_server_configuration":                                               resourceArmVPNServerConfiguration(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
-	}
-
-	// 2.0 resources
-	if features.SupportsTwoPointZeroResources() {
-		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
-		resources["azurerm_virtual_machine_scale_set_extension"] = resourceArmVirtualMachineScaleSetExtension()
-		resources["azurerm_windows_virtual_machine_scale_set"] = resourceArmWindowsVirtualMachineScaleSet()
 	}
 
 	return provider.AzureProvider(dataSources, resources)
