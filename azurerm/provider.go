@@ -121,7 +121,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_dev_test_policy":                                       resourceArmDevTestPolicy(),
 		"azurerm_dev_test_virtual_network":                              resourceArmDevTestVirtualNetwork(),
 		"azurerm_dev_test_windows_virtual_machine":                      resourceArmDevTestWindowsVirtualMachine(),
-		"azurerm_devspace_controller":                                   resourceArmDevSpaceController(),
 		"azurerm_dns_a_record":                                          resourceArmDnsARecord(),
 		"azurerm_dns_aaaa_record":                                       resourceArmDnsAAAARecord(),
 		"azurerm_dns_caa_record":                                        resourceArmDnsCaaRecord(),
