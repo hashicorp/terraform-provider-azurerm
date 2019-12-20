@@ -1,4 +1,4 @@
-package azurerm
+package web
 
 import (
 	"fmt"
@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -27,7 +26,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 		Update: resourceArmAppServiceSlotCreateUpdate,
 		Delete: resourceArmAppServiceSlotDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := webSvc.ParseAppServiceSlotID(id)
+			_, err := ParseAppServiceSlotID(id)
 			return err
 		}),
 
@@ -243,7 +242,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := webSvc.ParseAppServiceSlotID(d.Id())
+	id, err := ParseAppServiceSlotID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -378,7 +377,7 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := webSvc.ParseAppServiceSlotID(d.Id())
+	id, err := ParseAppServiceSlotID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -512,7 +511,7 @@ func resourceArmAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := webSvc.ParseAppServiceSlotID(d.Id())
+	id, err := ParseAppServiceSlotID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -1,4 +1,4 @@
-package azurerm
+package web
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -25,7 +24,7 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 		Update: resourceArmAppServiceSourceControlTokenCreateUpdate,
 		Delete: resourceArmAppServiceSourceControlTokenDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := webSvc.ValidateAppServiceSourceControlTokenName()(id, "id")
+			_, err := ValidateAppServiceSourceControlTokenName()(id, "id")
 			if len(err) > 0 {
 				return fmt.Errorf("%s", err)
 			}
@@ -44,7 +43,7 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 			"type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: webSvc.ValidateAppServiceSourceControlTokenName(),
+				ValidateFunc: ValidateAppServiceSourceControlTokenName(),
 			},
 
 			"token": {
