@@ -1,53 +1,20 @@
-package resource
+package tests
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
-	"os"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestValidateManagementLockName(t *testing.T) {
-	str := acctest.RandString(259)
-	testCases := []struct {
-		input       string
-		shouldError bool
-	}{
-		{"ab", false},
-		{"ABC", false},
-		{"abc", false},
-		{"abc123ABC", false},
-		{"123abcABC", false},
-		{"ABC123abc", false},
-		{"abc-123", false},
-		{"abc_123", false},
-		{str, false},
-		{str + "h", true},
-	}
-
-	for _, test := range testCases {
-		_, es := validateArmManagementLockName(test.input, "name")
-
-		if test.shouldError && len(es) == 0 {
-			t.Fatalf("Expected validating name %q to fail", test.input)
-		}
-	}
-}
-
 func TestAccAzureRMManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
-	resourceName := "azurerm_management_lock.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,16 +22,12 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementLockExists(resourceName),
+					testCheckAzureRMManagementLockExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -75,9 +38,7 @@ func TestAccAzureRMManagementLock_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_management_lock.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -85,24 +46,18 @@ func TestAccAzureRMManagementLock_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(ri, location),
+				Config: testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementLockExists(resourceName),
+					testCheckAzureRMManagementLockExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMManagementLock_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_management_lock"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMManagementLock_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMManagementLock_resourceGroupReadOnlyComplete(t *testing.T) {
-	resourceName := "azurerm_management_lock.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMManagementLock_resourceGroupReadOnlyComplete(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -110,25 +65,18 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyComplete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagementLock_resourceGroupReadOnlyComplete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementLockExists(resourceName),
+					testCheckAzureRMManagementLockExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(t *testing.T) {
-	resourceName := "azurerm_management_lock.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -136,25 +84,18 @@ func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementLockExists(resourceName),
+					testCheckAzureRMManagementLockExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(t *testing.T) {
-	resourceName := "azurerm_management_lock.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -162,25 +103,18 @@ func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(t *testing.T
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementLockExists(resourceName),
+					testCheckAzureRMManagementLockExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMManagementLock_publicIPReadOnlyBasic(t *testing.T) {
-	resourceName := "azurerm_management_lock.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMManagementLock_publicIPReadOnlyBasic(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -188,25 +122,18 @@ func TestAccAzureRMManagementLock_publicIPReadOnlyBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagementLock_publicIPReadOnlyBasic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementLockExists(resourceName),
+					testCheckAzureRMManagementLockExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMManagementLock_publicIPCanNotDeleteBasic(t *testing.T) {
-	resourceName := "azurerm_management_lock.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMManagementLock_publicIPCanNotDeleteBasic(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -214,16 +141,12 @@ func TestAccAzureRMManagementLock_publicIPCanNotDeleteBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagementLock_publicIPCanNotDeleteBasic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementLockExists(resourceName),
+					testCheckAzureRMManagementLockExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -234,9 +157,7 @@ func TestAccAzureRMManagementLock_subscriptionReadOnlyBasic(t *testing.T) {
 		t.Skip("`TF_ACC_SUBSCRIPTION_PARALLEL_LOCK` isn't specified - skipping since this test can't be run in Parallel")
 	}
 
-	resourceName := "azurerm_management_lock.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMManagementLock_subscriptionReadOnlyBasic(ri)
+	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -244,16 +165,12 @@ func TestAccAzureRMManagementLock_subscriptionReadOnlyBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagementLock_subscriptionReadOnlyBasic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementLockExists(resourceName),
+					testCheckAzureRMManagementLockExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -264,9 +181,7 @@ func TestAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(t *testing.T) {
 		t.Skip("`TF_ACC_SUBSCRIPTION_PARALLEL_LOCK` isn't specified - skipping since this test can't be run in Parallel")
 	}
 
-	resourceName := "azurerm_management_lock.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(ri)
+	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -274,16 +189,12 @@ func TestAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementLockExists(resourceName),
+					testCheckAzureRMManagementLockExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -341,7 +252,7 @@ func testCheckAzureRMManagementLockDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(rInt int, location string) string {
+func testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -353,11 +264,11 @@ resource "azurerm_management_lock" "test" {
   scope      = "${azurerm_resource_group.test.id}"
   lock_level = "ReadOnly"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagementLock_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(rInt, location)
+func testAccAzureRMManagementLock_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -369,7 +280,7 @@ resource "azurerm_management_lock" "import" {
 `, template)
 }
 
-func testAccAzureRMManagementLock_resourceGroupReadOnlyComplete(rInt int, location string) string {
+func testAccAzureRMManagementLock_resourceGroupReadOnlyComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -382,10 +293,10 @@ resource "azurerm_management_lock" "test" {
   lock_level = "ReadOnly"
   notes      = "Hello, World!"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(rInt int, location string) string {
+func testAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -397,10 +308,10 @@ resource "azurerm_management_lock" "test" {
   scope      = "${azurerm_resource_group.test.id}"
   lock_level = "CanNotDelete"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(rInt int, location string) string {
+func testAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -413,10 +324,10 @@ resource "azurerm_management_lock" "test" {
   lock_level = "CanNotDelete"
   notes      = "Hello, World!"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagementLock_publicIPReadOnlyBasic(rInt int, location string) string {
+func testAccAzureRMManagementLock_publicIPReadOnlyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -436,10 +347,10 @@ resource "azurerm_management_lock" "test" {
   scope      = "${azurerm_public_ip.test.id}"
   lock_level = "ReadOnly"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMManagementLock_publicIPCanNotDeleteBasic(rInt int, location string) string {
+func testAccAzureRMManagementLock_publicIPCanNotDeleteBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -459,10 +370,10 @@ resource "azurerm_management_lock" "test" {
   scope      = "${azurerm_public_ip.test.id}"
   lock_level = "CanNotDelete"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMManagementLock_subscriptionReadOnlyBasic(rInt int) string {
+func testAccAzureRMManagementLock_subscriptionReadOnlyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "current" {}
 
@@ -471,10 +382,10 @@ resource "azurerm_management_lock" "test" {
   scope      = "${data.azurerm_subscription.current.id}"
   lock_level = "ReadOnly"
 }
-`, rInt)
+`, data.RandomInteger)
 }
 
-func testAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(rInt int) string {
+func testAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "current" {}
 
@@ -483,5 +394,5 @@ resource "azurerm_management_lock" "test" {
   scope      = "${data.azurerm_subscription.current.id}"
   lock_level = "CanNotDelete"
 }
-`, rInt)
+`, data.RandomInteger)
 }
