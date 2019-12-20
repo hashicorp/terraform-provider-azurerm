@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,7 @@ import (
 )
 
 func TestAccAzureRMApiManagementApiVersionSet_basic(t *testing.T) {
-	resourceName := "azurerm_api_management_api_version_set.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_version_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,13 +21,13 @@ func TestAccAzureRMApiManagementApiVersionSet_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementApiVersionSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementApiVersionSet_basic(ri, location),
+				Config: testAccAzureRMApiManagementApiVersionSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiVersionSetExists(resourceName),
+					testCheckAzureRMApiManagementApiVersionSetExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -43,10 +40,7 @@ func TestAccAzureRMApiManagementApiVersionSet_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_api_management_api_version_set.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_version_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,23 +48,18 @@ func TestAccAzureRMApiManagementApiVersionSet_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementApiVersionSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementApiVersionSet_basic(ri, location),
+				Config: testAccAzureRMApiManagementApiVersionSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiVersionSetExists(resourceName),
+					testCheckAzureRMApiManagementApiVersionSetExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMApiManagementApiVersionSet_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_api_management_api_version_set"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementApiVersionSet_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMApiManagementApiVersionSet_header(t *testing.T) {
-	resourceName := "azurerm_api_management_api_version_set.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_version_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,13 +67,13 @@ func TestAccAzureRMApiManagementApiVersionSet_header(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementApiVersionSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementApiVersionSet_header(ri, location),
+				Config: testAccAzureRMApiManagementApiVersionSet_header(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiVersionSetExists(resourceName),
+					testCheckAzureRMApiManagementApiVersionSetExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -93,9 +82,7 @@ func TestAccAzureRMApiManagementApiVersionSet_header(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementApiVersionSet_query(t *testing.T) {
-	resourceName := "azurerm_api_management_api_version_set.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_version_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -103,13 +90,13 @@ func TestAccAzureRMApiManagementApiVersionSet_query(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementApiVersionSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementApiVersionSet_query(ri, location),
+				Config: testAccAzureRMApiManagementApiVersionSet_query(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiVersionSetExists(resourceName),
+					testCheckAzureRMApiManagementApiVersionSetExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -118,9 +105,7 @@ func TestAccAzureRMApiManagementApiVersionSet_query(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementApiVersionSet_update(t *testing.T) {
-	resourceName := "azurerm_api_management_api_version_set.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_version_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -128,23 +113,23 @@ func TestAccAzureRMApiManagementApiVersionSet_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementApiVersionSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementApiVersionSet_basic(ri, location),
+				Config: testAccAzureRMApiManagementApiVersionSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiVersionSetExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", "TestDescription1"),
-					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("TestApiVersionSet1%d", ri)),
+					testCheckAzureRMApiManagementApiVersionSetExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "TestDescription1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestApiVersionSet1%d", data.RandomInteger)),
 				),
 			},
 			{
-				Config: testAccAzureRMApiManagementApiVersionSet_update(ri, location),
+				Config: testAccAzureRMApiManagementApiVersionSet_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiVersionSetExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", "TestDescription2"),
-					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("TestApiVersionSet2%d", ri)),
+					testCheckAzureRMApiManagementApiVersionSetExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "TestDescription2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestApiVersionSet2%d", data.RandomInteger)),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -202,8 +187,8 @@ func testCheckAzureRMApiManagementApiVersionSetExists(resourceName string) resou
 	}
 }
 
-func testAccAzureRMApiManagementApiVersionSet_basic(rInt int, location string) string {
-	template := testAccAzureRMApiManagementApiVersionSet_template(rInt, location)
+func testAccAzureRMApiManagementApiVersionSet_basic(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApiVersionSet_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -215,11 +200,11 @@ resource "azurerm_api_management_api_version_set" "test" {
   display_name        = "TestApiVersionSet1%d"
   versioning_scheme   = "Segment"
 }
-`, template, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApiVersionSet_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMApiManagementApiVersionSet_basic(rInt, location)
+func testAccAzureRMApiManagementApiVersionSet_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApiVersionSet_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -234,8 +219,8 @@ resource "azurerm_api_management_api_version_set" "import" {
 `, template)
 }
 
-func testAccAzureRMApiManagementApiVersionSet_header(rInt int, location string) string {
-	template := testAccAzureRMApiManagementApiVersionSet_template(rInt, location)
+func testAccAzureRMApiManagementApiVersionSet_header(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApiVersionSet_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -248,11 +233,11 @@ resource "azurerm_api_management_api_version_set" "test" {
   versioning_scheme   = "Header"
   version_header_name = "Header1"
 }
-`, template, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApiVersionSet_query(rInt int, location string) string {
-	template := testAccAzureRMApiManagementApiVersionSet_template(rInt, location)
+func testAccAzureRMApiManagementApiVersionSet_query(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApiVersionSet_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -265,11 +250,11 @@ resource "azurerm_api_management_api_version_set" "test" {
   versioning_scheme   = "Query"
   version_query_name  = "Query1"
 }
-`, template, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApiVersionSet_update(rInt int, location string) string {
-	template := testAccAzureRMApiManagementApiVersionSet_template(rInt, location)
+func testAccAzureRMApiManagementApiVersionSet_update(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApiVersionSet_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -281,10 +266,10 @@ resource "azurerm_api_management_api_version_set" "test" {
   display_name        = "TestApiVersionSet2%d"
   versioning_scheme   = "Segment"
 }
-`, template, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementApiVersionSet_template(rInt int, location string) string {
+func testAccAzureRMApiManagementApiVersionSet_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -303,5 +288,5 @@ resource "azurerm_api_management" "test" {
     capacity = 1
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

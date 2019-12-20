@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,7 @@ import (
 )
 
 func TestAccAzureRMApiManagementProductPolicy_basic(t *testing.T) {
-	resourceName := "azurerm_api_management_product_policy.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,13 +21,13 @@ func TestAccAzureRMApiManagementProductPolicy_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementProductPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementProductPolicy_basic(ri, location),
+				Config: testAccAzureRMApiManagementProductPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductPolicyExists(resourceName),
+					testCheckAzureRMApiManagementProductPolicyExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"xml_link"},
@@ -44,10 +41,7 @@ func TestAccAzureRMApiManagementProductPolicy_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_api_management_product_policy.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,23 +49,18 @@ func TestAccAzureRMApiManagementProductPolicy_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementProductPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementProductPolicy_basic(ri, location),
+				Config: testAccAzureRMApiManagementProductPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductPolicyExists(resourceName),
+					testCheckAzureRMApiManagementProductPolicyExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMApiManagementProductPolicy_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_api_management_product"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementProductPolicy_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMApiManagementProductPolicy_update(t *testing.T) {
-	resourceName := "azurerm_api_management_product_policy.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_product_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -79,19 +68,19 @@ func TestAccAzureRMApiManagementProductPolicy_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementProductPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementProductPolicy_basic(ri, location),
+				Config: testAccAzureRMApiManagementProductPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductPolicyExists(resourceName),
+					testCheckAzureRMApiManagementProductPolicyExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMApiManagementProductPolicy_updated(ri, location),
+				Config: testAccAzureRMApiManagementProductPolicy_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementProductPolicyExists(resourceName),
+					testCheckAzureRMApiManagementProductPolicyExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"xml_link"},
@@ -154,7 +143,7 @@ func testCheckAzureRMApiManagementProductPolicyDestroy(s *terraform.State) error
 	return nil
 }
 
-func testAccAzureRMApiManagementProductPolicy_basic(rInt int, location string) string {
+func testAccAzureRMApiManagementProductPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -189,11 +178,11 @@ resource "azurerm_api_management_product_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   xml_link            = "https://gist.githubusercontent.com/riordanp/ca22f8113afae0eb38cc12d718fd048d/raw/d6ac89a2f35a6881a7729f8cb4883179dc88eea1/example.xml"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagementProductPolicy_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMApiManagementProductPolicy_basic(rInt, location)
+func testAccAzureRMApiManagementProductPolicy_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementProductPolicy_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -206,7 +195,7 @@ resource "azurerm_api_management_product_policy" "import" {
 `, template)
 }
 
-func testAccAzureRMApiManagementProductPolicy_updated(rInt int, location string) string {
+func testAccAzureRMApiManagementProductPolicy_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -249,5 +238,5 @@ resource "azurerm_api_management_product_policy" "test" {
 </policies>
 XML
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

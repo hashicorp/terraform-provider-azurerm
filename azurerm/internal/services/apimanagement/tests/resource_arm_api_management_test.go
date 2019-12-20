@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -15,9 +14,8 @@ import (
 )
 
 func TestAccAzureRMApiManagement_basic(t *testing.T) {
-	resourceName := "azurerm_api_management.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagement_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	config := testAccAzureRMApiManagement_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,11 +25,11 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(resourceName),
+					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -41,9 +39,8 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 
 // Remove in 2.0
 func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
-	resourceName := "azurerm_api_management.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagement_basicClassic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	config := testAccAzureRMApiManagement_basicClassic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,11 +50,11 @@ func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(resourceName),
+					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -67,8 +64,8 @@ func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
 
 // Remove in 2.0
 func TestAccAzureRMApiManagement_basicNotDefined(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagement_basicNotDefined(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	config := testAccAzureRMApiManagement_basicNotDefined(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -88,10 +85,7 @@ func TestAccAzureRMApiManagement_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_api_management.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -99,23 +93,20 @@ func TestAccAzureRMApiManagement_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagement_basic(ri, location),
+				Config: testAccAzureRMApiManagement_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(resourceName),
+					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMApiManagement_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_api_management"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMApiManagement_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMApiManagement_customProps(t *testing.T) {
-	resourceName := "azurerm_api_management.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagement_customProps(ri, acceptance.AltLocation())
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	config := testAccAzureRMApiManagement_customProps(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -125,11 +116,11 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(resourceName),
+					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -138,9 +129,8 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagement_complete(t *testing.T) {
-	resourceName := "azurerm_api_management.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagement_complete(ri, acceptance.Location(), acceptance.AltLocation(), acceptance.AltLocation2())
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	config := testAccAzureRMApiManagement_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -150,13 +140,13 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
-					resource.TestCheckResourceAttrSet(resourceName, "public_ip_addresses.#"),
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -174,9 +164,7 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagement_signInSignUpSettings(t *testing.T) {
-	resourceName := "azurerm_api_management.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -184,13 +172,13 @@ func TestAccAzureRMApiManagement_signInSignUpSettings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagement_signInSignUpSettings(ri, location),
+				Config: testAccAzureRMApiManagement_signInSignUpSettings(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(resourceName),
+					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -199,9 +187,7 @@ func TestAccAzureRMApiManagement_signInSignUpSettings(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagement_policy(t *testing.T) {
-	resourceName := "azurerm_api_management.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -209,24 +195,24 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagement_policyXmlContent(ri, location),
+				Config: testAccAzureRMApiManagement_policyXmlContent(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(resourceName),
+					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMApiManagement_policyXmlLink(ri, location),
+				Config: testAccAzureRMApiManagement_policyXmlLink(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(resourceName),
+					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -234,13 +220,13 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 				},
 			},
 			{
-				Config: testAccAzureRMApiManagement_policyRemoved(ri, location),
+				Config: testAccAzureRMApiManagement_policyRemoved(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(resourceName),
+					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -304,7 +290,7 @@ func testCheckAzureRMApiManagementExists(resourceName string) resource.TestCheck
 	}
 }
 
-func testAccAzureRMApiManagement_basic(rInt int, location string) string {
+func testAccAzureRMApiManagement_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -320,11 +306,11 @@ resource "azurerm_api_management" "test" {
 
   sku_name = "Developer_1"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 // Remove in 2.0
-func testAccAzureRMApiManagement_basicClassic(rInt int, location string) string {
+func testAccAzureRMApiManagement_basicClassic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -343,11 +329,11 @@ resource "azurerm_api_management" "test" {
     capacity = 1
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 // Remove in 2.0
-func testAccAzureRMApiManagement_basicNotDefined(rInt int, location string) string {
+func testAccAzureRMApiManagement_basicNotDefined(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -361,10 +347,10 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagement_policyXmlContent(rInt int, location string) string {
+func testAccAzureRMApiManagement_policyXmlContent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -390,10 +376,10 @@ resource "azurerm_api_management" "test" {
 XML
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagement_policyXmlLink(rInt int, location string) string {
+func testAccAzureRMApiManagement_policyXmlLink(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -413,10 +399,10 @@ resource "azurerm_api_management" "test" {
     xml_link = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagement_policyRemoved(rInt int, location string) string {
+func testAccAzureRMApiManagement_policyRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -434,11 +420,11 @@ resource "azurerm_api_management" "test" {
 
   policy = []
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagement_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMApiManagement_basic(rInt, location)
+func testAccAzureRMApiManagement_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagement_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -454,7 +440,7 @@ resource "azurerm_api_management" "import" {
 `, template)
 }
 
-func testAccAzureRMApiManagement_customProps(rInt int, location string) string {
+func testAccAzureRMApiManagement_customProps(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -475,10 +461,10 @@ resource "azurerm_api_management" "test" {
     enable_triple_des_ciphers = true
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagement_signInSignUpSettings(rInt int, location string) string {
+func testAccAzureRMApiManagement_signInSignUpSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -508,10 +494,10 @@ resource "azurerm_api_management" "test" {
     }
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMApiManagement_complete(rInt int, location string, altLocation string, altLocation2 string) string {
+func testAccAzureRMApiManagement_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-api1-%d"
@@ -596,5 +582,5 @@ resource "azurerm_api_management" "test" {
   location            = "${azurerm_resource_group.test1.location}"
   resource_group_name = "${azurerm_resource_group.test1.name}"
 }
-`, rInt, location, rInt, altLocation, rInt, altLocation2, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.Locations.Ternary, data.RandomInteger)
 }

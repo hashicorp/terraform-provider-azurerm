@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -6,16 +6,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
-	resourceName := "azurerm_api_management_property.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAPIManagementProperty_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
+	config := testAccAzureRMAPIManagementProperty_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,15 +23,15 @@ func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementPropertyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("TestProperty%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "value", "Test Value"),
-					resource.TestCheckResourceAttr(resourceName, "tags.0", "tag1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.1", "tag2"),
+					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "Test Value"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.0", "tag1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag2"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -42,10 +40,9 @@ func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
-	resourceName := "azurerm_api_management_property.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAPIManagementProperty_basic(ri, acceptance.Location())
-	config2 := testAccAzureRMAPIManagementProperty_update(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
+	config := testAccAzureRMAPIManagementProperty_basic(data)
+	config2 := testAccAzureRMAPIManagementProperty_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,26 +52,26 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementPropertyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("TestProperty%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "value", "Test Value"),
-					resource.TestCheckResourceAttr(resourceName, "tags.0", "tag1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.1", "tag2"),
+					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "Test Value"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.0", "tag1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag2"),
 				),
 			},
 			{
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementPropertyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("TestProperty2%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "value", "Test Value2"),
-					resource.TestCheckResourceAttr(resourceName, "secret", "true"),
-					resource.TestCheckResourceAttr(resourceName, "tags.0", "tag3"),
-					resource.TestCheckResourceAttr(resourceName, "tags.1", "tag4"),
+					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty2%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "Test Value2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.0", "tag3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag4"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -136,7 +133,7 @@ func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.T
 
  */
 
-func testAccAzureRMAPIManagementProperty_basic(rInt int, location string) string {
+func testAccAzureRMAPIManagementProperty_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -161,10 +158,10 @@ resource "azurerm_api_management_property" "test" {
   value               = "Test Value"
   tags                = ["tag1", "tag2"]
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementProperty_update(rInt int, location string) string {
+func testAccAzureRMAPIManagementProperty_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -190,5 +187,5 @@ resource "azurerm_api_management_property" "test" {
   secret              = true
   tags                = ["tag3", "tag4"]
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
