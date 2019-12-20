@@ -1,20 +1,18 @@
-package logic
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLogicAppActionCustom_basic(t *testing.T) {
-	resourceName := "azurerm_logic_app_action_custom.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMLogicAppActionCustom_basic(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_custom", "test")
+
+	config := testAccAzureRMLogicAppActionCustom_basic(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -23,14 +21,10 @@ func TestAccAzureRMLogicAppActionCustom_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppActionExists(resourceName),
+					testCheckAzureRMLogicAppActionExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -41,30 +35,29 @@ func TestAccAzureRMLogicAppActionCustom_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_logic_app_action_custom.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_custom", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogicAppActionCustom_basic(ri, location),
+				Config: testAccAzureRMLogicAppActionCustom_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppActionExists(resourceName),
+					testCheckAzureRMLogicAppActionExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMLogicAppActionCustom_requiresImport(ri, location),
+				Config:      testAccAzureRMLogicAppActionCustom_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_action_custom"),
 			},
 		},
 	})
 }
 
-func testAccAzureRMLogicAppActionCustom_basic(rInt int, location string) string {
-	template := testAccAzureRMLogicAppActionCustom_template(rInt, location)
+func testAccAzureRMLogicAppActionCustom_basic(data acceptance.TestData) string {
+	template := testAccAzureRMLogicAppActionCustom_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -89,11 +82,11 @@ resource "azurerm_logic_app_action_custom" "test" {
 }
 BODY
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMLogicAppActionCustom_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMLogicAppActionCustom_basic(rInt, location)
+func testAccAzureRMLogicAppActionCustom_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMLogicAppActionCustom_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -105,7 +98,7 @@ resource "azurerm_logic_app_action_custom" "import" {
 `, template)
 }
 
-func testAccAzureRMLogicAppActionCustom_template(rInt int, location string) string {
+func testAccAzureRMLogicAppActionCustom_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -117,5 +110,5 @@ resource "azurerm_logic_app_workflow" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

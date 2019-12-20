@@ -1,19 +1,18 @@
-package logic
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
-	resourceName := "azurerm_logic_app_action_http.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogicAppActionHttp_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+
+	config := testAccAzureRMLogicAppActionHttp_basic(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -22,14 +21,10 @@ func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppActionExists(resourceName),
+					testCheckAzureRMLogicAppActionExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -40,22 +35,21 @@ func TestAccAzureRMLogicAppActionHttp_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_logic_app_action_http.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogicAppActionHttp_basic(ri, location),
+				Config: testAccAzureRMLogicAppActionHttp_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppActionExists(resourceName),
+					testCheckAzureRMLogicAppActionExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMLogicAppActionHttp_requiresImport(ri, location),
+				Config:      testAccAzureRMLogicAppActionHttp_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_action_http"),
 			},
 		},
@@ -63,52 +57,48 @@ func TestAccAzureRMLogicAppActionHttp_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
-	resourceName := "azurerm_logic_app_action_http.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogicAppActionHttp_headers(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogicAppActionHttp_headers(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppActionExists(resourceName),
+					testCheckAzureRMLogicAppActionExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogicAppActionHttp_basic(ri, location),
+				Config: testAccAzureRMLogicAppActionHttp_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppActionExists("azurerm_logic_app_action_http.test"),
+					testCheckAzureRMLogicAppActionExists(data.ResourceName),
 				),
 			},
 			{
 				// delete it
-				Config: testAccAzureRMLogicAppActionHttp_template(ri, location),
+				Config: testAccAzureRMLogicAppActionHttp_template(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorkflowExists("azurerm_logic_app_workflow.test"),
+					testCheckAzureRMLogicAppWorkflowExists("azurerm_logic_app_workflow"),
 				),
 			},
 			{
-				Config:             testAccAzureRMLogicAppActionHttp_basic(ri, location),
+				Config:             testAccAzureRMLogicAppActionHttp_basic(data),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
@@ -116,8 +106,8 @@ func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
 	})
 }
 
-func testAccAzureRMLogicAppActionHttp_basic(rInt int, location string) string {
-	template := testAccAzureRMLogicAppActionHttp_template(rInt, location)
+func testAccAzureRMLogicAppActionHttp_basic(data acceptance.TestData) string {
+	template := testAccAzureRMLogicAppActionHttp_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -127,11 +117,11 @@ resource "azurerm_logic_app_action_http" "test" {
   method       = "GET"
   uri          = "http://example.com/hello"
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMLogicAppActionHttp_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMLogicAppActionHttp_basic(rInt, location)
+func testAccAzureRMLogicAppActionHttp_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMLogicAppActionHttp_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -144,8 +134,8 @@ resource "azurerm_logic_app_action_http" "import" {
 `, template)
 }
 
-func testAccAzureRMLogicAppActionHttp_headers(rInt int, location string) string {
-	template := testAccAzureRMLogicAppActionHttp_template(rInt, location)
+func testAccAzureRMLogicAppActionHttp_headers(data acceptance.TestData) string {
+	template := testAccAzureRMLogicAppActionHttp_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -160,10 +150,10 @@ resource "azurerm_logic_app_action_http" "test" {
     "Something" = "New"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMLogicAppActionHttp_template(rInt int, location string) string {
+func testAccAzureRMLogicAppActionHttp_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -175,5 +165,5 @@ resource "azurerm_logic_app_workflow" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
