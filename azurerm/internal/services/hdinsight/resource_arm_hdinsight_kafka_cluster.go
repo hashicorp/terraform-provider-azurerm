@@ -1,4 +1,4 @@
-package azurerm
+package hdinsight
 
 import (
 	"fmt"
@@ -18,23 +18,23 @@ import (
 
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
-var hdInsightStormClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightKafkaClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
-	MinInstanceCount:         4,
-	MaxInstanceCount:         4,
+	MinInstanceCount:         2,
+	MaxInstanceCount:         2,
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
 
-var hdInsightStormClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightKafkaClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	// can't find a hard limit - appears to be limited by the subscription; setting something sensible for now
-	MaxInstanceCount: 9999,
-	CanSpecifyDisks:  false,
+	MaxInstanceCount:        57,
+	CanSpecifyDisks:         true,
+	MaxNumberOfDisksPerNode: utils.Int(8),
 }
 
-var hdInsightStormClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightKafkaClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
 	MaxInstanceCount:         3,
@@ -42,12 +42,12 @@ var hdInsightStormClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-func resourceArmHDInsightStormCluster() *schema.Resource {
+func resourceArmHDInsightKafkaCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightStormClusterCreate,
-		Read:   resourceArmHDInsightStormClusterRead,
-		Update: hdinsightClusterUpdate("Storm", resourceArmHDInsightStormClusterRead),
-		Delete: hdinsightClusterDelete("Storm"),
+		Create: resourceArmHDInsightKafkaClusterCreate,
+		Read:   resourceArmHDInsightKafkaClusterRead,
+		Update: hdinsightClusterUpdate("Kafka", resourceArmHDInsightKafkaClusterRead),
+		Delete: hdinsightClusterDelete("Kafka"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -76,7 +76,7 @@ func resourceArmHDInsightStormCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"storm": {
+						"kafka": {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
@@ -89,17 +89,19 @@ func resourceArmHDInsightStormCluster() *schema.Resource {
 
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
+			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
+
 			"roles": {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": azure.SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightStormClusterHeadNodeDefinition),
+						"head_node": azure.SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightKafkaClusterHeadNodeDefinition),
 
-						"worker_node": azure.SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightStormClusterWorkerNodeDefinition),
+						"worker_node": azure.SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightKafkaClusterWorkerNodeDefinition),
 
-						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightStormClusterZookeeperNodeDefinition),
+						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightKafkaClusterZookeeperNodeDefinition),
 					},
 				},
 			},
@@ -119,7 +121,7 @@ func resourceArmHDInsightStormCluster() *schema.Resource {
 	}
 }
 
-func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,24 +134,25 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 	tier := hdinsight.Tier(d.Get("tier").(string))
 
 	componentVersionsRaw := d.Get("component_version").([]interface{})
-	componentVersions := expandHDInsightStormComponentVersion(componentVersionsRaw)
+	componentVersions := expandHDInsightKafkaComponentVersion(componentVersionsRaw)
 
 	gatewayRaw := d.Get("gateway").([]interface{})
 	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
-	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
+	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
+	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
 		return fmt.Errorf("Error expanding `storage_account`: %s", err)
 	}
 
-	stormRoles := hdInsightRoleDefinition{
-		HeadNodeDef:      hdInsightStormClusterHeadNodeDefinition,
-		WorkerNodeDef:    hdInsightStormClusterWorkerNodeDefinition,
-		ZookeeperNodeDef: hdInsightStormClusterZookeeperNodeDefinition,
+	kafkaRoles := hdInsightRoleDefinition{
+		HeadNodeDef:      hdInsightKafkaClusterHeadNodeDefinition,
+		WorkerNodeDef:    hdInsightKafkaClusterWorkerNodeDefinition,
+		ZookeeperNodeDef: hdInsightKafkaClusterZookeeperNodeDefinition,
 	}
 	rolesRaw := d.Get("roles").([]interface{})
-	roles, err := expandHDInsightRoles(rolesRaw, stormRoles)
+	roles, err := expandHDInsightRoles(rolesRaw, kafkaRoles)
 	if err != nil {
 		return fmt.Errorf("Error expanding `roles`: %+v", err)
 	}
@@ -158,12 +161,12 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_hdinsight_storm_cluster", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_hdinsight_kafka_cluster", *existing.ID)
 		}
 	}
 
@@ -174,7 +177,7 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 			OsType:         hdinsight.Linux,
 			ClusterVersion: utils.String(clusterVersion),
 			ClusterDefinition: &hdinsight.ClusterDefinition{
-				Kind:             utils.String("Storm"),
+				Kind:             utils.String("Kafka"),
 				ComponentVersion: componentVersions,
 				Configurations:   gateway,
 			},
@@ -190,28 +193,28 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
-		return fmt.Errorf("Error creating HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation of HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Error reading ID for HDInsight Storm Cluster %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("Error reading ID for HDInsight Kafka Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmHDInsightStormClusterRead(d, meta)
+	return resourceArmHDInsightKafkaClusterRead(d, meta)
 }
 
-func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -228,17 +231,17 @@ func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] HDInsight Storm Cluster %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] HDInsight Kafka Cluster %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	configuration, err := configurationsClient.Get(ctx, resourceGroup, name, "gateway")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Configuration for HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Configuration for HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -253,7 +256,7 @@ func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface
 		d.Set("tier", string(props.Tier))
 
 		if def := props.ClusterDefinition; def != nil {
-			if err := d.Set("component_version", flattenHDInsightStormComponentVersion(def.ComponentVersion)); err != nil {
+			if err := d.Set("component_version", flattenHDInsightKafkaComponentVersion(def.ComponentVersion)); err != nil {
 				return fmt.Errorf("Error flattening `component_version`: %+v", err)
 			}
 
@@ -262,12 +265,12 @@ func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface
 			}
 		}
 
-		stormRoles := hdInsightRoleDefinition{
-			HeadNodeDef:      hdInsightStormClusterHeadNodeDefinition,
-			WorkerNodeDef:    hdInsightStormClusterWorkerNodeDefinition,
-			ZookeeperNodeDef: hdInsightStormClusterZookeeperNodeDefinition,
+		kafkaRoles := hdInsightRoleDefinition{
+			HeadNodeDef:      hdInsightKafkaClusterHeadNodeDefinition,
+			WorkerNodeDef:    hdInsightKafkaClusterWorkerNodeDefinition,
+			ZookeeperNodeDef: hdInsightKafkaClusterZookeeperNodeDefinition,
 		}
-		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, stormRoles)
+		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, kafkaRoles)
 		if err := d.Set("roles", flattenedRoles); err != nil {
 			return fmt.Errorf("Error flattening `roles`: %+v", err)
 		}
@@ -281,23 +284,23 @@ func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func expandHDInsightStormComponentVersion(input []interface{}) map[string]*string {
+func expandHDInsightKafkaComponentVersion(input []interface{}) map[string]*string {
 	vs := input[0].(map[string]interface{})
 	return map[string]*string{
-		"Storm": utils.String(vs["storm"].(string)),
+		"kafka": utils.String(vs["kafka"].(string)),
 	}
 }
 
-func flattenHDInsightStormComponentVersion(input map[string]*string) []interface{} {
-	stormVersion := ""
-	if v, ok := input["Storm"]; ok {
+func flattenHDInsightKafkaComponentVersion(input map[string]*string) []interface{} {
+	kafkaVersion := ""
+	if v, ok := input["kafka"]; ok {
 		if v != nil {
-			stormVersion = *v
+			kafkaVersion = *v
 		}
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"storm": stormVersion,
+			"kafka": kafkaVersion,
 		},
 	}
 }

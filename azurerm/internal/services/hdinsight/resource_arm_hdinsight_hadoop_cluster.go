@@ -1,4 +1,4 @@
-package azurerm
+package hdinsight
 
 import (
 	"context"
