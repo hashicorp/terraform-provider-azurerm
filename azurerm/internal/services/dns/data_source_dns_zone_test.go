@@ -1,7 +1,8 @@
-package azurerm
+package dns
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -17,7 +18,7 @@ func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
+		CheckDestroy: azurerm.testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDNSZone_basic(rInt, location),
@@ -37,7 +38,7 @@ func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
+		CheckDestroy: azurerm.testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDNSZone_tags(rInt, location),
@@ -59,7 +60,7 @@ func TestAccDataSourceAzureRMDNSZone_withoutResourceGroupName(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
+		CheckDestroy: azurerm.testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDNSZone_onlyName(rInt, location, resourceGroupName),
