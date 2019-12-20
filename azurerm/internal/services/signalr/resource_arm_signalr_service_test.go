@@ -2,7 +2,6 @@ package signalr
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
 	"net/http"
 	"testing"
 
@@ -163,7 +162,7 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: monitor.testCheckAzureRMMonitorMetricAlertDestroy,
+		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: freeConfig,
@@ -227,7 +226,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: monitor.testCheckAzureRMMonitorMetricAlertDestroy,
+		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: standardConfig,
@@ -291,7 +290,7 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: monitor.testCheckAzureRMMonitorMetricAlertDestroy,
+		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: freeConfig,
