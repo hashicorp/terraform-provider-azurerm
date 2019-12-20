@@ -1,18 +1,15 @@
-package web
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMAppServiceActiveSlot_basic(t *testing.T) {
-	resourceName := "azurerm_app_service_active_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceActiveSlot_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -21,9 +18,9 @@ func TestAccAzureRMAppServiceActiveSlot_basic(t *testing.T) {
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceActiveSlot_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot-%d", ri)),
+					resource.TestCheckResourceAttr(data.ResourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot-%d", data.RandomInteger)),
 				),
 			},
 		},
@@ -31,10 +28,7 @@ func TestAccAzureRMAppServiceActiveSlot_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceActiveSlot_update(t *testing.T) {
-	resourceName := "azurerm_app_service_active_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceActiveSlot_update(ri, acceptance.Location())
-	config2 := testAccAzureRMAppServiceActiveSlot_updated(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -43,22 +37,22 @@ func TestAccAzureRMAppServiceActiveSlot_update(t *testing.T) {
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceActiveSlot_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot-%d", ri)),
+					resource.TestCheckResourceAttr(data.ResourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot-%d", data.RandomInteger)),
 				),
 			},
 			{
-				Config: config2,
+				Config: testAccAzureRMAppServiceActiveSlot_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot2-%d", ri)),
+					resource.TestCheckResourceAttr(data.ResourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot2-%d", data.RandomInteger)),
 				),
 			},
 		},
 	})
 }
 
-func testAccAzureRMAppServiceActiveSlot_basic(rInt int, location string) string {
+func testAccAzureRMAppServiceActiveSlot_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -96,10 +90,10 @@ resource "azurerm_app_service_active_slot" "test" {
   app_service_name      = "${azurerm_app_service.test.name}"
   app_service_slot_name = "${azurerm_app_service_slot.test.name}"
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceActiveSlot_update(rInt int, location string) string {
+func testAccAzureRMAppServiceActiveSlot_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -145,10 +139,10 @@ resource "azurerm_app_service_active_slot" "test" {
   app_service_name      = "${azurerm_app_service.test.name}"
   app_service_slot_name = "${azurerm_app_service_slot.test.name}"
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceActiveSlot_updated(rInt int, location string) string {
+func testAccAzureRMAppServiceActiveSlot_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -194,5 +188,5 @@ resource "azurerm_app_service_active_slot" "test" {
   app_service_name      = "${azurerm_app_service.test.name}"
   app_service_slot_name = "${azurerm_app_service_slot.test2.name}"
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

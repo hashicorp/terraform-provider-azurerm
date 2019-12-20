@@ -1,4 +1,4 @@
-package web
+package tests
 
 import (
 	"fmt"
@@ -14,11 +14,9 @@ import (
 )
 
 func TestAccAzureRMAppServiceSourceControlToken(t *testing.T) {
-	resourceName := "azurerm_app_service_source_control_token.test"
+	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control_token", "test")
 	token := strings.ToLower(acctest.RandString(41))
 	tokenSecret := strings.ToLower(acctest.RandString(41))
-
-	config := testAccAzureRMAppServiceSourceControlToken(token, tokenSecret)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,18 +24,14 @@ func TestAccAzureRMAppServiceSourceControlToken(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSourceControlTokenDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSourceControlToken(token, tokenSecret),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "type", "GitHub"),
-					resource.TestCheckResourceAttr(resourceName, "token", token),
-					resource.TestCheckResourceAttr(resourceName, "token_secret", tokenSecret),
+					resource.TestCheckResourceAttr(data.ResourceName, "type", "GitHub"),
+					resource.TestCheckResourceAttr(data.ResourceName, "token", token),
+					resource.TestCheckResourceAttr(data.ResourceName, "token_secret", tokenSecret),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
