@@ -7,9 +7,7 @@ import (
 )
 
 func Provider() terraform.ResourceProvider {
-	dataSources := map[string]*schema.Resource{
-		"azurerm_client_config": dataSourceArmClientConfig(),
-	}
+	dataSources := map[string]*schema.Resource{}
 
 	resources := map[string]*schema.Resource{}
 

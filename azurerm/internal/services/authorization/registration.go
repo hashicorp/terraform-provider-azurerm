@@ -15,6 +15,7 @@ func (r Registration) Name() string {
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_builtin_role_definition": dataSourceArmBuiltInRoleDefinition(),
+		"azurerm_client_config":           dataSourceArmClientConfig(),
 		"azurerm_role_definition":         dataSourceArmRoleDefinition(),
 	}
 }
