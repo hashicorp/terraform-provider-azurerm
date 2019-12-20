@@ -1,4 +1,4 @@
-package azurerm
+package netapp
 
 import (
 	"fmt"
@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -44,7 +43,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznetapp.ValidateNetAppAccountName,
+				ValidateFunc: ValidateNetAppAccountName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
