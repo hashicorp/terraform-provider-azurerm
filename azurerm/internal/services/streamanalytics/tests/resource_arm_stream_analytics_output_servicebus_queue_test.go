@@ -1,4 +1,4 @@
-package streamanalytics
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_avro(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_servicebus_queue.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,28 +21,18 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_avro(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_avro(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_avro(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputServiceBusQueueExists(resourceName),
+					testCheckAzureRMStreamAnalyticsOutputServiceBusQueueExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_csv(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_servicebus_queue.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,28 +40,18 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_csv(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_csv(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_csv(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputServiceBusQueueExists(resourceName),
+					testCheckAzureRMStreamAnalyticsOutputServiceBusQueueExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_servicebus_queue.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -82,28 +59,18 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputServiceBusQueueExists(resourceName),
+					testCheckAzureRMStreamAnalyticsOutputServiceBusQueueExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
 
 func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_update(t *testing.T) {
-	resourceName := "azurerm_stream_analytics_output_servicebus_queue.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -111,26 +78,18 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputServiceBusQueueExists(resourceName),
+					testCheckAzureRMStreamAnalyticsOutputServiceBusQueueExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_updated(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputServiceBusQueueExists(resourceName),
+					testCheckAzureRMStreamAnalyticsOutputServiceBusQueueExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"shared_access_policy_key",
-				},
-			},
+			data.ImportStep("shared_access_policy_key"),
 		},
 	})
 }
@@ -141,9 +100,7 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_requiresImport(t *testin
 		return
 	}
 
-	resourceName := "azurerm_stream_analytics_output_servicebus_queue.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -151,15 +108,12 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_requiresImport(t *testin
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(ri, location),
+				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStreamAnalyticsOutputServiceBusQueueExists(resourceName),
+					testCheckAzureRMStreamAnalyticsOutputServiceBusQueueExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMStreamAnalyticsOutputServiceBusQueue_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_output_servicebus_queue"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMStreamAnalyticsOutputServiceBusQueue_requiresImport),
 		},
 	})
 }
@@ -216,8 +170,8 @@ func testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy(s *terraform.St
 	return nil
 }
 
-func testAccAzureRMStreamAnalyticsOutputServiceBusQueue_avro(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputServiceBusQueue_template(rInt, location)
+func testAccAzureRMStreamAnalyticsOutputServiceBusQueue_avro(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsOutputServiceBusQueue_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -234,11 +188,11 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
     type = "Avro"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputServiceBusQueue_csv(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputServiceBusQueue_template(rInt, location)
+func testAccAzureRMStreamAnalyticsOutputServiceBusQueue_csv(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsOutputServiceBusQueue_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -257,11 +211,11 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
     field_delimiter = ","
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputServiceBusQueue_template(rInt, location)
+func testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsOutputServiceBusQueue_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -280,11 +234,11 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
     format   = "LineSeparated"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputServiceBusQueue_updated(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputServiceBusQueue_template(rInt, location)
+func testAccAzureRMStreamAnalyticsOutputServiceBusQueue_updated(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsOutputServiceBusQueue_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -315,11 +269,11 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "test" {
     type = "Avro"
   }
 }
-`, template, rInt, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMStreamAnalyticsOutputServiceBusQueue_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(rInt, location)
+func testAccAzureRMStreamAnalyticsOutputServiceBusQueue_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(data)
 	return fmt.Sprintf(`
 %s
 
@@ -336,7 +290,7 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "import" {
 `, template)
 }
 
-func testAccAzureRMStreamAnalyticsOutputServiceBusQueue_template(rInt int, location string) string {
+func testAccAzureRMStreamAnalyticsOutputServiceBusQueue_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -375,5 +329,5 @@ resource "azurerm_stream_analytics_job" "test" {
     FROM [YourInputAlias]
 QUERY
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
