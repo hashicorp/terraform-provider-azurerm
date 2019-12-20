@@ -1,4 +1,4 @@
-package web
+package tests
 
 import (
 	"fmt"
@@ -6,18 +6,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAppServiceCertificate_Pfx(t *testing.T) {
-	resourceName := "azurerm_app_service_certificate.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
-	config := testAccAzureRMAppServiceCertificatePfx(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,28 +20,19 @@ func TestAccAzureRMAppServiceCertificate_Pfx(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceCertificatePfx(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "password", "terraform"),
-					resource.TestCheckResourceAttr(resourceName, "thumbprint", "7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
+					resource.TestCheckResourceAttr(data.ResourceName, "password", "terraform"),
+					resource.TestCheckResourceAttr(data.ResourceName, "thumbprint", "7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"pfx_blob", "password"},
-			},
+			data.ImportStep("pfx_blob", "password"),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceCertificate_PfxNoPassword(t *testing.T) {
-	resourceName := "azurerm_app_service_certificate.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
-	config := testAccAzureRMAppServiceCertificatePfxNoPassword(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,27 +40,18 @@ func TestAccAzureRMAppServiceCertificate_PfxNoPassword(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceCertificatePfxNoPassword(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "thumbprint", "7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
+					resource.TestCheckResourceAttr(data.ResourceName, "thumbprint", "7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"pfx_blob"},
-			},
+			data.ImportStep("pfx_blob"),
 		},
 	})
 }
 
 func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
-	resourceName := "azurerm_app_service_certificate.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
-	config := testAccAzureRMAppServiceCertificateKeyVault(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -82,22 +59,17 @@ func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceCertificateKeyVault(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "thumbprint", "7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
+					resource.TestCheckResourceAttr(data.ResourceName, "thumbprint", "7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"key_vault_secret_id"},
-			},
+			data.ImportStep("key_vault_secret_id"),
 		},
 	})
 }
 
-func testAccAzureRMAppServiceCertificatePfx(rInt int, location string) string {
+func testAccAzureRMAppServiceCertificatePfx(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestwebcert%d"
@@ -111,10 +83,10 @@ resource "azurerm_app_service_certificate" "test" {
   pfx_blob            = filebase64("testdata/app_service_certificate.pfx")
   password            = "terraform"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceCertificatePfxNoPassword(rInt int, location string) string {
+func testAccAzureRMAppServiceCertificatePfxNoPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestwebcert%d"
@@ -127,10 +99,10 @@ resource "azurerm_app_service_certificate" "test" {
   location            = azurerm_resource_group.test.location
   pfx_blob            = filebase64("testdata/app_service_certificate_nopassword.pfx")
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceCertificateKeyVault(rInt int, location string) string {
+func testAccAzureRMAppServiceCertificateKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "test" {}
 
@@ -200,7 +172,7 @@ resource "azurerm_app_service_certificate" "test" {
   location            = azurerm_resource_group.test.location
   key_vault_secret_id = azurerm_key_vault_certificate.test.id
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testCheckAzureRMAppServiceCertificateDestroy(s *terraform.State) error {
