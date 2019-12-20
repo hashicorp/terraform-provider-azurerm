@@ -1,4 +1,4 @@
-package subscription
+package tests
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMSubscriptions_basic(t *testing.T) {
-	resourceName := "data.azurerm_subscriptions.current"
+	data := acceptance.BuildTestData(t, "data.azurerm_subscriptions", "current")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -17,10 +17,10 @@ func TestAccDataSourceAzureRMSubscriptions_basic(t *testing.T) {
 			{
 				Config: `data "azurerm_subscriptions" "current" {}`,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "subscriptions.0.subscription_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "subscriptions.0.display_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "subscriptions.0.tenant_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "subscriptions.0.state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subscriptions.0.subscription_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subscriptions.0.display_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subscriptions.0.tenant_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subscriptions.0.state"),
 				),
 			},
 		},
