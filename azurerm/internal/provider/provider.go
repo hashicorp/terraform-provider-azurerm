@@ -15,11 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// for now the AzureProvider func takes a list of existing Data Sources & Resources at the top level
-// which haven't been migrated into packages. once they have been this function can be updated to
-// have no arguments
-
-func AzureProvider(dataSources map[string]*schema.Resource, resources map[string]*schema.Resource) terraform.ResourceProvider {
+func AzureProvider() terraform.ResourceProvider {
 	// avoids this showing up in test output
 	var debugLog = func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {
@@ -29,6 +25,8 @@ func AzureProvider(dataSources map[string]*schema.Resource, resources map[string
 		log.Printf(f, v...)
 	}
 
+	dataSources := make(map[string]*schema.Resource, 0)
+	resources := make(map[string]*schema.Resource, 0)
 	for _, service := range SupportedServices() {
 		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for k, v := range service.SupportedDataSources() {

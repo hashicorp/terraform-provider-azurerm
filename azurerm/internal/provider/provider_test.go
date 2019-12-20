@@ -1,4 +1,4 @@
-package azurerm
+package provider
 
 import (
 	"fmt"
@@ -6,23 +6,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-// NOTE: this file has to remain in the root until all resources have been migrated into
-// packages & out of the root, since it requires an empty initializer for the AzureProvider
-// this will end up in ./azurerm/internal/acceptance
-
-func init() {
-	azureProvider := Provider().(*schema.Provider)
-
-	// HACK: remove this as soon as we can (when everything's moved out of the root,
-	//       so ultimately when the AzureProvider function takes no args)
-	acceptance.CustomInit(azureProvider)
-}
-
 func TestProvider(t *testing.T) {
-	if err := Provider().(*schema.Provider).InternalValidate(); err != nil {
+	if err := AzureProvider().(*schema.Provider).InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }
@@ -31,7 +18,7 @@ func TestDataSourcesSupportCustomTimeouts(t *testing.T) {
 	// this is required until 2.0
 	os.Setenv("ARM_PROVIDER_CUSTOM_TIMEOUTS", "true")
 
-	provider := Provider().(*schema.Provider)
+	provider := AzureProvider().(*schema.Provider)
 	for dataSourceName, dataSource := range provider.DataSourcesMap {
 		t.Run(fmt.Sprintf("DataSource/%s", dataSourceName), func(t *testing.T) {
 			t.Logf("[DEBUG] Testing Data Source %q..", dataSourceName)
@@ -70,7 +57,7 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 	// this is required until 2.0
 	os.Setenv("ARM_PROVIDER_CUSTOM_TIMEOUTS", "true")
 
-	provider := Provider().(*schema.Provider)
+	provider := AzureProvider().(*schema.Provider)
 	for resourceName, resource := range provider.ResourcesMap {
 		t.Run(fmt.Sprintf("Resource/%s", resourceName), func(t *testing.T) {
 			t.Logf("[DEBUG] Testing Resource %q..", resourceName)
@@ -104,5 +91,5 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 }
 
 func TestProvider_impl(t *testing.T) {
-	var _ = Provider()
+	var _ = AzureProvider()
 }
