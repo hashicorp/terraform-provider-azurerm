@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
@@ -65,11 +66,11 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionCreateUpdate(d *schema.Re
 	subnetName := subnetID.Path["subnets"]
 	virtualNetworkName := subnetID.Path["virtualNetworks"]
 
-	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
 
-	locks.ByName(subnetName, subnetResourceName)
-	defer locks.UnlockByName(subnetName, subnetResourceName)
+	locks.ByName(subnetName, network.SubnetResourceName)
+	defer locks.UnlockByName(subnetName, network.SubnetResourceName)
 
 	exists, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -158,11 +159,11 @@ func resourceArmAppServiceVirtualNetworkSwiftConnectionDelete(d *schema.Resource
 	subnetName := subnetID.Path["subnets"]
 	virtualNetworkName := subnetID.Path["virtualNetworks"]
 
-	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
 
-	locks.ByName(subnetName, subnetResourceName)
-	defer locks.UnlockByName(subnetName, subnetResourceName)
+	locks.ByName(subnetName, network.SubnetResourceName)
+	defer locks.UnlockByName(subnetName, network.SubnetResourceName)
 
 	read, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
 	if err != nil {
