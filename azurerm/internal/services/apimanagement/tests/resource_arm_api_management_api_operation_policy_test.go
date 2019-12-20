@@ -1,4 +1,4 @@
-package apimanagement
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,7 @@ import (
 )
 
 func TestAccAzureRMApiManagementAPIOperationPolicy_basic(t *testing.T) {
-	resourceName := "azurerm_api_management_api_operation_policy.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,13 +21,13 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementAPIOperationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementAPIOperationPolicy_basic(ri, location),
+				Config: testAccAzureRMApiManagementAPIOperationPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName),
+					testCheckAzureRMApiManagementAPIOperationPolicyExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"xml_link"},
@@ -44,10 +41,7 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_requiresImport(t *testing.T) 
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_api_management_api_operation_policy.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,23 +49,18 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_requiresImport(t *testing.T) 
 		CheckDestroy: testCheckAzureRMApiManagementAPIOperationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementAPIOperationPolicy_basic(ri, location),
+				Config: testAccAzureRMApiManagementAPIOperationPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName),
+					testCheckAzureRMApiManagementAPIOperationPolicyExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMApiManagementAPIOperationPolicy_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_api_management_api_policy"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementAPIOperationPolicy_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMApiManagementAPIOperationPolicy_update(t *testing.T) {
-	resourceName := "azurerm_api_management_api_operation_policy.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -79,19 +68,19 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementAPIOperationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementAPIOperationPolicy_basic(ri, location),
+				Config: testAccAzureRMApiManagementAPIOperationPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName),
+					testCheckAzureRMApiManagementAPIOperationPolicyExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMApiManagementAPIOperationPolicy_updated(ri, location),
+				Config: testAccAzureRMApiManagementAPIOperationPolicy_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName),
+					testCheckAzureRMApiManagementAPIOperationPolicyExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"xml_link"},
@@ -157,8 +146,8 @@ func testCheckAzureRMApiManagementAPIOperationPolicyDestroy(s *terraform.State) 
 	return nil
 }
 
-func testAccAzureRMApiManagementAPIOperationPolicy_basic(rInt int, location string) string {
-	template := testAccAzureRMApiManagementApiOperation_basic(rInt, location)
+func testAccAzureRMApiManagementAPIOperationPolicy_basic(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApiOperation_basic(data)
 
 	return fmt.Sprintf(`
 %s
@@ -173,8 +162,8 @@ resource "azurerm_api_management_api_operation_policy" "test" {
 `, template)
 }
 
-func testAccAzureRMApiManagementAPIOperationPolicy_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMApiManagementAPIOperationPolicy_basic(rInt, location)
+func testAccAzureRMApiManagementAPIOperationPolicy_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementAPIOperationPolicy_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -188,8 +177,8 @@ resource "azurerm_api_management_api_operation_policy" "import" {
 `, template)
 }
 
-func testAccAzureRMApiManagementAPIOperationPolicy_updated(rInt int, location string) string {
-	template := testAccAzureRMApiManagementApiOperation_basic(rInt, location)
+func testAccAzureRMApiManagementAPIOperationPolicy_updated(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApiOperation_basic(data)
 	return fmt.Sprintf(`
 %s
 
