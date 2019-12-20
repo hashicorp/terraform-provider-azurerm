@@ -1,4 +1,4 @@
-package loganalytics
+package tests
 
 import (
 	"fmt"
@@ -7,32 +7,25 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
-	resourceName := "azurerm_log_analytics_solution.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogAnalyticsSolution_containerMonitoring(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSolutionExists(resourceName),
+					testCheckAzureRMLogAnalyticsSolutionExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -43,22 +36,20 @@ func TestAccAzureRMLogAnalyticsSolution_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_log_analytics_solution.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, location),
+				Config: testAccAzureRMLogAnalyticsSolution_containerMonitoring(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSolutionExists(resourceName),
+					testCheckAzureRMLogAnalyticsSolutionExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMLogAnalyticsSolution_requiresImport(ri, location),
+				Config:      testAccAzureRMLogAnalyticsSolution_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_solution"),
 			},
 		},
@@ -66,25 +57,19 @@ func TestAccAzureRMLogAnalyticsSolution_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
-	resourceName := "azurerm_log_analytics_solution.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogAnalyticsSolution_security(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogAnalyticsSolution_security(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSolutionExists(resourceName),
+					testCheckAzureRMLogAnalyticsSolutionExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -145,7 +130,7 @@ func testCheckAzureRMLogAnalyticsSolutionExists(resourceName string) resource.Te
 	}
 }
 
-func testAccAzureRMLogAnalyticsSolution_containerMonitoring(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsSolution_containerMonitoring(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -171,11 +156,11 @@ resource "azurerm_log_analytics_solution" "test" {
     product   = "OMSGallery/ContainerInsights"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsSolution_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMLogAnalyticsSolution_containerMonitoring(rInt, location)
+func testAccAzureRMLogAnalyticsSolution_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsSolution_containerMonitoring(data)
 	return fmt.Sprintf(`
 %s
 
@@ -194,7 +179,7 @@ resource "azurerm_log_analytics_solution" "import" {
 `, template)
 }
 
-func testAccAzureRMLogAnalyticsSolution_security(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsSolution_security(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -220,5 +205,5 @@ resource "azurerm_log_analytics_solution" "test" {
     product   = "OMSGallery/Security"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -41,7 +41,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRmLogAnalyticsWorkspaceName,
+				ValidateFunc: ValidateAzureRmLogAnalyticsWorkspaceName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -231,7 +231,7 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func validateAzureRmLogAnalyticsWorkspaceName(v interface{}, _ string) (warnings []string, errors []error) {
+func ValidateAzureRmLogAnalyticsWorkspaceName(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	r, _ := regexp.Compile("^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$")
