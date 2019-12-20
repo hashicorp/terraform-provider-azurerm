@@ -1,7 +1,8 @@
-package azurerm
+package datalake
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -23,7 +24,7 @@ func TestAccDataSourceAzureRMDataLakeStore_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceDataLakeStore_basic(rInt, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataLakeStoreExists(dataSourceName),
+					azurerm.testCheckAzureRMDataLakeStoreExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "tier", "Consumption"),
 				),
 			},
