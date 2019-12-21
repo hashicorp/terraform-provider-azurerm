@@ -1,4 +1,4 @@
-package msi
+package tests
 
 import (
 	"fmt"
@@ -8,35 +8,28 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_user_assigned_identity.test"
-	resourceName := "azurerm_user_assigned_identity.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMUserAssignedIdentity_basic(ri, acceptance.Location(), rs),
+				Config: testAccDataSourceAzureRMUserAssignedIdentity_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctest%s-uai", rs)),
-					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", fmt.Sprintf("acctest%d-rg", ri)),
-					resource.TestCheckResourceAttr(dataSourceName, "location", azure.NormalizeLocation(location)),
-					resource.TestMatchResourceAttr(dataSourceName, "principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(dataSourceName, "client_id", validate.UUIDRegExp),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
-					testEqualResourceAttr(dataSourceName, resourceName, "principal_id"),
-					testEqualResourceAttr(dataSourceName, resourceName, "client_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest%s-uai", data.RandomString)),
+					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctest%d-rg", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
+					resource.TestMatchResourceAttr(data.ResourceName, "principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "client_id", validate.UUIDRegExp),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					testEqualResourceAttr(data.ResourceName, "data."+data.ResourceName, "principal_id"),
+					testEqualResourceAttr(data.ResourceName, "data."+data.ResourceName, "client_id"),
 				),
 			},
 		},
@@ -67,7 +60,7 @@ func testEqualResourceAttr(dataSourceName string, resourceName string, attrName 
 	}
 }
 
-func testAccDataSourceAzureRMUserAssignedIdentity_basic(rInt int, location string, rString string) string {
+func testAccDataSourceAzureRMUserAssignedIdentity_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest%d-rg"
@@ -88,5 +81,5 @@ data "azurerm_user_assigned_identity" "test" {
   name                = "${azurerm_user_assigned_identity.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
