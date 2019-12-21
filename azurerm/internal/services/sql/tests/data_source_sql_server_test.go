@@ -1,4 +1,4 @@
-package sql
+package tests
 
 import (
 	"fmt"
@@ -10,9 +10,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMSqlServer_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_sql_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -20,22 +18,22 @@ func TestAccDataSourceAzureRMSqlServer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMSqlServer_basic(ri, location),
+				Config: testAccDataSourceAzureRMSqlServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists(dataSourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "location"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "fqdn"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "version"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "administrator_login"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+					testCheckAzureRMSqlServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "version"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "administrator_login"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAzureRMSqlServer_basic(rInt int, location string) string {
-	template := testAccAzureRMSqlServer_basic(rInt, location)
+func testAccDataSourceAzureRMSqlServer_basic(data acceptance.TestData) string {
+	template := testAccAzureRMSqlServer_basic(data)
 	return fmt.Sprintf(`
 %s
 

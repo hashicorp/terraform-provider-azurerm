@@ -1,4 +1,4 @@
-package sql
+package tests
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -15,8 +14,7 @@ import (
 )
 
 func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
-	resourceName := "azurerm_sql_database.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,13 +22,13 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlDatabase_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlDatabase_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"create_mode"},
@@ -43,8 +41,7 @@ func TestAccAzureRMSqlDatabase_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-	resourceName := "azurerm_sql_database.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -52,13 +49,13 @@ func TestAccAzureRMSqlDatabase_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlDatabase_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlDatabase_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMSqlDatabase_requiresImport(ri, acceptance.Location()),
+				Config:      testAccAzureRMSqlDatabase_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_sql_database"),
 			},
 		},
@@ -66,8 +63,7 @@ func TestAccAzureRMSqlDatabase_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
-	resourceName := "azurerm_sql_database.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -75,10 +71,10 @@ func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlDatabase_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlDatabase_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
-					testCheckAzureRMSqlDatabaseDisappears(resourceName),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					testCheckAzureRMSqlDatabaseDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -87,8 +83,7 @@ func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
-	resourceName := "azurerm_sql_database.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -96,28 +91,21 @@ func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlDatabase_elasticPool(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlDatabase_elasticPool(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "elastic_pool_name", fmt.Sprintf("acctestep%d", ri)),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "elastic_pool_name", fmt.Sprintf("acctestep%d", data.RandomInteger)),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"create_mode"},
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
-	resourceName := "azurerm_sql_database.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMSqlDatabase_withTags(ri, location)
-	postConfig := testAccAzureRMSqlDatabase_withTagsUpdate(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	preConfig := testAccAzureRMSqlDatabase_withTags(data)
+	postConfig := testAccAzureRMSqlDatabase_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -127,15 +115,15 @@ func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
 		},
@@ -143,8 +131,7 @@ func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
-	resourceName := "azurerm_sql_database.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -152,13 +139,13 @@ func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlDatabase_dataWarehouse(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlDatabase_dataWarehouse(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"create_mode"},
@@ -168,13 +155,11 @@ func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
 }
 
 func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
-	resourceName := "azurerm_sql_database.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMSqlDatabase_basic(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	preConfig := testAccAzureRMSqlDatabase_basic(data)
 	timeToRestore := time.Now().Add(15 * time.Minute)
 	formattedTime := timeToRestore.UTC().Format(time.RFC3339)
-	postCongif := testAccAzureRMSqlDatabase_restorePointInTime(ri, formattedTime, acceptance.Location())
+	postCongif := testAccAzureRMSqlDatabase_restorePointInTime(data, formattedTime)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -185,14 +170,14 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 				Config:                    preConfig,
 				PreventPostDestroyRefresh: true,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
 				),
 			},
 			{
 				PreConfig: func() { time.Sleep(timeToRestore.Sub(time.Now().Add(-1 * time.Minute))) },
 				Config:    postCongif,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
 					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test_restore"),
 				),
 			},
@@ -201,11 +186,9 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 }
 
 func TestAccAzureRMSqlDatabase_collation(t *testing.T) {
-	resourceName := "azurerm_sql_database.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMSqlDatabase_basic(ri, location)
-	postConfig := testAccAzureRMSqlDatabase_collationUpdate(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	preConfig := testAccAzureRMSqlDatabase_basic(data)
+	postConfig := testAccAzureRMSqlDatabase_collationUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -215,15 +198,15 @@ func TestAccAzureRMSqlDatabase_collation(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "collation", "SQL_Latin1_General_CP1_CI_AS"),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_Latin1_General_CP1_CI_AS"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "collation", "Japanese_Bushu_Kakusu_100_CS_AS_KS_WS"),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "collation", "Japanese_Bushu_Kakusu_100_CS_AS_KS_WS"),
 				),
 			},
 		},
@@ -231,11 +214,9 @@ func TestAccAzureRMSqlDatabase_collation(t *testing.T) {
 }
 
 func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
-	resourceName := "azurerm_sql_database.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMSqlDatabase_requestedServiceObjectiveName(ri, location, "S0")
-	postConfig := testAccAzureRMSqlDatabase_requestedServiceObjectiveName(ri, location, "S1")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	preConfig := testAccAzureRMSqlDatabase_requestedServiceObjectiveName(data, "S0")
+	postConfig := testAccAzureRMSqlDatabase_requestedServiceObjectiveName(data, "S1")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -245,15 +226,15 @@ func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "requested_service_objective_name", "S0"),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "requested_service_objective_name", "S0"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "requested_service_objective_name", "S1"),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "requested_service_objective_name", "S1"),
 				),
 			},
 		},
@@ -261,11 +242,9 @@ func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 }
 
 func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
-	resourceName := "azurerm_sql_database.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Enabled")
-	postConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(ri, location, "Disabled")
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	preConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(data, "Enabled")
+	postConfig := testAccAzureRMSqlDatabase_threatDetectionPolicy(data, "Disabled")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -275,16 +254,16 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.state", "Enabled"),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.retention_days", "15"),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.disabled_alerts.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.email_account_admins", "Enabled"),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.state", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.retention_days", "15"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.disabled_alerts.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.email_account_admins", "Enabled"),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"create_mode", "threat_detection_policy.0.storage_account_access_key"},
@@ -292,9 +271,9 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "threat_detection_policy.0.state", "Disabled"),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.state", "Disabled"),
 				),
 			},
 		},
@@ -302,11 +281,9 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 }
 
 func TestAccAzureRMSqlDatabase_readScale(t *testing.T) {
-	resourceName := "azurerm_sql_database.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMSqlDatabase_readScale(ri, location, true)
-	postConfig := testAccAzureRMSqlDatabase_readScale(ri, location, false)
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	preConfig := testAccAzureRMSqlDatabase_readScale(data, true)
+	postConfig := testAccAzureRMSqlDatabase_readScale(data, false)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -316,15 +293,15 @@ func TestAccAzureRMSqlDatabase_readScale(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "read_scale", "true"),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "read_scale", "true"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "read_scale", "false"),
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "read_scale", "false"),
 				),
 			},
 		},
@@ -410,8 +387,8 @@ func testCheckAzureRMSqlDatabaseDisappears(resourceName string) resource.TestChe
 }
 
 func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSqlDatabase_bacpac(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+	config := testAccAzureRMSqlDatabase_bacpac(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -428,7 +405,7 @@ func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
 	})
 }
 
-func testAccAzureRMSqlDatabase_basic(rInt int, location string) string {
+func testAccAzureRMSqlDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -454,10 +431,10 @@ resource "azurerm_sql_database" "test" {
   max_size_bytes                   = "1073741824"
   requested_service_objective_name = "S0"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSqlDatabase_requiresImport(rInt int, location string) string {
+func testAccAzureRMSqlDatabase_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -471,10 +448,10 @@ resource "azurerm_sql_database" "import" {
   max_size_bytes                   = "${azurerm_sql_database.test.max_size_bytes}"
   requested_service_objective_name = "${azurerm_sql_database.test.requested_service_objective_name}"
 }
-`, testAccAzureRMSqlDatabase_basic(rInt, location))
+`, testAccAzureRMSqlDatabase_basic(data))
 }
 
-func testAccAzureRMSqlDatabase_withTags(rInt int, location string) string {
+func testAccAzureRMSqlDatabase_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -505,10 +482,10 @@ resource "azurerm_sql_database" "test" {
     database    = "test"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSqlDatabase_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMSqlDatabase_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -538,10 +515,10 @@ resource "azurerm_sql_database" "test" {
     environment = "production"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSqlDatabase_dataWarehouse(rInt int, location string) string {
+func testAccAzureRMSqlDatabase_dataWarehouse(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest_rg_%d"
@@ -566,10 +543,10 @@ resource "azurerm_sql_database" "test" {
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   requested_service_objective_name = "DW400"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSqlDatabase_restorePointInTime(rInt int, formattedTime string, location string) string {
+func testAccAzureRMSqlDatabase_restorePointInTime(data acceptance.TestData, formattedTime string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -605,10 +582,10 @@ resource "azurerm_sql_database" "test_restore" {
   source_database_id    = "${azurerm_sql_database.test.id}"
   restore_point_in_time = "%s"
 }
-`, rInt, location, rInt, rInt, rInt, formattedTime)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, formattedTime)
 }
 
-func testAccAzureRMSqlDatabase_elasticPool(rInt int, location string) string {
+func testAccAzureRMSqlDatabase_elasticPool(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -645,10 +622,10 @@ resource "azurerm_sql_database" "test" {
   elastic_pool_name                = "${azurerm_sql_elasticpool.test.name}"
   requested_service_objective_name = "ElasticPool"
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSqlDatabase_collationUpdate(rInt int, location string) string {
+func testAccAzureRMSqlDatabase_collationUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -674,10 +651,10 @@ resource "azurerm_sql_database" "test" {
   max_size_bytes                   = "1073741824"
   requested_service_objective_name = "S0"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSqlDatabase_bacpac(rInt int, location string) string {
+func testAccAzureRMSqlDatabase_bacpac(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG_%d"
@@ -744,10 +721,10 @@ resource "azurerm_sql_database" "test" {
     authentication_type          = "SQL"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSqlDatabase_requestedServiceObjectiveName(rInt int, location, requestedServiceObjectiveName string) string {
+func testAccAzureRMSqlDatabase_requestedServiceObjectiveName(data acceptance.TestData, requestedServiceObjectiveName string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -773,10 +750,10 @@ resource "azurerm_sql_database" "test" {
   max_size_bytes                   = "1073741824"
   requested_service_objective_name = %q
 }
-`, rInt, location, rInt, rInt, requestedServiceObjectiveName)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, requestedServiceObjectiveName)
 }
 
-func testAccAzureRMSqlDatabase_threatDetectionPolicy(rInt int, location, state string) string {
+func testAccAzureRMSqlDatabase_threatDetectionPolicy(data acceptance.TestData, state string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -819,10 +796,10 @@ resource "azurerm_sql_database" "test" {
     use_server_default         = "Disabled"
   }
 }
-`, rInt, location, rInt, rInt, rInt, state)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, state)
 }
 
-func testAccAzureRMSqlDatabase_readScale(rInt int, location string, readScale bool) string {
+func testAccAzureRMSqlDatabase_readScale(data acceptance.TestData, readScale bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "readscaletestRG-%d"
@@ -848,5 +825,5 @@ resource "azurerm_sql_database" "test" {
   max_size_bytes      = "1073741824"
   read_scale          = %t
 }
-`, rInt, location, rInt, rInt, readScale)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, readScale)
 }
