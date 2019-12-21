@@ -12,7 +12,7 @@ import (
 )
 
 // the schema schema was used for both V0 and V1
-func resourceStorageTableStateResourceV0V1() *schema.Resource {
+func ResourceStorageTableStateResourceV0V1() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -68,7 +68,7 @@ func resourceStorageTableStateResourceV0V1() *schema.Resource {
 	}
 }
 
-func resourceStorageTableStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func ResourceStorageTableStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	tableName := rawState["name"].(string)
 	accountName := rawState["storage_account_name"].(string)
 	environment := meta.(*clients.Client).Account.Environment
@@ -81,7 +81,7 @@ func resourceStorageTableStateUpgradeV0ToV1(rawState map[string]interface{}, met
 	return rawState, nil
 }
 
-func resourceStorageTableStateUpgradeV1ToV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func ResourceStorageTableStateUpgradeV1ToV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	tableName := rawState["name"].(string)
 	accountName := rawState["storage_account_name"].(string)
 	environment := meta.(*clients.Client).Account.Environment
