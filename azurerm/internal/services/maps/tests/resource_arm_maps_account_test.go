@@ -1,4 +1,4 @@
-package maps
+package tests
 
 import (
 	"fmt"
@@ -7,15 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMapsAccount_basic(t *testing.T) {
-	resourceName := "azurerm_maps_account.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_maps_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,27 +21,22 @@ func TestAccAzureRMMapsAccount_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMapsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMapsAccount_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMMapsAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttrSet(resourceName, "x_ms_client_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "S0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "x_ms_client_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "S0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMapsAccount_sku(t *testing.T) {
-	resourceName := "azurerm_maps_account.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_maps_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -51,28 +44,22 @@ func TestAccAzureRMMapsAccount_sku(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMapsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMapsAccount_sku(ri, acceptance.Location()),
+				Config: testAccAzureRMMapsAccount_sku(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttrSet(resourceName, "x_ms_client_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "S1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "x_ms_client_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "S1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMapsAccount_tags(t *testing.T) {
-	resourceName := "azurerm_maps_account.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_maps_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,30 +67,22 @@ func TestAccAzureRMMapsAccount_tags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMapsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMapsAccount_basic(ri, location),
+				Config: testAccAzureRMMapsAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMapsAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMMapsAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMapsAccount_tags(ri, location),
+				Config: testAccAzureRMMapsAccount_tags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMapsAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "testing"),
+					testCheckAzureRMMapsAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "testing"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -160,7 +139,7 @@ func testCheckAzureRMMapsAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMapsAccount_basic(rInt int, location string) string {
+func testAccAzureRMMapsAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -172,10 +151,10 @@ resource "azurerm_maps_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "S0"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMapsAccount_sku(rInt int, location string) string {
+func testAccAzureRMMapsAccount_sku(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -187,10 +166,10 @@ resource "azurerm_maps_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "S1"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMapsAccount_tags(rInt int, location string) string {
+func testAccAzureRMMapsAccount_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -206,5 +185,5 @@ resource "azurerm_maps_account" "test" {
     environment = "testing"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
