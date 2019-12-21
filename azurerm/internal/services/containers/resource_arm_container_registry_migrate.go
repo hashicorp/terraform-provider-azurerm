@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func resourceAzureRMContainerRegistryMigrateState(
+func ResourceAzureRMContainerRegistryMigrateState(
 	v int, is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
 	switch v {
 	case 0:

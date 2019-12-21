@@ -31,7 +31,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		MigrateState:  resourceAzureRMContainerRegistryMigrateState,
+		MigrateState:  ResourceAzureRMContainerRegistryMigrateState,
 		SchemaVersion: 2,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -46,7 +46,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMContainerRegistryName,
+				ValidateFunc: ValidateAzureRMContainerRegistryName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -594,7 +594,7 @@ func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func validateAzureRMContainerRegistryName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateAzureRMContainerRegistryName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
