@@ -1,18 +1,15 @@
-package dns
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_dns_zone.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -20,9 +17,9 @@ func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceDNSZone_basic(rInt, location),
+				Config: testAccDataSourceDNSZone_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 		},
@@ -30,9 +27,7 @@ func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
-	dataSourceName := "data.azurerm_dns_zone.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -40,10 +35,10 @@ func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceDNSZone_tags(rInt, location),
+				Config: testAccDataSourceDNSZone_tags(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.hello", "world"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
 				),
 			},
 		},
@@ -51,10 +46,8 @@ func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMDNSZone_withoutResourceGroupName(t *testing.T) {
-	dataSourceName := "data.azurerm_dns_zone.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	resourceGroupName := fmt.Sprintf("acctestRG-%d", rInt)
+	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")
+	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -62,16 +55,16 @@ func TestAccDataSourceAzureRMDNSZone_withoutResourceGroupName(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceDNSZone_onlyName(rInt, location, resourceGroupName),
+				Config: testAccDataSourceDNSZone_onlyName(data, resourceGroupName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceDNSZone_basic(rInt int, location string) string {
+func testAccDataSourceDNSZone_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -87,10 +80,10 @@ data "azurerm_dns_zone" "test" {
   name                = "${azurerm_dns_zone.test.name}"
   resource_group_name = "${azurerm_dns_zone.test.resource_group_name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceDNSZone_tags(rInt int, location string) string {
+func testAccDataSourceDNSZone_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -110,10 +103,10 @@ data "azurerm_dns_zone" "test" {
   name                = "${azurerm_dns_zone.test.name}"
   resource_group_name = "${azurerm_dns_zone.test.resource_group_name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceDNSZone_onlyName(rInt int, location, resourceGroupName string) string {
+func testAccDataSourceDNSZone_onlyName(data acceptance.TestData, resourceGroupName string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "%s"
@@ -128,5 +121,5 @@ resource "azurerm_dns_zone" "test" {
 data "azurerm_dns_zone" "test" {
   name = "${azurerm_dns_zone.test.name}"
 }
-`, resourceGroupName, location, rInt)
+`, resourceGroupName, data.Locations.Primary, data.RandomInteger)
 }

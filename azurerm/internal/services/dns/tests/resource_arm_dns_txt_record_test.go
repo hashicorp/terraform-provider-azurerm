@@ -1,4 +1,4 @@
-package dns
+package tests
 
 import (
 	"fmt"
@@ -8,16 +8,14 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsTxtRecord_basic(t *testing.T) {
-	resourceName := "azurerm_dns_txt_record.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsTxtRecord_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_dns_txt_record", "test")
+	config := testAccAzureRMDnsTxtRecord_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,15 +25,11 @@ func TestAccAzureRMDnsTxtRecord_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsTxtRecordExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "fqdn"),
+					testCheckAzureRMDnsTxtRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -46,9 +40,7 @@ func TestAccAzureRMDnsTxtRecord_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_dns_txt_record.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dns_txt_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,13 +48,13 @@ func TestAccAzureRMDnsTxtRecord_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsTxtRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsTxtRecord_basic(ri, location),
+				Config: testAccAzureRMDnsTxtRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsTxtRecordExists(resourceName),
+					testCheckAzureRMDnsTxtRecordExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDnsTxtRecord_requiresImport(ri, location),
+				Config:      testAccAzureRMDnsTxtRecord_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_dns_txt_record"),
 			},
 		},
@@ -70,10 +62,9 @@ func TestAccAzureRMDnsTxtRecord_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMDnsTxtRecord_updateRecords(t *testing.T) {
-	resourceName := "azurerm_dns_txt_record.test"
-	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMDnsTxtRecord_basic(ri, acceptance.Location())
-	postConfig := testAccAzureRMDnsTxtRecord_updateRecords(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_dns_txt_record", "test")
+	preConfig := testAccAzureRMDnsTxtRecord_basic(data)
+	postConfig := testAccAzureRMDnsTxtRecord_updateRecords(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -83,15 +74,15 @@ func TestAccAzureRMDnsTxtRecord_updateRecords(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsTxtRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "record.#", "2"),
+					testCheckAzureRMDnsTxtRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsTxtRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "record.#", "3"),
+					testCheckAzureRMDnsTxtRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "3"),
 				),
 			},
 		},
@@ -99,10 +90,9 @@ func TestAccAzureRMDnsTxtRecord_updateRecords(t *testing.T) {
 }
 
 func TestAccAzureRMDnsTxtRecord_withTags(t *testing.T) {
-	resourceName := "azurerm_dns_txt_record.test"
-	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMDnsTxtRecord_withTags(ri, acceptance.Location())
-	postConfig := testAccAzureRMDnsTxtRecord_withTagsUpdate(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_dns_txt_record", "test")
+	preConfig := testAccAzureRMDnsTxtRecord_withTags(data)
+	postConfig := testAccAzureRMDnsTxtRecord_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -112,22 +102,18 @@ func TestAccAzureRMDnsTxtRecord_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsTxtRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					testCheckAzureRMDnsTxtRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsTxtRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					testCheckAzureRMDnsTxtRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -191,7 +177,7 @@ func testCheckAzureRMDnsTxtRecordDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDnsTxtRecord_basic(rInt int, location string) string {
+func testAccAzureRMDnsTxtRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -217,11 +203,11 @@ resource "azurerm_dns_txt_record" "test" {
     value = "Another test txt string"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsTxtRecord_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMDnsTxtRecord_basic(rInt, location)
+func testAccAzureRMDnsTxtRecord_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDnsTxtRecord_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -242,7 +228,7 @@ resource "azurerm_dns_txt_record" "import" {
 `, template)
 }
 
-func testAccAzureRMDnsTxtRecord_updateRecords(rInt int, location string) string {
+func testAccAzureRMDnsTxtRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -272,10 +258,10 @@ resource "azurerm_dns_txt_record" "test" {
     value = "A wild 3rd record appears"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsTxtRecord_withTags(rInt int, location string) string {
+func testAccAzureRMDnsTxtRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -306,10 +292,10 @@ resource "azurerm_dns_txt_record" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsTxtRecord_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMDnsTxtRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -339,5 +325,5 @@ resource "azurerm_dns_txt_record" "test" {
     environment = "staging"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

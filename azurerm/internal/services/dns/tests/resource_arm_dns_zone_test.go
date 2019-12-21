@@ -1,4 +1,4 @@
-package dns
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsZone_basic(t *testing.T) {
-	resourceName := "azurerm_dns_zone.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsZone_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
+	config := testAccAzureRMDnsZone_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,14 +24,10 @@ func TestAccAzureRMDnsZone_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(resourceName),
+					testCheckAzureRMDnsZoneExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -44,9 +38,7 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_dns_zone.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,13 +46,13 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsZone_basic(ri, location),
+				Config: testAccAzureRMDnsZone_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(resourceName),
+					testCheckAzureRMDnsZoneExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDnsZone_requiresImport(ri, location),
+				Config:      testAccAzureRMDnsZone_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_dns_zone"),
 			},
 		},
@@ -68,9 +60,8 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
-	resourceName := "azurerm_dns_zone.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsZone_withVNets(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
+	config := testAccAzureRMDnsZone_withVNets(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,24 +71,18 @@ func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(resourceName),
+					testCheckAzureRMDnsZoneExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDnsZone_withTags(t *testing.T) {
-	resourceName := "azurerm_dns_zone.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMDnsZone_withTags(ri, location)
-	postConfig := testAccAzureRMDnsZone_withTagsUpdate(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
+	preConfig := testAccAzureRMDnsZone_withTags(data)
+	postConfig := testAccAzureRMDnsZone_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -107,22 +92,18 @@ func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					testCheckAzureRMDnsZoneExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					testCheckAzureRMDnsZoneExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -183,7 +164,7 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDnsZone_basic(rInt int, location string) string {
+func testAccAzureRMDnsZone_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -194,11 +175,11 @@ resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDnsZone_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMDnsZone_basic(rInt, location)
+func testAccAzureRMDnsZone_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDnsZone_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -209,7 +190,7 @@ resource "azurerm_dns_zone" "import" {
 `, template)
 }
 
-func testAccAzureRMDnsZone_withVNets(rInt int, location string) string {
+func testAccAzureRMDnsZone_withVNets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG_%d"
@@ -230,10 +211,10 @@ resource "azurerm_dns_zone" "test" {
   zone_type                        = "Private"
   registration_virtual_network_ids = ["${azurerm_virtual_network.test.id}"]
 }
-`, rInt, location, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDnsZone_withTags(rInt int, location string) string {
+func testAccAzureRMDnsZone_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -249,10 +230,10 @@ resource "azurerm_dns_zone" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDnsZone_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMDnsZone_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -267,5 +248,5 @@ resource "azurerm_dns_zone" "test" {
     environment = "staging"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
