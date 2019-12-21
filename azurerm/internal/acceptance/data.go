@@ -29,15 +29,15 @@ type TestData struct {
 	// e.g. `azurerm_resource_group.test`
 	ResourceName string
 
+	// ResourceType is the Terraform Resource Type - `azurerm_resource_group`
+	ResourceType string
+
 	// Environment is a struct containing Details about the Azure Environment
 	// that we're running against
 	Environment azure.Environment
 
 	// EnvironmentName is the name of the Azure Environment where we're running
 	EnvironmentName string
-
-	// resourceType is the Terraform Resource Type - `azurerm_resource_group`
-	resourceType string
 
 	// resourceLabel is the local used for the resource - generally "test""
 	resourceLabel string
@@ -65,7 +65,7 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 		Environment:     *env,
 		EnvironmentName: EnvironmentName(),
 
-		resourceType:  resourceType,
+		ResourceType:  resourceType,
 		resourceLabel: resourceLabel,
 	}
 

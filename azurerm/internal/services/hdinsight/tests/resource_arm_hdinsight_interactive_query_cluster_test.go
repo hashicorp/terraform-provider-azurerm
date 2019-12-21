@@ -1,299 +1,216 @@
-package hdinsight
+package tests
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func TestAccAzureRMHDInsightHBaseCluster_basic(t *testing.T) {
-	resourceName := "azurerm_hdinsight_hbase_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+func TestAccAzureRMHDInsightInteractiveQueryCluster_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hbase_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightHBaseCluster_basic(ri, rs, location),
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"roles.0.head_node.0.password",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.password",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.password",
-					"roles.0.zookeeper_node.0.vm_size",
-					"storage_account",
-				},
-			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
 		},
 	})
 }
 
-func TestAccAzureRMHDInsightHBaseCluster_gen2basic(t *testing.T) {
-	resourceName := "azurerm_hdinsight_hbase_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+func TestAccAzureRMHDInsightInteractiveQueryCluster_gen2basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hbase_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightHBaseCluster_gen2basic(ri, rs, location),
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_gen2basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"roles.0.head_node.0.password",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.password",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.password",
-					"roles.0.zookeeper_node.0.vm_size",
-					"storage_account",
-				},
-			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
 		},
 	})
 }
 
-func TestAccAzureRMHDInsightHBaseCluster_requiresImport(t *testing.T) {
+func TestAccAzureRMHDInsightInteractiveQueryCluster_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
-	resourceName := "azurerm_hdinsight_hbase_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hbase_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightHBaseCluster_basic(ri, rs, location),
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				Config:      testAccAzureRMHDInsightHBaseCluster_requiresImport(ri, rs, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_hdinsight_hbase_cluster"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMHDInsightInteractiveQueryCluster_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMHDInsightHBaseCluster_update(t *testing.T) {
-	resourceName := "azurerm_hdinsight_hbase_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+func TestAccAzureRMHDInsightInteractiveQueryCluster_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hbase_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightHBaseCluster_basic(ri, rs, location),
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"roles.0.head_node.0.password",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.password",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.password",
-					"roles.0.zookeeper_node.0.vm_size",
-					"storage_account",
-				},
-			},
-			{
-				Config: testAccAzureRMHDInsightHBaseCluster_updated(ri, rs, location),
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"roles.0.head_node.0.password",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.password",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.password",
-					"roles.0.zookeeper_node.0.vm_size",
-					"storage_account",
-				},
-			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
 		},
 	})
 }
 
-func TestAccAzureRMHDInsightHBaseCluster_sshKeys(t *testing.T) {
-	resourceName := "azurerm_hdinsight_hbase_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+func TestAccAzureRMHDInsightInteractiveQueryCluster_sshKeys(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hbase_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightHBaseCluster_sshKeys(ri, rs, location),
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_sshKeys(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"storage_account",
-					"roles.0.head_node.0.ssh_keys",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.ssh_keys",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.ssh_keys",
-					"roles.0.zookeeper_node.0.vm_size",
-				},
-			},
+			data.ImportStep("storage_account",
+				"roles.0.head_node.0.ssh_keys",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.ssh_keys",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.ssh_keys",
+				"roles.0.zookeeper_node.0.vm_size"),
 		},
 	})
 }
 
-func TestAccAzureRMHDInsightHBaseCluster_virtualNetwork(t *testing.T) {
-	resourceName := "azurerm_hdinsight_hbase_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+func TestAccAzureRMHDInsightInteractiveQueryCluster_virtualNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hbase_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightHBaseCluster_virtualNetwork(ri, rs, location),
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_virtualNetwork(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"roles.0.head_node.0.password",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.password",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.password",
-					"roles.0.zookeeper_node.0.vm_size",
-					"storage_account",
-				},
-			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
 		},
 	})
 }
 
-func TestAccAzureRMHDInsightHBaseCluster_complete(t *testing.T) {
-	resourceName := "azurerm_hdinsight_hbase_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+func TestAccAzureRMHDInsightInteractiveQueryCluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hbase_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightHBaseCluster_complete(ri, rs, location),
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"roles.0.head_node.0.password",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.password",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.password",
-					"roles.0.zookeeper_node.0.vm_size",
-					"storage_account",
-				},
-			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
 		},
 	})
 }
 
-func testAccAzureRMHDInsightHBaseCluster_basic(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightHBaseCluster_template(rInt, rString, location)
+func testAccAzureRMHDInsightInteractiveQueryCluster_basic(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightInteractiveQueryCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_hbase_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -301,7 +218,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    hbase = "1.1"
+    interactive_hive = "2.1"
   }
 
   gateway {
@@ -318,34 +235,36 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_D3_V2"
+      vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightHBaseCluster_gen2basic(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightHBaseCluster_gen2template(rInt, rString, location)
+func testAccAzureRMHDInsightInteractiveQueryCluster_gen2basic(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightInteractiveQueryCluster_gen2template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_hbase_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  depends_on = [azurerm_role_assignment.test]
+
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -353,7 +272,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    hbase = "1.1"
+    interactive_hive = "2.1"
   }
 
   gateway {
@@ -371,49 +290,49 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_D3_V2"
+      vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightHBaseCluster_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightHBaseCluster_basic(rInt, rString, location)
+func testAccAzureRMHDInsightInteractiveQueryCluster_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightInteractiveQueryCluster_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_hbase_cluster" "import" {
-  name                = "${azurerm_hdinsight_hbase_cluster.test.name}"
-  resource_group_name = "${azurerm_hdinsight_hbase_cluster.test.resource_group_name}"
-  location            = "${azurerm_hdinsight_hbase_cluster.test.location}"
-  cluster_version     = "${azurerm_hdinsight_hbase_cluster.test.cluster_version}"
-  tier                = "${azurerm_hdinsight_hbase_cluster.test.tier}"
-  component_version   = "${azurerm_hdinsight_hbase_cluster.test.component_version}"
-  gateway             = "${azurerm_hdinsight_hbase_cluster.test.gateway}"
-  storage_account     = "${azurerm_hdinsight_hbase_cluster.test.storage_account}"
-  roles               = "${azurerm_hdinsight_hbase_cluster.test.roles}"
+resource "azurerm_hdinsight_interactive_query_cluster" "import" {
+  name                = "${azurerm_hdinsight_interactive_query_cluster.test.name}"
+  resource_group_name = "${azurerm_hdinsight_interactive_query_cluster.test.resource_group_name}"
+  location            = "${azurerm_hdinsight_interactive_query_cluster.test.location}"
+  cluster_version     = "${azurerm_hdinsight_interactive_query_cluster.test.cluster_version}"
+  tier                = "${azurerm_hdinsight_interactive_query_cluster.test.tier}"
+  component_version   = "${azurerm_hdinsight_interactive_query_cluster.test.component_version}"
+  gateway             = "${azurerm_hdinsight_interactive_query_cluster.test.gateway}"
+  storage_account     = "${azurerm_hdinsight_interactive_query_cluster.test.storage_account}"
+  roles               = "${azurerm_hdinsight_interactive_query_cluster.test.roles}"
 }
 `, template)
 }
 
-func testAccAzureRMHDInsightHBaseCluster_sshKeys(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightHBaseCluster_template(rInt, rString, location)
+func testAccAzureRMHDInsightInteractiveQueryCluster_sshKeys(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightInteractiveQueryCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -421,7 +340,7 @@ variable "ssh_key" {
   default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
 }
 
-resource "azurerm_hdinsight_hbase_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -429,7 +348,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    hbase = "1.1"
+    interactive_hive = "2.1"
   }
 
   gateway {
@@ -446,34 +365,34 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
       ssh_keys = ["${var.ssh_key}"]
     }
 
     worker_node {
-      vm_size               = "Standard_D3_V2"
+      vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
       ssh_keys              = ["${var.ssh_key}"]
       target_instance_count = 3
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       ssh_keys = ["${var.ssh_key}"]
     }
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightHBaseCluster_updated(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightHBaseCluster_template(rInt, rString, location)
+func testAccAzureRMHDInsightInteractiveQueryCluster_updated(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightInteractiveQueryCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hdinsight_hbase_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -481,7 +400,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    hbase = "1.1"
+    interactive_hive = "2.1"
   }
 
   gateway {
@@ -498,20 +417,20 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_D3_V2"
+      vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 5
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
@@ -521,11 +440,11 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     Hello = "World"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightHBaseCluster_virtualNetwork(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightHBaseCluster_template(rInt, rString, location)
+func testAccAzureRMHDInsightInteractiveQueryCluster_virtualNetwork(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightInteractiveQueryCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -543,7 +462,7 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_hdinsight_hbase_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -551,7 +470,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    hbase = "1.1"
+    interactive_hive = "2.1"
   }
 
   gateway {
@@ -568,7 +487,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_D3_V2"
+      vm_size            = "Standard_D13_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = "${azurerm_subnet.test.id}"
@@ -576,7 +495,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_D3_V2"
+      vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -585,7 +504,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_D3_V2"
+      vm_size            = "Standard_A4_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = "${azurerm_subnet.test.id}"
@@ -593,11 +512,11 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     }
   }
 }
-`, template, rInt, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightHBaseCluster_complete(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightHBaseCluster_template(rInt, rString, location)
+func testAccAzureRMHDInsightInteractiveQueryCluster_complete(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightInteractiveQueryCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -615,7 +534,7 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_hdinsight_hbase_cluster" "test" {
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -623,7 +542,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   tier                = "Standard"
 
   component_version {
-    hbase = "1.1"
+    interactive_hive = "2.1"
   }
 
   gateway {
@@ -640,7 +559,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   roles {
     head_node {
-      vm_size            = "Standard_D3_V2"
+      vm_size            = "Standard_D13_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = "${azurerm_subnet.test.id}"
@@ -648,7 +567,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     }
 
     worker_node {
-      vm_size               = "Standard_D3_V2"
+      vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
@@ -657,7 +576,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size            = "Standard_D3_V2"
+      vm_size            = "Standard_A4_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
       subnet_id          = "${azurerm_subnet.test.id}"
@@ -669,10 +588,10 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     Hello = "World"
   }
 }
-`, template, rInt, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightHBaseCluster_template(rInt int, rString string, location string) string {
+func testAccAzureRMHDInsightInteractiveQueryCluster_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -693,10 +612,10 @@ resource "azurerm_storage_container" "test" {
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMHDInsightHBaseCluster_gen2template(rInt int, rString string, location string) string {
+func testAccAzureRMHDInsightInteractiveQueryCluster_gen2template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -704,8 +623,6 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "gen2test" {
-  depends_on = [azurerm_role_assignment.test]
-
   name                     = "accgen2test%s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
@@ -734,5 +651,5 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Storage Blob Data Owner"
   principal_id         = "${azurerm_user_assigned_identity.test.principal_id}"
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
