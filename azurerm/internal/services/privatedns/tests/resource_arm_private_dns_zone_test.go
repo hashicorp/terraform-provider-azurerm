@@ -1,4 +1,4 @@
-package privatedns
+package tests
 
 import (
 	"fmt"
@@ -7,33 +7,25 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMPrivateDnsZone_basic(t *testing.T) {
-	resourceName := "azurerm_private_dns_zone.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPrivateDnsZone_basic(ri, acceptance.Location())
-
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPrivateDnsZone_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsZoneExists(resourceName),
+					testCheckAzureRMPrivateDnsZoneExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -44,60 +36,45 @@ func TestAccAzureRMPrivateDnsZone_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_private_dns_zone.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPrivateDnsZone_basic(ri, location),
+				Config: testAccAzureRMPrivateDnsZone_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsZoneExists(resourceName),
+					testCheckAzureRMPrivateDnsZoneExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMPrivateDnsZone_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_private_dns_zone"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMPrivateDnsZone_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMPrivateDnsZone_withTags(t *testing.T) {
-	resourceName := "azurerm_private_dns_zone.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMPrivateDnsZone_withTags(ri, location)
-	postConfig := testAccAzureRMPrivateDnsZone_withTagsUpdate(ri, location)
-
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMPrivateDnsZone_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsZoneExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					testCheckAzureRMPrivateDnsZoneExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMPrivateDnsZone_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsZoneExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					testCheckAzureRMPrivateDnsZoneExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -158,7 +135,7 @@ func testCheckAzureRMPrivateDnsZoneDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMPrivateDnsZone_basic(rInt int, location string) string {
+func testAccAzureRMPrivateDnsZone_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -169,11 +146,11 @@ resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateDnsZone_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMPrivateDnsZone_basic(rInt, location)
+func testAccAzureRMPrivateDnsZone_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMPrivateDnsZone_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -184,7 +161,7 @@ resource "azurerm_private_dns_zone" "import" {
 `, template)
 }
 
-func testAccAzureRMPrivateDnsZone_withTags(rInt int, location string) string {
+func testAccAzureRMPrivateDnsZone_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -200,10 +177,10 @@ resource "azurerm_private_dns_zone" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateDnsZone_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMPrivateDnsZone_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -218,5 +195,5 @@ resource "azurerm_private_dns_zone" "test" {
     environment = "staging"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
