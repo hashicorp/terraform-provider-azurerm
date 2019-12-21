@@ -1,4 +1,4 @@
-package portal
+package tests
 
 import (
 	"fmt"
@@ -7,32 +7,24 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccResourceArmDashboard_basic(t *testing.T) {
-	resourceName := "azurerm_dashboard.test"
-	ri := tf.AccRandTimeInt()
-	config := testResourceArmDashboard_basic(ri, acceptance.Location())
-
+	data := acceptance.BuildTestData(t, "azurerm_dashboard", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDashboardDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testResourceArmDashboard_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDashboardExists(resourceName),
+					testCheckAzureRMDashboardExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -93,7 +85,7 @@ func testCheckAzureRMDashboardDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testResourceArmDashboard_basic(rInt int, location string) string {
+func testResourceArmDashboard_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test-group" {
   name     = "acctestRG-%d"
@@ -137,5 +129,5 @@ resource "azurerm_dashboard" "test" {
 }
 DASH
 }
-`, rInt, location)
+`, data.RandomInteger, data.Locations.Primary)
 }
