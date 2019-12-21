@@ -32,7 +32,6 @@ func TestAccAzureRMDataFactoryDatasetMySQL_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactoryDatasetMySQL_update(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_mysql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

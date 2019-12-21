@@ -1,9 +1,10 @@
 package tests
 
 import (
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"strings"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 
 func TestValidateArmStorageShareName(t *testing.T) {

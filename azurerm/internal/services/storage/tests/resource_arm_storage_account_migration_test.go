@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 
 func TestAzureRMStorageAccountMigrateState(t *testing.T) {

@@ -1,8 +1,9 @@
 package tests
 
 import (
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 
 func TestValidateMetaDataKeys(t *testing.T) {
