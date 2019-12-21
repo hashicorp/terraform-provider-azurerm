@@ -1,22 +1,18 @@
-package kusto
+package tests
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMKustoEventHubDataConnection_basic(t *testing.T) {
-	resourceName := "azurerm_kusto_eventhub_data_connection.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
+	data := acceptance.BuildTestData(t, "azurerm_kusto_eventhub_data_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,21 +20,17 @@ func TestAccAzureRMKustoEventHubDataConnection_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKustoEventHubDataConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoEventHubDataConnection_basic(ri, rs, acceptance.Location()),
+				Config: testAccAzureRMKustoEventHubDataConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoEventHubDataConnectionExists(resourceName),
+					testCheckAzureRMKustoEventHubDataConnectionExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testAccAzureRMKustoEventHubDataConnection_basic(rInt int, rs string, location string) string {
+func testAccAzureRMKustoEventHubDataConnection_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -95,7 +87,7 @@ resource "azurerm_kusto_eventhub_data_connection" "test" {
   eventhub_id    = "${azurerm_eventhub.test.id}"
   consumer_group = "${azurerm_eventhub_consumer_group.test.name}"
 }
-`, rInt, location, rs, rInt, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testCheckAzureRMKustoEventHubDataConnectionDestroy(s *terraform.State) error {
