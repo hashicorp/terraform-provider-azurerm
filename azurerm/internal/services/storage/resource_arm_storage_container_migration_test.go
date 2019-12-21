@@ -1,9 +1,8 @@
-package tests
+package storage
 
 import (
 	"context"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -62,7 +61,7 @@ func TestAccAzureRMStorageContainerMigrateState(t *testing.T) {
 			ID:         tc.ID,
 			Attributes: tc.InputAttributes,
 		}
-		is, err := storage.ResourceStorageContainerMigrateState(tc.StateVersion, is, client)
+		is, err := ResourceStorageContainerMigrateState(tc.StateVersion, is, client)
 
 		if err != nil {
 			t.Fatalf("bad: %s, err: %#v", tn, err)
