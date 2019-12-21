@@ -1,4 +1,4 @@
-package cosmos
+package tests
 
 import (
 	"fmt"
@@ -7,15 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMCosmosDbMongoCollection_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_mongo_collection.test"
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,24 +21,19 @@ func TestAccAzureRMCosmosDbMongoCollection_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosDbMongoCollection_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),
+					testCheckAzureRMCosmosDbMongoCollectionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "400"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMCosmosDbMongoCollection_complete(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_mongo_collection.test"
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -48,25 +41,20 @@ func TestAccAzureRMCosmosDbMongoCollection_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_complete(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosDbMongoCollection_complete(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "shard_key", "seven"),
-					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "707"),
+					testCheckAzureRMCosmosDbMongoCollectionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "shard_key", "seven"),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_ttl_seconds", "707"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_mongo_collection.test"
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -74,43 +62,34 @@ func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosDbMongoCollection_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
+					testCheckAzureRMCosmosDbMongoCollectionExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_complete(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosDbMongoCollection_complete(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "shard_key", "seven"),
-					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "707"),
+					testCheckAzureRMCosmosDbMongoCollectionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "shard_key", "seven"),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_ttl_seconds", "707"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMCosmosDbMongoCollection_updated(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosDbMongoCollection_updated(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "70707"),
+					testCheckAzureRMCosmosDbMongoCollectionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_ttl_seconds", "70707"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMCosmosDbMongoCollection_throughput(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_mongo_collection.test"
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -118,38 +97,26 @@ func TestAccAzureRMCosmosDbMongoCollection_throughput(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_throughput(ri, acceptance.Location(), 700),
+				Config: testAccAzureRMCosmosDbMongoCollection_throughput(data, 700),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
+					testCheckAzureRMCosmosDbMongoCollectionExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMCosmosDbMongoCollection_throughput(ri, acceptance.Location(), 1400),
+				Config: testAccAzureRMCosmosDbMongoCollection_throughput(data, 1400),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
+					testCheckAzureRMCosmosDbMongoCollectionExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosDbMongoCollection_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
+					testCheckAzureRMCosmosDbMongoCollectionExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -212,7 +179,7 @@ func testCheckAzureRMCosmosDbMongoCollectionExists(resourceName string) resource
 	}
 }
 
-func testAccAzureRMCosmosDbMongoCollection_basic(rInt int, location string) string {
+func testAccAzureRMCosmosDbMongoCollection_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -222,10 +189,10 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   account_name        = "${azurerm_cosmosdb_mongo_database.test.account_name}"
   database_name       = "${azurerm_cosmosdb_mongo_database.test.name}"
 }
-`, testAccAzureRMCosmosDbMongoDatabase_basic(rInt, location), rInt)
+`, testAccAzureRMCosmosDbMongoDatabase_basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbMongoCollection_complete(rInt int, location string) string {
+func testAccAzureRMCosmosDbMongoCollection_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -238,10 +205,10 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   shard_key           = "seven"
   default_ttl_seconds = 707
 }
-`, testAccAzureRMCosmosDbMongoDatabase_basic(rInt, location), rInt)
+`, testAccAzureRMCosmosDbMongoDatabase_basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbMongoCollection_updated(rInt int, location string) string {
+func testAccAzureRMCosmosDbMongoCollection_updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -254,10 +221,10 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   shard_key           = "seven"
   default_ttl_seconds = 70707
 }
-`, testAccAzureRMCosmosDbMongoDatabase_basic(rInt, location), rInt)
+`, testAccAzureRMCosmosDbMongoDatabase_basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbMongoCollection_throughput(rInt int, location string, throughput int) string {
+func testAccAzureRMCosmosDbMongoCollection_throughput(data acceptance.TestData, throughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -269,5 +236,5 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   throughput = %[3]d
 }
-`, testAccAzureRMCosmosDbMongoDatabase_basic(rInt, location), rInt, throughput)
+`, testAccAzureRMCosmosDbMongoDatabase_basic(data), data.RandomInteger, throughput)
 }

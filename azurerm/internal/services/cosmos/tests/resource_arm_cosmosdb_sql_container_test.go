@@ -1,4 +1,4 @@
-package cosmos
+package tests
 
 import (
 	"fmt"
@@ -7,15 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMCosmosDbSqlContainer_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_sql_container.test"
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,23 +22,18 @@ func TestAccAzureRMCosmosDbSqlContainer_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosDbSqlContainer_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(resourceName),
+					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMCosmosDbSqlContainer_complete(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_sql_container.test"
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -49,23 +42,18 @@ func TestAccAzureRMCosmosDbSqlContainer_complete(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_complete(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosDbSqlContainer_complete(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(resourceName),
+					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_sql_container.test"
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -74,30 +62,22 @@ func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_complete(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosDbSqlContainer_complete(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "throughput", "600"),
+					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "600"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 
-				Config: testAccAzureRMCosmosDbSqlContainer_update(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosDbSqlContainer_update(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbSqlContainerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),
+					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "400"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -160,7 +140,7 @@ func testCheckAzureRMCosmosDbSqlContainerExists(resourceName string) resource.Te
 	}
 }
 
-func testAccAzureRMCosmosDbSqlContainer_basic(rInt int, location string) string {
+func testAccAzureRMCosmosDbSqlContainer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -172,10 +152,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 }
 
 
-`, testAccAzureRMCosmosDbSqlDatabase_basic(rInt, location), rInt)
+`, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbSqlContainer_complete(rInt int, location string) string {
+func testAccAzureRMCosmosDbSqlContainer_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -191,10 +171,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   throughput = 600
 }
 
-`, testAccAzureRMCosmosDbSqlDatabase_basic(rInt, location), rInt)
+`, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbSqlContainer_update(rInt int, location string) string {
+func testAccAzureRMCosmosDbSqlContainer_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -210,5 +190,5 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   throughput = 400
 }
 
-`, testAccAzureRMCosmosDbSqlDatabase_basic(rInt, location), rInt)
+`, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
 }
