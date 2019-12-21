@@ -31,13 +31,13 @@ func resourceArmStorageTable() *schema.Resource {
 		StateUpgraders: []schema.StateUpgrader{
 			{
 				// this should have been applied from pre-0.12 migration system; backporting just in-case
-				Type:    resourceStorageTableStateResourceV0V1().CoreConfigSchema().ImpliedType(),
-				Upgrade: resourceStorageTableStateUpgradeV0ToV1,
+				Type:    ResourceStorageTableStateResourceV0V1().CoreConfigSchema().ImpliedType(),
+				Upgrade: ResourceStorageTableStateUpgradeV0ToV1,
 				Version: 0,
 			},
 			{
-				Type:    resourceStorageTableStateResourceV0V1().CoreConfigSchema().ImpliedType(),
-				Upgrade: resourceStorageTableStateUpgradeV1ToV2,
+				Type:    ResourceStorageTableStateResourceV0V1().CoreConfigSchema().ImpliedType(),
+				Upgrade: ResourceStorageTableStateUpgradeV1ToV2,
 				Version: 1,
 			},
 		},
