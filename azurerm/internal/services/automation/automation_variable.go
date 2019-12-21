@@ -19,7 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func parseAzureAutomationVariableValue(resource string, input *string) (interface{}, error) {
+func ParseAzureAutomationVariableValue(resource string, input *string) (interface{}, error) {
 	if input == nil {
 		if resource != "azurerm_automation_variable_null" {
 			return nil, fmt.Errorf("Expected value \"nil\" to be %q, actual type is \"azurerm_automation_variable_null\"", resource)
@@ -224,7 +224,7 @@ func resourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, va
 		d.Set("description", properties.Description)
 		d.Set("encrypted", properties.IsEncrypted)
 		if !d.Get("encrypted").(bool) {
-			value, err := parseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), properties.Value)
+			value, err := ParseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), properties.Value)
 			if err != nil {
 				return err
 			}
@@ -269,7 +269,7 @@ func dataSourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, 
 		d.Set("description", properties.Description)
 		d.Set("encrypted", properties.IsEncrypted)
 		if !d.Get("encrypted").(bool) {
-			value, err := parseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), properties.Value)
+			value, err := ParseAzureAutomationVariableValue(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), properties.Value)
 			if err != nil {
 				return err
 			}

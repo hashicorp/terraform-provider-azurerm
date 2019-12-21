@@ -1,4 +1,4 @@
-package automation
+package tests
 
 import (
 	"fmt"
@@ -10,18 +10,16 @@ import (
 )
 
 func TestAccDataSourceAzureRMAutomationVariableString_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_automation_variable_string.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_automation_variable_string", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAutomationVariableString_basic(ri, location),
+				Config: testAccDataSourceAutomationVariableString_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "value", "Hello, Terraform Basic Test."),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "Hello, Terraform Basic Test."),
 				),
 			},
 		},

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 )
 
 func TestAzureRMKeyVaultMigrateState(t *testing.T) {
