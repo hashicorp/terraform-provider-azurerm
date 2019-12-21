@@ -1,28 +1,25 @@
-package devtestlabs
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMDevTestLab_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_dev_test_lab.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceDevTestLab_basic(rInt, location),
+				Config: testAccDataSourceDevTestLab_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "storage_type", "Premium"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Premium"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 		},
@@ -30,27 +27,25 @@ func TestAccDataSourceAzureRMDevTestLab_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMDevTestLab_complete(t *testing.T) {
-	dataSourceName := "data.azurerm_dev_test_lab.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceDevTestLab_complete(rInt, location),
+				Config: testAccDataSourceDevTestLab_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "storage_type", "Standard"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.Hello", "World"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Standard"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceDevTestLab_basic(rInt int, location string) string {
+func testAccDataSourceDevTestLab_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -67,10 +62,10 @@ data "azurerm_dev_test_lab" "test" {
   name                = "${azurerm_dev_test_lab.test.name}"
   resource_group_name = "${azurerm_dev_test_lab.test.resource_group_name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceDevTestLab_complete(rInt int, location string) string {
+func testAccDataSourceDevTestLab_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -92,5 +87,5 @@ data "azurerm_dev_test_lab" "test" {
   name                = "${azurerm_dev_test_lab.test.name}"
   resource_group_name = "${azurerm_dev_test_lab.test.resource_group_name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
