@@ -1,9 +1,10 @@
 package tests
 
 import (
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"reflect"
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )

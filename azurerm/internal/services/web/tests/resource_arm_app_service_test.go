@@ -487,7 +487,6 @@ func TestAccAzureRMAppService_clientAffinityUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -524,7 +523,6 @@ func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
 }
 
 func TestAccAzureRMAppService_storageAccounts(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -1598,7 +1596,6 @@ func TestAccAzureRMAppService_twitterAuthSettings(t *testing.T) {
 }
 
 func TestAccAzureRMAppService_multiAuthSettings(t *testing.T) {
-
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
