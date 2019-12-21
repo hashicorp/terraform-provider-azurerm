@@ -127,7 +127,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 	newProbe := expandAzureRmLoadBalancerProbe(d)
 	probes := append(*loadBalancer.LoadBalancerPropertiesFormat.Probes, *newProbe)
 
-	existingProbe, existingProbeIndex, exists := findLoadBalancerProbeByName(loadBalancer, name)
+	existingProbe, existingProbeIndex, exists := FindLoadBalancerProbeByName(loadBalancer, name)
 	if exists {
 		if name == *existingProbe.Name {
 			if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -195,7 +195,7 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 		return nil
 	}
 
-	config, _, exists := findLoadBalancerProbeByName(loadBalancer, name)
+	config, _, exists := FindLoadBalancerProbeByName(loadBalancer, name)
 	if !exists {
 		d.SetId("")
 		log.Printf("[INFO] Load Balancer Probe %q not found. Removing from state", name)
@@ -246,7 +246,7 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	_, index, exists := findLoadBalancerProbeByName(loadBalancer, d.Get("name").(string))
+	_, index, exists := FindLoadBalancerProbeByName(loadBalancer, d.Get("name").(string))
 	if !exists {
 		return nil
 	}

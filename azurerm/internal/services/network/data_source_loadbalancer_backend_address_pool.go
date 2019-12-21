@@ -58,7 +58,7 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, met
 		return fmt.Errorf("Unable to retrieve Backend Address Pool %q since Load Balancer %q was not found", name, loadBalancerID)
 	}
 
-	bap, _, exists := findLoadBalancerBackEndAddressPoolByName(loadBalancer, name)
+	bap, _, exists := FindLoadBalancerBackEndAddressPoolByName(loadBalancer, name)
 	if !exists {
 		return fmt.Errorf("Backend Address Pool %q was not found in Load Balancer %q", name, loadBalancerID)
 	}
