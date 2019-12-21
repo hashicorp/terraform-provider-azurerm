@@ -1,16 +1,14 @@
 // nolint: megacheck
 // entire automation SDK has been depreciated in v21.3 in favor of logic apps, an entirely different service.
-package scheduler
+package tests
 
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -18,8 +16,7 @@ import (
 )
 
 func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,18 +24,14 @@ func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_web_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "http://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "http://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -49,8 +42,7 @@ func TestAccAzureRMSchedulerJob_web_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -58,24 +50,20 @@ func TestAccAzureRMSchedulerJob_web_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_web_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "http://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "http://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
 				),
 			},
-			{
-				Config:      testAccAzureRMSchedulerJob_web_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_scheduler_job"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMSchedulerJob_web_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_storageQueue(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -83,28 +71,22 @@ func TestAccAzureRMSchedulerJob_storageQueue(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_storageQueue(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_storageQueue(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "action_storage_queue.0.storage_account_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "action_storage_queue.0.storage_queue_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "action_storage_queue.0.sas_token"),
-					resource.TestCheckResourceAttr(resourceName, "action_storage_queue.0.message", "storage message"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "action_storage_queue.0.storage_account_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "action_storage_queue.0.storage_queue_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "action_storage_queue.0.sas_token"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_storage_queue.0.message", "storage message"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"action_storage_queue.0.sas_token"},
-			},
+			data.ImportStep("action_storage_queue.0.sas_token"),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_storageQueue_errorAction(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -112,30 +94,24 @@ func TestAccAzureRMSchedulerJob_storageQueue_errorAction(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_storageQueue_errorAction(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_storageQueue_errorAction(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "http://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-					resource.TestCheckResourceAttrSet(resourceName, "error_action_storage_queue.0.storage_account_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "error_action_storage_queue.0.storage_queue_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "error_action_storage_queue.0.sas_token"),
-					resource.TestCheckResourceAttr(resourceName, "error_action_storage_queue.0.message", "storage message"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "http://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "error_action_storage_queue.0.storage_account_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "error_action_storage_queue.0.storage_queue_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "error_action_storage_queue.0.sas_token"),
+					resource.TestCheckResourceAttr(data.ResourceName, "error_action_storage_queue.0.message", "storage message"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"error_action_storage_queue.0.sas_token"},
-			},
+			data.ImportStep("error_action_storage_queue.0.sas_token"),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_web_put(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -143,26 +119,21 @@ func TestAccAzureRMSchedulerJob_web_put(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_put(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_web_put(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "http://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "put"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.body", "this is some text"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "http://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "put"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.body", "this is some text"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_web_authBasic(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -170,27 +141,21 @@ func TestAccAzureRMSchedulerJob_web_authBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_authBasic(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_web_authBasic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_basic.0.username", "login"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "https://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.authentication_basic.0.username", "login"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"action_web.0.authentication_basic.0.password"},
-			},
+			data.ImportStep("action_web.0.authentication_basic.0.password"),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_web_authCert(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -198,24 +163,17 @@ func TestAccAzureRMSchedulerJob_web_authCert(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_authCert(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_web_authCert(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_certificate.0.thumbprint", "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_certificate.0.subject_name", "CN=Terraform App Gateway, OU=Azure, O=Terraform Tests, S=Some-State, C=US"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "https://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.authentication_certificate.0.thumbprint", "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.authentication_certificate.0.subject_name", "CN=Terraform App Gateway, OU=Azure, O=Terraform Tests, S=Some-State, C=US"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"action_web.0.authentication_certificate.0.pfx",
-					"action_web.0.authentication_certificate.0.password",
-				},
-			},
+			data.ImportStep("action_web.0.authentication_certificate.0.pfx",
+				"action_web.0.authentication_certificate.0.password"),
 		},
 	})
 }
@@ -226,8 +184,7 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	tenantId := os.Getenv("ARM_TENANT_ID")
@@ -246,29 +203,23 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_authAd(ri, acceptance.Location(), tenantId, clientId, secret, audience),
+				Config: testAccAzureRMSchedulerJob_web_authAd(data, tenantId, clientId, secret, audience),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_active_directory.0.tenant_id", tenantId),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_active_directory.0.client_id", clientId),
-					resource.TestCheckResourceAttrSet(resourceName, "action_web.0.authentication_active_directory.0.audience"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "https://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.authentication_active_directory.0.tenant_id", tenantId),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.authentication_active_directory.0.client_id", clientId),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "action_web.0.authentication_active_directory.0.audience"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"action_web.0.authentication_active_directory.0.secret"},
-			},
+			data.ImportStep("action_web.0.authentication_active_directory.0.secret"),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_web_retry(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -276,27 +227,22 @@ func TestAccAzureRMSchedulerJob_web_retry(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_retry(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_web_retry(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-					resource.TestCheckResourceAttr(resourceName, "retry.0.interval", "00:05:00"),
-					resource.TestCheckResourceAttr(resourceName, "retry.0.count", "10"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "https://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retry.0.interval", "00:05:00"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retry.0.count", "10"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_web_recurring(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -304,28 +250,23 @@ func TestAccAzureRMSchedulerJob_web_recurring(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_recurring(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_web_recurring(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.frequency", "minute"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.interval", "5"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.count", "10"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "https://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.frequency", "minute"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.interval", "5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.count", "10"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_web_recurringDaily(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -333,29 +274,24 @@ func TestAccAzureRMSchedulerJob_web_recurringDaily(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_recurringDaily(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_web_recurringDaily(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.frequency", "day"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.count", "100"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.hours.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.minutes.#", "4"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "https://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.frequency", "day"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.count", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.hours.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.minutes.#", "4"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_web_recurringWeekly(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -363,28 +299,23 @@ func TestAccAzureRMSchedulerJob_web_recurringWeekly(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_recurringWeekly(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_web_recurringWeekly(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.frequency", "week"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.count", "100"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.week_days.#", "2"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "https://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.frequency", "week"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.count", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.week_days.#", "2"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_web_recurringMonthly(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -392,28 +323,23 @@ func TestAccAzureRMSchedulerJob_web_recurringMonthly(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_recurringMonthly(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_web_recurringMonthly(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.frequency", "month"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.count", "100"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.month_days.#", "4"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "https://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.frequency", "month"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.count", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.month_days.#", "4"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -421,34 +347,29 @@ func TestAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.frequency", "month"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.count", "100"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.monthly_occurrences.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.monthly_occurrences.2181640481.day", "sunday"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.monthly_occurrences.2181640481.occurrence", "1"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.monthly_occurrences.2956940195.day", "sunday"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.monthly_occurrences.2956940195.occurrence", "3"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.monthly_occurrences.679325150.day", "sunday"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.monthly_occurrences.679325150.occurrence", "-1"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "https://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.frequency", "month"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.count", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.monthly_occurrences.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.monthly_occurrences.2181640481.day", "sunday"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.monthly_occurrences.2181640481.occurrence", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.monthly_occurrences.2956940195.day", "sunday"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.monthly_occurrences.2956940195.occurrence", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.monthly_occurrences.679325150.day", "sunday"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.monthly_occurrences.679325150.occurrence", "-1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_web_errorAction(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -456,27 +377,22 @@ func TestAccAzureRMSchedulerJob_web_errorAction(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_errorAction(ri, acceptance.Location()),
+				Config: testAccAzureRMSchedulerJob_web_errorAction(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-					resource.TestCheckResourceAttr(resourceName, "error_action_web.0.url", "https://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "error_action_web.0.method", "get"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "https://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "error_action_web.0.url", "https://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "error_action_web.0.method", "get"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJob_web_complete(t *testing.T) {
-	resourceName := "azurerm_scheduler_job.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -484,25 +400,21 @@ func TestAccAzureRMSchedulerJob_web_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_complete(ri, acceptance.Location(), "2019-07-07T07:07:07-07:00"),
+				Config: testAccAzureRMSchedulerJob_web_complete(data, "2019-07-07T07:07:07-07:00"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMSchedulerJobExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "http://example.com"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "put"),
-					resource.TestCheckResourceAttr(resourceName, "action_web.0.body", "this is some text"),
-					resource.TestCheckResourceAttr(resourceName, "retry.0.interval", "00:05:00"),
-					resource.TestCheckResourceAttr(resourceName, "retry.0.count", "10"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.frequency", "month"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.count", "100"),
-					resource.TestCheckResourceAttr(resourceName, "recurrence.0.month_days.#", "4"),
-					resource.TestCheckResourceAttr(resourceName, "start_time", "2019-07-07T14:07:07Z"),
+					testCheckAzureRMSchedulerJobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.url", "http://example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.method", "put"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action_web.0.body", "this is some text"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retry.0.interval", "00:05:00"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retry.0.count", "10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.frequency", "month"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.count", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "recurrence.0.month_days.#", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_time", "2019-07-07T14:07:07Z"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -567,23 +479,24 @@ func testCheckAzureRMSchedulerJobExists(resourceName string) resource.TestCheckF
 	}
 }
 
-func testAccAzureRMSchedulerJob_template(rInt int, location string) string {
+func testAccAzureRMSchedulerJob_template(data acceptance.TestData) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_scheduler_job_collection" "test" {
-  name                = "acctest-%[1]d-job_collection"
+  name                = "acctest-%d-job_collection"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
-`, rInt, location)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_web_basic(rInt int, location string) string {
+func testAccAzureRMSchedulerJob_web_basic(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
 	//need a valid URL here otherwise on a slow connection job might fault before the test check
 	return fmt.Sprintf(`
 %s
@@ -598,10 +511,11 @@ resource "azurerm_scheduler_job" "test" {
     method = "get"
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_web_requiresImport(rInt int, location string) string {
+func testAccAzureRMSchedulerJob_web_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_web_basic(data)
 	//need a valid URL here otherwise on a slow connection job might fault before the test check
 	return fmt.Sprintf(`
 %s
@@ -616,11 +530,14 @@ resource "azurerm_scheduler_job" "import" {
     method = "get"
   }
 }
-`, testAccAzureRMSchedulerJob_web_basic(rInt, location))
+`, template)
 }
 
-func testAccAzureRMSchedulerJob_web_put(rInt int, location string) string {
-	return fmt.Sprintf(`%s 
+func testAccAzureRMSchedulerJob_web_put(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
+	return fmt.Sprintf(`
+%s 
+
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -636,11 +553,14 @@ resource "azurerm_scheduler_job" "test" {
     }
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_web_authBasic(rInt int, location string) string {
-	return fmt.Sprintf(`%s 
+func testAccAzureRMSchedulerJob_web_authBasic(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
+	return fmt.Sprintf(`
+%s
+
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -656,10 +576,11 @@ resource "azurerm_scheduler_job" "test" {
     }
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_web_authCert(rInt int, location string) string {
+func testAccAzureRMSchedulerJob_web_authCert(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
@@ -676,10 +597,11 @@ resource "azurerm_scheduler_job" "test" {
     }
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_web_authAd(rInt int, location, tenantId, clientId, secret, audience string) string {
+func testAccAzureRMSchedulerJob_web_authAd(data acceptance.TestData, tenantId, clientId, secret, audience string) string {
+	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
@@ -698,11 +620,14 @@ resource "azurerm_scheduler_job" "test" {
     }
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt, tenantId, clientId, secret, audience)
+`, template, data.RandomInteger, tenantId, clientId, secret, audience)
 }
 
-func testAccAzureRMSchedulerJob_web_retry(rInt int, location string) string {
-	return fmt.Sprintf(`%s 
+func testAccAzureRMSchedulerJob_web_retry(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
+	return fmt.Sprintf(`
+%s
+
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -718,11 +643,14 @@ resource "azurerm_scheduler_job" "test" {
     count    = 10
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_web_recurring(rInt int, location string) string {
-	return fmt.Sprintf(`%s 
+func testAccAzureRMSchedulerJob_web_recurring(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
+	return fmt.Sprintf(`
+%s
+
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -739,11 +667,14 @@ resource "azurerm_scheduler_job" "test" {
     count     = 10
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_web_recurringDaily(rInt int, location string) string {
-	return fmt.Sprintf(`%s 
+func testAccAzureRMSchedulerJob_web_recurringDaily(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
+	return fmt.Sprintf(`
+%s 
+
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -761,11 +692,14 @@ resource "azurerm_scheduler_job" "test" {
     minutes   = [0, 15, 30, 45]
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_web_recurringWeekly(rInt int, location string) string {
-	return fmt.Sprintf(`%s 
+func testAccAzureRMSchedulerJob_web_recurringWeekly(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
+	return fmt.Sprintf(`
+%s 
+
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -782,11 +716,14 @@ resource "azurerm_scheduler_job" "test" {
     week_days = ["Sunday", "Saturday"]
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_web_recurringMonthly(rInt int, location string) string {
-	return fmt.Sprintf(`%s 
+func testAccAzureRMSchedulerJob_web_recurringMonthly(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
+	return fmt.Sprintf(`
+%s 
+
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -803,10 +740,11 @@ resource "azurerm_scheduler_job" "test" {
     month_days = [-11, -1, 1, 11]
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(rInt int, location string) string {
+func testAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
@@ -838,11 +776,14 @@ resource "azurerm_scheduler_job" "test" {
     }
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_web_errorAction(rInt int, location string) string {
-	return fmt.Sprintf(`%s 
+func testAccAzureRMSchedulerJob_web_errorAction(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
+	return fmt.Sprintf(`
+%s 
+
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -858,10 +799,11 @@ resource "azurerm_scheduler_job" "test" {
     method = "get"
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_web_complete(rInt int, location, time string) string {
+func testAccAzureRMSchedulerJob_web_complete(data acceptance.TestData, time string) string {
+	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`%s 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
@@ -891,10 +833,11 @@ resource "azurerm_scheduler_job" "test" {
 
   start_time = "%s"
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), rInt, time)
+`, template, data.RandomInteger, time)
 }
 
-func testAccAzureRMSchedulerJob_storageQueue(rInt int, location string) string {
+func testAccAzureRMSchedulerJob_storageQueue(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
 	//need a valid URL here otherwise on a slow connection job might fault before the test check
 	return fmt.Sprintf(`%[1]s
 resource "azurerm_storage_account" "test" {
@@ -923,14 +866,17 @@ resource "azurerm_scheduler_job" "test" {
     message              = "storage message"
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[12:17], rInt)
+`, template, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMSchedulerJob_storageQueue_errorAction(rInt int, location string) string {
+func testAccAzureRMSchedulerJob_storageQueue_errorAction(data acceptance.TestData) string {
+	template := testAccAzureRMSchedulerJob_template(data)
 	//need a valid URL here otherwise on a slow connection job might fault before the test check
-	return fmt.Sprintf(`%[1]s
+	return fmt.Sprintf(`
+%s
+
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[2]s"
+  name                     = "acctest%s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
@@ -938,13 +884,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "acctest-%[3]d-job"
+  name                 = "acctest-%d-job"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
 
 resource "azurerm_scheduler_job" "test" {
-  name                = "acctest-%[3]d-job"
+  name                = "acctest-%d-job"
   resource_group_name = "${azurerm_resource_group.test.name}"
   job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
@@ -960,5 +906,5 @@ resource "azurerm_scheduler_job" "test" {
     message              = "storage message"
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[12:17], rInt)
+`, template, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
