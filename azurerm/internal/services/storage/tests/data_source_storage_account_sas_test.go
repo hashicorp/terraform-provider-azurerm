@@ -1,21 +1,17 @@
-package storage
+package tests
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceArmStorageAccountSas_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_storage_account_sas.test"
-	rInt := tf.AccRandTimeInt()
-	rString := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account_sas", "test")
 	utcNow := time.Now().UTC()
 	startDate := utcNow.Format(time.RFC3339)
 	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
@@ -25,19 +21,19 @@ func TestAccDataSourceArmStorageAccountSas_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMStorageAccountSas_basic(rInt, rString, location, startDate, endDate),
+				Config: testAccDataSourceAzureRMStorageAccountSas_basic(data, startDate, endDate),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "https_only", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "start", startDate),
-					resource.TestCheckResourceAttr(dataSourceName, "expiry", endDate),
-					resource.TestCheckResourceAttrSet(dataSourceName, "sas"),
+					resource.TestCheckResourceAttr(data.ResourceName, "https_only", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start", startDate),
+					resource.TestCheckResourceAttr(data.ResourceName, "expiry", endDate),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "sas"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAzureRMStorageAccountSas_basic(rInt int, rString string, location string, startDate string, endDate string) string {
+func testAccDataSourceAzureRMStorageAccountSas_basic(data acceptance.TestData, startDate string, endDate string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
@@ -88,7 +84,7 @@ data "azurerm_storage_account_sas" "test" {
     process = false
   }
 }
-`, rInt, location, rString, startDate, endDate)
+`, data.RandomInteger, data.Locations, data.RandomString, startDate, endDate)
 }
 
 func TestAccDataSourceArmStorageAccountSas_resourceTypesString(t *testing.T) {
@@ -103,7 +99,7 @@ func TestAccDataSourceArmStorageAccountSas_resourceTypesString(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		result := buildResourceTypesString(test.input)
+		result := storage.BuildResourceTypesString(test.input)
 		if test.expected != result {
 			t.Fatalf("Failed to build resource type string: expected: %s, result: %s", test.expected, result)
 		}
@@ -123,7 +119,7 @@ func TestAccDataSourceArmStorageAccountSas_servicesString(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		result := buildServicesString(test.input)
+		result := storage.BuildServicesString(test.input)
 		if test.expected != result {
 			t.Fatalf("Failed to build resource type string: expected: %s, result: %s", test.expected, result)
 		}
@@ -147,7 +143,7 @@ func TestAccDataSourceArmStorageAccountSas_permissionsString(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		result := buildPermissionsString(test.input)
+		result := storage.BuildPermissionsString(test.input)
 		if test.expected != result {
 			t.Fatalf("Failed to build resource type string: expected: %s, result: %s", test.expected, result)
 		}

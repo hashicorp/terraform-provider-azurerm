@@ -1,14 +1,13 @@
-package storage
+package tests
 
 import (
 	"fmt"
-	"strings"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -47,7 +46,7 @@ func TestResourceAzureRMStorageQueueName_Validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateArmStorageQueueName(tc.Value, "azurerm_storage_queue")
+		_, errors := storage.ValidateArmStorageQueueName(tc.Value, "azurerm_storage_queue")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the ARM Storage Queue Name to trigger a validation error")
@@ -56,10 +55,7 @@ func TestResourceAzureRMStorageQueueName_Validation(t *testing.T) {
 }
 
 func TestAccAzureRMStorageQueue_basic(t *testing.T) {
-	resourceName := "azurerm_storage_queue.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -67,16 +63,12 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageQueue_basic(ri, rs, location),
+				Config: testAccAzureRMStorageQueue_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageQueueExists(resourceName),
+					testCheckAzureRMStorageQueueExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -86,11 +78,7 @@ func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_storage_queue.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -98,24 +86,18 @@ func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageQueue_basic(ri, rs, location),
+				Config: testAccAzureRMStorageQueue_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageQueueExists(resourceName),
+					testCheckAzureRMStorageQueueExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMStorageQueue_requiresImport(ri, rs, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_storage_queue"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMStorageQueue_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMStorageQueue_metaData(t *testing.T) {
-	resourceName := "azurerm_storage_queue.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -123,27 +105,19 @@ func TestAccAzureRMStorageQueue_metaData(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageQueue_metaData(ri, rs, location),
+				Config: testAccAzureRMStorageQueue_metaData(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageQueueExists(resourceName),
+					testCheckAzureRMStorageQueueExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMStorageQueue_metaDataUpdated(ri, rs, location),
+				Config: testAccAzureRMStorageQueue_metaDataUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageQueueExists(resourceName),
+					testCheckAzureRMStorageQueueExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -224,8 +198,8 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMStorageQueue_basic(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageQueue_template(rInt, rString, location)
+func testAccAzureRMStorageQueue_basic(data acceptance.TestData) string {
+	template := testAccAzureRMStorageQueue_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -233,11 +207,11 @@ resource "azurerm_storage_queue" "test" {
   name                 = "mysamplequeue-%d"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStorageQueue_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageQueue_basic(rInt, rString, location)
+func testAccAzureRMStorageQueue_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStorageQueue_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -248,8 +222,8 @@ resource "azurerm_storage_queue" "import" {
 `, template)
 }
 
-func testAccAzureRMStorageQueue_metaData(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageQueue_template(rInt, rString, location)
+func testAccAzureRMStorageQueue_metaData(data acceptance.TestData) string {
+	template := testAccAzureRMStorageQueue_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -261,11 +235,11 @@ resource "azurerm_storage_queue" "test" {
     hello = "world"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStorageQueue_metaDataUpdated(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageQueue_template(rInt, rString, location)
+func testAccAzureRMStorageQueue_metaDataUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMStorageQueue_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -278,10 +252,10 @@ resource "azurerm_storage_queue" "test" {
     rick  = "M0rty"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStorageQueue_template(rInt int, rString string, location string) string {
+func testAccAzureRMStorageQueue_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -300,5 +274,5 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

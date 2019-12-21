@@ -25,7 +25,7 @@ func resourceArmStorageBlob() *schema.Resource {
 		Read:          resourceArmStorageBlobRead,
 		Update:        resourceArmStorageBlobUpdate,
 		Delete:        resourceArmStorageBlobDelete,
-		MigrateState:  resourceStorageBlobMigrateState,
+		MigrateState:  ResourceStorageBlobMigrateState,
 		SchemaVersion: 1,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,

@@ -1,21 +1,17 @@
-package storage
+package tests
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceArmStorageAccountBlobContainerSas_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_storage_account_blob_container_sas.test"
-	rInt := tf.AccRandTimeInt()
-	rString := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account_blob_container_sas", "test")
 	utcNow := time.Now().UTC()
 	startDate := utcNow.Format(time.RFC3339)
 	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
@@ -25,32 +21,32 @@ func TestAccDataSourceArmStorageAccountBlobContainerSas_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMStorageAccountBlobContainerSas_basic(rInt, rString, location, startDate, endDate),
+				Config: testAccDataSourceAzureRMStorageAccountBlobContainerSas_basic(data, startDate, endDate),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "https_only", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "start", startDate),
-					resource.TestCheckResourceAttr(dataSourceName, "expiry", endDate),
-					resource.TestCheckResourceAttr(dataSourceName, "ip_address", "168.1.5.65"),
-					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.read", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.add", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.create", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.write", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.delete", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.list", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "cache_control", "max-age=5"),
-					resource.TestCheckResourceAttr(dataSourceName, "content_disposition", "inline"),
-					resource.TestCheckResourceAttr(dataSourceName, "content_encoding", "deflate"),
-					resource.TestCheckResourceAttr(dataSourceName, "content_language", "en-US"),
-					resource.TestCheckResourceAttr(dataSourceName, "content_type", "application/json"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "sas"),
+					resource.TestCheckResourceAttr(data.ResourceName, "https_only", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start", startDate),
+					resource.TestCheckResourceAttr(data.ResourceName, "expiry", endDate),
+					resource.TestCheckResourceAttr(data.ResourceName, "ip_address", "168.1.5.65"),
+					resource.TestCheckResourceAttr(data.ResourceName, "permissions.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.read", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.add", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.create", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.write", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.delete", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.list", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "cache_control", "max-age=5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "content_disposition", "inline"),
+					resource.TestCheckResourceAttr(data.ResourceName, "content_encoding", "deflate"),
+					resource.TestCheckResourceAttr(data.ResourceName, "content_language", "en-US"),
+					resource.TestCheckResourceAttr(data.ResourceName, "content_type", "application/json"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "sas"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAzureRMStorageAccountBlobContainerSas_basic(rInt int, rString string, location string, startDate string, endDate string) string {
+func testAccDataSourceAzureRMStorageAccountBlobContainerSas_basic(data acceptance.TestData, startDate string, endDate string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-storage-%d"
@@ -98,7 +94,7 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   content_language    = "en-US"
   content_type        = "application/json"
 }
-`, rInt, location, rString, startDate, endDate)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
 }
 
 func TestAccDataSourceArmStorageAccountBlobContainerSas_permissionsString(t *testing.T) {
@@ -116,7 +112,7 @@ func TestAccDataSourceArmStorageAccountBlobContainerSas_permissionsString(t *tes
 	}
 
 	for _, test := range testCases {
-		result := buildContainerPermissionsString(test.input)
+		result := storage.BuildContainerPermissionsString(test.input)
 		if test.expected != result {
 			t.Fatalf("Failed to build resource type string: expected: %s, result: %s", test.expected, result)
 		}

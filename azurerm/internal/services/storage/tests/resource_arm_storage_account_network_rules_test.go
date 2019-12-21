@@ -1,19 +1,15 @@
-package storage
+package tests
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMStorageAccountNetworkRules_basic(t *testing.T) {
-	resourceName := "azurerm_storage_account_network_rules.test"
-	rInt := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -21,24 +17,18 @@ func TestAccAzureRMStorageAccountNetworkRules_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageAccountNetworkRules_basic(rInt, rs, acceptance.Location()),
+				Config: testAccAzureRMStorageAccountNetworkRules_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageAccountNetworkRules_update(t *testing.T) {
-	resourceName := "azurerm_storage_account_network_rules.test"
-	rInt := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -46,46 +36,32 @@ func TestAccAzureRMStorageAccountNetworkRules_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageAccountNetworkRules_basic(rInt, rs, acceptance.Location()),
+				Config: testAccAzureRMStorageAccountNetworkRules_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMStorageAccountNetworkRules_update(rInt, rs, acceptance.Location()),
+				Config: testAccAzureRMStorageAccountNetworkRules_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMStorageAccountNetworkRules_basic(rInt, rs, acceptance.Location()),
+				Config: testAccAzureRMStorageAccountNetworkRules_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageAccountNetworkRules_empty(t *testing.T) {
-	resourceName := "azurerm_storage_account_network_rules.test"
-	rInt := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -93,21 +69,17 @@ func TestAccAzureRMStorageAccountNetworkRules_empty(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageAccountNetworkRules_empty(rInt, rs, acceptance.Location()),
+				Config: testAccAzureRMStorageAccountNetworkRules_empty(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testAccAzureRMStorageAccountNetworkRules_basic(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccountNetworkRules_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -149,10 +121,10 @@ resource "azurerm_storage_account_network_rules" "test" {
   ip_rules                   = ["127.0.0.1"]
   virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
 }
-`, rInt, location, rInt, rInt, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMStorageAccountNetworkRules_update(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccountNetworkRules_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -203,10 +175,10 @@ resource "azurerm_storage_account_network_rules" "test" {
   virtual_network_subnet_ids = ["${azurerm_subnet.test.id}", "${azurerm_subnet.test2.id}"]
   bypass = ["Metrics"]
 }
-`, rInt, location, rInt, rInt, rInt, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMStorageAccountNetworkRules_empty(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccountNetworkRules_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -232,5 +204,5 @@ resource "azurerm_storage_account_network_rules" "test" {
   default_action             = "Deny"
   bypass = ["Metrics"]
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

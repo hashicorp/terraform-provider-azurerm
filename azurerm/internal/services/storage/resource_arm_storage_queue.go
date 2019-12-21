@@ -26,7 +26,7 @@ func resourceArmStorageQueue() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		SchemaVersion: 1,
-		MigrateState:  resourceStorageQueueMigrateState,
+		MigrateState:  ResourceStorageQueueMigrateState,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -40,7 +40,7 @@ func resourceArmStorageQueue() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageQueueName,
+				ValidateFunc: ValidateArmStorageQueueName,
 			},
 
 			"storage_account_name": {
@@ -57,7 +57,7 @@ func resourceArmStorageQueue() *schema.Resource {
 	}
 }
 
-func validateArmStorageQueueName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateArmStorageQueueName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(value) {
