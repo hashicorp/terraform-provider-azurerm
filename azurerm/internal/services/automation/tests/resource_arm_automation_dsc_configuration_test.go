@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,30 +13,24 @@ import (
 )
 
 func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
-	resourceName := "azurerm_automation_dsc_configuration.test"
-	ri := tf.AccRandTimeInt()
-
+	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationDscConfiguration_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMAutomationDscConfiguration_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationDscConfigurationExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "location"),
-					resource.TestCheckResourceAttr(resourceName, "description", "test"),
-					resource.TestCheckResourceAttrSet(resourceName, "log_verbose"),
-					resource.TestCheckResourceAttrSet(resourceName, "state"),
-					resource.TestCheckResourceAttr(resourceName, "content_embedded", "configuration acctest {}"),
+					testCheckAzureRMAutomationDscConfigurationExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "test"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "log_verbose"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "state"),
+					resource.TestCheckResourceAttr(data.ResourceName, "content_embedded", "configuration acctest {}"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -48,25 +41,19 @@ func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_automation_dsc_configuration.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationDscConfiguration_basic(ri, location),
+				Config: testAccAzureRMAutomationDscConfiguration_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationDscConfigurationExists(resourceName),
+					testCheckAzureRMAutomationDscConfigurationExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMAutomationDscConfiguration_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_automation_dsc_configuration"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMAutomationDscConfiguration_requiresImport),
 		},
 	})
 }
@@ -137,7 +124,7 @@ func testCheckAzureRMAutomationDscConfigurationExists(resourceName string) resou
 	}
 }
 
-func testAccAzureRMAutomationDscConfiguration_basic(rInt int, location string) string {
+func testAccAzureRMAutomationDscConfiguration_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -162,11 +149,11 @@ resource "azurerm_automation_dsc_configuration" "test" {
   content_embedded        = "configuration acctest {}"
   description             = "test"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationDscConfiguration_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMAutomationDscConfiguration_basic(rInt, location)
+func testAccAzureRMAutomationDscConfiguration_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAutomationDscConfiguration_basic(data)
 	return fmt.Sprintf(`
 %s
 
