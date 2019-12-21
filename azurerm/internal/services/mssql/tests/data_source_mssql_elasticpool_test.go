@@ -1,18 +1,15 @@
-package mssql
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMMsSqlElasticPool_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_mssql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_mssql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -20,25 +17,25 @@ func TestAccDataSourceAzureRMMsSqlElasticPool_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMsSqlElasticPool_basic(ri, location),
+				Config: testAccDataSourceAzureRMMsSqlElasticPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(dataSourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "server_name"),
-					resource.TestCheckResourceAttr(dataSourceName, "location", location),
-					resource.TestCheckResourceAttr(dataSourceName, "max_size_gb", "50"),
-					resource.TestCheckResourceAttr(dataSourceName, "per_db_min_capacity", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "per_db_max_capacity", "4"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "zone_redundant", "false"),
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "server_name"),
+					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
+					resource.TestCheckResourceAttr(data.ResourceName, "max_size_gb", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_db_min_capacity", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_db_max_capacity", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "zone_redundant", "false"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAzureRMMsSqlElasticPool_basic(rInt int, location string) string {
+func testAccDataSourceAzureRMMsSqlElasticPool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -80,5 +77,5 @@ data "azurerm_mssql_elasticpool" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_sql_server.test.name}"
 }
-`, rInt, location)
+`, data.RandomInteger, data.Locations.Primary)
 }
