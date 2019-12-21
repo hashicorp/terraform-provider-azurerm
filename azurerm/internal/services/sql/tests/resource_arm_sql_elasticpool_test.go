@@ -1,4 +1,4 @@
-package sql
+package tests
 
 import (
 	"fmt"
@@ -7,15 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
-	resourceName := "azurerm_sql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,16 +21,12 @@ func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlElasticPool_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlElasticPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlElasticPoolExists(resourceName),
+					testCheckAzureRMSqlElasticPoolExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -41,8 +35,7 @@ func TestAccAzureRMSqlElasticPool_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-	resourceName := "azurerm_sql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -50,22 +43,18 @@ func TestAccAzureRMSqlElasticPool_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlElasticPool_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlElasticPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlElasticPoolExists(resourceName),
+					testCheckAzureRMSqlElasticPoolExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMSqlElasticPool_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_sql_elasticpool"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMSqlElasticPool_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
-	resourceName := "azurerm_sql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -73,10 +62,10 @@ func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlElasticPool_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlElasticPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlElasticPoolExists(resourceName),
-					testCheckAzureRMSqlElasticPoolDisappears(resourceName),
+					testCheckAzureRMSqlElasticPoolExists(data.ResourceName),
+					testCheckAzureRMSqlElasticPoolDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -85,11 +74,9 @@ func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
-	resourceName := "azurerm_sql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMSqlElasticPool_basic(ri, location)
-	postConfig := testAccAzureRMSqlElasticPool_resizedDtu(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
+	preConfig := testAccAzureRMSqlElasticPool_basic(data)
+	postConfig := testAccAzureRMSqlElasticPool_resizedDtu(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -99,17 +86,17 @@ func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "dtu", "50"),
-					resource.TestCheckResourceAttr(resourceName, "pool_size", "5000"),
+					testCheckAzureRMSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "dtu", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "pool_size", "5000"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "dtu", "100"),
-					resource.TestCheckResourceAttr(resourceName, "pool_size", "10000"),
+					testCheckAzureRMSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "dtu", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "pool_size", "10000"),
 				),
 			},
 		},
@@ -193,7 +180,7 @@ func testCheckAzureRMSqlElasticPoolDisappears(resourceName string) resource.Test
 	}
 }
 
-func testAccAzureRMSqlElasticPool_basic(rInt int, location string) string {
+func testAccAzureRMSqlElasticPool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%[1]d"
@@ -218,10 +205,10 @@ resource "azurerm_sql_elasticpool" "test" {
   dtu                 = 50
   pool_size           = 5000
 }
-`, rInt, location)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMSqlElasticPool_requiresImport(rInt int, location string) string {
+func testAccAzureRMSqlElasticPool_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -234,10 +221,10 @@ resource "azurerm_sql_elasticpool" "import" {
   dtu                 = "${azurerm_sql_elasticpool.test.dtu}"
   pool_size           = "${azurerm_sql_elasticpool.test.pool_size}"
 }
-`, testAccAzureRMSqlElasticPool_basic(rInt, location))
+`, testAccAzureRMSqlElasticPool_basic(data))
 }
 
-func testAccAzureRMSqlElasticPool_resizedDtu(rInt int, location string) string {
+func testAccAzureRMSqlElasticPool_resizedDtu(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%[1]d"
@@ -262,5 +249,5 @@ resource "azurerm_sql_elasticpool" "test" {
   dtu                 = 100
   pool_size           = 10000
 }
-`, rInt, location)
+`, data.RandomInteger, data.Locations.Primary)
 }
