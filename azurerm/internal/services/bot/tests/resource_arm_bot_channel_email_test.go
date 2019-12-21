@@ -1,4 +1,4 @@
-package bot
+package tests
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,9 +18,8 @@ func TestAccAzureRMBotChannelEmail_basic(t *testing.T) {
 	if ok := skipEmailChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
 	}
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelEmail_basicConfig(ri, acceptance.Location())
-	resourceName := "azurerm_bot_channel_email.test"
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
+	config := testAccAzureRMBotChannelEmail_basicConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -31,17 +29,10 @@ func TestAccAzureRMBotChannelEmail_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelEmailExists(resourceName),
+					testCheckAzureRMBotChannelEmailExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"email_password",
-				},
-			},
+			data.ImportStep("email_password"),
 		},
 	})
 }
@@ -53,10 +44,9 @@ func TestAccAzureRMBotChannelEmail_update(t *testing.T) {
 	if ok := skipSlackChannel(); ok {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
 	}
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelEmail_basicConfig(ri, acceptance.Location())
-	config2 := testAccAzureRMBotChannelEmail_basicUpdate(ri, acceptance.Location())
-	resourceName := "azurerm_bot_channel_email.test"
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
+	config := testAccAzureRMBotChannelEmail_basicConfig(data)
+	config2 := testAccAzureRMBotChannelEmail_basicUpdate(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -66,31 +56,17 @@ func TestAccAzureRMBotChannelEmail_update(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelEmailExists(resourceName),
+					testCheckAzureRMBotChannelEmailExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"email_password",
-				},
-			},
+			data.ImportStep("email_password"),
 			{
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelEmailExists(resourceName),
+					testCheckAzureRMBotChannelEmailExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"email_password",
-				},
-			},
+			data.ImportStep("email_password"),
 		},
 	})
 }
@@ -151,8 +127,8 @@ func testCheckAzureRMBotChannelEmailDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBotChannelEmail_basicConfig(rInt int, location string) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(rInt, location)
+func testAccAzureRMBotChannelEmail_basicConfig(data acceptance.TestData) string {
+	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
@@ -166,8 +142,8 @@ resource "azurerm_bot_channel_email" "test" {
 `, template, os.Getenv("ARM_TEST_EMAIL"), os.Getenv("ARM_TEST_EMAIL_PASSWORD"))
 }
 
-func testAccAzureRMBotChannelEmail_basicUpdate(rInt int, location string) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(rInt, location)
+func testAccAzureRMBotChannelEmail_basicUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 

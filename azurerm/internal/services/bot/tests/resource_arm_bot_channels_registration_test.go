@@ -1,4 +1,4 @@
-package bot
+package tests
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -53,9 +52,8 @@ func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 }
 
 func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelsRegistration_basicConfig(ri, acceptance.Location())
-	resourceName := "azurerm_bot_channels_registration.test"
+	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
+	config := testAccAzureRMBotChannelsRegistration_basicConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -65,24 +63,18 @@ func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelsRegistrationExists(resourceName),
+					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"developer_app_insights_api_key"},
-			},
+			data.ImportStep("developer_app_insights_api_key"),
 		},
 	})
 }
 
 func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelsRegistration_basicConfig(ri, acceptance.Location())
-	config2 := testAccAzureRMBotChannelsRegistration_updateConfig(ri, acceptance.Location())
-	resourceName := "azurerm_bot_channels_registration.test"
+	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
+	config := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+	config2 := testAccAzureRMBotChannelsRegistration_updateConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -92,35 +84,24 @@ func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelsRegistrationExists(resourceName),
+					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"developer_app_insights_api_key"},
-			},
+			data.ImportStep("developer_app_insights_api_key"),
 			{
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelsRegistrationExists(resourceName),
+					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"developer_app_insights_api_key"},
-			},
+			data.ImportStep("developer_app_insights_api_key"),
 		},
 	})
 }
 
 func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelsRegistration_completeConfig(ri, acceptance.Location())
-	resourceName := "azurerm_bot_channels_registration.test"
+	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
+	config := testAccAzureRMBotChannelsRegistration_completeConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -130,15 +111,10 @@ func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelsRegistrationExists(resourceName),
+					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"developer_app_insights_api_key"},
-			},
+			data.ImportStep("developer_app_insights_api_key"),
 		},
 	})
 }
@@ -199,7 +175,7 @@ func testCheckAzureRMBotChannelsRegistrationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBotChannelsRegistration_basicConfig(rInt int, location string) string {
+func testAccAzureRMBotChannelsRegistration_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -219,10 +195,10 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "production"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMBotChannelsRegistration_updateConfig(rInt int, location string) string {
+func testAccAzureRMBotChannelsRegistration_updateConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -242,10 +218,10 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "production"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMBotChannelsRegistration_completeConfig(rInt int, location string) string {
+func testAccAzureRMBotChannelsRegistration_completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -282,5 +258,5 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "production"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
