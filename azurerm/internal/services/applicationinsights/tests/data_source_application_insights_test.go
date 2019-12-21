@@ -1,40 +1,37 @@
-package applicationinsights
+package tests
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 func TestAccDataSourceApplicationInsights_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_application_insights.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_application_insights", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceApplicationInsights_complete(ri, location),
+				Config: testAccResourceApplicationInsights_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "instrumentation_key"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "app_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "location"),
-					resource.TestCheckResourceAttr(dataSourceName, "application_type", "other"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.foo", "bar"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "instrumentation_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "app_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
+					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "other"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
 				),
 			},
 		},
 	})
 }
 
-func testAccResourceApplicationInsights_complete(rInt int, location string) string {
+func testAccResourceApplicationInsights_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -56,5 +53,5 @@ data "azurerm_application_insights" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "${azurerm_application_insights.test.name}"
 }
-`, rInt, location)
+`, data.RandomInteger, data.Locations.Primary)
 }
