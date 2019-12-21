@@ -1,4 +1,4 @@
-package authorization
+package tests
 
 import (
 	"os"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMClientConfig_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_client_config.current"
+	data := acceptance.BuildTestData(t, "data.azurerm_client_config", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	tenantId := os.Getenv("ARM_TENANT_ID")
 	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
@@ -23,12 +23,12 @@ func TestAccDataSourceAzureRMClientConfig_basic(t *testing.T) {
 			{
 				Config: testAccCheckArmClientConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "client_id", clientId),
-					resource.TestCheckResourceAttr(dataSourceName, "tenant_id", tenantId),
-					resource.TestCheckResourceAttr(dataSourceName, "subscription_id", subscriptionId),
-					testAzureRMClientConfigGUIDAttr(dataSourceName, "object_id"),
-					testAzureRMClientConfigGUIDAttr(dataSourceName, "service_principal_application_id"),
-					testAzureRMClientConfigGUIDAttr(dataSourceName, "service_principal_object_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_id", clientId),
+					resource.TestCheckResourceAttr(data.ResourceName, "tenant_id", tenantId),
+					resource.TestCheckResourceAttr(data.ResourceName, "subscription_id", subscriptionId),
+					testAzureRMClientConfigGUIDAttr(data.ResourceName, "object_id"),
+					testAzureRMClientConfigGUIDAttr(data.ResourceName, "service_principal_application_id"),
+					testAzureRMClientConfigGUIDAttr(data.ResourceName, "service_principal_object_id"),
 				),
 			},
 		},
