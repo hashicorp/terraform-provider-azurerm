@@ -1,4 +1,4 @@
-package batch
+package tests
 
 import (
 	"fmt"
@@ -6,25 +6,18 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
-	resourceName := "azurerm_batch_certificate.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, ri, rs)
-
-	config := testAccAzureRMBatchCertificatePfx(ri, rs, location)
+	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, data.RandomInteger, data.RandomString)
+	config := testAccAzureRMBatchCertificatePfx(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -34,14 +27,14 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "id", certificateID),
-					resource.TestCheckResourceAttr(resourceName, "format", "Pfx"),
-					resource.TestCheckResourceAttr(resourceName, "thumbprint", "42c107874fd0e4a9583292a2f1098e8fe4b2edda"),
-					resource.TestCheckResourceAttr(resourceName, "thumbprint_algorithm", "sha1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "id", certificateID),
+					resource.TestCheckResourceAttr(data.ResourceName, "format", "Pfx"),
+					resource.TestCheckResourceAttr(data.ResourceName, "thumbprint", "42c107874fd0e4a9583292a2f1098e8fe4b2edda"),
+					resource.TestCheckResourceAttr(data.ResourceName, "thumbprint_algorithm", "sha1"),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"certificate", "password"},
@@ -51,11 +44,8 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 }
 
 func TestAccAzureRMBatchCertificate_PfxWithoutPassword(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-
-	config := testAccAzureRMBatchCertificatePfxWithoutPassword(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
+	config := testAccAzureRMBatchCertificatePfxWithoutPassword(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -71,15 +61,11 @@ func TestAccAzureRMBatchCertificate_PfxWithoutPassword(t *testing.T) {
 }
 
 func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
-	resourceName := "azurerm_batch_certificate.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, ri, rs)
+	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, data.RandomInteger, data.RandomString)
 
-	config := testAccAzureRMBatchCertificateCer(ri, rs, location)
+	config := testAccAzureRMBatchCertificateCer(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -90,10 +76,10 @@ func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 
-					resource.TestCheckResourceAttr(resourceName, "id", certificateID),
-					resource.TestCheckResourceAttr(resourceName, "format", "Cer"),
-					resource.TestCheckResourceAttr(resourceName, "thumbprint", "312d31a79fa0cef49c00f769afc2b73e9f4edf34"),
-					resource.TestCheckResourceAttr(resourceName, "thumbprint_algorithm", "sha1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "id", certificateID),
+					resource.TestCheckResourceAttr(data.ResourceName, "format", "Cer"),
+					resource.TestCheckResourceAttr(data.ResourceName, "thumbprint", "312d31a79fa0cef49c00f769afc2b73e9f4edf34"),
+					resource.TestCheckResourceAttr(data.ResourceName, "thumbprint_algorithm", "sha1"),
 				),
 			},
 			data.ImportStep("certificate"),
@@ -102,11 +88,8 @@ func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 }
 
 func TestAccAzureRMBatchCertificate_CerWithPassword(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-
-	config := testAccAzureRMBatchCertificateCerWithPassword(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
+	config := testAccAzureRMBatchCertificateCerWithPassword(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -121,7 +104,7 @@ func TestAccAzureRMBatchCertificate_CerWithPassword(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBatchCertificatePfx(rInt int, batchAccountSuffix string, location string) string {
+func testAccAzureRMBatchCertificatePfx(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
@@ -144,10 +127,10 @@ resource "azurerm_batch_certificate" "test" {
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
   thumbprint_algorithm = "SHA1"
 }
-`, rInt, location, batchAccountSuffix)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMBatchCertificatePfxWithoutPassword(rInt int, batchAccountSuffix string, location string) string {
+func testAccAzureRMBatchCertificatePfxWithoutPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
@@ -169,9 +152,9 @@ resource "azurerm_batch_certificate" "test" {
   thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
   thumbprint_algorithm = "SHA1"
 }
-`, rInt, location, batchAccountSuffix)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
-func testAccAzureRMBatchCertificateCer(rInt int, batchAccountSuffix string, location string) string {
+func testAccAzureRMBatchCertificateCer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
@@ -193,9 +176,9 @@ resource "azurerm_batch_certificate" "test" {
   thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
   thumbprint_algorithm = "SHA1"
 }
-`, rInt, location, batchAccountSuffix)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
-func testAccAzureRMBatchCertificateCerWithPassword(rInt int, batchAccountSuffix string, location string) string {
+func testAccAzureRMBatchCertificateCerWithPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testaccbatch%d"
@@ -218,7 +201,7 @@ resource "azurerm_batch_certificate" "test" {
   thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
   thumbprint_algorithm = "SHA1"
 }
-`, rInt, location, batchAccountSuffix)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testCheckAzureRMBatchCertificateDestroy(s *terraform.State) error {
