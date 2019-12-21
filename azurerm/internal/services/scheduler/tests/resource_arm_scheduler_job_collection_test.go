@@ -1,6 +1,6 @@
 // nolint: megacheck
 // entire automation SDK has been depreciated in v21.3 in favor of logic apps, an entirely different service.
-package scheduler
+package tests
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -18,8 +17,7 @@ import (
 )
 
 func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_scheduler_job_collection.test"
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,14 +25,10 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJobCollection_basic(ri, acceptance.Location(), ""),
-				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
+				Config: testAccAzureRMSchedulerJobCollection_basic(data, ""),
+				Check:  checkAccAzureRMSchedulerJobCollection_basic(data.ResourceName),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -45,8 +39,7 @@ func TestAccAzureRMSchedulerJobCollection_requiresImport(t *testing.T) {
 		return
 	}
 
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_scheduler_job_collection.test"
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,20 +47,18 @@ func TestAccAzureRMSchedulerJobCollection_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJobCollection_basic(ri, acceptance.Location(), ""),
-				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
+				Config: testAccAzureRMSchedulerJobCollection_basic(data, ""),
+				Check:  checkAccAzureRMSchedulerJobCollection_basic(data.ResourceName),
 			},
-			{
-				Config:      testAccAzureRMSchedulerJobCollection_requiresImport(ri, acceptance.Location(), ""),
-				ExpectError: acceptance.RequiresImportError("azurerm_scheduler_job_collection"),
-			},
+			data.RequiresImportErrorStep(func(data acceptance.TestData) string {
+				return testAccAzureRMSchedulerJobCollection_requiresImport(data, "")
+			}),
 		},
 	})
 }
 
 func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_scheduler_job_collection.test"
+	data := acceptance.BuildTestData(t, "azurerm_scheduler_job_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -75,18 +66,14 @@ func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJobCollection_basic(ri, acceptance.Location(), ""),
-				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
+				Config: testAccAzureRMSchedulerJobCollection_basic(data, ""),
+				Check:  checkAccAzureRMSchedulerJobCollection_basic(data.ResourceName),
 			},
 			{
-				Config: testAccAzureRMSchedulerJobCollection_complete(ri, acceptance.Location()),
-				Check:  checkAccAzureRMSchedulerJobCollection_complete(resourceName),
+				Config: testAccAzureRMSchedulerJobCollection_complete(data),
+				Check:  checkAccAzureRMSchedulerJobCollection_complete(data.ResourceName),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -149,7 +136,7 @@ func testCheckAzureRMSchedulerJobCollectionExists(resourceName string) resource.
 	}
 }
 
-func testAccAzureRMSchedulerJobCollection_basic(rInt int, location string, additional string) string {
+func testAccAzureRMSchedulerJobCollection_basic(data acceptance.TestData, additional string) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -163,10 +150,11 @@ resource "azurerm_scheduler_job_collection" "test" {
   sku                 = "Standard"
   %s
 }
-`, rInt, location, rInt, additional)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, additional)
 }
 
-func testAccAzureRMSchedulerJobCollection_requiresImport(rInt int, location string, additional string) string {
+func testAccAzureRMSchedulerJobCollection_requiresImport(data acceptance.TestData, additional string) string {
+	template := testAccAzureRMSchedulerJobCollection_basic(data, additional)
 	return fmt.Sprintf(`
 %s
 
@@ -178,11 +166,11 @@ resource "azurerm_scheduler_job_collection" "import" {
 
   %s
 }
-`, testAccAzureRMSchedulerJobCollection_basic(rInt, location, additional), additional)
+`, template, additional)
 }
 
-func testAccAzureRMSchedulerJobCollection_complete(rInt int, location string) string {
-	return testAccAzureRMSchedulerJobCollection_basic(rInt, location, ` 
+func testAccAzureRMSchedulerJobCollection_complete(data acceptance.TestData) string {
+	return testAccAzureRMSchedulerJobCollection_basic(data, ` 
   state = "disabled" 
   quota { 
     max_recurrence_frequency = "Hour" 
