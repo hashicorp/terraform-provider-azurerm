@@ -1,4 +1,4 @@
-package datafactory
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory_linked_service_postgresql.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_postgresql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,29 +21,18 @@ func TestAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServicePostgreSQLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(resourceName),
+					testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// returned as ***** from the api
-					"connection_string",
-				},
-			},
+			data.ImportStep("connection_string"),
 		},
 	})
 }
 
 func TestAccAzureRMDataFactoryLinkedServicePostgreSQL_update(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryLinkedServicePostgreSQL_update1(ri, acceptance.Location())
-	config2 := testAccAzureRMDataFactoryLinkedServicePostgreSQL_update2(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory_linked_service_postgresql.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_postgresql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,34 +40,26 @@ func TestAccAzureRMDataFactoryLinkedServicePostgreSQL_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServicePostgreSQLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryLinkedServicePostgreSQL_update1(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "annotations.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "description", "test description"),
+					testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
 			{
-				Config: config2,
+				Config: testAccAzureRMDataFactoryLinkedServicePostgreSQL_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "annotations.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "description", "test description 2"),
+					testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// returned as ***** from the api
-					"connection_string",
-				},
-			},
+			data.ImportStep("connection_string"),
 		},
 	})
 }
@@ -144,7 +122,7 @@ func testCheckAzureRMDataFactoryLinkedServicePostgreSQLDestroy(s *terraform.Stat
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(rInt int, location string) string {
+func testAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -163,10 +141,10 @@ resource "azurerm_data_factory_linked_service_postgresql" "test" {
   data_factory_name   = "${azurerm_data_factory.test.name}"
   connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServicePostgreSQL_update1(rInt int, location string) string {
+func testAccAzureRMDataFactoryLinkedServicePostgreSQL_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -197,10 +175,10 @@ resource "azurerm_data_factory_linked_service_postgresql" "test" {
     bar = "test2"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServicePostgreSQL_update2(rInt int, location string) string {
+func testAccAzureRMDataFactoryLinkedServicePostgreSQL_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -231,5 +209,5 @@ resource "azurerm_data_factory_linked_service_postgresql" "test" {
     foo = "test1"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

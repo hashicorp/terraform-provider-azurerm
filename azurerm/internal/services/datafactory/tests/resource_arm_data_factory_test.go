@@ -1,4 +1,4 @@
-package datafactory
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDataFactory_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactory_basic(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,24 +21,18 @@ func TestAccAzureRMDataFactory_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactory_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryExists(resourceName),
+					testCheckAzureRMDataFactoryExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDataFactory_tags(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactory_tags(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -49,27 +40,20 @@ func TestAccAzureRMDataFactory_tags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactory_tags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
+					testCheckAzureRMDataFactoryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDataFactory_tagsUpdated(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactory_tags(ri, acceptance.Location())
-	updatedConfig := testAccAzureRMDataFactory_tagsUpdated(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -77,35 +61,29 @@ func TestAccAzureRMDataFactory_tagsUpdated(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactory_tags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
+					testCheckAzureRMDataFactoryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMDataFactory_tagsUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
-					resource.TestCheckResourceAttr(resourceName, "tags.updated", "true"),
+					testCheckAzureRMDataFactoryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.updated", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDataFactory_identity(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactory_identity(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -113,28 +91,22 @@ func TestAccAzureRMDataFactory_identity(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactory_identity(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "identity.#"),
-					resource.TestCheckResourceAttrSet(resourceName, "identity.0.type"),
-					resource.TestCheckResourceAttrSet(resourceName, "identity.0.principal_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "identity.0.tenant_id"),
+					testCheckAzureRMDataFactoryExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.type"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDataFactory_disappears(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactory_basic(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -142,10 +114,10 @@ func TestAccAzureRMDataFactory_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactory_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryExists(resourceName),
-					testCheckAzureRMDataFactoryDisappears(resourceName),
+					testCheckAzureRMDataFactoryExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -154,10 +126,7 @@ func TestAccAzureRMDataFactory_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactory_github(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactory_github(ri, acceptance.Location())
-	config2 := testAccAzureRMDataFactory_githubUpdated(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -165,32 +134,28 @@ func TestAccAzureRMDataFactory_github(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactory_github(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.account_name", fmt.Sprintf("acctestGH-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.git_url", "https://github.com/terraform-providers/"),
-					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.repository_name", "terraform-provider-azurerm"),
-					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.branch_name", "master"),
-					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.root_folder", "/"),
+					testCheckAzureRMDataFactoryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "github_configuration.0.account_name", fmt.Sprintf("acctestGH-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "github_configuration.0.git_url", "https://github.com/terraform-providers/"),
+					resource.TestCheckResourceAttr(data.ResourceName, "github_configuration.0.repository_name", "terraform-provider-azurerm"),
+					resource.TestCheckResourceAttr(data.ResourceName, "github_configuration.0.branch_name", "master"),
+					resource.TestCheckResourceAttr(data.ResourceName, "github_configuration.0.root_folder", "/"),
 				),
 			},
 			{
-				Config: config2,
+				Config: testAccAzureRMDataFactory_githubUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.account_name", fmt.Sprintf("acctestGitHub-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.git_url", "https://github.com/terraform-providers/"),
-					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.repository_name", "terraform-provider-azuread"),
-					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.branch_name", "stable-website"),
-					resource.TestCheckResourceAttr(resourceName, "github_configuration.0.root_folder", "/azuread"),
+					testCheckAzureRMDataFactoryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "github_configuration.0.account_name", fmt.Sprintf("acctestGitHub-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "github_configuration.0.git_url", "https://github.com/terraform-providers/"),
+					resource.TestCheckResourceAttr(data.ResourceName, "github_configuration.0.repository_name", "terraform-provider-azuread"),
+					resource.TestCheckResourceAttr(data.ResourceName, "github_configuration.0.branch_name", "stable-website"),
+					resource.TestCheckResourceAttr(data.ResourceName, "github_configuration.0.root_folder", "/azuread"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -279,7 +244,7 @@ func testCheckAzureRMDataFactoryDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDataFactory_basic(rInt int, location string) string {
+func testAccAzureRMDataFactory_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -291,10 +256,10 @@ resource "azurerm_data_factory" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactory_tags(rInt int, location string) string {
+func testAccAzureRMDataFactory_tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -310,10 +275,10 @@ resource "azurerm_data_factory" "test" {
     environment = "production"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactory_tagsUpdated(rInt int, location string) string {
+func testAccAzureRMDataFactory_tagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -330,10 +295,10 @@ resource "azurerm_data_factory" "test" {
     updated     = "true"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactory_identity(rInt int, location string) string {
+func testAccAzureRMDataFactory_identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -349,10 +314,10 @@ resource "azurerm_data_factory" "test" {
     type = "SystemAssigned"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactory_github(rInt int, location string) string {
+func testAccAzureRMDataFactory_github(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -372,10 +337,10 @@ resource "azurerm_data_factory" "test" {
     account_name    = "acctestGH-%d"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactory_githubUpdated(rInt int, location string) string {
+func testAccAzureRMDataFactory_githubUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -395,5 +360,5 @@ resource "azurerm_data_factory" "test" {
     account_name    = "acctestGitHub-%d"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
