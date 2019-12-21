@@ -1,4 +1,4 @@
-package automation
+package tests
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -16,8 +15,7 @@ import (
 )
 
 func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
-	resourceName := "azurerm_automation_job_schedule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,11 +23,11 @@ func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(ri, acceptance.Location()),
-				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
+				Config: testAccAzureRMAutomationJobSchedule_basic(data),
+				Check:  checkAccAzureRMAutomationJobSchedule_basic(data.ResourceName),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -38,8 +36,7 @@ func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
-	resourceName := "azurerm_automation_job_schedule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -47,11 +44,11 @@ func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationJobSchedule_complete(ri, acceptance.Location()),
-				Check:  checkAccAzureRMAutomationJobSchedule_complete(resourceName),
+				Config: testAccAzureRMAutomationJobSchedule_complete(data),
+				Check:  checkAccAzureRMAutomationJobSchedule_complete(data.ResourceName),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -60,8 +57,7 @@ func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
-	resourceName := "azurerm_automation_job_schedule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,19 +65,19 @@ func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(ri, acceptance.Location()),
-				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
+				Config: testAccAzureRMAutomationJobSchedule_basic(data),
+				Check:  checkAccAzureRMAutomationJobSchedule_basic(data.ResourceName),
 			},
 			{
-				Config: testAccAzureRMAutomationJobSchedule_complete(ri, acceptance.Location()),
-				Check:  checkAccAzureRMAutomationJobSchedule_complete(resourceName),
+				Config: testAccAzureRMAutomationJobSchedule_complete(data),
+				Check:  checkAccAzureRMAutomationJobSchedule_complete(data.ResourceName),
 			},
 			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(ri, acceptance.Location()),
-				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
+				Config: testAccAzureRMAutomationJobSchedule_basic(data),
+				Check:  checkAccAzureRMAutomationJobSchedule_basic(data.ResourceName),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -94,10 +90,7 @@ func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_automation_job_schedule.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -105,11 +98,11 @@ func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(ri, location),
-				Check:  checkAccAzureRMAutomationJobSchedule_basic(resourceName),
+				Config: testAccAzureRMAutomationJobSchedule_basic(data),
+				Check:  checkAccAzureRMAutomationJobSchedule_basic(data.ResourceName),
 			},
 			{
-				Config:      testAccAzureRMAutomationJobSchedule_requiresImport(ri, location),
+				Config:      testAccAzureRMAutomationJobSchedule_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_automation_job_schedule"),
 			},
 		},
@@ -191,7 +184,7 @@ func testCheckAzureRMAutomationJobScheduleExists(resourceName string) resource.T
 	}
 }
 
-func testAccAzureRMAutomationJobSchedulePrerequisites(rInt int, location string) string {
+func testAccAzureRMAutomationJobSchedulePrerequisites(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -245,11 +238,11 @@ resource "azurerm_automation_schedule" "test" {
   automation_account_name = "${azurerm_automation_account.test.name}"
   frequency               = "OneTime"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationJobSchedule_basic(rInt int, location string) string {
-	template := testAccAzureRMAutomationJobSchedulePrerequisites(rInt, location)
+func testAccAzureRMAutomationJobSchedule_basic(data acceptance.TestData) string {
+	template := testAccAzureRMAutomationJobSchedulePrerequisites(data)
 	return fmt.Sprintf(`
 %s
 
@@ -273,8 +266,8 @@ func checkAccAzureRMAutomationJobSchedule_basic(resourceName string) resource.Te
 	)
 }
 
-func testAccAzureRMAutomationJobSchedule_complete(rInt int, location string) string {
-	template := testAccAzureRMAutomationJobSchedulePrerequisites(rInt, location)
+func testAccAzureRMAutomationJobSchedule_complete(data acceptance.TestData) string {
+	template := testAccAzureRMAutomationJobSchedulePrerequisites(data)
 	return fmt.Sprintf(`
 %s
 
@@ -312,8 +305,8 @@ func checkAccAzureRMAutomationJobSchedule_complete(resourceName string) resource
 	)
 }
 
-func testAccAzureRMAutomationJobSchedule_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMAutomationJobSchedule_basic(rInt, location)
+func testAccAzureRMAutomationJobSchedule_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAutomationJobSchedule_basic(data)
 	return fmt.Sprintf(`
 %s
 

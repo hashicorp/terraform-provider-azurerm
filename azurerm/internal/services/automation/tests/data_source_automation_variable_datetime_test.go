@@ -1,4 +1,4 @@
-package automation
+package tests
 
 import (
 	"fmt"
@@ -10,18 +10,16 @@ import (
 )
 
 func TestAccDataSourceAzureRMAutomationVariableDateTime_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_automation_variable_datetime.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_automation_variable_datetime", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAutomationVariableDateTime_basic(ri, location),
+				Config: testAccDataSourceAutomationVariableDateTime_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "value", "2019-04-24T21:40:54.074Z"),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "2019-04-24T21:40:54.074Z"),
 				),
 			},
 		},

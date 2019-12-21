@@ -1,28 +1,25 @@
-package automation
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAutomationAccount(t *testing.T) {
-	dataSourceName := "data.azurerm_automation_account.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
+	data := acceptance.BuildTestData(t, "data.azurerm_automation_account", "test")
+	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAutomationAccount_complete(resourceGroupName, location, ri),
+				Config: testAccDataSourceAutomationAccount_complete(resourceGroupName, data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
 				),
 			},
 		},

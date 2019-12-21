@@ -1,4 +1,4 @@
-package automation
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMAutomationModule_basic(t *testing.T) {
-	resourceName := "azurerm_automation_module.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,18 +21,12 @@ func TestAccAzureRMAutomationModule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationModule_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMAutomationModule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationModuleExists(resourceName),
+					testCheckAzureRMAutomationModuleExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				// Module link is not returned by api in Get operation
-				ImportStateVerifyIgnore: []string{"module_link"},
-			},
+			data.ImportStep("module_link"),
 		},
 	})
 }
@@ -44,10 +36,7 @@ func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_automation_module.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,23 +44,18 @@ func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationModule_basic(ri, location),
+				Config: testAccAzureRMAutomationModule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationModuleExists(resourceName),
+					testCheckAzureRMAutomationModuleExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMAutomationModule_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_automation_module"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMAutomationModule_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMAutomationModule_multipleModules(t *testing.T) {
-	resourceName := "azurerm_automation_module.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -79,18 +63,12 @@ func TestAccAzureRMAutomationModule_multipleModules(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationModule_multipleModules(ri, location),
+				Config: testAccAzureRMAutomationModule_multipleModules(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationModuleExists(resourceName),
+					testCheckAzureRMAutomationModuleExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				// Module link is not returned by api in Get operation
-				ImportStateVerifyIgnore: []string{"module_link"},
-			},
+			data.ImportStep("module_link"),
 		},
 	})
 }
@@ -161,7 +139,7 @@ func testCheckAzureRMAutomationModuleExists(resourceName string) resource.TestCh
 	}
 }
 
-func testAccAzureRMAutomationModule_basic(rInt int, location string) string {
+func testAccAzureRMAutomationModule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -187,10 +165,10 @@ resource "azurerm_automation_module" "test" {
     uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationModule_multipleModules(rInt int, location string) string {
+func testAccAzureRMAutomationModule_multipleModules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -228,11 +206,11 @@ resource "azurerm_automation_module" "second" {
 
   depends_on = ["azurerm_automation_module.test"]
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationModule_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMAutomationModule_basic(rInt, location)
+func testAccAzureRMAutomationModule_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAutomationModule_basic(data)
 	return fmt.Sprintf(`
 %s
 
