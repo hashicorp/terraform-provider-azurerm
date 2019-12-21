@@ -1,4 +1,4 @@
-package iothub
+package tests
 
 import (
 	"fmt"
@@ -8,15 +8,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMIotHubDpsSharedAccessPolicy_basic(t *testing.T) {
-	resourceName := "azurerm_iothub_dps_shared_access_policy.test"
-	rInt := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,15 +22,15 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubDpsSharedAccessPolicy_basic(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotHubDpsSharedAccessPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctest"),
-					resource.TestCheckResourceAttr(resourceName, "enrollment_read", "false"),
-					resource.TestCheckResourceAttr(resourceName, "enrollment_write", "false"),
-					resource.TestCheckResourceAttr(resourceName, "registration_read", "false"),
-					resource.TestCheckResourceAttr(resourceName, "registration_write", "false"),
-					resource.TestCheckResourceAttr(resourceName, "service_config", "true"),
+					testCheckAzureRMIotHubDpsSharedAccessPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctest"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enrollment_read", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enrollment_write", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "registration_read", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "registration_write", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "service_config", "true"),
 				),
 			},
 		},
@@ -40,7 +38,7 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_basic(t *testing.T) {
 }
 
 func TestAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(t *testing.T) {
-	rInt := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -48,7 +46,7 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(rInt, acceptance.Location()),
+				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(data),
 				ExpectError: regexp.MustCompile("If `registration_write` is set to true, `registration_read` must also be set to true"),
 			},
 		},
@@ -56,7 +54,7 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 }
 
 func TestAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration(t *testing.T) {
-	rInt := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -64,7 +62,7 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration
 		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration(rInt, acceptance.Location()),
+				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration(data),
 				ExpectError: regexp.MustCompile("If `enrollment_read` is set to true, `registration_read` must also be set to true"),
 			},
 		},
@@ -72,7 +70,7 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration
 }
 
 func TestAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(t *testing.T) {
-	rInt := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,14 +78,14 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(t *t
 		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(rInt, acceptance.Location()),
+				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(data),
 				ExpectError: regexp.MustCompile("If `enrollment_write` is set to true, `enrollment_read`, `registration_read`, and `registration_write` must also be set to true"),
 			},
 		},
 	})
 }
 
-func testAccAzureRMIotHubDpsSharedAccessPolicy_basic(rInt int, location string) string {
+func testAccAzureRMIotHubDpsSharedAccessPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -110,10 +108,10 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
   name                = "acctest"
   service_config  = true
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(rInt int, location string) string {
+func testAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -136,10 +134,10 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
   name                = "acctest"
   registration_write = true
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration(rInt int, location string) string {
+func testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -162,10 +160,10 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
   name                = "acctest"
   enrollment_read = true
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(rInt int, location string) string {
+func testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -188,7 +186,7 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
   name                = "acctest"
   enrollment_write = true
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName string) resource.TestCheckFunc {

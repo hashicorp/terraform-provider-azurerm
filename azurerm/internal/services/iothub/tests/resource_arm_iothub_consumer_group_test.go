@@ -1,4 +1,4 @@
-package iothub
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMIotHubConsumerGroup_events(t *testing.T) {
-	resourceName := "azurerm_iothub_consumer_group.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,17 +21,13 @@ func TestAccAzureRMIotHubConsumerGroup_events(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubConsumerGroup_basic(rInt, location, "events"),
+				Config: testAccAzureRMIotHubConsumerGroup_basic(data, "events"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubConsumerGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "eventhub_endpoint_name", "events"),
+					testCheckAzureRMIotHubConsumerGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub_endpoint_name", "events"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -45,9 +38,7 @@ func TestAccAzureRMIotHubConsumerGroup_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_iothub_consumer_group.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,14 +46,14 @@ func TestAccAzureRMIotHubConsumerGroup_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubConsumerGroup_basic(rInt, location, "events"),
+				Config: testAccAzureRMIotHubConsumerGroup_basic(data, "events"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubConsumerGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "eventhub_endpoint_name", "events"),
+					testCheckAzureRMIotHubConsumerGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub_endpoint_name", "events"),
 				),
 			},
 			{
-				Config:      testAccAzureRMIotHubConsumerGroup_requiresImport(rInt, location, "events"),
+				Config:      testAccAzureRMIotHubConsumerGroup_requiresImport(data, "events"),
 				ExpectError: acceptance.RequiresImportError("azurerm_iothub_consumer_group"),
 			},
 		},
@@ -70,9 +61,7 @@ func TestAccAzureRMIotHubConsumerGroup_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMIotHubConsumerGroup_operationsMonitoringEvents(t *testing.T) {
-	resourceName := "azurerm_iothub_consumer_group.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,16 +69,12 @@ func TestAccAzureRMIotHubConsumerGroup_operationsMonitoringEvents(t *testing.T) 
 		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubConsumerGroup_basic(rInt, location, "operationsMonitoringEvents"),
+				Config: testAccAzureRMIotHubConsumerGroup_basic(data, "operationsMonitoringEvents"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubConsumerGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "eventhub_endpoint_name", "operationsMonitoringEvents"),
+					testCheckAzureRMIotHubConsumerGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub_endpoint_name", "operationsMonitoringEvents"),
 				),
-			}, {
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			}, data.ImportStep(),
 		},
 	})
 }
@@ -149,7 +134,7 @@ func testCheckAzureRMIotHubConsumerGroupExists(resourceName string) resource.Tes
 	}
 }
 
-func testAccAzureRMIotHubConsumerGroup_basic(rInt int, location, eventName string) string {
+func testAccAzureRMIotHubConsumerGroup_basic(data acceptance.TestData, eventName string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -178,11 +163,11 @@ resource "azurerm_iothub_consumer_group" "test" {
   eventhub_endpoint_name = "%s"
   resource_group_name    = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt, eventName)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, eventName)
 }
 
-func testAccAzureRMIotHubConsumerGroup_requiresImport(rInt int, location, eventName string) string {
-	template := testAccAzureRMIotHubConsumerGroup_basic(rInt, location, eventName)
+func testAccAzureRMIotHubConsumerGroup_requiresImport(data acceptance.TestData, eventName string) string {
+	template := testAccAzureRMIotHubConsumerGroup_basic(data, eventName)
 	return fmt.Sprintf(`
 %s
 
