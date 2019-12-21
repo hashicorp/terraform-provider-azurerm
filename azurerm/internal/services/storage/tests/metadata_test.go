@@ -1,6 +1,9 @@
-package storage
+package tests
 
-import "testing"
+import (
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"testing"
+)
 
 func TestValidateMetaDataKeys(t *testing.T) {
 	testData := []struct {
@@ -48,7 +51,7 @@ func TestValidateMetaDataKeys(t *testing.T) {
 		value := map[string]interface{}{
 			v.Input: "hello",
 		}
-		warnings, errors := validateMetaDataKeys(value, "field")
+		warnings, errors := storage.ValidateMetaDataKeys(value, "field")
 		if len(warnings) != 0 {
 			t.Fatalf("Expected no warnings but got %d", len(warnings))
 		}

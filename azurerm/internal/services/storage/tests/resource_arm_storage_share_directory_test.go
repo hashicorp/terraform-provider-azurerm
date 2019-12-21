@@ -1,25 +1,19 @@
-package storage
+package tests
 
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStorageShareDirectory_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_share_directory.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,25 +21,18 @@ func TestAccAzureRMStorageShareDirectory_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageShareDirectory_basic(ri, rs, location),
+				Config: testAccAzureRMStorageShareDirectory_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareDirectoryExists(resourceName),
+					testCheckAzureRMStorageShareDirectoryExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageShareDirectory_uppercase(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_share_directory.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,16 +40,12 @@ func TestAccAzureRMStorageShareDirectory_uppercase(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageShareDirectory_uppercase(ri, rs, location),
+				Config: testAccAzureRMStorageShareDirectory_uppercase(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareDirectoryExists(resourceName),
+					testCheckAzureRMStorageShareDirectoryExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -72,11 +55,7 @@ func TestAccAzureRMStorageShareDirectory_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_share_directory.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -84,24 +63,18 @@ func TestAccAzureRMStorageShareDirectory_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageShareDirectory_basic(ri, rs, location),
+				Config: testAccAzureRMStorageShareDirectory_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareDirectoryExists(resourceName),
+					testCheckAzureRMStorageShareDirectoryExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMStorageShareDirectory_requiresImport(ri, rs, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_storage_share_directory"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMStorageShareDirectory_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMStorageShareDirectory_complete(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_share_directory.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -109,25 +82,18 @@ func TestAccAzureRMStorageShareDirectory_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageShareDirectory_complete(ri, rs, location),
+				Config: testAccAzureRMStorageShareDirectory_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareDirectoryExists(resourceName),
+					testCheckAzureRMStorageShareDirectoryExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageShareDirectory_update(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_share_directory.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -135,34 +101,24 @@ func TestAccAzureRMStorageShareDirectory_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageShareDirectory_complete(ri, rs, location),
+				Config: testAccAzureRMStorageShareDirectory_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareDirectoryExists(resourceName),
+					testCheckAzureRMStorageShareDirectoryExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMStorageShareDirectory_updated(ri, rs, location),
+				Config: testAccAzureRMStorageShareDirectory_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareDirectoryExists(resourceName),
+					testCheckAzureRMStorageShareDirectoryExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 func TestAccAzureRMStorageShareDirectory_nested(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -170,7 +126,7 @@ func TestAccAzureRMStorageShareDirectory_nested(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageShareDirectory_nested(ri, rs, location),
+				Config: testAccAzureRMStorageShareDirectory_nested(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.parent"),
 					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.child"),
@@ -264,8 +220,8 @@ func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMStorageShareDirectory_basic(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShareDirectory_template(rInt, rString, location)
+func testAccAzureRMStorageShareDirectory_basic(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShareDirectory_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -277,8 +233,8 @@ resource "azurerm_storage_share_directory" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageShareDirectory_uppercase(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShareDirectory_template(rInt, rString, location)
+func testAccAzureRMStorageShareDirectory_uppercase(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShareDirectory_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -290,8 +246,8 @@ resource "azurerm_storage_share_directory" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageShareDirectory_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShareDirectory_basic(rInt, rString, location)
+func testAccAzureRMStorageShareDirectory_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShareDirectory_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -303,8 +259,8 @@ resource "azurerm_storage_share_directory" "import" {
 `, template)
 }
 
-func testAccAzureRMStorageShareDirectory_complete(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShareDirectory_template(rInt, rString, location)
+func testAccAzureRMStorageShareDirectory_complete(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShareDirectory_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -320,8 +276,8 @@ resource "azurerm_storage_share_directory" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageShareDirectory_updated(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShareDirectory_template(rInt, rString, location)
+func testAccAzureRMStorageShareDirectory_updated(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShareDirectory_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -338,8 +294,8 @@ resource "azurerm_storage_share_directory" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageShareDirectory_nested(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShareDirectory_template(rInt, rString, location)
+func testAccAzureRMStorageShareDirectory_nested(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShareDirectory_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -357,7 +313,7 @@ resource "azurerm_storage_share_directory" "child" {
 `, template)
 }
 
-func testAccAzureRMStorageShareDirectory_template(rInt int, rString string, location string) string {
+func testAccAzureRMStorageShareDirectory_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -377,5 +333,5 @@ resource "azurerm_storage_share" "test" {
   storage_account_name = "${azurerm_storage_account.test.name}"
   quota                = 50
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

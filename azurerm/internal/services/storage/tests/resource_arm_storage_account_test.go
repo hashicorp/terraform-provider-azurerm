@@ -1,7 +1,8 @@
-package storage
+package tests
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"net/http"
 	"os"
 	"regexp"
@@ -12,10 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestValidateArmStorageAccountType(t *testing.T) {
@@ -28,7 +27,7 @@ func TestValidateArmStorageAccountType(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		_, es := validateArmStorageAccountType(test.input, "account_type")
+		_, es := storage.ValidateArmStorageAccountType(test.input, "account_type")
 
 		if test.shouldError && len(es) == 0 {
 			t.Fatalf("Expected validating account_type %q to fail", test.input)
@@ -50,7 +49,7 @@ func TestValidateArmStorageAccountName(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		_, es := ValidateArmStorageAccountName(test.input, "name")
+		_, es := storage.ValidateArmStorageAccountName(test.input, "name")
 
 		if test.shouldError && len(es) == 0 {
 			t.Fatalf("Expected validating name %q to fail", test.input)
@@ -59,12 +58,9 @@ func TestValidateArmStorageAccountName(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_basic(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_basic(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_update(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_basic(data)
+	postConfig := testAccAzureRMStorageAccount_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -74,26 +70,22 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "account_tier", "Standard"),
-					resource.TestCheckResourceAttr(resourceName, "account_replication_type", "LRS"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Standard"),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_replication_type", "LRS"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "account_tier", "Standard"),
-					resource.TestCheckResourceAttr(resourceName, "account_replication_type", "GRS"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Standard"),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_replication_type", "GRS"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
 				),
 			},
 		},
@@ -105,11 +97,7 @@ func TestAccAzureRMStorageAccount_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -117,24 +105,18 @@ func TestAccAzureRMStorageAccount_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageAccount_basic(ri, rs, location),
+				Config: testAccAzureRMStorageAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMStorageAccount_requiresImport(ri, rs, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_storage_account"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMStorageAccount_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMStorageAccount_writeLock(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -142,40 +124,33 @@ func TestAccAzureRMStorageAccount_writeLock(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageAccount_writeLock(ri, rs, location),
+				Config: testAccAzureRMStorageAccount_writeLock(data),
 			},
 			{
 				// works around a bug in the test suite where the Storage Account won't be re-read after the Lock's provisioned
-				Config: testAccAzureRMStorageAccount_writeLock(ri, rs, location),
+				Config: testAccAzureRMStorageAccount_writeLock(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "account_tier", "Standard"),
-					resource.TestCheckResourceAttr(resourceName, "account_replication_type", "LRS"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
-					resource.TestCheckResourceAttr(resourceName, "primary_connection_string", ""),
-					resource.TestCheckResourceAttr(resourceName, "secondary_connection_string", ""),
-					resource.TestCheckResourceAttr(resourceName, "primary_blob_connection_string", ""),
-					resource.TestCheckResourceAttr(resourceName, "secondary_blob_connection_string", ""),
-					resource.TestCheckResourceAttr(resourceName, "primary_access_key", ""),
-					resource.TestCheckResourceAttr(resourceName, "secondary_access_key", ""),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Standard"),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_replication_type", "LRS"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
+					resource.TestCheckResourceAttr(data.ResourceName, "primary_connection_string", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "secondary_connection_string", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "primary_blob_connection_string", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "secondary_blob_connection_string", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "primary_access_key", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "secondary_access_key", ""),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageAccount_premium(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_premium(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_premium(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -185,27 +160,21 @@ func TestAccAzureRMStorageAccount_premium(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "account_tier", "Premium"),
-					resource.TestCheckResourceAttr(resourceName, "account_replication_type", "LRS"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Premium"),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_replication_type", "LRS"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	preConfig := testAccAzureRMStorageAccount_basic(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -215,12 +184,12 @@ func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "account_tier", "Standard"),
-					resource.TestCheckResourceAttr(resourceName, "account_replication_type", "LRS"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
-					testCheckAzureRMStorageAccountDisappears(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Standard"),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_replication_type", "LRS"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "production"),
+					testCheckAzureRMStorageAccountDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -229,10 +198,8 @@ func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	preConfig := testAccAzureRMStorageAccount_basic(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -241,7 +208,7 @@ func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
-				Check: resource.ComposeTestCheckFunc(testCheckAzureRMStorageAccountExists(resourceName),
+				Check: resource.ComposeTestCheckFunc(testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet("azurerm_storage_account.testsa", "primary_blob_connection_string"),
 				),
 			},
@@ -254,13 +221,9 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 	if !exists {
 		t.Skip("`TF_ACC_STORAGE_ENCRYPTION_DISABLE` isn't specified - skipping since disabling encryption is generally disabled")
 	}
-
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_blobEncryption(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_blobEncryptionDisabled(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_blobEncryption(data)
+	postConfig := testAccAzureRMStorageAccount_blobEncryptionDisabled(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -270,19 +233,15 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_blob_encryption", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_blob_encryption", "false"),
 				),
 			},
@@ -295,13 +254,9 @@ func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
 	if !exists {
 		t.Skip("`TF_ACC_STORAGE_ENCRYPTION_DISABLE` isn't specified - skipping since disabling encryption is generally disabled")
 	}
-
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_fileEncryption(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_fileEncryptionDisabled(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_fileEncryption(data)
+	postConfig := testAccAzureRMStorageAccount_fileEncryptionDisabled(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -311,19 +266,15 @@ func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_file_encryption", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_file_encryption", "false"),
 				),
 			},
@@ -332,12 +283,9 @@ func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_enableHttpsTrafficOnly(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_enableHttpsTrafficOnly(data)
+	postConfig := testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -347,19 +295,15 @@ func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_https_traffic_only", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_https_traffic_only", "false"),
 				),
 			},
@@ -368,12 +312,9 @@ func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_isHnsEnabled(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_isHnsEnabledTrue(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_isHnsEnabledFalse(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_isHnsEnabledTrue(data)
+	postConfig := testAccAzureRMStorageAccount_isHnsEnabledFalse(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -383,19 +324,15 @@ func TestAccAzureRMStorageAccount_isHnsEnabled(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "is_hns_enabled", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "is_hns_enabled", "false"),
 				),
 			},
@@ -404,12 +341,9 @@ func TestAccAzureRMStorageAccount_isHnsEnabled(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_blobStorage(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_blobStorageUpdate(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_blobStorage(data)
+	postConfig := testAccAzureRMStorageAccount_blobStorageUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -419,20 +353,16 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "BlobStorage"),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Hot"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Cool"),
 				),
 			},
@@ -441,10 +371,7 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_blockBlobStorage(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -452,29 +379,22 @@ func TestAccAzureRMStorageAccount_blockBlobStorage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageAccount_blockBlobStorage(ri, rs, location),
+				Config: testAccAzureRMStorageAccount_blockBlobStorage(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "BlockBlobStorage"),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", ""),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_fileStorage(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_fileStorageUpdate(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_fileStorage(data)
+	postConfig := testAccAzureRMStorageAccount_fileStorageUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -484,21 +404,17 @@ func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "FileStorage"),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_tier", "Premium"),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Hot"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_tier", "Premium"),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Cool"),
 				),
@@ -507,12 +423,9 @@ func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
 	})
 }
 func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_storageV2(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_storageV2Update(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_storageV2(data)
+	postConfig := testAccAzureRMStorageAccount_storageV2Update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -522,20 +435,16 @@ func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "StorageV2"),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Hot"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Cool"),
 				),
 			},
@@ -544,10 +453,8 @@ func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	preConfig := testAccAzureRMStorageAccount_nonStandardCasing(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_nonStandardCasing(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -557,14 +464,10 @@ func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config:             preConfig,
 				PlanOnly:           true,
@@ -575,11 +478,8 @@ func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMStorageAccount_identity(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	config := testAccAzureRMStorageAccount_identity(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -589,10 +489,10 @@ func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -600,13 +500,9 @@ func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_updateResourceByEnablingIdentity(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-
-	basicResourceNoManagedIdentity := testAccAzureRMStorageAccount_basic(ri, rs, acceptance.Location())
-	managedIdentityEnabled := testAccAzureRMStorageAccount_identity(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	basicResourceNoManagedIdentity := testAccAzureRMStorageAccount_basic(data)
+	managedIdentityEnabled := testAccAzureRMStorageAccount_identity(data)
 
 	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 
@@ -618,17 +514,17 @@ func TestAccAzureRMStorageAccount_updateResourceByEnablingIdentity(t *testing.T)
 			{
 				Config: basicResourceNoManagedIdentity,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "identity.#", "0"),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "0"),
 				),
 			},
 			{
 				Config: managedIdentityEnabled,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", uuidMatch),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", uuidMatch),
 				),
 			},
 		},
@@ -636,12 +532,9 @@ func TestAccAzureRMStorageAccount_updateResourceByEnablingIdentity(t *testing.T)
 }
 
 func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_networkRules(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_networkRulesUpdate(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_networkRules(data)
+	postConfig := testAccAzureRMStorageAccount_networkRulesUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -651,25 +544,21 @@ func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_action", "Deny"),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.default_action", "Deny"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.ip_rules.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_action", "Deny"),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.bypass.#", "2"),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.default_action", "Deny"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.ip_rules.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.bypass.#", "2"),
 				),
 			},
 		},
@@ -677,12 +566,9 @@ func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_networkRules(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_networkRulesReverted(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_networkRules(data)
+	postConfig := testAccAzureRMStorageAccount_networkRulesReverted(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -692,17 +578,17 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_action", "Deny"),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.default_action", "Deny"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.ip_rules.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_action", "Allow"),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.default_action", "Allow"),
 				),
 			},
 		},
@@ -710,12 +596,9 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_enableAdvancedThreatProtection(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_enableAdvancedThreatProtection(data)
+	postConfig := testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -725,38 +608,27 @@ func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_advanced_threat_protection", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_advanced_threat_protection", "false"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_blobProperties(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_blobPropertiesUpdated(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_blobProperties(data)
+	postConfig := testAccAzureRMStorageAccount_blobPropertiesUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -766,38 +638,27 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "blob_properties.0.delete_retention_policy.0.days", "300"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "blob_properties.0.delete_retention_policy.0.days", "7"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageAccount_queueProperties(t *testing.T) {
-	resourceName := "azurerm_storage_account.testsa"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-	preConfig := testAccAzureRMStorageAccount_queueProperties(ri, rs, location)
-	postConfig := testAccAzureRMStorageAccount_queuePropertiesUpdated(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	preConfig := testAccAzureRMStorageAccount_queueProperties(data)
+	postConfig := testAccAzureRMStorageAccount_queuePropertiesUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -807,25 +668,17 @@ func TestAccAzureRMStorageAccount_queueProperties(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(resourceName),
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -906,7 +759,7 @@ func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMStorageAccount_basic(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -925,11 +778,11 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageAccount_basic(rInt, rString, location)
+func testAccAzureRMStorageAccount_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStorageAccount_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -943,8 +796,8 @@ resource "azurerm_storage_account" "import" {
 `, template)
 }
 
-func testAccAzureRMStorageAccount_writeLock(rInt int, rString, location string) string {
-	template := testAccAzureRMStorageAccount_basic(rInt, rString, location)
+func testAccAzureRMStorageAccount_writeLock(data acceptance.TestData) string {
+	template := testAccAzureRMStorageAccount_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -953,10 +806,10 @@ resource "azurerm_management_lock" "test" {
   scope      = "${azurerm_storage_account.testsa.id}"
   lock_level = "ReadOnly"
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStorageAccount_premium(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -975,10 +828,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_update(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -997,10 +850,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "staging"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_blobEncryption(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_blobEncryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1020,10 +873,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_blobEncryptionDisabled(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_blobEncryptionDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1043,10 +896,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_fileEncryption(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_fileEncryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1066,10 +919,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_fileEncryptionDisabled(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_fileEncryptionDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1089,10 +942,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_enableHttpsTrafficOnly(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_enableHttpsTrafficOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1112,10 +965,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1135,10 +988,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_isHnsEnabledTrue(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_isHnsEnabledTrue(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1155,10 +1008,10 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
   is_hns_enabled           = true
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_isHnsEnabledFalse(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_isHnsEnabledFalse(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1175,10 +1028,10 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
   is_hns_enabled           = false
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_blobStorage(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_blobStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1198,10 +1051,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_blobStorageUpdate(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_blobStorageUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1222,10 +1075,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_blockBlobStorage(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_blockBlobStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1245,10 +1098,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_fileStorage(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_fileStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1269,10 +1122,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_fileStorageUpdate(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_fileStorageUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1293,10 +1146,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_storageV2(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_storageV2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1316,10 +1169,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_storageV2Update(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_storageV2Update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1340,10 +1193,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_nonStandardCasing(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_nonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1361,10 +1214,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_identity(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1387,10 +1240,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_networkRules(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_networkRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1429,10 +1282,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rInt, rInt, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_networkRulesUpdate(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_networkRulesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1471,10 +1324,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rInt, rInt, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_networkRulesReverted(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_networkRulesReverted(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1513,10 +1366,10 @@ resource "azurerm_storage_account" "testsa" {
     environment = "production"
   }
 }
-`, rInt, location, rInt, rInt, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_enableAdvancedThreatProtection(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_enableAdvancedThreatProtection(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1531,10 +1384,10 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type          = "LRS"
   enable_advanced_threat_protection = true
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1549,10 +1402,10 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type          = "LRS"
   enable_advanced_threat_protection = false
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_blobProperties(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_blobProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestAzureRMSA-%d"
@@ -1573,10 +1426,10 @@ resource "azurerm_storage_account" "testsa" {
     }
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_blobPropertiesUpdated(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_blobPropertiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestAzureRMSA-%d"
@@ -1596,10 +1449,10 @@ resource "azurerm_storage_account" "testsa" {
     }
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_queueProperties(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_queueProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1644,10 +1497,10 @@ resource "azurerm_storage_account" "testsa" {
     }
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_queuePropertiesUpdated(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_queuePropertiesUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-storage-%d"
@@ -1700,5 +1553,5 @@ resource "azurerm_storage_account" "testsa" {
     }
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

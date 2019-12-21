@@ -195,9 +195,9 @@ func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) e
 	expiry := d.Get("expiry").(string)
 	permissionsIface := d.Get("permissions").([]interface{})
 
-	resourceTypes := buildResourceTypesString(resourceTypesIface[0].(map[string]interface{}))
-	services := buildServicesString(servicesIface[0].(map[string]interface{}))
-	permissions := buildPermissionsString(permissionsIface[0].(map[string]interface{}))
+	resourceTypes := BuildResourceTypesString(resourceTypesIface[0].(map[string]interface{}))
+	services := BuildServicesString(servicesIface[0].(map[string]interface{}))
+	permissions := BuildPermissionsString(permissionsIface[0].(map[string]interface{}))
 
 	// Parse the connection string
 	kvp, err := storage.ParseAccountSASConnectionString(connString)
@@ -231,7 +231,7 @@ func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) e
 	return nil
 }
 
-func buildPermissionsString(perms map[string]interface{}) string {
+func BuildPermissionsString(perms map[string]interface{}) string {
 	retVal := ""
 
 	if val, pres := perms["read"].(bool); pres && val {
@@ -269,7 +269,7 @@ func buildPermissionsString(perms map[string]interface{}) string {
 	return retVal
 }
 
-func buildServicesString(services map[string]interface{}) string {
+func BuildServicesString(services map[string]interface{}) string {
 	retVal := ""
 
 	if val, pres := services["blob"].(bool); pres && val {
@@ -291,7 +291,7 @@ func buildServicesString(services map[string]interface{}) string {
 	return retVal
 }
 
-func buildResourceTypesString(resTypes map[string]interface{}) string {
+func BuildResourceTypesString(resTypes map[string]interface{}) string {
 	retVal := ""
 
 	if val, pres := resTypes["service"].(bool); pres && val {

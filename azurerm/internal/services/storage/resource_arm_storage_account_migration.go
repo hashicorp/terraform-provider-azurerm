@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func resourceStorageAccountMigrateState(
+func ResourceStorageAccountMigrateState(
 	v int, is *terraform.InstanceState, _ interface{}) (*terraform.InstanceState, error) {
 	switch v {
 	case 0:

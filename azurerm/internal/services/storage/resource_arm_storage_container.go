@@ -23,7 +23,7 @@ func resourceArmStorageContainer() *schema.Resource {
 		Read:          resourceArmStorageContainerRead,
 		Delete:        resourceArmStorageContainerDelete,
 		Update:        resourceArmStorageContainerUpdate,
-		MigrateState:  resourceStorageContainerMigrateState,
+		MigrateState:  ResourceStorageContainerMigrateState,
 		SchemaVersion: 1,
 
 		Importer: &schema.ResourceImporter{
