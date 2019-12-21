@@ -78,7 +78,6 @@ func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
 
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
