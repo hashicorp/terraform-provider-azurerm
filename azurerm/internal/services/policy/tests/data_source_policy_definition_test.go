@@ -1,17 +1,15 @@
-package policy
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
-	dataSourceName := "data.azurerm_policy_definition.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -19,11 +17,11 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 			{
 				Config: testAccDataSourceBuiltInPolicyDefinition("Allowed resource types"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", "a08ec900-254a-4555-9bf5-e42af04b5c5c"),
-					resource.TestCheckResourceAttr(dataSourceName, "display_name", "Allowed resource types"),
-					resource.TestCheckResourceAttr(dataSourceName, "type", "Microsoft.Authorization/policyDefinitions"),
-					resource.TestCheckResourceAttr(dataSourceName, "description", "This policy enables you to specify the resource types that your organization can deploy. Only resource types that support 'tags' and 'location' will be affected by this policy. To restrict all resources please duplicate this policy and change the 'mode' to 'All'."),
+					resource.TestCheckResourceAttr(data.ResourceName, "id", "/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "a08ec900-254a-4555-9bf5-e42af04b5c5c"),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Allowed resource types"),
+					resource.TestCheckResourceAttr(data.ResourceName, "type", "Microsoft.Authorization/policyDefinitions"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "This policy enables you to specify the resource types that your organization can deploy. Only resource types that support 'tags' and 'location' will be affected by this policy. To restrict all resources please duplicate this policy and change the 'mode' to 'All'."),
 				),
 			},
 		},
@@ -31,7 +29,7 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMPolicyDefinition_builtIn_AtManagementGroup(t *testing.T) {
-	dataSourceName := "data.azurerm_policy_definition.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -39,7 +37,7 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn_AtManagementGroup(t *testi
 			{
 				Config: testAccDataSourceBuiltInPolicyDefinitionAtManagementGroup("Allowed resource types"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"),
+					resource.TestCheckResourceAttr(data.ResourceName, "id", "/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"),
 				),
 			},
 		},
@@ -47,23 +45,21 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn_AtManagementGroup(t *testi
 }
 
 func TestAccDataSourceAzureRMPolicyDefinition_custom(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	dataSourceName := "data.azurerm_policy_definition.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceCustomPolicyDefinition(ri),
+				Config: testAccDataSourceCustomPolicyDefinition(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAzureRMAttrExists(dataSourceName, "id"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctestpol-%d", ri)),
-					resource.TestCheckResourceAttr(dataSourceName, "display_name", fmt.Sprintf("acctestpol-%d", ri)),
-					resource.TestCheckResourceAttr(dataSourceName, "type", "Microsoft.Authorization/policyDefinitions"),
-					resource.TestCheckResourceAttr(dataSourceName, "policy_type", "Custom"),
-					resource.TestCheckResourceAttr(dataSourceName, "policy_rule", "{\"if\":{\"not\":{\"field\":\"location\",\"in\":\"[parameters('allowedLocations')]\"}},\"then\":{\"effect\":\"audit\"}}"),
-					resource.TestCheckResourceAttr(dataSourceName, "parameters", "{\"allowedLocations\":{\"metadata\":{\"description\":\"The list of allowed locations for resources.\",\"displayName\":\"Allowed locations\",\"strongType\":\"location\"},\"type\":\"Array\"}}"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "metadata"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestpol-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestpol-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "type", "Microsoft.Authorization/policyDefinitions"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_type", "Custom"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_rule", "{\"if\":{\"not\":{\"field\":\"location\",\"in\":\"[parameters('allowedLocations')]\"}},\"then\":{\"effect\":\"audit\"}}"),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters", "{\"allowedLocations\":{\"metadata\":{\"description\":\"The list of allowed locations for resources.\",\"displayName\":\"Allowed locations\",\"strongType\":\"location\"},\"type\":\"Array\"}}"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "metadata"),
 				),
 			},
 		},
@@ -89,7 +85,7 @@ data "azurerm_policy_definition" "test" {
 `, name)
 }
 
-func testAccDataSourceCustomPolicyDefinition(ri int) string {
+func testAccDataSourceCustomPolicyDefinition(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_policy_definition" "test_policy" {
   name         = "acctestpol-%d"
@@ -134,11 +130,5 @@ METADATA
 data "azurerm_policy_definition" "test" {
   display_name = "${azurerm_policy_definition.test_policy.display_name}"
 }
-`, ri, ri)
-}
-
-func testAzureRMAttrExists(name, key string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		return resource.TestCheckResourceAttrSet(name, key)(s)
-	}
+`, data.RandomInteger, data.RandomInteger)
 }

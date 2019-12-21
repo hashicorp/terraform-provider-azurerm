@@ -1,4 +1,4 @@
-package policy
+package tests
 
 import (
 	"fmt"
@@ -7,32 +7,25 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMPolicyAssignment_basic(t *testing.T) {
-	resourceName := "azurerm_policy_assignment.test"
-	ri := tf.AccRandTimeInt()
-
+	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyAssignment_basic(ri, acceptance.Location()),
+				Config: testAzureRMPolicyAssignment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyAssignmentExists(resourceName),
+					testCheckAzureRMPolicyAssignmentExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -43,101 +36,73 @@ func TestAccAzureRMPolicyAssignment_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_policy_assignment.test"
-	ri := tf.AccRandTimeInt()
-
+	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyAssignment_basic(ri, acceptance.Location()),
+				Config: testAzureRMPolicyAssignment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyAssignmentExists(resourceName),
+					testCheckAzureRMPolicyAssignmentExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAzureRMPolicyAssignment_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_policy_assignment"),
-			},
+			data.RequiresImportErrorStep(testAzureRMPolicyAssignment_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMPolicyAssignment_deployIfNotExists_policy(t *testing.T) {
-	resourceName := "azurerm_policy_assignment.test"
-	ri := tf.AccRandTimeInt()
-
+	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyAssignment_deployIfNotExists_policy(ri, acceptance.Location()),
+				Config: testAzureRMPolicyAssignment_deployIfNotExists_policy(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyAssignmentExists(resourceName),
+					testCheckAzureRMPolicyAssignmentExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
-	resourceName := "azurerm_policy_assignment.test"
-
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyAssignment_complete(ri, location),
+				Config: testAzureRMPolicyAssignment_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyAssignmentExists(resourceName),
+					testCheckAzureRMPolicyAssignmentExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMPolicyAssignment_not_scopes(t *testing.T) {
-	resourceName := "azurerm_policy_assignment.test"
-
-	ri := tf.AccRandTimeInt()
-
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyAssignment_not_scopes(ri, location),
+				Config: testAzureRMPolicyAssignment_not_scopes(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyAssignmentExists(resourceName),
+					testCheckAzureRMPolicyAssignmentExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -190,7 +155,7 @@ func testCheckAzureRMPolicyAssignmentDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAzureRMPolicyAssignment_basic(ri int, location string) string {
+func testAzureRMPolicyAssignment_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
@@ -223,10 +188,11 @@ resource "azurerm_policy_assignment" "test" {
   scope                = "${azurerm_resource_group.test.id}"
   policy_definition_id = "${azurerm_policy_definition.test.id}"
 }
-`, ri, ri, location, ri, location, ri)
+`, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAzureRMPolicyAssignment_requiresImport(ri int, location string) string {
+func testAzureRMPolicyAssignment_requiresImport(data acceptance.TestData) string {
+	template := testAzureRMPolicyAssignment_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -235,10 +201,10 @@ resource "azurerm_policy_assignment" "import" {
   scope                = "${azurerm_policy_assignment.test.scope}"
   policy_definition_id = "${azurerm_policy_assignment.test.policy_definition_id}"
 }
-`, testAzureRMPolicyAssignment_basic(ri, location))
+`, template)
 }
 
-func testAzureRMPolicyAssignment_deployIfNotExists_policy(ri int, location string) string {
+func testAzureRMPolicyAssignment_deployIfNotExists_policy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
@@ -313,10 +279,10 @@ resource "azurerm_policy_assignment" "test" {
 
   location = "%s"
 }
-`, ri, ri, ri, location, ri, location)
+`, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAzureRMPolicyAssignment_complete(ri int, location string) string {
+func testAzureRMPolicyAssignment_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
@@ -372,10 +338,10 @@ resource "azurerm_policy_assignment" "test" {
 }
 PARAMETERS
 }
-`, ri, ri, ri, location, ri, ri, location)
+`, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAzureRMPolicyAssignment_not_scopes(ri int, location string) string {
+func testAzureRMPolicyAssignment_not_scopes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "current" {}
 
@@ -434,5 +400,5 @@ resource "azurerm_policy_assignment" "test" {
 }
 PARAMETERS
 }
-`, ri, ri, ri, location, ri, ri, location)
+`, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
