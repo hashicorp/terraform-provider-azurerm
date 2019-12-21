@@ -1,23 +1,19 @@
-package datafactory
+package tests
 
 import (
 	"fmt"
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,24 +21,18 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(resourceName),
+					testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -50,27 +40,21 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testi
 		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "vnet_integration.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "vnet_integration.0.vnet_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "vnet_integration.0.subnet_name"),
+					testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "vnet_integration.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vnet_integration.0.vnet_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vnet_integration.0.subnet_name"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,31 +62,23 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T
 		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "catalog_info.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "catalog_info.0.server_endpoint"),
-					resource.TestCheckResourceAttr(resourceName, "catalog_info.0.administrator_login", "ssis_catalog_admin"),
-					resource.TestCheckResourceAttr(resourceName, "catalog_info.0.administrator_password", "my-s3cret-p4ssword!"),
-					resource.TestCheckResourceAttr(resourceName, "catalog_info.0.pricing_tier", "Basic"),
+					testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "catalog_info.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "catalog_info.0.server_endpoint"),
+					resource.TestCheckResourceAttr(data.ResourceName, "catalog_info.0.administrator_login", "ssis_catalog_admin"),
+					resource.TestCheckResourceAttr(data.ResourceName, "catalog_info.0.administrator_password", "my-s3cret-p4ssword!"),
+					resource.TestCheckResourceAttr(data.ResourceName, "catalog_info.0.pricing_tier", "Basic"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"catalog_info.0.administrator_password"},
-			},
+			data.ImportStep("catalog_info.0.administrator_password"),
 		},
 	})
 }
 
 func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
-	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(ri, acceptance.Location(), rs)
-	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_integration_runtime_managed", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -110,25 +86,20 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(t *tes
 		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "custom_setup_script.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_setup_script.0.blob_container_uri"),
-					resource.TestCheckResourceAttrSet(resourceName, "custom_setup_script.0.sas_token"),
+					testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "custom_setup_script.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_setup_script.0.blob_container_uri"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_setup_script.0.sas_token"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"custom_setup_script.0.sas_token"},
-			},
+			data.ImportStep("catalog_info.0.administrator_password"),
 		},
 	})
 }
 
-func testAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(rInt int, location string) string {
+func testAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -153,10 +124,10 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
   edition                          = "Standard"
   license_type                     = "LicenseIncluded"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(rInt int, location string) string {
+func testAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -196,10 +167,10 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
     subnet_name = "${azurerm_subnet.test.name}"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(rInt int, location string) string {
+func testAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -236,10 +207,10 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
     pricing_tier           = "Basic"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(rInt int, location string, rString string) string {
+func testAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -300,7 +271,7 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
     sas_token          = "${data.azurerm_storage_account_blob_container_sas.test.sas}"
   }
 }
-`, rInt, location, rInt, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(name string) resource.TestCheckFunc {

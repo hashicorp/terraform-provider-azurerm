@@ -1,4 +1,4 @@
-package datafactory
+package tests
 
 import (
 	"fmt"
@@ -8,16 +8,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDataFactoryTriggerSchedule_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryTriggerSchedule_basic(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory_trigger_schedule.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,27 +22,20 @@ func TestAccAzureRMDataFactoryTriggerSchedule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryTriggerScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryTriggerSchedule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryTriggerScheduleExists(resourceName),
+					testCheckAzureRMDataFactoryTriggerScheduleExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDataFactoryTriggerSchedule_complete(t *testing.T) {
-	ri := tf.AccRandTimeInt()
 	loc, _ := time.LoadLocation("UTC")
 	endTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
-	config := testAccAzureRMDataFactoryTriggerSchedule_basic(ri, acceptance.Location())
-	config2 := testAccAzureRMDataFactoryTriggerSchedule_update(ri, acceptance.Location(), endTime)
-	resourceName := "azurerm_data_factory_trigger_schedule.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,27 +43,19 @@ func TestAccAzureRMDataFactoryTriggerSchedule_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryTriggerScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryTriggerSchedule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryTriggerScheduleExists(resourceName),
+					testCheckAzureRMDataFactoryTriggerScheduleExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: config2,
+				Config: testAccAzureRMDataFactoryTriggerSchedule_update(data, endTime),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryTriggerScheduleExists(resourceName),
+					testCheckAzureRMDataFactoryTriggerScheduleExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -136,7 +118,7 @@ func testCheckAzureRMDataFactoryTriggerScheduleDestroy(s *terraform.State) error
 	return nil
 }
 
-func testAccAzureRMDataFactoryTriggerSchedule_basic(rInt int, location string) string {
+func testAccAzureRMDataFactoryTriggerSchedule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -167,10 +149,10 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
 
   annotations = ["test1", "test2", "test3"]
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryTriggerSchedule_update(rInt int, location string, endTime string) string {
+func testAccAzureRMDataFactoryTriggerSchedule_update(data acceptance.TestData, endTime string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-datafactory-%d"
@@ -205,5 +187,5 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
   interval            = 5
   end_time            = "%s"
 }
-`, rInt, location, rInt, rInt, rInt, endTime)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, endTime)
 }
