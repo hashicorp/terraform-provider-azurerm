@@ -1,4 +1,4 @@
-package automation
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
-	resourceName := "azurerm_automation_dsc_nodeconfiguration.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_nodeconfiguration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,19 +21,13 @@ func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationDscNodeConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationDscNodeConfiguration_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMAutomationDscNodeConfiguration_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "configuration_name", "acctest"),
+					testCheckAzureRMAutomationDscNodeConfigurationExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "configuration_name", "acctest"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				// Cannot check content_embedded at this time as it is not exposed via REST API / Azure SDK
-				ImportStateVerifyIgnore: []string{"content_embedded"},
-			},
+			data.ImportStep("content_embedded"),
 		},
 	})
 }
@@ -45,10 +37,7 @@ func TestAccAzureRMAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_automation_dsc_nodeconfiguration.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_nodeconfiguration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,15 +45,12 @@ func TestAccAzureRMAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationDscNodeConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationDscNodeConfiguration_basic(ri, location),
+				Config: testAccAzureRMAutomationDscNodeConfiguration_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName),
+					testCheckAzureRMAutomationDscNodeConfigurationExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMAutomationDscNodeConfiguration_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_automation_dsc_nodeconfiguration"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMAutomationDscNodeConfiguration_requiresImport),
 		},
 	})
 }
@@ -135,7 +121,7 @@ func testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName string) r
 	}
 }
 
-func testAccAzureRMAutomationDscNodeConfiguration_basic(rInt int, location string) string {
+func testAccAzureRMAutomationDscNodeConfiguration_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -190,11 +176,11 @@ instance of OMI_ConfigurationDocument
 };
 mofcontent
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationDscNodeConfiguration_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMAutomationDscNodeConfiguration_basic(rInt, location)
+func testAccAzureRMAutomationDscNodeConfiguration_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAutomationDscNodeConfiguration_basic(data)
 	return fmt.Sprintf(`
 %s
 

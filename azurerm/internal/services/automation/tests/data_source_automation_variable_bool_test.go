@@ -1,4 +1,4 @@
-package automation
+package tests
 
 import (
 	"fmt"
@@ -10,18 +10,16 @@ import (
 )
 
 func TestAccDataSourceAzureRMAutomationVariableBool_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_automation_variable_bool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_automation_variable_bool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAutomationVariableBool_basic(ri, location),
+				Config: testAccDataSourceAutomationVariableBool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "value", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "false"),
 				),
 			},
 		},

@@ -1,4 +1,4 @@
-package automation
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
-	resourceName := "azurerm_automation_credential.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,18 +21,13 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationCredential_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMAutomationCredential_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationCredentialExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "username", "test_user"),
+					testCheckAzureRMAutomationCredentialExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "username", "test_user"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
-			},
+			data.ImportStep("password"),
 		},
 	})
 }
@@ -44,10 +37,7 @@ func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_automation_credential.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,22 +45,18 @@ func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationCredential_basic(ri, location),
+				Config: testAccAzureRMAutomationCredential_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationCredentialExists(resourceName),
+					testCheckAzureRMAutomationCredentialExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMAutomationCredential_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_automation_credential"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMAutomationCredential_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
-	resourceName := "azurerm_automation_credential.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,19 +64,14 @@ func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationCredential_complete(ri, acceptance.Location()),
+				Config: testAccAzureRMAutomationCredential_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationCredentialExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "username", "test_user"),
-					resource.TestCheckResourceAttr(resourceName, "description", "This is a test credential for terraform acceptance test"),
+					testCheckAzureRMAutomationCredentialExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "username", "test_user"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is a test credential for terraform acceptance test"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
-			},
+			data.ImportStep("password"),
 		},
 	})
 }
@@ -161,7 +142,7 @@ func testCheckAzureRMAutomationCredentialExists(resourceName string) resource.Te
 	}
 }
 
-func testAccAzureRMAutomationCredential_basic(rInt int, location string) string {
+func testAccAzureRMAutomationCredential_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -185,11 +166,11 @@ resource "azurerm_automation_credential" "test" {
   username                = "test_user"
   password                = "test_pwd"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationCredential_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMAutomationCredential_basic(rInt, location)
+func testAccAzureRMAutomationCredential_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAutomationCredential_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -203,7 +184,7 @@ resource "azurerm_automation_credential" "import" {
 `, template)
 }
 
-func testAccAzureRMAutomationCredential_complete(rInt int, location string) string {
+func testAccAzureRMAutomationCredential_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -228,5 +209,5 @@ resource "azurerm_automation_credential" "test" {
   password                = "test_pwd"
   description             = "This is a test credential for terraform acceptance test"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
