@@ -39,7 +39,7 @@ func resourceArmStorageAccount() *schema.Resource {
 		Update: resourceArmStorageAccountUpdate,
 		Delete: resourceArmStorageAccountDelete,
 
-		MigrateState:  resourceStorageAccountMigrateState,
+		MigrateState:  ResourceStorageAccountMigrateState,
 		SchemaVersion: 2,
 
 		Importer: &schema.ResourceImporter{
@@ -84,7 +84,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				Deprecated:       "This field has been split into `account_tier` and `account_replication_type`",
-				ValidateFunc:     validateArmStorageAccountType,
+				ValidateFunc:     ValidateArmStorageAccountType,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
@@ -1744,7 +1744,7 @@ func ValidateArmStorageAccountName(v interface{}, _ string) (warnings []string, 
 	return warnings, errors
 }
 
-func validateArmStorageAccountType(v interface{}, _ string) (warnings []string, errors []error) {
+func ValidateArmStorageAccountType(v interface{}, _ string) (warnings []string, errors []error) {
 	validAccountTypes := []string{"standard_lrs", "standard_zrs",
 		"standard_grs", "standard_ragrs", "premium_lrs"}
 

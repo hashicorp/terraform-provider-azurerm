@@ -42,7 +42,7 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateSqlVirtualNetworkRuleName,
+				ValidateFunc: ValidateSqlVirtualNetworkRuleName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -212,7 +212,7 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 	This function checks the format of the SQL Virtual Network Rule Name to make sure that
 	it does not contain any potentially invalid values.
 */
-func validateSqlVirtualNetworkRuleName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateSqlVirtualNetworkRuleName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// Cannot be empty
