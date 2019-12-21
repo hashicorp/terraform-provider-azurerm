@@ -31,7 +31,6 @@ func TestAccDataSourceAzureRMLogicAppWorkflow_basic(t *testing.T) {
 func TestAccDataSourceAzureRMLogicAppWorkflow_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_workflow", "test")
 
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
