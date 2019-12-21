@@ -1,4 +1,4 @@
-package managementgroup
+package tests
 
 import (
 	"fmt"
@@ -8,14 +8,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMManagementGroup_basic(t *testing.T) {
-	resourceName := "azurerm_management_group.test"
+	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,14 +24,10 @@ func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 			{
 				Config: testAzureRMManagementGroup_basic(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(resourceName),
+					testCheckAzureRMManagementGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -43,7 +38,7 @@ func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_management_group.test"
+	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,7 +48,7 @@ func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
 			{
 				Config: testAzureRMManagementGroup_basic(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(resourceName),
+					testCheckAzureRMManagementGroupExists(data.ResourceName),
 				),
 			},
 			{
@@ -135,8 +130,7 @@ func TestAccAzureRMManagementGroup_multiLevelUpdated(t *testing.T) {
 }
 
 func TestAccAzureRMManagementGroup_withName(t *testing.T) {
-	resourceName := "azurerm_management_group.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -144,9 +138,9 @@ func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMManagementGroup_withName(ri),
+				Config: testAzureRMManagementGroup_withName(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(resourceName),
+					testCheckAzureRMManagementGroupExists(data.ResourceName),
 				),
 			},
 		},
@@ -154,8 +148,7 @@ func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 }
 
 func TestAccAzureRMManagementGroup_updateName(t *testing.T) {
-	resourceName := "azurerm_management_group.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -165,14 +158,14 @@ func TestAccAzureRMManagementGroup_updateName(t *testing.T) {
 			{
 				Config: testAzureRMManagementGroup_basic(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(resourceName),
+					testCheckAzureRMManagementGroupExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAzureRMManagementGroup_withName(ri),
+				Config: testAzureRMManagementGroup_withName(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", fmt.Sprintf("acctestmg-%d", ri)),
+					testCheckAzureRMManagementGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestmg-%d", data.RandomInteger)),
 				),
 			},
 		},
@@ -180,7 +173,7 @@ func TestAccAzureRMManagementGroup_updateName(t *testing.T) {
 }
 
 func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
-	resourceName := "azurerm_management_group.test"
+	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -191,22 +184,22 @@ func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
 			{
 				Config: testAzureRMManagementGroup_basic(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "subscription_ids.#", "0"),
+					testCheckAzureRMManagementGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "subscription_ids.#", "0"),
 				),
 			},
 			{
 				Config: testAzureRMManagementGroup_withSubscriptions(subscriptionID),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "subscription_ids.#", "1"),
+					testCheckAzureRMManagementGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "subscription_ids.#", "1"),
 				),
 			},
 			{
 				Config: testAzureRMManagementGroup_basic(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "subscription_ids.#", "0"),
+					testCheckAzureRMManagementGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "subscription_ids.#", "0"),
 				),
 			},
 		},
@@ -306,12 +299,12 @@ resource "azurerm_management_group" "child" {
 `)
 }
 
-func testAzureRMManagementGroup_withName(rInt int) string {
+func testAzureRMManagementGroup_withName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_management_group" "test" {
   display_name = "acctestmg-%d"
 }
-`, rInt)
+`, data.RandomInteger)
 }
 
 // TODO: switch this out for dynamically creating a subscription once that's supported in the future
