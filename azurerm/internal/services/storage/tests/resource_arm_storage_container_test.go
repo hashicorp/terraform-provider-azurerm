@@ -1,14 +1,12 @@
-package storage
+package tests
 
 import (
 	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -17,11 +15,7 @@ import (
 )
 
 func TestAccAzureRMStorageContainer_basic(t *testing.T) {
-	resourceName := "azurerm_storage_container.test"
-
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -29,16 +23,12 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageContainer_basic(ri, rs, location),
+				Config: testAccAzureRMStorageContainer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName),
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -48,12 +38,7 @@ func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_storage_container.test"
-
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -61,25 +46,18 @@ func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageContainer_basic(ri, rs, location),
+				Config: testAccAzureRMStorageContainer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName),
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMStorageContainer_requiresImport(ri, rs, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_storage_container"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMStorageContainer_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMStorageContainer_update(t *testing.T) {
-	resourceName := "azurerm_storage_container.test"
-
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -87,34 +65,26 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageContainer_update(ri, rs, location, "private"),
+				Config: testAccAzureRMStorageContainer_update(data, "private"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "container_access_type", "private"),
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "container_access_type", "private"),
 				),
 			},
 			{
-				Config: testAccAzureRMStorageContainer_update(ri, rs, location, "container"),
+				Config: testAccAzureRMStorageContainer_update(data, "container"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "container_access_type", "container"),
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "container_access_type", "container"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageContainer_metaData(t *testing.T) {
-	resourceName := "azurerm_storage_container.test"
-
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -122,47 +92,32 @@ func TestAccAzureRMStorageContainer_metaData(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageContainer_metaData(ri, rs, location),
+				Config: testAccAzureRMStorageContainer_metaData(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName),
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMStorageContainer_metaDataUpdated(ri, rs, location),
+				Config: testAccAzureRMStorageContainer_metaDataUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName),
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMStorageContainer_metaDataEmpty(ri, rs, location),
+				Config: testAccAzureRMStorageContainer_metaDataEmpty(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName),
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
-	resourceName := "azurerm_storage_container.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -170,10 +125,10 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageContainer_basic(ri, rs, location),
+				Config: testAccAzureRMStorageContainer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName),
-					testAccARMStorageContainerDisappears(resourceName),
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+					testAccARMStorageContainerDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -182,11 +137,7 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMStorageContainer_root(t *testing.T) {
-	resourceName := "azurerm_storage_container.test"
-
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -194,27 +145,19 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageContainer_root(ri, rs, location),
+				Config: testAccAzureRMStorageContainer_root(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "$root"),
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "$root"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageContainer_web(t *testing.T) {
-	resourceName := "azurerm_storage_container.test"
-
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -222,17 +165,13 @@ func TestAccAzureRMStorageContainer_web(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageContainer_web(ri, rs, location),
+				Config: testAccAzureRMStorageContainer_web(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageContainerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", "$web"),
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "$web"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -346,8 +285,8 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMStorageContainer_basic(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+func testAccAzureRMStorageContainer_basic(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -360,8 +299,8 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageContainer_basic(rInt, rString, location)
+func testAccAzureRMStorageContainer_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -374,8 +313,8 @@ resource "azurerm_storage_container" "import" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_update(rInt int, rString string, location string, accessType string) string {
-	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+func testAccAzureRMStorageContainer_update(data acceptance.TestData, accessType string) string {
+	template := testAccAzureRMStorageContainer_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -388,8 +327,8 @@ resource "azurerm_storage_container" "test" {
 `, template, accessType)
 }
 
-func testAccAzureRMStorageContainer_metaData(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+func testAccAzureRMStorageContainer_metaData(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -406,8 +345,8 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_metaDataUpdated(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+func testAccAzureRMStorageContainer_metaDataUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -425,8 +364,8 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_metaDataEmpty(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+func testAccAzureRMStorageContainer_metaDataEmpty(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -442,8 +381,8 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_root(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+func testAccAzureRMStorageContainer_root(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -456,8 +395,8 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_web(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageContainer_template(rInt, rString, location)
+func testAccAzureRMStorageContainer_web(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -470,7 +409,7 @@ resource "azurerm_storage_container" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageContainer_template(rInt int, rString, location string) string {
+func testAccAzureRMStorageContainer_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -488,7 +427,7 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func TestValidateArmStorageContainerName(t *testing.T) {

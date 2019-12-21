@@ -145,7 +145,7 @@ func dataSourceArmStorageContainerSasRead(d *schema.ResourceData, _ interface{})
 	contentLanguage := d.Get("content_language").(string)
 	contentType := d.Get("content_type").(string)
 
-	permissions := buildContainerPermissionsString(permissionsIface[0].(map[string]interface{}))
+	permissions := BuildContainerPermissionsString(permissionsIface[0].(map[string]interface{}))
 
 	// Parse the connection string
 	kvp, err := storage.ParseAccountSASConnectionString(connString)
@@ -178,7 +178,7 @@ func dataSourceArmStorageContainerSasRead(d *schema.ResourceData, _ interface{})
 	return nil
 }
 
-func buildContainerPermissionsString(perms map[string]interface{}) string {
+func BuildContainerPermissionsString(perms map[string]interface{}) string {
 	retVal := ""
 
 	if val, pres := perms["read"].(bool); pres && val {

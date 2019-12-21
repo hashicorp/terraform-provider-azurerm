@@ -1,24 +1,18 @@
-package storage
+package tests
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStorageShare_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_share.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,16 +20,12 @@ func TestAccAzureRMStorageShare_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageShare_basic(ri, rs, location),
+				Config: testAccAzureRMStorageShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(resourceName),
+					testCheckAzureRMStorageShareExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -45,11 +35,7 @@ func TestAccAzureRMStorageShare_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_share.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -57,13 +43,13 @@ func TestAccAzureRMStorageShare_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageShare_basic(ri, rs, location),
+				Config: testAccAzureRMStorageShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(resourceName),
+					testCheckAzureRMStorageShareExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMStorageShare_requiresImport(ri, rs, location),
+				Config:      testAccAzureRMStorageShare_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_storage_share"),
 			},
 		},
@@ -71,10 +57,7 @@ func TestAccAzureRMStorageShare_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShare_disappears(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_share.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -82,10 +65,10 @@ func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageShare_basic(ri, rs, location),
+				Config: testAccAzureRMStorageShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(resourceName),
-					testCheckAzureRMStorageShareDisappears(resourceName),
+					testCheckAzureRMStorageShareExists(data.ResourceName),
+					testCheckAzureRMStorageShareDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -94,10 +77,7 @@ func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShare_metaData(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_share.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -105,36 +85,25 @@ func TestAccAzureRMStorageShare_metaData(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageShare_metaData(ri, rs, location),
+				Config: testAccAzureRMStorageShare_metaData(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(resourceName),
+					testCheckAzureRMStorageShareExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMStorageShare_metaDataUpdated(ri, rs, location),
+				Config: testAccAzureRMStorageShare_metaDataUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(resourceName),
+					testCheckAzureRMStorageShareExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageShare_acl(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_share.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -142,36 +111,25 @@ func TestAccAzureRMStorageShare_acl(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageShare_acl(ri, rs, location),
+				Config: testAccAzureRMStorageShare_acl(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(resourceName),
+					testCheckAzureRMStorageShareExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMStorageShare_aclUpdated(ri, rs, location),
+				Config: testAccAzureRMStorageShare_aclUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(resourceName),
+					testCheckAzureRMStorageShareExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_share.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -179,16 +137,16 @@ func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageShare_basic(ri, rs, location),
+				Config: testAccAzureRMStorageShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(resourceName),
+					testCheckAzureRMStorageShareExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMStorageShare_updateQuota(ri, rs, location),
+				Config: testAccAzureRMStorageShare_updateQuota(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "quota", "5"),
+					testCheckAzureRMStorageShareExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "quota", "5"),
 				),
 			},
 		},
@@ -301,8 +259,8 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMStorageShare_basic(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShare_template(rInt, rString, location)
+func testAccAzureRMStorageShare_basic(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShare_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -311,11 +269,11 @@ resource "azurerm_storage_share" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
-`, template, rString)
+`, template, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_metaData(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShare_template(rInt, rString, location)
+func testAccAzureRMStorageShare_metaData(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShare_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -328,11 +286,11 @@ resource "azurerm_storage_share" "test" {
     hello = "world"
   }
 }
-`, template, rString)
+`, template, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_metaDataUpdated(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShare_template(rInt, rString, location)
+func testAccAzureRMStorageShare_metaDataUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShare_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -346,11 +304,11 @@ resource "azurerm_storage_share" "test" {
     happy = "birthday"
   }
 }
-`, template, rString)
+`, template, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_acl(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShare_template(rInt, rString, location)
+func testAccAzureRMStorageShare_acl(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShare_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -369,11 +327,11 @@ resource "azurerm_storage_share" "test" {
     }
   }
 }
-`, template, rString)
+`, template, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_aclUpdated(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShare_template(rInt, rString, location)
+func testAccAzureRMStorageShare_aclUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShare_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -401,10 +359,10 @@ resource "azurerm_storage_share" "test" {
     }
   }
 }
-`, template, rString)
+`, template, data.RandomString)
 }
-func testAccAzureRMStorageShare_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShare_basic(rInt, rString, location)
+func testAccAzureRMStorageShare_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShare_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -416,8 +374,8 @@ resource "azurerm_storage_share" "import" {
 `, template)
 }
 
-func testAccAzureRMStorageShare_updateQuota(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageShare_template(rInt, rString, location)
+func testAccAzureRMStorageShare_updateQuota(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShare_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -427,10 +385,10 @@ resource "azurerm_storage_share" "test" {
   storage_account_name = "${azurerm_storage_account.test.name}"
   quota                = 5
 }
-`, template, rString)
+`, template, data.RandomString)
 }
 
-func testAccAzureRMStorageShare_template(rInt int, rString string, location string) string {
+func testAccAzureRMStorageShare_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -448,5 +406,5 @@ resource "azurerm_storage_account" "test" {
     environment = "staging"
   }
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

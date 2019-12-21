@@ -54,7 +54,7 @@ func resourceArmStorageTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageTableName,
+				ValidateFunc: ValidateArmStorageTableName,
 			},
 
 			"storage_account_name": {
@@ -279,7 +279,7 @@ func resourceArmStorageTableUpdate(d *schema.ResourceData, meta interface{}) err
 	return resourceArmStorageTableRead(d, meta)
 }
 
-func validateArmStorageTableName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateArmStorageTableName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if value == "table" {
 		errors = append(errors, fmt.Errorf(

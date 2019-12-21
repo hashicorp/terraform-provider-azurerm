@@ -1,15 +1,12 @@
-package storage
+package tests
 
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -17,10 +14,7 @@ import (
 )
 
 func TestAccAzureRMTableEntity_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_table_entity.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -28,16 +22,12 @@ func TestAccAzureRMTableEntity_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTableEntity_basic(ri, rs, location),
+				Config: testAccAzureRMTableEntity_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTableEntityExists(resourceName),
+					testCheckAzureRMTableEntityExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -47,11 +37,7 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_table_entity.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -59,13 +45,13 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTableEntity_basic(ri, rs, location),
+				Config: testAccAzureRMTableEntity_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTableEntityExists(resourceName),
+					testCheckAzureRMTableEntityExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMTableEntity_requiresImport(ri, rs, location),
+				Config:      testAccAzureRMTableEntity_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_storage_table_entity"),
 			},
 		},
@@ -73,10 +59,7 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMTableEntity_update(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	location := acceptance.Location()
-	resourceName := "azurerm_storage_table_entity.test"
+	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -84,27 +67,19 @@ func TestAccAzureRMTableEntity_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTableEntity_basic(ri, rs, location),
+				Config: testAccAzureRMTableEntity_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTableEntityExists(resourceName),
+					testCheckAzureRMTableEntityExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMTableEntity_updated(ri, rs, location),
+				Config: testAccAzureRMTableEntity_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTableEntityExists(resourceName),
+					testCheckAzureRMTableEntityExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -202,8 +177,8 @@ func testCheckAzureRMTableEntityDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMTableEntity_basic(rInt int, rString string, location string) string {
-	template := testAccAzureRMTableEntity_template(rInt, rString, location)
+func testAccAzureRMTableEntity_basic(data acceptance.TestData) string {
+	template := testAccAzureRMTableEntity_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -217,11 +192,11 @@ resource "azurerm_storage_table_entity" "test" {
     Foo = "Bar"
   }
 }
-`, template, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTableEntity_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMTableEntity_basic(rInt, rString, location)
+func testAccAzureRMTableEntity_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMTableEntity_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -235,11 +210,11 @@ resource "azurerm_storage_table_entity" "test" {
     Foo = "Bar"
   }
 }
-`, template, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTableEntity_updated(rInt int, rString string, location string) string {
-	template := testAccAzureRMTableEntity_template(rInt, rString, location)
+func testAccAzureRMTableEntity_updated(data acceptance.TestData) string {
+	template := testAccAzureRMTableEntity_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -254,10 +229,10 @@ resource "azurerm_storage_table_entity" "test" {
     Test = "Updated"
   }
 }
-`, template, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMTableEntity_template(rInt int, rString string, location string) string {
+func testAccAzureRMTableEntity_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -277,5 +252,5 @@ resource "azurerm_storage_table" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
-`, rInt, location, rString, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

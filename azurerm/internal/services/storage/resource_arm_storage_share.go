@@ -31,12 +31,12 @@ func resourceArmStorageShare() *schema.Resource {
 			{
 				// this should have been applied from pre-0.12 migration system; backporting just in-case
 				Type:    resourceStorageShareStateResourceV0V1().CoreConfigSchema().ImpliedType(),
-				Upgrade: resourceStorageShareStateUpgradeV0ToV1,
+				Upgrade: ResourceStorageShareStateUpgradeV0ToV1,
 				Version: 0,
 			},
 			{
 				Type:    resourceStorageShareStateResourceV0V1().CoreConfigSchema().ImpliedType(),
-				Upgrade: resourceStorageShareStateUpgradeV1ToV2,
+				Upgrade: ResourceStorageShareStateUpgradeV1ToV2,
 				Version: 1,
 			},
 		},

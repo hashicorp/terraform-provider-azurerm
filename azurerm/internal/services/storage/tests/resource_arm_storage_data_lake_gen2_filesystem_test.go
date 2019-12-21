@@ -1,14 +1,11 @@
-package storage
+package tests
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -17,11 +14,7 @@ import (
 )
 
 func TestAccAzureRMStorageDataLakeGen2FileSystem_basic(t *testing.T) {
-	resourceName := "azurerm_storage_data_lake_gen2_filesystem.test"
-
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -29,16 +22,12 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageDataLakeGen2FileSystem_basic(ri, rs, location),
+				Config: testAccAzureRMStorageDataLakeGen2FileSystem_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName),
+					testCheckAzureRMStorageDataLakeGen2FileSystemExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -48,12 +37,7 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_storage_data_lake_gen2_filesystem.test"
-
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -61,25 +45,18 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageDataLakeGen2FileSystem_basic(ri, rs, location),
+				Config: testAccAzureRMStorageDataLakeGen2FileSystem_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName),
+					testCheckAzureRMStorageDataLakeGen2FileSystemExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(ri, rs, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_storage_data_lake_gen2_filesystem"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMStorageDataLakeGen2FileSystem_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMStorageDataLakeGen2FileSystem_properties(t *testing.T) {
-	resourceName := "azurerm_storage_data_lake_gen2_filesystem.test"
-
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -87,27 +64,19 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_properties(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageDataLakeGen2FileSystem_properties(ri, rs, location, "aGVsbG8="),
+				Config: testAccAzureRMStorageDataLakeGen2FileSystem_properties(data, "aGVsbG8="),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName),
+					testCheckAzureRMStorageDataLakeGen2FileSystemExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMStorageDataLakeGen2FileSystem_properties(ri, rs, location, "ZXll"),
+				Config: testAccAzureRMStorageDataLakeGen2FileSystem_properties(data, "ZXll"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName),
+					testCheckAzureRMStorageDataLakeGen2FileSystemExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -167,8 +136,8 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemDestroy(s *terraform.State) er
 	return nil
 }
 
-func testAccAzureRMStorageDataLakeGen2FileSystem_basic(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageDataLakeGen2FileSystem_template(rInt, rString, location)
+func testAccAzureRMStorageDataLakeGen2FileSystem_basic(data acceptance.TestData) string {
+	template := testAccAzureRMStorageDataLakeGen2FileSystem_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -176,11 +145,11 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
   name               = "acctest-%d"
   storage_account_id = azurerm_storage_account.test.id
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageDataLakeGen2FileSystem_basic(rInt, rString, location)
+func testAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStorageDataLakeGen2FileSystem_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -191,8 +160,8 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "import" {
 `, template)
 }
 
-func testAccAzureRMStorageDataLakeGen2FileSystem_properties(rInt int, rString, location, value string) string {
-	template := testAccAzureRMStorageDataLakeGen2FileSystem_template(rInt, rString, location)
+func testAccAzureRMStorageDataLakeGen2FileSystem_properties(data acceptance.TestData, value string) string {
+	template := testAccAzureRMStorageDataLakeGen2FileSystem_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -204,10 +173,10 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
     key = "%s"
   }
 }
-`, template, rInt, value)
+`, template, data.RandomInteger, value)
 }
 
-func testAccAzureRMStorageDataLakeGen2FileSystem_template(rInt int, rString, location string) string {
+func testAccAzureRMStorageDataLakeGen2FileSystem_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -222,5 +191,5 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
