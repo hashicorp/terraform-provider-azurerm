@@ -1,4 +1,4 @@
-package sql
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMSqlFailoverGroup_basic(t *testing.T) {
-	resourceName := "azurerm_sql_failover_group.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,16 +21,12 @@ func TestAccAzureRMSqlFailoverGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlFailoverGroup_basic(ri, acceptance.Location(), acceptance.AltLocation()),
+				Config: testAccAzureRMSqlFailoverGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFailoverGroupExists(resourceName),
+					testCheckAzureRMSqlFailoverGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -42,8 +36,7 @@ func TestAccAzureRMSqlFailoverGroup_requiresImport(t *testing.T) {
 		t.Skip("Skiiping since resources aren't required to be imported")
 		return
 	}
-	resourceName := "azurerm_sql_failover_group.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -51,22 +44,18 @@ func TestAccAzureRMSqlFailoverGroup_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlFailoverGroup_basic(ri, acceptance.Location(), acceptance.AltLocation()),
+				Config: testAccAzureRMSqlFailoverGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFailoverGroupExists(resourceName),
+					testCheckAzureRMSqlFailoverGroupExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMSqlFailoverGroup_requiresImport(ri, acceptance.Location(), acceptance.AltLocation()),
-				ExpectError: acceptance.RequiresImportError("azurerm_sql_failover_group"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMSqlFailoverGroup_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMSqlFailoverGroup_disappears(t *testing.T) {
-	resourceName := "azurerm_sql_failover_group.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -74,10 +63,10 @@ func TestAccAzureRMSqlFailoverGroup_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlFailoverGroup_basic(ri, acceptance.Location(), acceptance.AltLocation()),
+				Config: testAccAzureRMSqlFailoverGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFailoverGroupExists(resourceName),
-					testCheckAzureRMSqlFailoverGroupDisappears(resourceName),
+					testCheckAzureRMSqlFailoverGroupExists(data.ResourceName),
+					testCheckAzureRMSqlFailoverGroupDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -86,12 +75,9 @@ func TestAccAzureRMSqlFailoverGroup_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMSqlFailoverGroup_withTags(t *testing.T) {
-	resourceName := "azurerm_sql_failover_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	altLocation := acceptance.AltLocation()
-	preConfig := testAccAzureRMSqlFailoverGroup_withTags(ri, location, altLocation)
-	postConfig := testAccAzureRMSqlFailoverGroup_withTagsUpdate(ri, location, altLocation)
+	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
+	preConfig := testAccAzureRMSqlFailoverGroup_withTags(data)
+	postConfig := testAccAzureRMSqlFailoverGroup_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -101,15 +87,15 @@ func TestAccAzureRMSqlFailoverGroup_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFailoverGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					testCheckAzureRMSqlFailoverGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFailoverGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					testCheckAzureRMSqlFailoverGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
 		},
@@ -198,7 +184,7 @@ func testCheckAzureRMSqlFailoverGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMSqlFailoverGroup_basic(rInt int, location, altlocation string) string {
+func testAccAzureRMSqlFailoverGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -249,10 +235,10 @@ resource "azurerm_sql_failover_group" "test" {
     grace_minutes = 60
   }
 }
-`, rInt, location, altlocation)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func testAccAzureRMSqlFailoverGroup_requiresImport(rInt int, location, altlocation string) string {
+func testAccAzureRMSqlFailoverGroup_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -271,10 +257,10 @@ resource "azurerm_sql_failover_group" "import" {
     grace_minutes = "${azurerm_sql_failover_group.test.read_write_endpoint_failover_policy.0.grace_minutes}"
   }
 }
-`, testAccAzureRMSqlFailoverGroup_basic(rInt, location, altlocation))
+`, testAccAzureRMSqlFailoverGroup_basic(data))
 }
 
-func testAccAzureRMSqlFailoverGroup_withTags(rInt int, location, altlocation string) string {
+func testAccAzureRMSqlFailoverGroup_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -328,10 +314,10 @@ resource "azurerm_sql_failover_group" "test" {
     database    = "test"
   }
 }
-`, rInt, location, altlocation)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func testAccAzureRMSqlFailoverGroup_withTagsUpdate(rInt int, location, altlocation string) string {
+func testAccAzureRMSqlFailoverGroup_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -384,5 +370,5 @@ resource "azurerm_sql_failover_group" "test" {
     environment = "production"
   }
 }
-`, rInt, location, altlocation)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

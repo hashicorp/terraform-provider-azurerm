@@ -1,4 +1,4 @@
-package sql
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -15,8 +14,7 @@ import (
 )
 
 func TestAccAzureRMSqlServer_basic(t *testing.T) {
-	resourceName := "azurerm_sql_server.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,13 +22,13 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlServer_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists(resourceName),
+					testCheckAzureRMSqlServerExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"administrator_login_password"},
@@ -43,8 +41,7 @@ func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-	resourceName := "azurerm_sql_server.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -52,23 +49,19 @@ func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlServer_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists(resourceName),
+					testCheckAzureRMSqlServerExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMSqlServer_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_sql_server"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMSqlServer_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMSqlServer_disappears(t *testing.T) {
-	resourceName := "azurerm_sql_server.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSqlServer_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
+	config := testAccAzureRMSqlServer_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,8 +71,8 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists(resourceName),
-					testCheckAzureRMSqlServerDisappears(resourceName),
+					testCheckAzureRMSqlServerExists(data.ResourceName),
+					testCheckAzureRMSqlServerDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -88,11 +81,9 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMSqlServer_withTags(t *testing.T) {
-	resourceName := "azurerm_sql_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMSqlServer_withTags(ri, location)
-	postConfig := testAccAzureRMSqlServer_withTagsUpdated(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
+	preConfig := testAccAzureRMSqlServer_withTags(data)
+	postConfig := testAccAzureRMSqlServer_withTagsUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -102,19 +93,19 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					testCheckAzureRMSqlServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					testCheckAzureRMSqlServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"administrator_login_password"},
@@ -124,8 +115,7 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMSqlServer_withIdentity(t *testing.T) {
-	resourceName := "azurerm_sql_server.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -133,16 +123,16 @@ func TestAccAzureRMSqlServer_withIdentity(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlServer_withIdentity(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlServer_withIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+					testCheckAzureRMSqlServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"administrator_login_password"},
@@ -152,8 +142,7 @@ func TestAccAzureRMSqlServer_withIdentity(t *testing.T) {
 }
 
 func TestAccAzureRMSqlServer_updateWithIdentityAdded(t *testing.T) {
-	resourceName := "azurerm_sql_server.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -161,22 +150,22 @@ func TestAccAzureRMSqlServer_updateWithIdentityAdded(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlServer_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists(resourceName),
+					testCheckAzureRMSqlServerExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMSqlServer_withIdentity(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlServer_withIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+					testCheckAzureRMSqlServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 			{
-				ResourceName:            resourceName,
+				ResourceName:            data.ResourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"administrator_login_password"},
@@ -264,7 +253,7 @@ func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheck
 	}
 }
 
-func testAccAzureRMSqlServer_basic(rInt int, location string) string {
+func testAccAzureRMSqlServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -279,10 +268,10 @@ resource "azurerm_sql_server" "test" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSqlServer_requiresImport(rInt int, location string) string {
+func testAccAzureRMSqlServer_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -294,10 +283,10 @@ resource "azurerm_sql_server" "import" {
   administrator_login          = "${azurerm_sql_server.test.administrator_login}"
   administrator_login_password = "${azurerm_sql_server.test.administrator_login_password}"
 }
-`, testAccAzureRMSqlServer_basic(rInt, location))
+`, testAccAzureRMSqlServer_basic(data))
 }
 
-func testAccAzureRMSqlServer_withTags(rInt int, location string) string {
+func testAccAzureRMSqlServer_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -317,10 +306,10 @@ resource "azurerm_sql_server" "test" {
     database    = "test"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSqlServer_withTagsUpdated(rInt int, location string) string {
+func testAccAzureRMSqlServer_withTagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -339,10 +328,10 @@ resource "azurerm_sql_server" "test" {
     environment = "production"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSqlServer_withIdentity(rInt int, location string) string {
+func testAccAzureRMSqlServer_withIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
 	name     = "acctestRG-%d"
@@ -361,5 +350,5 @@ resource "azurerm_sql_server" "test" {
 		type = "SystemAssigned"
 	}
 }	
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

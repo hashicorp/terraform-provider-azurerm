@@ -1,4 +1,4 @@
-package sql
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
-	resourceName := "azurerm_sql_firewall_rule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,24 +21,20 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlFirewallRule_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlFirewallRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFirewallRuleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
-					resource.TestCheckResourceAttr(resourceName, "end_ip_address", "255.255.255.255"),
+					testCheckAzureRMSqlFirewallRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_ip_address", "0.0.0.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "end_ip_address", "255.255.255.255"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMSqlFirewallRule_withUpdates(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlFirewallRule_withUpdates(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFirewallRuleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "10.0.17.62"),
-					resource.TestCheckResourceAttr(resourceName, "end_ip_address", "10.0.17.62"),
+					testCheckAzureRMSqlFirewallRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_ip_address", "10.0.17.62"),
+					resource.TestCheckResourceAttr(data.ResourceName, "end_ip_address", "10.0.17.62"),
 				),
 			},
 		},
@@ -51,8 +45,7 @@ func TestAccAzureRMSqlFirewallRule_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-	resourceName := "azurerm_sql_firewall_rule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -60,24 +53,20 @@ func TestAccAzureRMSqlFirewallRule_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlFirewallRule_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlFirewallRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFirewallRuleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
-					resource.TestCheckResourceAttr(resourceName, "end_ip_address", "255.255.255.255"),
+					testCheckAzureRMSqlFirewallRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_ip_address", "0.0.0.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "end_ip_address", "255.255.255.255"),
 				),
 			},
-			{
-				Config:      testAccAzureRMSqlFirewallRule_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_sql_firewall_rule"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMSqlFirewallRule_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
-	resourceName := "azurerm_sql_firewall_rule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -85,10 +74,10 @@ func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlFirewallRule_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlFirewallRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFirewallRuleExists(resourceName),
-					testCheckAzureRMSqlFirewallRuleDisappears(resourceName),
+					testCheckAzureRMSqlFirewallRuleExists(data.ResourceName),
+					testCheckAzureRMSqlFirewallRuleDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -179,7 +168,7 @@ func testCheckAzureRMSqlFirewallRuleDisappears(resourceName string) resource.Tes
 	}
 }
 
-func testAccAzureRMSqlFirewallRule_basic(rInt int, location string) string {
+func testAccAzureRMSqlFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -202,10 +191,10 @@ resource "azurerm_sql_firewall_rule" "test" {
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "255.255.255.255"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSqlFirewallRule_requiresImport(rInt int, location string) string {
+func testAccAzureRMSqlFirewallRule_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -216,10 +205,10 @@ resource "azurerm_sql_firewall_rule" "import" {
   start_ip_address    = "${azurerm_sql_firewall_rule.test.start_ip_address}"
   end_ip_address      = "${azurerm_sql_firewall_rule.test.end_ip_address}"
 }
-`, testAccAzureRMSqlFirewallRule_basic(rInt, location))
+`, testAccAzureRMSqlFirewallRule_basic(data))
 }
 
-func testAccAzureRMSqlFirewallRule_withUpdates(rInt int, location string) string {
+func testAccAzureRMSqlFirewallRule_withUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -242,5 +231,5 @@ resource "azurerm_sql_firewall_rule" "test" {
   start_ip_address    = "10.0.17.62"
   end_ip_address      = "10.0.17.62"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

@@ -1,4 +1,4 @@
-package sql
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
-	resourceName := "azurerm_sql_active_directory_administrator.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,22 +21,18 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlAdministrator_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlAdministrator_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlAdministratorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin"),
+					testCheckAzureRMSqlAdministratorExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "login", "sqladmin"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMSqlAdministrator_withUpdates(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlAdministrator_withUpdates(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlAdministratorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin2"),
+					testCheckAzureRMSqlAdministratorExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "login", "sqladmin2"),
 				),
 			},
 		},
@@ -49,8 +43,7 @@ func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-	resourceName := "azurerm_sql_active_directory_administrator.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -58,14 +51,14 @@ func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlAdministrator_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSqlAdministrator_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlAdministratorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "login", "sqladmin"),
+					testCheckAzureRMSqlAdministratorExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "login", "sqladmin"),
 				),
 			},
 			{
-				Config:      testAccAzureRMSqlAdministrator_requiresImport(ri, acceptance.Location()),
+				Config:      testAccAzureRMSqlAdministrator_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_sql_active_directory_administrator"),
 			},
 		},
@@ -73,9 +66,8 @@ func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
-	resourceName := "azurerm_sql_active_directory_administrator.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMSqlAdministrator_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
+	config := testAccAzureRMSqlAdministrator_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -85,8 +77,8 @@ func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlAdministratorExists(resourceName),
-					testCheckAzureRMSqlAdministratorDisappears(resourceName),
+					testCheckAzureRMSqlAdministratorExists(data.ResourceName),
+					testCheckAzureRMSqlAdministratorDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -160,7 +152,7 @@ func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMSqlAdministrator_basic(rInt int, location string) string {
+func testAccAzureRMSqlAdministrator_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -188,7 +180,7 @@ resource "azurerm_sql_active_directory_administrator" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMSqlAdministrator_requiresImport(rInt int, location string) string {
+func testAccAzureRMSqlAdministrator_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -199,10 +191,10 @@ resource "azurerm_sql_active_directory_administrator" "import" {
   tenant_id           = "${azurerm_sql_active_directory_administrator.test.tenant_id}"
   object_id           = "${azurerm_sql_active_directory_administrator.test.object_id}"
 }
-`, testAccAzureRMSqlAdministrator_basic(rInt, location))
+`, testAccAzureRMSqlAdministrator_basic(data))
 }
 
-func testAccAzureRMSqlAdministrator_withUpdates(rInt int, location string) string {
+func testAccAzureRMSqlAdministrator_withUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -227,5 +219,5 @@ resource "azurerm_sql_active_directory_administrator" "test" {
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
   object_id           = "${data.azurerm_client_config.current.client_id}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
