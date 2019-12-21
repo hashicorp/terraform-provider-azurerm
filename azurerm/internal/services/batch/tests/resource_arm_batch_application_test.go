@@ -1,24 +1,18 @@
-package batch
+package tests
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMBatchApplication_basic(t *testing.T) {
-	resourceName := "azurerm_batch_application.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,26 +20,19 @@ func TestAccAzureRMBatchApplication_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBatchApplication_template(ri, rs, location, ""),
+				Config: testAccAzureRMBatchApplication_template(data, ""),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchApplicationExists(resourceName),
+					testCheckAzureRMBatchApplicationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMBatchApplication_update(t *testing.T) {
-	resourceName := "azurerm_batch_application.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-	displayName := fmt.Sprintf("TestAccDisplayName-%d", ri)
+	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")
+	displayName := fmt.Sprintf("TestAccDisplayName-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,16 +40,16 @@ func TestAccAzureRMBatchApplication_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBatchApplication_template(ri, rs, location, ""),
+				Config: testAccAzureRMBatchApplication_template(data, ""),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchApplicationExists(resourceName),
+					testCheckAzureRMBatchApplicationExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMBatchApplication_template(ri, rs, location, fmt.Sprintf(`display_name = "%s"`, displayName)),
+				Config: testAccAzureRMBatchApplication_template(data, fmt.Sprintf(`display_name = "%s"`, displayName)),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", displayName),
+					testCheckAzureRMBatchApplicationExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", displayName),
 				),
 			},
 		},
@@ -119,7 +106,7 @@ func testCheckAzureRMBatchApplicationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBatchApplication_template(rInt int, rString string, location string, displayName string) string {
+func testAccAzureRMBatchApplication_template(data acceptance.TestData, displayName string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -148,5 +135,5 @@ resource "azurerm_batch_application" "test" {
   account_name        = "${azurerm_batch_account.test.name}"
   %s
 }
-`, rInt, location, rString, rString, rInt, displayName)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, displayName)
 }

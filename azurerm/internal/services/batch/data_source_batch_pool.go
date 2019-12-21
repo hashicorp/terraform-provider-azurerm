@@ -31,7 +31,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateAzureRMBatchAccountName,
+				ValidateFunc: ValidateAzureRMBatchAccountName,
 			},
 			"display_name": {
 				Type:     schema.TypeString,
