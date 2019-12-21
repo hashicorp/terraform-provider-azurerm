@@ -1,4 +1,4 @@
-package netapp
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -41,9 +40,7 @@ func TestAccAzureRMNetAppAccount(t *testing.T) {
 }
 
 func testAccAzureRMNetAppAccount_basic(t *testing.T) {
-	resourceName := "azurerm_netapp_account.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -51,16 +48,12 @@ func testAccAzureRMNetAppAccount_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppAccount_basicConfig(ri, location),
+				Config: testAccAzureRMNetAppAccount_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppAccountExists(resourceName),
+					testCheckAzureRMNetAppAccountExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -71,8 +64,7 @@ func testAccAzureRMNetAppAccount_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_netapp_account.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,13 +72,13 @@ func testAccAzureRMNetAppAccount_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppAccount_basicConfig(ri, acceptance.Location()),
+				Config: testAccAzureRMNetAppAccount_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppAccountExists(resourceName),
+					testCheckAzureRMNetAppAccountExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMNetAppAccount_requiresImportConfig(ri, acceptance.Location()),
+				Config:      testAccAzureRMNetAppAccount_requiresImportConfig(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_netapp_account"),
 			},
 		},
@@ -94,9 +86,7 @@ func testAccAzureRMNetAppAccount_requiresImport(t *testing.T) {
 }
 
 func testAccAzureRMNetAppAccount_complete(t *testing.T) {
-	resourceName := "azurerm_netapp_account.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -104,28 +94,19 @@ func testAccAzureRMNetAppAccount_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppAccount_completeConfig(ri, location),
+				Config: testAccAzureRMNetAppAccount_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "active_directory.#", "1"),
+					testCheckAzureRMNetAppAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "active_directory.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"active_directory",
-				},
-			},
+			data.ImportStep("active_directory"),
 		},
 	})
 }
 
 func testAccAzureRMNetAppAccount_update(t *testing.T) {
-	resourceName := "azurerm_netapp_account.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -133,27 +114,20 @@ func testAccAzureRMNetAppAccount_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppAccount_basicConfig(ri, location),
+				Config: testAccAzureRMNetAppAccount_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "active_directory.#", "0"),
+					testCheckAzureRMNetAppAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "active_directory.#", "0"),
 				),
 			},
 			{
-				Config: testAccAzureRMNetAppAccount_completeConfig(ri, location),
+				Config: testAccAzureRMNetAppAccount_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "active_directory.#", "1"),
+					testCheckAzureRMNetAppAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "active_directory.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"active_directory",
-				},
-			},
+			data.ImportStep("active_directory"),
 		},
 	})
 }
@@ -206,7 +180,7 @@ func testCheckAzureRMNetAppAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMNetAppAccount_basicConfig(rInt int, location string) string {
+func testAccAzureRMNetAppAccount_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
@@ -218,10 +192,10 @@ resource "azurerm_netapp_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMNetAppAccount_requiresImportConfig(rInt int, location string) string {
+func testAccAzureRMNetAppAccount_requiresImportConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_netapp_account" "import" {
@@ -229,10 +203,10 @@ resource "azurerm_netapp_account" "import" {
   location            = "${azurerm_netapp_account.test.location}"
   resource_group_name = "${azurerm_netapp_account.test.name}"
 }
-`, testAccAzureRMNetAppAccount_basicConfig(rInt, location))
+`, testAccAzureRMNetAppAccount_basicConfig(data))
 }
 
-func testAccAzureRMNetAppAccount_completeConfig(rInt int, location string) string {
+func testAccAzureRMNetAppAccount_completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
@@ -253,5 +227,5 @@ resource "azurerm_netapp_account" "test" {
 	organizational_unit = "OU=FirstLevel"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

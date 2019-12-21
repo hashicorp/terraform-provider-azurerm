@@ -1,4 +1,4 @@
-package netapp
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,7 @@ import (
 )
 
 func TestAccAzureRMNetAppPool_basic(t *testing.T) {
-	resourceName := "azurerm_netapp_pool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,16 +21,12 @@ func TestAccAzureRMNetAppPool_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppPool_basic(ri, location),
+				Config: testAccAzureRMNetAppPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppPoolExists(resourceName),
+					testCheckAzureRMNetAppPoolExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -44,8 +37,7 @@ func TestAccAzureRMNetAppPool_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_netapp_pool.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,13 +45,13 @@ func TestAccAzureRMNetAppPool_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppPool_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMNetAppPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppPoolExists(resourceName),
+					testCheckAzureRMNetAppPoolExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMNetAppPool_requiresImport(ri, acceptance.Location()),
+				Config:      testAccAzureRMNetAppPool_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_netapp_pool"),
 			},
 		},
@@ -67,9 +59,7 @@ func TestAccAzureRMNetAppPool_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMNetAppPool_complete(t *testing.T) {
-	resourceName := "azurerm_netapp_pool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -77,26 +67,20 @@ func TestAccAzureRMNetAppPool_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppPool_complete(ri, location),
+				Config: testAccAzureRMNetAppPool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "service_level", "Standard"),
-					resource.TestCheckResourceAttr(resourceName, "size_in_tb", "15"),
+					testCheckAzureRMNetAppPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
+					resource.TestCheckResourceAttr(data.ResourceName, "size_in_tb", "15"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMNetAppPool_update(t *testing.T) {
-	resourceName := "azurerm_netapp_pool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -104,31 +88,23 @@ func TestAccAzureRMNetAppPool_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppPool_basic(ri, location),
+				Config: testAccAzureRMNetAppPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "service_level", "Premium"),
-					resource.TestCheckResourceAttr(resourceName, "size_in_tb", "4"),
+					testCheckAzureRMNetAppPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Premium"),
+					resource.TestCheckResourceAttr(data.ResourceName, "size_in_tb", "4"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMNetAppPool_complete(ri, location),
+				Config: testAccAzureRMNetAppPool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "service_level", "Standard"),
-					resource.TestCheckResourceAttr(resourceName, "size_in_tb", "15"),
+					testCheckAzureRMNetAppPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
+					resource.TestCheckResourceAttr(data.ResourceName, "size_in_tb", "15"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -183,7 +159,7 @@ func testCheckAzureRMNetAppPoolDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMNetAppPool_basic(rInt int, location string) string {
+func testAccAzureRMNetAppPool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
@@ -204,10 +180,10 @@ resource "azurerm_netapp_pool" "test" {
   service_level       = "Premium"
   size_in_tb          = 4
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNetAppPool_requiresImport(rInt int, location string) string {
+func testAccAzureRMNetAppPool_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_netapp_pool" "import" {
@@ -216,10 +192,10 @@ resource "azurerm_netapp_pool" "import" {
   resource_group_name = "${azurerm_netapp_pool.test.name}"
 }
 }
-`, testAccAzureRMNetAppPool_basic(rInt, location))
+`, testAccAzureRMNetAppPool_basic(data))
 }
 
-func testAccAzureRMNetAppPool_complete(rInt int, location string) string {
+func testAccAzureRMNetAppPool_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
@@ -240,5 +216,5 @@ resource "azurerm_netapp_pool" "test" {
   service_level       = "Standard"
   size_in_tb          = 15
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

@@ -1,38 +1,35 @@
-package netapp
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMNetAppVolume_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_netapp_volume.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNetAppVolume_basic(ri, location),
+				Config: testAccDataSourceNetAppVolume_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "volume_path"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "service_level"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "subnet_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "storage_quota_in_gb"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "volume_path"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "service_level"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_quota_in_gb"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceNetAppVolume_basic(rInt int, location string) string {
-	config := testAccAzureRMNetAppVolume_basic(rInt, location)
+func testAccDataSourceNetAppVolume_basic(data acceptance.TestData) string {
+	config := testAccAzureRMNetAppVolume_basic(data)
 	return fmt.Sprintf(`
 %s
 
