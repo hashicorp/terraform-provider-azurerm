@@ -166,7 +166,7 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 				Type:         schema.TypeMap,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateMetricAlertRuleTags,
+				ValidateFunc: ValidateMetricAlertRuleTags,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -449,7 +449,7 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.Al
 	return &alertRule, nil
 }
 
-func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
+func ValidateMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
 	// Normal validation required by any AzureRM resource.
 	warnings, errors = tags.Validate(v, f)
 

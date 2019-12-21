@@ -1,12 +1,10 @@
-package monitor
+package tests
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
@@ -15,9 +13,7 @@ import (
 // (which our test suite can't easily workaround)
 
 func testAccDataSourceAzureRMMonitorLogProfile_storageaccount(t *testing.T) {
-	dataSourceName := "data.azurerm_monitor_log_profile.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(10)
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_log_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,16 +21,16 @@ func testAccDataSourceAzureRMMonitorLogProfile_storageaccount(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMonitorLogProfile_storageaccountConfig(ri, rs, acceptance.Location()),
+				Config: testAccDataSourceAzureRMMonitorLogProfile_storageaccountConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "categories.#"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "locations.#"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "servicebus_rule_id", ""),
-					resource.TestCheckResourceAttr(dataSourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "retention_policy.0.enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "categories.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "locations.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "servicebus_rule_id", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "retention_policy.0.enabled"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "retention_policy.0.days"),
 				),
 			},
 		},
@@ -42,9 +38,7 @@ func testAccDataSourceAzureRMMonitorLogProfile_storageaccount(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMMonitorLogProfile_eventhub(t *testing.T) {
-	dataSourceName := "data.azurerm_monitor_log_profile.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(10)
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_log_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -52,23 +46,23 @@ func testAccDataSourceAzureRMMonitorLogProfile_eventhub(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMonitorLogProfile_eventhubConfig(ri, rs, acceptance.Location()),
+				Config: testAccDataSourceAzureRMMonitorLogProfile_eventhubConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "categories.#"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "locations.#"),
-					resource.TestCheckResourceAttr(dataSourceName, "storage_account_id", ""),
-					resource.TestCheckResourceAttrSet(dataSourceName, "servicebus_rule_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "retention_policy.#", "1"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "retention_policy.0.enabled"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "retention_policy.0.days"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "categories.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "locations.#"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_account_id", ""),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "servicebus_rule_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "retention_policy.0.enabled"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "retention_policy.0.days"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAzureRMMonitorLogProfile_storageaccountConfig(rInt int, rString string, location string) string {
+func testAccDataSourceAzureRMMonitorLogProfile_storageaccountConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -105,10 +99,10 @@ resource "azurerm_monitor_log_profile" "test" {
 data "azurerm_monitor_log_profile" "test" {
   name = "${azurerm_monitor_log_profile.test.name}"
 }
-`, rInt, location, rString, rInt, location)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccDataSourceAzureRMMonitorLogProfile_eventhubConfig(rInt int, rString string, location string) string {
+func testAccDataSourceAzureRMMonitorLogProfile_eventhubConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -146,5 +140,5 @@ resource "azurerm_monitor_log_profile" "test" {
 data "azurerm_monitor_log_profile" "test" {
   name = "${azurerm_monitor_log_profile.test.name}"
 }
-`, rInt, location, rString, rInt, location)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.Locations.Primary)
 }
