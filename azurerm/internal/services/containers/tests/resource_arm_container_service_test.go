@@ -1,4 +1,4 @@
-package containers
+package tests
 
 import (
 	"fmt"
@@ -8,10 +8,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 )
 
 func TestAccAzureRMContainerService_orchestrationPlatformValidation(t *testing.T) {
@@ -26,7 +26,7 @@ func TestAccAzureRMContainerService_orchestrationPlatformValidation(t *testing.T
 	}
 
 	for _, tc := range cases {
-		_, errors := validateArmContainerServiceOrchestrationPlatform(tc.Value, "azurerm_container_service")
+		_, errors := containers.ValidateArmContainerServiceOrchestrationPlatform(tc.Value, "azurerm_container_service")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM Container Service Orchestration Platform to trigger a validation error for '%s'", tc.Value)
@@ -49,7 +49,7 @@ func TestAccAzureRMContainerService_masterProfileCountValidation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateArmContainerServiceMasterProfileCount(tc.Value, "azurerm_container_service")
+		_, errors := containers.ValidateArmContainerServiceMasterProfileCount(tc.Value, "azurerm_container_service")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM Container Service Master Profile Count to trigger a validation error for '%d'", tc.Value)
@@ -71,7 +71,7 @@ func TestAccAzureRMContainerService_agentProfilePoolCountValidation(t *testing.T
 	}
 
 	for _, tc := range cases {
-		_, errors := validateArmContainerServiceAgentPoolProfileCount(tc.Value, "azurerm_container_service")
+		_, errors := containers.ValidateArmContainerServiceAgentPoolProfileCount(tc.Value, "azurerm_container_service")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM Container Service Agent Pool Profile Count to trigger a validation error for '%d'", tc.Value)
@@ -80,8 +80,8 @@ func TestAccAzureRMContainerService_agentProfilePoolCountValidation(t *testing.T
 }
 
 func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMContainerService_dcosBasic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_container_service", "test")
+	config := testAccAzureRMContainerService_dcosBasic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -104,8 +104,7 @@ func TestAccAzureRMContainerService_requiresImport(t *testing.T) {
 		return
 	}
 
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_container_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -113,13 +112,13 @@ func TestAccAzureRMContainerService_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerService_dcosBasic(ri, location),
+				Config: testAccAzureRMContainerService_dcosBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerServiceExists("azurerm_container_service.test"),
 				),
 			},
 			{
-				Config:      testAccAzureRMContainerService_requiresImport(ri, location),
+				Config:      testAccAzureRMContainerService_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_container_service"),
 			},
 		},
@@ -127,10 +126,10 @@ func TestAccAzureRMContainerService_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_container_service", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMContainerService_kubernetesBasic(ri, clientId, clientSecret, acceptance.Location())
+	config := testAccAzureRMContainerService_kubernetesBasic(data, clientId, clientSecret)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -148,10 +147,10 @@ func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
 }
 
 func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_container_service", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMContainerService_kubernetesComplete(ri, clientId, clientSecret, acceptance.Location())
+	config := testAccAzureRMContainerService_kubernetesComplete(data, clientId, clientSecret)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -169,8 +168,8 @@ func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 }
 
 func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMContainerService_swarmBasic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_container_service", "test")
+	config := testAccAzureRMContainerService_swarmBasic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -187,7 +186,7 @@ func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMContainerService_dcosBasic(rInt int, location string) string {
+func testAccAzureRMContainerService_dcosBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -224,11 +223,11 @@ resource "azurerm_container_service" "test" {
     enabled = false
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMContainerService_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMContainerService_dcosBasic(rInt, location)
+func testAccAzureRMContainerService_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMContainerService_dcosBasic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -262,10 +261,10 @@ resource "azurerm_container_service" "import" {
     enabled = false
   }
 }
-`, template, rInt, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMContainerService_kubernetesBasic(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMContainerService_kubernetesBasic(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -307,10 +306,10 @@ resource "azurerm_container_service" "test" {
     enabled = false
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMContainerService_kubernetesComplete(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMContainerService_kubernetesComplete(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -356,10 +355,10 @@ resource "azurerm_container_service" "test" {
     you = "me"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMContainerService_swarmBasic(rInt int, location string) string {
+func testAccAzureRMContainerService_swarmBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -396,7 +395,7 @@ resource "azurerm_container_service" "test" {
     enabled = false
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testCheckAzureRMContainerServiceExists(resourceName string) resource.TestCheckFunc {

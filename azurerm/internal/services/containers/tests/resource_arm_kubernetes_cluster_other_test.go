@@ -1,4 +1,4 @@
-package containers
+package tests
 
 import (
 	"fmt"
@@ -6,17 +6,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func testAccAzureRMKubernetesCluster_basicAvailabilitySet(t *testing.T) {
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,39 +21,32 @@ func testAccAzureRMKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_basicAvailabilitySetConfig(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_basicAvailabilitySetConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.azure_active_directory.#", "0"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_certificate"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.cluster_ca_certificate"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
-					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "kube_admin_config_raw", ""),
-					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Basic"),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.client_certificate"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.username"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config_raw", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Basic"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
-			},
+			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
 }
 
 func testAccAzureRMKubernetesCluster_basicVMSS(t *testing.T) {
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -64,39 +54,32 @@ func testAccAzureRMKubernetesCluster_basicVMSS(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_basicVMSSConfig(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_basicVMSSConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.azure_active_directory.#", "0"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_certificate"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.cluster_ca_certificate"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
-					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "kube_admin_config_raw", ""),
-					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Basic"),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.client_certificate"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.username"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config_raw", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Basic"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
-			},
+			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
 }
 
 func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := acceptance.Location()
 
 	initialPrivateIpAddressCdir := "10.0.0.0/8"
 	modifiedPrivateIpAddressCdir := "10.230.0.0/16"
@@ -107,39 +90,32 @@ func testAccAzureRMKubernetesCluster_privateLinkOn(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, initialPrivateIpAddressCdir, true),
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, initialPrivateIpAddressCdir, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "private_link_enabled", "true"),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "true"),
 				),
 			},
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, modifiedPrivateIpAddressCdir, true),
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, modifiedPrivateIpAddressCdir, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "private_fqdn"),
-					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "private_link_enabled", "true"),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "private_fqdn"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "true"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
-			},
+			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
 }
 
 func testAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := acceptance.Location()
 
 	initialPrivateIpAddressCdir := "10.0.0.0/8"
 	modifiedPrivateIpAddressCdir := "10.230.0.0/16"
@@ -150,26 +126,21 @@ func testAccAzureRMKubernetesCluster_privateLinkOff(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, initialPrivateIpAddressCdir, false),
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, initialPrivateIpAddressCdir, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "private_link_enabled", "false"),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "false"),
 				),
 			},
 			{
-				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, modifiedPrivateIpAddressCdir, false),
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(data, clientId, clientSecret, data.Locations.Primary, modifiedPrivateIpAddressCdir, false),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "private_link_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "private_link_enabled", "false"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
-			},
+			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
 }
@@ -180,11 +151,9 @@ func testAccAzureRMKubernetesCluster_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -192,13 +161,13 @@ func testAccAzureRMKubernetesCluster_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_basicVMSSConfig(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_basicVMSSConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMKubernetesCluster_requiresImportConfig(ri, clientId, clientSecret, location),
+				Config:      testAccAzureRMKubernetesCluster_requiresImportConfig(data, clientId, clientSecret),
 				ExpectError: acceptance.RequiresImportError("azurerm_kubernetes_cluster"),
 			},
 		},
@@ -206,11 +175,9 @@ func testAccAzureRMKubernetesCluster_requiresImport(t *testing.T) {
 }
 
 func testAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -218,34 +185,27 @@ func testAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_linuxProfileConfig(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_linuxProfileConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_certificate"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.cluster_ca_certificate"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
-					resource.TestCheckResourceAttrSet(resourceName, "linux_profile.0.admin_username"),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.client_certificate"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.username"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "linux_profile.0.admin_username"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
-			},
+			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
 }
 
 func testAccAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -253,28 +213,21 @@ func testAccAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_nodeTaintsConfig(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_nodeTaintsConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_taints.0", "key=value:PreferNoSchedule"),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_taints.0", "key=value:PreferNoSchedule"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
-			},
+			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
 }
 
 func testAccAzureRMKubernetesCluster_nodeResourceGroup(t *testing.T) {
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -282,25 +235,18 @@ func testAccAzureRMKubernetesCluster_nodeResourceGroup(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_nodeResourceGroupConfig(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_nodeResourceGroupConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
-			},
+			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
 }
 
 func testAccAzureRMKubernetesCluster_upgrade(t *testing.T) {
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
@@ -310,17 +256,17 @@ func testAccAzureRMKubernetesCluster_upgrade(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_upgradeConfig(ri, location, clientId, clientSecret, olderKubernetesVersion),
+				Config: testAccAzureRMKubernetesCluster_upgradeConfig(data, clientId, clientSecret, olderKubernetesVersion),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", olderKubernetesVersion),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kubernetes_version", olderKubernetesVersion),
 				),
 			},
 			{
-				Config: testAccAzureRMKubernetesCluster_upgradeConfig(ri, location, clientId, clientSecret, currentKubernetesVersion),
+				Config: testAccAzureRMKubernetesCluster_upgradeConfig(data, clientId, clientSecret, currentKubernetesVersion),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", currentKubernetesVersion),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kubernetes_version", currentKubernetesVersion),
 				),
 			},
 		},
@@ -328,11 +274,9 @@ func testAccAzureRMKubernetesCluster_upgrade(t *testing.T) {
 }
 
 func testAccAzureRMKubernetesCluster_tags(t *testing.T) {
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -340,39 +284,27 @@ func testAccAzureRMKubernetesCluster_tags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_tagsConfig(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_tagsConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 				),
 			},
+			data.ImportStep("service_principal.0.client_secret"),
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
-			},
-			{
-				Config: testAccAzureRMKubernetesCluster_tagsUpdatedConfig(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_tagsUpdatedConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
-			},
+			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
 }
 
 func testAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -380,39 +312,32 @@ func testAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_windowsProfileConfig(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_windowsProfileConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_certificate"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.cluster_ca_certificate"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
-					resource.TestCheckResourceAttrSet(resourceName, "default_node_pool.0.max_pods"),
-					resource.TestCheckResourceAttrSet(resourceName, "linux_profile.0.admin_username"),
-					resource.TestCheckResourceAttrSet(resourceName, "windows_profile.0.admin_username"),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.client_certificate"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.username"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "default_node_pool.0.max_pods"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "linux_profile.0.admin_username"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "windows_profile.0.admin_username"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"windows_profile.0.admin_password",
-					"service_principal.0.client_secret",
-				},
-			},
+			data.ImportStep(
+				"windows_profile.0.admin_password",
+				"service_principal.0.client_secret",
+			),
 		},
 	})
 }
 
 func testAccAzureRMKubernetesCluster_managedClusterIdentiy(t *testing.T) {
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -420,22 +345,17 @@ func testAccAzureRMKubernetesCluster_managedClusterIdentiy(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_managedClusterIdentityConfig(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_managedClusterIdentityConfig(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
-			},
+			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
 }
 
-func testAccAzureRMKubernetesCluster_basicAvailabilitySetConfig(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_basicAvailabilitySetConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -460,10 +380,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_basicVMSSConfig(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_basicVMSSConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -487,10 +407,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_privateLinkConfig(rInt int, clientId string, clientSecret string, location string, cdir string, enablePrivateLink bool) string {
+func testAccAzureRMKubernetesCluster_privateLinkConfig(data acceptance.TestData, clientId string, clientSecret string, location string, cdir string, enablePrivateLink bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -530,11 +450,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   api_server_authorized_ip_ranges = [ "%s"]
   private_link_enabled            = %t
 }
-`, rInt, location, rInt, rInt, rInt, clientId, clientSecret, cdir, enablePrivateLink)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, cdir, enablePrivateLink)
 }
 
-func testAccAzureRMKubernetesCluster_requiresImportConfig(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesCluster_basicVMSSConfig(rInt, clientId, clientSecret, location)
+func testAccAzureRMKubernetesCluster_requiresImportConfig(data acceptance.TestData, clientId, clientSecret string) string {
+	template := testAccAzureRMKubernetesCluster_basicVMSSConfig(data, clientId, clientSecret)
 	return fmt.Sprintf(`
 %s
 
@@ -558,7 +478,7 @@ resource "azurerm_kubernetes_cluster" "import" {
 `, template, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_linuxProfileConfig(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_linuxProfileConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -590,10 +510,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_nodeTaintsConfig(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_nodeTaintsConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -620,10 +540,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_nodeResourceGroupConfig(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_nodeResourceGroupConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -648,10 +568,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_tagsConfig(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_tagsConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -679,10 +599,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     dimension = "C-137"
   }
 }
-`, rInt, location, rInt, rInt, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_tagsUpdatedConfig(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_tagsUpdatedConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -710,10 +630,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     dimension = "D-99"
   }
 }
-`, rInt, location, rInt, rInt, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_upgradeConfig(rInt int, location, clientId, clientSecret, version string) string {
+func testAccAzureRMKubernetesCluster_upgradeConfig(data acceptance.TestData, clientId, clientSecret, version string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -746,10 +666,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, version, rInt, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, version, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_windowsProfileConfig(rInt int, clientId, clientSecret, location string) string {
+func testAccAzureRMKubernetesCluster_windowsProfileConfig(data acceptance.TestData, clientId, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -795,10 +715,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     service_cidr       = "10.10.0.0/16"
   }
 }
-`, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_managedClusterIdentityConfig(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_managedClusterIdentityConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -827,5 +747,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, rInt, location, rInt, rInt, clientId, clientSecret)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }

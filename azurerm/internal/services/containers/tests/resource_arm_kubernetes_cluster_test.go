@@ -1,4 +1,4 @@
-package containers
+package tests
 
 import (
 	"fmt"

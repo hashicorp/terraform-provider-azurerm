@@ -25,7 +25,7 @@ func dataSourceArmContainerRegistry() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMContainerRegistryName,
+				ValidateFunc: ValidateAzureRMContainerRegistryName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
