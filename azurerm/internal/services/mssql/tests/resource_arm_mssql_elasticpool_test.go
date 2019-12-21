@@ -1,4 +1,4 @@
-package mssql
+package tests
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -15,9 +14,7 @@ import (
 
 // TODO: add import tests
 func TestAccAzureRMMsSqlElasticPool_basic_DTU(t *testing.T) {
-	resourceName := "azurerm_mssql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,15 +22,15 @@ func TestAccAzureRMMsSqlElasticPool_basic_DTU(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMsSqlElasticPool_basic_DTU(ri, location),
+				Config: testAccAzureRMMsSqlElasticPool_basic_DTU(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "BasicPool"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "50"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "5"),
-					resource.TestCheckResourceAttrSet(resourceName, "max_size_gb"),
-					resource.TestCheckResourceAttrSet(resourceName, "zone_redundant"),
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "BasicPool"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.min_capacity", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.max_capacity", "5"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "max_size_gb"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "zone_redundant"),
 				),
 			},
 		},
@@ -46,9 +43,7 @@ func TestAccAzureRMMsSqlElasticPool_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_mssql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,13 +51,13 @@ func TestAccAzureRMMsSqlElasticPool_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMsSqlElasticPool_basic_DTU(ri, location),
+				Config: testAccAzureRMMsSqlElasticPool_basic_DTU(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMsSqlElasticPool_requiresImport(ri, location),
+				Config:      testAccAzureRMMsSqlElasticPool_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_mssql_elasticpool"),
 			},
 		},
@@ -70,9 +65,8 @@ func TestAccAzureRMMsSqlElasticPool_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMMsSqlElasticPool_standard_DTU(t *testing.T) {
-	resourceName := "azurerm_mssql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMsSqlElasticPool_standard_DTU(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	config := testAccAzureRMMsSqlElasticPool_standard_DTU(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -82,29 +76,23 @@ func TestAccAzureRMMsSqlElasticPool_standard_DTU(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "StandardPool"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "50"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "50"),
-					resource.TestCheckResourceAttrSet(resourceName, "max_size_gb"),
-					resource.TestCheckResourceAttrSet(resourceName, "zone_redundant"),
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "StandardPool"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.min_capacity", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.max_capacity", "50"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "max_size_gb"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "zone_redundant"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"max_size_gb"},
-			},
+			data.ImportStep("max_size_gb"),
 		},
 	})
 }
 
 func TestAccAzureRMMsSqlElasticPool_premium_DTU_zone_redundant(t *testing.T) {
-	resourceName := "azurerm_mssql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMsSqlElasticPool_premium_DTU_zone_redundant(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	config := testAccAzureRMMsSqlElasticPool_premium_DTU_zone_redundant(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -114,25 +102,19 @@ func TestAccAzureRMMsSqlElasticPool_premium_DTU_zone_redundant(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "PremiumPool"),
-					resource.TestCheckResourceAttr(resourceName, "zone_redundant", "true"),
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "PremiumPool"),
+					resource.TestCheckResourceAttr(data.ResourceName, "zone_redundant", "true"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"max_size_gb"},
-			},
+			data.ImportStep("max_size_gb"),
 		},
 	})
 }
 
 func TestAccAzureRMMsSqlElasticPool_basic_vCore(t *testing.T) {
-	resourceName := "azurerm_mssql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMsSqlElasticPool_basic_vCore(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	config := testAccAzureRMMsSqlElasticPool_basic_vCore(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -142,29 +124,23 @@ func TestAccAzureRMMsSqlElasticPool_basic_vCore(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "4"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0.25"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "4"),
-					resource.TestCheckResourceAttrSet(resourceName, "max_size_gb"),
-					resource.TestCheckResourceAttrSet(resourceName, "zone_redundant"),
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.min_capacity", "0.25"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.max_capacity", "4"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "max_size_gb"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "zone_redundant"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"max_size_gb"},
-			},
+			data.ImportStep("max_size_gb"),
 		},
 	})
 }
 
 func TestAccAzureRMMsSqlElasticPool_basic_vCore_MaxSizeBytes(t *testing.T) {
-	resourceName := "azurerm_mssql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMsSqlElasticPool_basic_vCore_MaxSizeBytes(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	config := testAccAzureRMMsSqlElasticPool_basic_vCore_MaxSizeBytes(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -174,29 +150,23 @@ func TestAccAzureRMMsSqlElasticPool_basic_vCore_MaxSizeBytes(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "4"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0.25"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "4"),
-					resource.TestCheckResourceAttr(resourceName, "max_size_bytes", "214748364800"),
-					resource.TestCheckResourceAttrSet(resourceName, "max_size_gb"),
-					resource.TestCheckResourceAttrSet(resourceName, "zone_redundant"),
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.min_capacity", "0.25"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.max_capacity", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "max_size_bytes", "214748364800"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "max_size_gb"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "zone_redundant"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"max_size_gb"},
-			},
+			data.ImportStep("max_size_gb"),
 		},
 	})
 }
 func TestAccAzureRMMsSqlElasticPool_disappears(t *testing.T) {
-	resourceName := "azurerm_mssql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMsSqlElasticPool_standard_DTU(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	config := testAccAzureRMMsSqlElasticPool_standard_DTU(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -206,12 +176,12 @@ func TestAccAzureRMMsSqlElasticPool_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "StandardPool"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "50"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "50"),
-					testCheckAzureRMMsSqlElasticPoolDisappears(resourceName),
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "StandardPool"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.min_capacity", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.max_capacity", "50"),
+					testCheckAzureRMMsSqlElasticPoolDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -220,11 +190,9 @@ func TestAccAzureRMMsSqlElasticPool_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMMsSqlElasticPool_resize_DTU(t *testing.T) {
-	resourceName := "azurerm_mssql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMMsSqlElasticPool_standard_DTU(ri, location)
-	postConfig := testAccAzureRMMsSqlElasticPool_resize_DTU(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	preConfig := testAccAzureRMMsSqlElasticPool_standard_DTU(data)
+	postConfig := testAccAzureRMMsSqlElasticPool_resize_DTU(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -234,21 +202,21 @@ func TestAccAzureRMMsSqlElasticPool_resize_DTU(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "StandardPool"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "50"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "50"),
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "StandardPool"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.min_capacity", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.max_capacity", "50"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "StandardPool"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "100"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "50"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "100"),
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "StandardPool"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.min_capacity", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.max_capacity", "100"),
 				),
 			},
 		},
@@ -256,11 +224,9 @@ func TestAccAzureRMMsSqlElasticPool_resize_DTU(t *testing.T) {
 }
 
 func TestAccAzureRMMsSqlElasticPool_resize_vCore(t *testing.T) {
-	resourceName := "azurerm_mssql_elasticpool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMMsSqlElasticPool_basic_vCore(ri, location)
-	postConfig := testAccAzureRMMsSqlElasticPool_resize_vCore(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	preConfig := testAccAzureRMMsSqlElasticPool_basic_vCore(data)
+	postConfig := testAccAzureRMMsSqlElasticPool_resize_vCore(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -270,21 +236,21 @@ func TestAccAzureRMMsSqlElasticPool_resize_vCore(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "4"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0.25"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "4"),
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.min_capacity", "0.25"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.max_capacity", "4"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "8"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.min_capacity", "0"),
-					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "8"),
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "8"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.min_capacity", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.max_capacity", "8"),
 				),
 			},
 		},
@@ -367,12 +333,12 @@ func testCheckAzureRMMsSqlElasticPoolDisappears(resourceName string) resource.Te
 	}
 }
 
-func testAccAzureRMMsSqlElasticPool_basic_DTU(rInt int, location string) string {
-	return testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "BasicPool", "Basic", 50, 4.8828125, 0, 5, false)
+func testAccAzureRMMsSqlElasticPool_basic_DTU(data acceptance.TestData) string {
+	return testAccAzureRMMsSqlElasticPool_DTU_Template(data, "BasicPool", "Basic", 50, 4.8828125, 0, 5, false)
 }
 
-func testAccAzureRMMsSqlElasticPool_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "BasicPool", "Basic", 50, 5242880000, 0, 5, false)
+func testAccAzureRMMsSqlElasticPool_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlElasticPool_DTU_Template(data, "BasicPool", "Basic", 50, 5242880000, 0, 5, false)
 	return fmt.Sprintf(`
 %s
 
@@ -388,31 +354,31 @@ resource "azurerm_mssql_elasticpool" "import" {
 `, template)
 }
 
-func testAccAzureRMMsSqlElasticPool_premium_DTU_zone_redundant(rInt int, location string) string {
-	return testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "PremiumPool", "Premium", 125, 50, 0, 50, true)
+func testAccAzureRMMsSqlElasticPool_premium_DTU_zone_redundant(data acceptance.TestData) string {
+	return testAccAzureRMMsSqlElasticPool_DTU_Template(data, "PremiumPool", "Premium", 125, 50, 0, 50, true)
 }
 
-func testAccAzureRMMsSqlElasticPool_standard_DTU(rInt int, location string) string {
-	return testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "StandardPool", "Standard", 50, 50, 0, 50, false)
+func testAccAzureRMMsSqlElasticPool_standard_DTU(data acceptance.TestData) string {
+	return testAccAzureRMMsSqlElasticPool_DTU_Template(data, "StandardPool", "Standard", 50, 50, 0, 50, false)
 }
 
-func testAccAzureRMMsSqlElasticPool_resize_DTU(rInt int, location string) string {
-	return testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "StandardPool", "Standard", 100, 100, 50, 100, false)
+func testAccAzureRMMsSqlElasticPool_resize_DTU(data acceptance.TestData) string {
+	return testAccAzureRMMsSqlElasticPool_DTU_Template(data, "StandardPool", "Standard", 100, 100, 50, 100, false)
 }
 
-func testAccAzureRMMsSqlElasticPool_basic_vCore(rInt int, location string) string {
-	return testAccAzureRMMsSqlElasticPool_vCore_Template(rInt, location, "GP_Gen5", "GeneralPurpose", 4, "Gen5", 0.25, 4)
+func testAccAzureRMMsSqlElasticPool_basic_vCore(data acceptance.TestData) string {
+	return testAccAzureRMMsSqlElasticPool_vCore_Template(data, "GP_Gen5", "GeneralPurpose", 4, "Gen5", 0.25, 4)
 }
 
-func testAccAzureRMMsSqlElasticPool_basic_vCore_MaxSizeBytes(rInt int, location string) string {
-	return testAccAzureRMMsSqlElasticPool_vCore_MaxSizeBytes_Template(rInt, location, "GP_Gen5", "GeneralPurpose", 4, "Gen5", 0.25, 4)
+func testAccAzureRMMsSqlElasticPool_basic_vCore_MaxSizeBytes(data acceptance.TestData) string {
+	return testAccAzureRMMsSqlElasticPool_vCore_MaxSizeBytes_Template(data, "GP_Gen5", "GeneralPurpose", 4, "Gen5", 0.25, 4)
 }
 
-func testAccAzureRMMsSqlElasticPool_resize_vCore(rInt int, location string) string {
-	return testAccAzureRMMsSqlElasticPool_vCore_Template(rInt, location, "GP_Gen5", "GeneralPurpose", 8, "Gen5", 0, 8)
+func testAccAzureRMMsSqlElasticPool_resize_vCore(data acceptance.TestData) string {
+	return testAccAzureRMMsSqlElasticPool_vCore_Template(data, "GP_Gen5", "GeneralPurpose", 8, "Gen5", 0, 8)
 }
 
-func testAccAzureRMMsSqlElasticPool_vCore_Template(rInt int, location string, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64) string {
+func testAccAzureRMMsSqlElasticPool_vCore_Template(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -447,10 +413,10 @@ resource "azurerm_mssql_elasticpool" "test" {
     max_capacity = %.2[8]f
   }
 }
-`, rInt, location, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax)
+`, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax)
 }
 
-func testAccAzureRMMsSqlElasticPool_vCore_MaxSizeBytes_Template(rInt int, location string, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64) string {
+func testAccAzureRMMsSqlElasticPool_vCore_MaxSizeBytes_Template(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -485,10 +451,10 @@ resource "azurerm_mssql_elasticpool" "test" {
     max_capacity = %.2[8]f
   }
 }
-`, rInt, location, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax)
+`, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax)
 }
 
-func testAccAzureRMMsSqlElasticPool_DTU_Template(rInt int, location string, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int, zoneRedundant bool) string {
+func testAccAzureRMMsSqlElasticPool_DTU_Template(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int, zoneRedundant bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -523,5 +489,5 @@ resource "azurerm_mssql_elasticpool" "test" {
     max_capacity = %[8]d
   }
 }
-`, rInt, location, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant)
+`, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant)
 }

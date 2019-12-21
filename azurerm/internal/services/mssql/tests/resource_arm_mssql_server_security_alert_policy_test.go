@@ -1,4 +1,4 @@
-package mssql
+package tests
 
 import (
 	"fmt"
@@ -7,15 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMssqlServerSecurityAlertPolicy_basic(t *testing.T) {
-	resourceName := "azurerm_mssql_server_security_alert_policy.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,29 +21,23 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),
-					resource.TestCheckResourceAttr(resourceName, "disabled_alerts.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "email_account_admins", "false"),
-					resource.TestCheckResourceAttr(resourceName, "retention_days", "20"),
-					resource.TestCheckResourceAttr(resourceName, "email_addresses.#", "0"),
+					testCheckAzureRMMssqlServerSecurityAlertPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "state", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "disabled_alerts.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "email_account_admins", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_days", "20"),
+					resource.TestCheckResourceAttr(data.ResourceName, "email_addresses.#", "0"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"storage_account_access_key"},
-			},
+			data.ImportStep("storage_account_access_key"),
 		},
 	})
 }
 
 func TestAccAzureRMMssqlServerSecurityAlertPolicy_update(t *testing.T) {
-	resourceName := "azurerm_mssql_server_security_alert_policy.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,39 +45,29 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),
-					resource.TestCheckResourceAttr(resourceName, "disabled_alerts.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "email_account_admins", "false"),
-					resource.TestCheckResourceAttr(resourceName, "retention_days", "20"),
-					resource.TestCheckResourceAttr(resourceName, "email_addresses.#", "0"),
+					testCheckAzureRMMssqlServerSecurityAlertPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "state", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "disabled_alerts.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "email_account_admins", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_days", "20"),
+					resource.TestCheckResourceAttr(data.ResourceName, "email_addresses.#", "0"),
 				),
 			},
+			data.ImportStep("storage_account_access_key"),
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"storage_account_access_key"},
-			},
-			{
-				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_update(ri, acceptance.Location()),
+				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),
-					resource.TestCheckResourceAttr(resourceName, "disabled_alerts.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "email_account_admins", "true"),
-					resource.TestCheckResourceAttr(resourceName, "retention_days", "30"),
-					resource.TestCheckResourceAttr(resourceName, "email_addresses.#", "0"),
+					testCheckAzureRMMssqlServerSecurityAlertPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "state", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "disabled_alerts.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "email_account_admins", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_days", "30"),
+					resource.TestCheckResourceAttr(data.ResourceName, "email_addresses.#", "0"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"storage_account_access_key"},
-			},
+			data.ImportStep("storage_account_access_key"),
 		},
 	})
 }
@@ -142,8 +124,8 @@ func testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy(s *terraform.State) e
 	return nil
 }
 
-func testAccAzureRMMssqlServerSecurityAlertPolicy_basic(rInt int, location string) string {
-	server := testAccAzureRMMssqlServerSecurityAlertPolicy_server(rInt, location)
+func testAccAzureRMMssqlServerSecurityAlertPolicy_basic(data acceptance.TestData) string {
+	server := testAccAzureRMMssqlServerSecurityAlertPolicy_server(data)
 
 	return fmt.Sprintf(`
 %s
@@ -163,8 +145,8 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
 `, server)
 }
 
-func testAccAzureRMMssqlServerSecurityAlertPolicy_update(rInt int, location string) string {
-	server := testAccAzureRMMssqlServerSecurityAlertPolicy_server(rInt, location)
+func testAccAzureRMMssqlServerSecurityAlertPolicy_update(data acceptance.TestData) string {
+	server := testAccAzureRMMssqlServerSecurityAlertPolicy_server(data)
 
 	return fmt.Sprintf(`
 %s
@@ -179,7 +161,7 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
 `, server)
 }
 
-func testAccAzureRMMssqlServerSecurityAlertPolicy_server(rInt int, location string) string {
+func testAccAzureRMMssqlServerSecurityAlertPolicy_server(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%d"
@@ -202,5 +184,5 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
-`, rInt, location, rInt, rInt, location)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
