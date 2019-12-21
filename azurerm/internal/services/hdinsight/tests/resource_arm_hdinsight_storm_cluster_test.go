@@ -532,5 +532,5 @@ resource "azurerm_storage_container" "test" {
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
