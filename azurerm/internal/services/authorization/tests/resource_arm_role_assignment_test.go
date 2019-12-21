@@ -1,4 +1,4 @@
-package authorization
+package tests
 
 import (
 	"fmt"
@@ -50,7 +50,7 @@ func TestAccAzureRMRoleAssignment(t *testing.T) {
 }
 
 func testAccAzureRMRoleAssignment_emptyName(t *testing.T) {
-	resourceName := "azurerm_role_assignment.test"
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -60,12 +60,12 @@ func testAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 			{
 				Config: testAccAzureRMRoleAssignment_emptyNameConfig(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRoleAssignmentExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					testCheckAzureRMRoleAssignmentExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -77,7 +77,7 @@ func testAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 }
 
 func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
-	resourceName := "azurerm_role_assignment.test"
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
 
 	resource.Test(t, resource.TestCase{
@@ -88,13 +88,13 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 			{
 				Config: testAccAzureRMRoleAssignment_roleNameConfig(id),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRoleAssignmentExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "role_definition_id"),
-					resource.TestCheckResourceAttr(resourceName, "role_definition_name", "Log Analytics Reader"),
+					testCheckAzureRMRoleAssignmentExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "role_definition_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_definition_name", "Log Analytics Reader"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -110,8 +110,7 @@ func testAccAzureRMRoleAssignment_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_role_assignment.test"
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -122,9 +121,9 @@ func testAccAzureRMRoleAssignment_requiresImport(t *testing.T) {
 			{
 				Config: testAccAzureRMRoleAssignment_roleNameConfig(id),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRoleAssignmentExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "role_definition_id"),
-					resource.TestCheckResourceAttr(resourceName, "role_definition_name", "Log Analytics Reader"),
+					testCheckAzureRMRoleAssignmentExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "role_definition_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_definition_name", "Log Analytics Reader"),
 				),
 			},
 			{
@@ -137,7 +136,7 @@ func testAccAzureRMRoleAssignment_requiresImport(t *testing.T) {
 
 func testAccAzureRMRoleAssignment_dataActions(t *testing.T) {
 	id := uuid.New().String()
-	resourceName := "azurerm_role_assignment.test"
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -147,24 +146,17 @@ func testAccAzureRMRoleAssignment_dataActions(t *testing.T) {
 			{
 				Config: testAccAzureRMRoleAssignment_dataActionsConfig(id),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRoleAssignmentExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "role_definition_id"),
+					testCheckAzureRMRoleAssignmentExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "role_definition_id"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"skip_service_principal_aad_check",
-				},
-			},
+			data.ImportStep("skip_service_principal_aad_check"),
 		},
 	})
 }
 
 func testAccAzureRMRoleAssignment_builtin(t *testing.T) {
-	resourceName := "azurerm_role_assignment.test"
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
 
 	resource.Test(t, resource.TestCase{
@@ -175,23 +167,16 @@ func testAccAzureRMRoleAssignment_builtin(t *testing.T) {
 			{
 				Config: testAccAzureRMRoleAssignment_builtinConfig(id),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRoleAssignmentExists(resourceName),
+					testCheckAzureRMRoleAssignmentExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"skip_service_principal_aad_check",
-				},
-			},
+			data.ImportStep("skip_service_principal_aad_check"),
 		},
 	})
 }
 
 func testAccAzureRMRoleAssignment_custom(t *testing.T) {
-	resourceName := "azurerm_role_assignment.test"
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	roleDefinitionId := uuid.New().String()
 	roleAssignmentId := uuid.New().String()
 	rInt := tf.AccRandTimeInt()
@@ -204,11 +189,11 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 			{
 				Config: testAccAzureRMRoleAssignment_customConfig(roleDefinitionId, roleAssignmentId, rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRoleAssignmentExists(resourceName),
+					testCheckAzureRMRoleAssignmentExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
@@ -220,7 +205,7 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 }
 
 func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T) {
-	resourceName := "azurerm_role_assignment.test"
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	ri := tf.AccRandTimeInt()
 	id := uuid.New().String()
 
@@ -233,7 +218,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T
 				Config: testAccAzureRMRoleAssignment_servicePrincipal(ri, id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleAssignmentExists("azurerm_role_assignment.test"),
-					resource.TestCheckResourceAttr(resourceName, "principal_type", "ServicePrincipal"),
+					resource.TestCheckResourceAttr(data.ResourceName, "principal_type", "ServicePrincipal"),
 				),
 			},
 		},
