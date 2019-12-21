@@ -1,22 +1,18 @@
-package kusto
+package tests
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMKustoCluster_basic(t *testing.T) {
-	resourceName := "azurerm_kusto_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,26 +20,20 @@ func TestAccAzureRMKustoCluster_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoCluster_basic(ri, rs, acceptance.Location()),
+				Config: testAccAzureRMKustoCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(resourceName),
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMKustoCluster_withTags(t *testing.T) {
-	resourceName := "azurerm_kusto_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
-	preConfig := testAccAzureRMKustoCluster_withTags(ri, rs, acceptance.Location())
-	postConfig := testAccAzureRMKustoCluster_withTagsUpdate(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	preConfig := testAccAzureRMKustoCluster_withTags(data)
+	postConfig := testAccAzureRMKustoCluster_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,18 +43,18 @@ func TestAccAzureRMKustoCluster_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.label", "test"),
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.label", "test1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.ENV", "prod"),
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "prod"),
 				),
 			},
 		},
@@ -72,11 +62,9 @@ func TestAccAzureRMKustoCluster_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMKustoCluster_sku(t *testing.T) {
-	resourceName := "azurerm_kusto_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
-	preConfig := testAccAzureRMKustoCluster_basic(ri, rs, acceptance.Location())
-	postConfig := testAccAzureRMKustoCluster_skuUpdate(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+	preConfig := testAccAzureRMKustoCluster_basic(data)
+	postConfig := testAccAzureRMKustoCluster_skuUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -86,24 +74,24 @@ func TestAccAzureRMKustoCluster_sku(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Dev(No SLA)_Standard_D11_v2"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Dev(No SLA)_Standard_D11_v2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "1"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_D11_v2"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "2"),
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_D11_v2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "2"),
 				),
 			},
 		},
 	})
 }
 
-func testAccAzureRMKustoCluster_basic(rInt int, rs string, location string) string {
+func testAccAzureRMKustoCluster_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -120,10 +108,10 @@ resource "azurerm_kusto_cluster" "test" {
     capacity = 1
   }
 }
-`, rInt, location, rs)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_withTags(rInt int, rs string, location string) string {
+func testAccAzureRMKustoCluster_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -144,10 +132,10 @@ resource "azurerm_kusto_cluster" "test" {
     label = "test"
   }
 }
-`, rInt, location, rs)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_withTagsUpdate(rInt int, rs string, location string) string {
+func testAccAzureRMKustoCluster_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -169,10 +157,10 @@ resource "azurerm_kusto_cluster" "test" {
     ENV   = "prod"
   }
 }
-`, rInt, location, rs)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKustoCluster_skuUpdate(rInt int, rs string, location string) string {
+func testAccAzureRMKustoCluster_skuUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -189,7 +177,7 @@ resource "azurerm_kusto_cluster" "test" {
     capacity = 2
   }
 }
-`, rInt, location, rs)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testCheckAzureRMKustoClusterDestroy(s *terraform.State) error {
