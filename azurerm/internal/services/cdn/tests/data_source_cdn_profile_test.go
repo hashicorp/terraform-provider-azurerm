@@ -1,18 +1,15 @@
-package cdn
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccDataSourceAzureRMCdnProfile_basic(ri, location)
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -20,7 +17,7 @@ func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMCdnProfile_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists("data.azurerm_cdn_profile.test"),
 				),
@@ -30,10 +27,7 @@ func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMCdnProfile_withTags(t *testing.T) {
-	resourceName := "data.azurerm_cdn_profile.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccDataSourceAzureRMCdnProfile_withTags(ri, location)
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -41,19 +35,19 @@ func TestAccDataSourceAzureRMCdnProfile_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccDataSourceAzureRMCdnProfile_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnProfileExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
+					testCheckAzureRMCdnProfileExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost_center", "MSFT"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAzureRMCdnProfile_basic(rInt int, location string) string {
+func testAccDataSourceAzureRMCdnProfile_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -71,10 +65,10 @@ data "azurerm_cdn_profile" "test" {
   name                = "${azurerm_cdn_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceAzureRMCdnProfile_withTags(rInt int, location string) string {
+func testAccDataSourceAzureRMCdnProfile_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -97,5 +91,5 @@ data "azurerm_cdn_profile" "test" {
   name                = "${azurerm_cdn_profile.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

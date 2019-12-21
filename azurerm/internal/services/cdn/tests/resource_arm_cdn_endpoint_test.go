@@ -1,4 +1,4 @@
-package cdn
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
-	resourceName := "azurerm_cdn_endpoint.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnEndpoint_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	config := testAccAzureRMCdnEndpoint_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,14 +24,10 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists(resourceName),
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -44,9 +38,7 @@ func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_cdn_endpoint.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,13 +46,13 @@ func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCdnEndpoint_basic(ri, location),
+				Config: testAccAzureRMCdnEndpoint_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists(resourceName),
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMCdnEndpoint_requiresImport(ri, location),
+				Config:      testAccAzureRMCdnEndpoint_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_cdn_endpoint"),
 			},
 		},
@@ -68,9 +60,8 @@ func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
-	resourceName := "azurerm_cdn_endpoint.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnEndpoint_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	config := testAccAzureRMCdnEndpoint_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,8 +71,8 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists(resourceName),
-					testCheckAzureRMCdnEndpointDisappears(resourceName),
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					testCheckAzureRMCdnEndpointDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -90,11 +81,9 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
-	resourceName := "azurerm_cdn_endpoint.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example.com", location)
-	updatedConfig := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example2.com", location)
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	config := testAccAzureRMCdnEndpoint_hostHeader(data, "www.example.com")
+	updatedConfig := testAccAzureRMCdnEndpoint_hostHeader(data, "www.example2.com")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -104,15 +93,15 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "origin_host_header", "www.example.com"),
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", "www.example.com"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "origin_host_header", "www.example2.com"),
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", "www.example2.com"),
 				),
 			},
 		},
@@ -120,11 +109,9 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 }
 
 func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
-	resourceName := "azurerm_cdn_endpoint.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMCdnEndpoint_withTags(ri, location)
-	postConfig := testAccAzureRMCdnEndpoint_withTagsUpdate(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	preConfig := testAccAzureRMCdnEndpoint_withTags(data)
+	postConfig := testAccAzureRMCdnEndpoint_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -134,37 +121,28 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
 				),
-			}, {
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			}, data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
-	resourceName := "azurerm_cdn_endpoint.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnEndpoint_optimized(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	config := testAccAzureRMCdnEndpoint_optimized(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -174,8 +152,8 @@ func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "optimization_type", "GeneralWebDelivery"),
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimization_type", "GeneralWebDelivery"),
 				),
 			},
 		},
@@ -183,9 +161,8 @@ func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 }
 
 func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
-	resourceName := "azurerm_cdn_endpoint.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnEndpoint_geoFilters(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	config := testAccAzureRMCdnEndpoint_geoFilters(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -195,17 +172,16 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "geo_filter.#", "2"),
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "geo_filter.#", "2"),
 				),
 			},
 		},
 	})
 }
 func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
-	resourceName := "azurerm_cdn_endpoint.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnEndpoint_fullFields(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	config := testAccAzureRMCdnEndpoint_fullFields(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -215,19 +191,19 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "is_http_allowed", "true"),
-					resource.TestCheckResourceAttr(resourceName, "is_https_allowed", "true"),
-					resource.TestCheckResourceAttr(resourceName, "origin_path", "/origin-path"),
-					resource.TestCheckResourceAttr(resourceName, "probe_path", "/origin-path/probe"),
-					resource.TestCheckResourceAttr(resourceName, "origin_host_header", "www.example.com"),
-					resource.TestCheckResourceAttr(resourceName, "optimization_type", "GeneralWebDelivery"),
-					resource.TestCheckResourceAttr(resourceName, "querystring_caching_behaviour", "UseQueryString"),
-					resource.TestCheckResourceAttr(resourceName, "content_types_to_compress.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "is_compression_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "geo_filter.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "is_http_allowed", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "is_https_allowed", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "origin_path", "/origin-path"),
+					resource.TestCheckResourceAttr(data.ResourceName, "probe_path", "/origin-path/probe"),
+					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", "www.example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimization_type", "GeneralWebDelivery"),
+					resource.TestCheckResourceAttr(data.ResourceName, "querystring_caching_behaviour", "UseQueryString"),
+					resource.TestCheckResourceAttr(data.ResourceName, "content_types_to_compress.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "is_compression_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "geo_filter.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
 				),
 			},
 		},
@@ -235,11 +211,9 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 }
 
 func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
-	resourceName := "azurerm_cdn_endpoint.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(ri, location, "true", "false")
-	updatedConfig := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(ri, location, "false", "true")
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	config := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data, "true", "false")
+	updatedConfig := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data, "false", "true")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -249,17 +223,17 @@ func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "is_http_allowed", "true"),
-					resource.TestCheckResourceAttr(resourceName, "is_https_allowed", "false"),
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "is_http_allowed", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "is_https_allowed", "false"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "is_http_allowed", "false"),
-					resource.TestCheckResourceAttr(resourceName, "is_https_allowed", "true"),
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "is_http_allowed", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "is_https_allowed", "true"),
 				),
 			},
 		},
@@ -354,7 +328,7 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMCdnEndpoint_basic(rInt int, location string) string {
+func testAccAzureRMCdnEndpoint_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -381,11 +355,11 @@ resource "azurerm_cdn_endpoint" "test" {
     http_port  = 80
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMCdnEndpoint_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMCdnEndpoint_basic(rInt, location)
+func testAccAzureRMCdnEndpoint_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMCdnEndpoint_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -405,7 +379,7 @@ resource "azurerm_cdn_endpoint" "import" {
 `, template)
 }
 
-func testAccAzureRMCdnEndpoint_hostHeader(rInt int, domain string, location string) string {
+func testAccAzureRMCdnEndpoint_hostHeader(data acceptance.TestData, domain string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -438,10 +412,10 @@ resource "azurerm_cdn_endpoint" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location, rInt, rInt, domain)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, domain)
 }
 
-func testAccAzureRMCdnEndpoint_withTags(rInt int, location string) string {
+func testAccAzureRMCdnEndpoint_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -473,10 +447,10 @@ resource "azurerm_cdn_endpoint" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMCdnEndpoint_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMCdnEndpoint_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -507,10 +481,10 @@ resource "azurerm_cdn_endpoint" "test" {
     environment = "staging"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMCdnEndpoint_geoFilters(rInt int, location string) string {
+func testAccAzureRMCdnEndpoint_geoFilters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -553,10 +527,10 @@ resource "azurerm_cdn_endpoint" "test" {
     country_codes = ["US"]
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMCdnEndpoint_optimized(rInt int, location string) string {
+func testAccAzureRMCdnEndpoint_optimized(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -586,10 +560,10 @@ resource "azurerm_cdn_endpoint" "test" {
     http_port  = 80
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMCdnEndpoint_fullFields(rInt int, location string) string {
+func testAccAzureRMCdnEndpoint_fullFields(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -635,10 +609,10 @@ resource "azurerm_cdn_endpoint" "test" {
     environment = "Production"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(rInt int, location string, isHttpAllowed string, isHttpsAllowed string) string {
+func testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data acceptance.TestData, isHttpAllowed string, isHttpsAllowed string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -667,5 +641,5 @@ resource "azurerm_cdn_endpoint" "test" {
     http_port  = 80
   }
 }
-`, rInt, location, rInt, rInt, isHttpAllowed, isHttpsAllowed)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, isHttpAllowed, isHttpsAllowed)
 }

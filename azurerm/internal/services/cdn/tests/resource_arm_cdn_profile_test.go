@@ -1,4 +1,4 @@
-package cdn
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
-	resourceName := "azurerm_cdn_profile.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnProfile_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	config := testAccAzureRMCdnProfile_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,14 +24,10 @@ func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnProfileExists(resourceName),
+					testCheckAzureRMCdnProfileExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -44,9 +38,7 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_cdn_profile.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,13 +46,13 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCdnProfile_basic(ri, location),
+				Config: testAccAzureRMCdnProfile_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnProfileExists(resourceName),
+					testCheckAzureRMCdnProfileExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMCdnProfile_requiresImport(ri, location),
+				Config:      testAccAzureRMCdnProfile_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_cdn_profile"),
 			},
 		},
@@ -68,11 +60,9 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
-	resourceName := "azurerm_cdn_profile.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMCdnProfile_withTags(ri, location)
-	postConfig := testAccAzureRMCdnProfile_withTagsUpdate(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	preConfig := testAccAzureRMCdnProfile_withTags(data)
+	postConfig := testAccAzureRMCdnProfile_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -82,37 +72,28 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnProfileExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
+					testCheckAzureRMCdnProfileExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnProfileExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
+					testCheckAzureRMCdnProfileExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnProfileNonStandardCasing(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -120,13 +101,13 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnProfileNonStandardCasing(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists("azurerm_cdn_profile.test"),
 				),
 			},
 			{
-				Config:             config,
+				Config:             testAccAzureRMCdnProfileNonStandardCasing(data),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -135,10 +116,9 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 }
 
 func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
-	resourceName := "azurerm_cdn_profile.test"
-	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMCdnProfile_basic(ri, acceptance.Location())
-	postConfig := testAccAzureRMCdnProfile_standardAkamai(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	preConfig := testAccAzureRMCdnProfile_basic(data)
+	postConfig := testAccAzureRMCdnProfile_standardAkamai(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -148,15 +128,15 @@ func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnProfileExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Verizon"),
+					testCheckAzureRMCdnProfileExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Verizon"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnProfileExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Akamai"),
+					testCheckAzureRMCdnProfileExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Akamai"),
 				),
 			},
 		},
@@ -164,9 +144,8 @@ func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 }
 
 func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
-	resourceName := "azurerm_cdn_profile.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnProfile_standardAkamai(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	config := testAccAzureRMCdnProfile_standardAkamai(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -176,23 +155,18 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnProfileExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Akamai"),
+					testCheckAzureRMCdnProfileExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Akamai"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
-	resourceName := "azurerm_cdn_profile.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCdnProfile_standardMicrosoft(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
+	config := testAccAzureRMCdnProfile_standardMicrosoft(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -202,15 +176,11 @@ func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnProfileExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Microsoft"),
+					testCheckAzureRMCdnProfileExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Microsoft"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -271,7 +241,7 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMCdnProfile_basic(rInt int, location string) string {
+func testAccAzureRMCdnProfile_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -284,11 +254,11 @@ resource "azurerm_cdn_profile" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard_Verizon"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCdnProfile_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMCdnProfile_basic(rInt, location)
+func testAccAzureRMCdnProfile_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMCdnProfile_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -301,7 +271,7 @@ resource "azurerm_cdn_profile" "import" {
 `, template)
 }
 
-func testAccAzureRMCdnProfile_withTags(rInt int, location string) string {
+func testAccAzureRMCdnProfile_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -319,10 +289,10 @@ resource "azurerm_cdn_profile" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCdnProfile_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMCdnProfile_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -339,10 +309,10 @@ resource "azurerm_cdn_profile" "test" {
     environment = "staging"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCdnProfileNonStandardCasing(rInt int, location string) string {
+func testAccAzureRMCdnProfileNonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -355,10 +325,10 @@ resource "azurerm_cdn_profile" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "standard_verizon"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCdnProfile_standardAkamai(rInt int, location string) string {
+func testAccAzureRMCdnProfile_standardAkamai(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -371,10 +341,10 @@ resource "azurerm_cdn_profile" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard_Akamai"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCdnProfile_standardMicrosoft(rInt int, location string) string {
+func testAccAzureRMCdnProfile_standardMicrosoft(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -387,5 +357,5 @@ resource "azurerm_cdn_profile" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard_Microsoft"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
