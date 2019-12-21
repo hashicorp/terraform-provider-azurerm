@@ -1,4 +1,4 @@
-package graph
+package tests
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
-	resourceName := "azurerm_azuread_service_principal.test"
+	data := acceptance.BuildTestData(t, "azurerm_azuread_service_principal", "test")
 	id := uuid.New().String()
 	config := testAccAzureRMActiveDirectoryServicePrincipal_basic(id)
 
@@ -26,16 +26,12 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActiveDirectoryServicePrincipalExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "display_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
+					testCheckAzureRMActiveDirectoryServicePrincipalExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "application_id"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -46,7 +42,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_requiresImport(t *testing.T) 
 		return
 	}
 
-	resourceName := "azurerm_azuread_service_principal.test"
+	data := acceptance.BuildTestData(t, "azurerm_azuread_service_principal", "test")
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -57,7 +53,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_requiresImport(t *testing.T) 
 			{
 				Config: testAccAzureRMActiveDirectoryServicePrincipal_basic(id),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActiveDirectoryServicePrincipalExists(resourceName),
+					testCheckAzureRMActiveDirectoryServicePrincipalExists(data.ResourceName),
 				),
 			},
 			{

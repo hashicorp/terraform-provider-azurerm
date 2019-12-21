@@ -1,4 +1,4 @@
-package graph
+package tests
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAzureRMActiveDirectoryApplication_basic(t *testing.T) {
-	resourceName := "azurerm_azuread_application.test"
+	data := acceptance.BuildTestData(t, "azurerm_azuread_application", "test")
 	id := uuid.New().String()
 	config := testAccAzureRMActiveDirectoryApplication_basic(id)
 
@@ -25,23 +25,19 @@ func TestAccAzureRMActiveDirectoryApplication_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest%s", id)),
-					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("https://acctest%s", id)),
-					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
+					testCheckAzureRMActiveDirectoryApplicationExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest%s", id)),
+					resource.TestCheckResourceAttr(data.ResourceName, "homepage", fmt.Sprintf("https://acctest%s", id)),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "application_id"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMActiveDirectoryApplication_availableToOtherTenants(t *testing.T) {
-	resourceName := "azurerm_azuread_application.test"
+	data := acceptance.BuildTestData(t, "azurerm_azuread_application", "test")
 	id := uuid.New().String()
 	config := testAccAzureRMActiveDirectoryApplication_availableToOtherTenants(id)
 
@@ -53,21 +49,17 @@ func TestAccAzureRMActiveDirectoryApplication_availableToOtherTenants(t *testing
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "available_to_other_tenants", "true"),
+					testCheckAzureRMActiveDirectoryApplicationExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "available_to_other_tenants", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMActiveDirectoryApplication_complete(t *testing.T) {
-	resourceName := "azurerm_azuread_application.test"
+	data := acceptance.BuildTestData(t, "azurerm_azuread_application", "test")
 	id := uuid.New().String()
 	config := testAccAzureRMActiveDirectoryApplication_complete(id)
 
@@ -79,25 +71,21 @@ func TestAccAzureRMActiveDirectoryApplication_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest%s", id)),
-					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("https://homepage-%s", id)),
-					resource.TestCheckResourceAttr(resourceName, "identifier_uris.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "reply_urls.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
+					testCheckAzureRMActiveDirectoryApplicationExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest%s", id)),
+					resource.TestCheckResourceAttr(data.ResourceName, "homepage", fmt.Sprintf("https://homepage-%s", id)),
+					resource.TestCheckResourceAttr(data.ResourceName, "identifier_uris.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "reply_urls.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "application_id"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMActiveDirectoryApplication_update(t *testing.T) {
-	resourceName := "azurerm_azuread_application.test"
+	data := acceptance.BuildTestData(t, "azurerm_azuread_application", "test")
 	id := uuid.New().String()
 	config := testAccAzureRMActiveDirectoryApplication_basic(id)
 
@@ -112,21 +100,21 @@ func TestAccAzureRMActiveDirectoryApplication_update(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest%s", id)),
-					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("https://acctest%s", id)),
-					resource.TestCheckResourceAttr(resourceName, "identifier_uris.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "reply_urls.#", "0"),
+					testCheckAzureRMActiveDirectoryApplicationExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest%s", id)),
+					resource.TestCheckResourceAttr(data.ResourceName, "homepage", fmt.Sprintf("https://acctest%s", id)),
+					resource.TestCheckResourceAttr(data.ResourceName, "identifier_uris.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "reply_urls.#", "0"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest%s", updatedId)),
-					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("https://homepage-%s", updatedId)),
-					resource.TestCheckResourceAttr(resourceName, "identifier_uris.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "reply_urls.#", "1"),
+					testCheckAzureRMActiveDirectoryApplicationExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest%s", updatedId)),
+					resource.TestCheckResourceAttr(data.ResourceName, "homepage", fmt.Sprintf("https://homepage-%s", updatedId)),
+					resource.TestCheckResourceAttr(data.ResourceName, "identifier_uris.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "reply_urls.#", "1"),
 				),
 			},
 		},
