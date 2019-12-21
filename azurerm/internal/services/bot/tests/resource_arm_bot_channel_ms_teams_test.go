@@ -1,4 +1,4 @@
-package bot
+package tests
 
 import (
 	"fmt"
@@ -8,16 +8,14 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, acceptance.Location())
-	resourceName := "azurerm_bot_channel_ms_teams.test"
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
+	config := testAccAzureRMBotChannelMsTeams_basicConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,23 +25,18 @@ func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelMsTeamsExists(resourceName),
+					testCheckAzureRMBotChannelMsTeamsExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, acceptance.Location())
-	config2 := testAccAzureRMBotChannelMsTeams_basicUpdate(ri, acceptance.Location())
-	resourceName := "azurerm_bot_channel_ms_teams.test"
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
+	config := testAccAzureRMBotChannelMsTeams_basicConfig(data)
+	config2 := testAccAzureRMBotChannelMsTeams_basicUpdate(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,36 +46,24 @@ func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelMsTeamsExists(resourceName),
+					testCheckAzureRMBotChannelMsTeamsExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelMsTeamsExists(resourceName),
+					testCheckAzureRMBotChannelMsTeamsExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelMsTeamsExists(resourceName),
+					testCheckAzureRMBotChannelMsTeamsExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -143,8 +124,8 @@ func testCheckAzureRMBotChannelMsTeamsDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBotChannelMsTeams_basicConfig(rInt int, location string) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(rInt, location)
+func testAccAzureRMBotChannelMsTeams_basicConfig(data acceptance.TestData) string {
+	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
@@ -158,8 +139,8 @@ resource "azurerm_bot_channel_ms_teams" "test" {
 `, template)
 }
 
-func testAccAzureRMBotChannelMsTeams_basicUpdate(rInt int, location string) string {
-	template := testAccAzureRMBotChannelsRegistration_basicConfig(rInt, location)
+func testAccAzureRMBotChannelMsTeams_basicUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
