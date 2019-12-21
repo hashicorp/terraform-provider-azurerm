@@ -96,12 +96,7 @@ func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "thumbprint_algorithm", "sha1"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"certificate"},
-			},
+			data.ImportStep("certificate"),
 		},
 	})
 }

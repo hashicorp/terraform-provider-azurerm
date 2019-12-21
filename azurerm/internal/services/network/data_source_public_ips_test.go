@@ -186,7 +186,7 @@ resource "azurerm_public_ip" "test2" {
     environment = "test"
   }
 }
-`, rInt, location, rString, rString)
+`, rInt, location, data.RandomString, data.RandomString)
 }
 
 func testAccDataSourceAzureRMPublicIPs_prefixDataSource(rInt int, rString string, location string) string {
@@ -233,7 +233,7 @@ resource "azurerm_public_ip" "static" {
     environment = "test"
   }
 }
-`, rInt, location, rString, rString)
+`, rInt, location, data.RandomString, data.RandomString)
 }
 
 func testAccDataSourceAzureRMPublicIPs_allocationTypeDataSources(rInt int, rString string, location string) string {

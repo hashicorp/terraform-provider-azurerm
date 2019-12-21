@@ -1,24 +1,23 @@
-package keyvault
+package tests
 
 import (
 	"fmt"
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
-	resourceName := "azurerm_key_vault_access_policy.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultAccessPolicy_basic(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
+	config := testAccAzureRMKeyVaultAccessPolicy_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -28,25 +27,20 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "get"),
-					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
+					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.0", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.1", "set"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMKeyVaultAccessPolicy_basicClassic(t *testing.T) {
-	resourceName := "azurerm_key_vault_access_policy.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultAccessPolicy_basicClassic(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
+	config := testAccAzureRMKeyVaultAccessPolicy_basicClassic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,17 +50,13 @@ func TestAccAzureRMKeyVaultAccessPolicy_basicClassic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "get"),
-					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
+					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.0", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.1", "set"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -77,9 +67,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_key_vault_access_policy.test"
-	rs := acctest.RandString(6)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -87,16 +75,16 @@ func TestAccAzureRMKeyVaultAccessPolicy_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKeyVaultAccessPolicy_basic(rs, location),
+				Config: testAccAzureRMKeyVaultAccessPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "get"),
-					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
+					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.0", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.1", "set"),
 				),
 			},
 			{
-				Config:      testAccAzureRMKeyVaultAccessPolicy_requiresImport(rs, location),
+				Config:      testAccAzureRMKeyVaultAccessPolicy_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_key_vault_access_policy"),
 			},
 		},
@@ -104,10 +92,8 @@ func TestAccAzureRMKeyVaultAccessPolicy_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
-	resourceName1 := "azurerm_key_vault_access_policy.test_with_application_id"
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test_with_application_id")
 	resourceName2 := "azurerm_key_vault_access_policy.test_no_application_id"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultAccessPolicy_multiple(rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -115,15 +101,15 @@ func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultAccessPolicy_multiple(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName1),
-					resource.TestCheckResourceAttr(resourceName1, "key_permissions.0", "create"),
-					resource.TestCheckResourceAttr(resourceName1, "key_permissions.1", "get"),
-					resource.TestCheckResourceAttr(resourceName1, "secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr(resourceName1, "secret_permissions.1", "delete"),
-					resource.TestCheckResourceAttr(resourceName1, "certificate_permissions.0", "create"),
-					resource.TestCheckResourceAttr(resourceName1, "certificate_permissions.1", "delete"),
+					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "create"),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.1", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.0", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.1", "delete"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_permissions.0", "create"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_permissions.1", "delete"),
 
 					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName2),
 					resource.TestCheckResourceAttr(resourceName2, "key_permissions.0", "list"),
@@ -134,11 +120,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.1", "delete"),
 				),
 			},
-			{
-				ResourceName:      resourceName1,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				ResourceName:      resourceName2,
 				ImportState:       true,
@@ -149,10 +131,9 @@ func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
-	rs := acctest.RandString(6)
-	resourceName := "azurerm_key_vault_access_policy.test"
-	preConfig := testAccAzureRMKeyVaultAccessPolicy_basic(rs, acceptance.Location())
-	postConfig := testAccAzureRMKeyVaultAccessPolicy_update(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
+	preConfig := testAccAzureRMKeyVaultAccessPolicy_basic(data)
+	postConfig := testAccAzureRMKeyVaultAccessPolicy_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -162,18 +143,18 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "get"),
-					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
+					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.0", "get"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.1", "set"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "list"),
-					resource.TestCheckResourceAttr(resourceName, "key_permissions.1", "encrypt"),
+					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "list"),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.1", "encrypt"),
 				),
 			},
 		},
@@ -181,8 +162,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -190,7 +170,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:             config,
+				Config:             testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(data),
 				ExpectNonEmptyPlan: true,
 				ExpectError:        regexp.MustCompile(`Error retrieving Key Vault`),
 			},
@@ -229,7 +209,7 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: Get on keyVaultClient: %+v", err)
 		}
 
-		policy, err := findKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
+		policy, err := keyvault.FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
 		if err != nil {
 			return fmt.Errorf("Error finding Key Vault Access Policy %q : %+v", vaultName, err)
 		}
@@ -241,8 +221,8 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.Te
 	}
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_basic(rString string, location string) string {
-	template := testAccAzureRMKeyVaultAccessPolicy_template(rString, location)
+func testAccAzureRMKeyVaultAccessPolicy_basic(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultAccessPolicy_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -264,8 +244,8 @@ resource "azurerm_key_vault_access_policy" "test" {
 `, template)
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_basicClassic(rString string, location string) string {
-	template := testAccAzureRMKeyVaultAccessPolicy_template(rString, location)
+func testAccAzureRMKeyVaultAccessPolicy_basicClassic(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultAccessPolicy_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -288,8 +268,8 @@ resource "azurerm_key_vault_access_policy" "test" {
 `, template)
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_requiresImport(rString string, location string) string {
-	template := testAccAzureRMKeyVaultAccessPolicy_basic(rString, location)
+func testAccAzureRMKeyVaultAccessPolicy_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultAccessPolicy_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -310,8 +290,8 @@ resource "azurerm_key_vault_access_policy" "import" {
 `, template)
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_multiple(rString string, location string) string {
-	template := testAccAzureRMKeyVaultAccessPolicy_template(rString, location)
+func testAccAzureRMKeyVaultAccessPolicy_multiple(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultAccessPolicy_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -379,8 +359,8 @@ resource "azurerm_key_vault_access_policy" "test_no_application_id" {
 `, template)
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_update(rString string, location string) string {
-	template := testAccAzureRMKeyVaultAccessPolicy_template(rString, location)
+func testAccAzureRMKeyVaultAccessPolicy_update(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultAccessPolicy_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -401,7 +381,7 @@ resource "azurerm_key_vault_access_policy" "test" {
 `, template)
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_template(rString string, location string) string {
+func testAccAzureRMKeyVaultAccessPolicy_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -422,10 +402,10 @@ resource "azurerm_key_vault" "test" {
     environment = "Production"
   }
 }
-`, rString, location, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(rString string, location string) string {
+func testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -462,5 +442,5 @@ resource "azurerm_key_vault_access_policy" "test" {
     "get",
   ]
 }
-`, rString, location, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString)
 }

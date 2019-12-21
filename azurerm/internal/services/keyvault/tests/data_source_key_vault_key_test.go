@@ -1,38 +1,34 @@
-package keyvault
+package tests
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMKeyVaultKey_complete(t *testing.T) {
-	dataSourceName := "data.azurerm_key_vault_key.test"
-
-	rString := acctest.RandString(8)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceKeyVaultKey_complete(rString, location),
+				Config: testAccDataSourceKeyVaultKey_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "key_type", "RSA"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.hello", "world"),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_type", "RSA"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceKeyVaultKey_complete(rString string, location string) string {
-	t := testAccAzureRMKeyVaultKey_complete(rString, location)
+func testAccDataSourceKeyVaultKey_complete(data acceptance.TestData) string {
+	t := testAccAzureRMKeyVaultKey_complete(data)
 	return fmt.Sprintf(`
 %s
 

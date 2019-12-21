@@ -506,7 +506,7 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, rInt, location, rString, rString, rString)
+`, rInt, location, rString, data.RandomString, data.RandomString)
 }
 
 func testaccAzureRMBatchPool_autoScale_complete(rInt int, rString string, location string) string {
@@ -564,7 +564,7 @@ EOF
     version   = "latest"
   }
 }
-`, rInt, location, rString, rString, rString)
+`, rInt, location, rString, data.RandomString, data.RandomString)
 }
 
 func testaccAzureRMBatchPool_basic(rInt int, rString string, location string) string {
@@ -598,7 +598,7 @@ resource "azurerm_batch_pool" "test" {
     version   = "latest"
   }
 }
-`, rInt, location, rString, rString)
+`, rInt, location, data.RandomString, data.RandomString)
 }
 
 func testaccAzureRMBatchPool_requiresImport(rInt int, rString string, location string) string {
@@ -680,7 +680,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, rInt, location, rString, rString)
+`, rInt, location, data.RandomString, data.RandomString)
 }
 
 func testaccAzureRMBatchPoolValidateResourceFileWithoutSource(rInt int, rString string, location string) string {
@@ -738,7 +738,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, rInt, location, rString, rString)
+`, rInt, location, data.RandomString, data.RandomString)
 }
 
 func testaccAzureRMBatchPoolValidateResourceFileWithMultipleSources(rInt int, rString string, location string) string {
@@ -796,7 +796,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, rInt, location, rString, rString)
+`, rInt, location, data.RandomString, data.RandomString)
 }
 
 func testaccAzureRMBatchPoolValidateResourceFileBlobPrefixWithoutAutoStorageContainerName(rInt int, rString string, location string) string {
@@ -854,7 +854,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, rInt, location, rString, rString)
+`, rInt, location, data.RandomString, data.RandomString)
 }
 
 func testaccAzureRMBatchPoolValidateResourceFileHttpURLWithoutFilePath(rInt int, rString string, location string) string {
@@ -911,7 +911,7 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, rInt, location, rString, rString)
+`, rInt, location, data.RandomString, data.RandomString)
 }
 
 func testaccAzureRMBatchPoolCertificates(rInt int, rString string, location string) string {
@@ -976,7 +976,7 @@ resource "azurerm_batch_pool" "test" {
     visibility     = ["StartTask", "RemoteUser"]
   }
 }
-`, rInt, location, rString, rString)
+`, rInt, location, data.RandomString, data.RandomString)
 }
 
 func testaccAzureRMBatchPoolContainerConfiguration(rInt int, rString string, location string) string {
@@ -1028,7 +1028,7 @@ resource "azurerm_batch_pool" "test" {
     ]
   }
 }
-`, rInt, location, rString, rString, rString)
+`, rInt, location, rString, data.RandomString, data.RandomString)
 }
 
 func testaccAzureRMBatchPoolCustomImageConfiguration(rInt int, rString string, location string) string {
@@ -1177,5 +1177,5 @@ resource "azurerm_batch_pool" "test" {
     id = "${azurerm_image.test.id}"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rString, rInt, rInt, rInt, rString, rString)
+`, rInt, location, rInt, rInt, rInt, rInt, rString, rInt, rInt, rInt, data.RandomString, data.RandomString)
 }
