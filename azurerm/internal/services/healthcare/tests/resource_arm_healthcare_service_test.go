@@ -1,4 +1,4 @@
-package healthcare
+package tests
 
 import (
 	"fmt"
@@ -7,33 +7,25 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMHealthCareService_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt() / 10
-	// currently only supported in "ukwest", "northcentralus", "westus2".
-	location := "westus2"
-
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHealthCareService_basic(ri, location),
+				Config: testAccAzureRMHealthCareService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHealthCareServiceExists("azurerm_healthcare_service.test"),
+					testCheckAzureRMHealthCareServiceExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      "azurerm_healthcare_service.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -44,50 +36,37 @@ func TestAccAzureRMHealthCareService_requiresImport(t *testing.T) {
 		return
 	}
 
-	ri := tf.AccRandTimeInt() / 10
-	// currently only supported in "ukwest", "northcentralus", "westus2".
-	location := "westus2"
-
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHealthCareService_basic(ri, location),
+				Config: testAccAzureRMHealthCareService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHealthCareServiceExists("azurerm_healthcare_service.test"),
+					testCheckAzureRMHealthCareServiceExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMHealthCareService_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_healthcare_service"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMHealthCareService_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMHealthCareService_complete(t *testing.T) {
-	ri := tf.AccRandTimeInt() / 10
-	// currently only supported in "ukwest", "northcentralus", "westus2".
-	location := "westus2"
-
+	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHealthCareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHealthCareService_complete(ri, location),
+				Config: testAccAzureRMHealthCareService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHealthCareServiceExists("azurerm_healthcare_service.test"),
+					testCheckAzureRMHealthCareServiceExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      "azurerm_healthcare_service.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -146,7 +125,10 @@ func testCheckAzureRMHealthCareServiceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMHealthCareService_basic(rInt int, location string) string {
+func testAccAzureRMHealthCareService_basic(data acceptance.TestData) string {
+	// currently only supported in "ukwest", "northcentralus", "westus2".
+	location := "westus2"
+
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -164,11 +146,11 @@ resource "azurerm_healthcare_service" "test" {
     "${data.azurerm_client_config.current.service_principal_object_id}",
   ]
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, location, data.RandomInteger)
 }
 
-func testAccAzureRMHealthCareService_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMHealthCareService_basic(rInt, location)
+func testAccAzureRMHealthCareService_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMHealthCareService_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -184,7 +166,10 @@ resource "azurerm_healthcare_service" "import" {
 `, template)
 }
 
-func testAccAzureRMHealthCareService_complete(rInt int, location string) string {
+func testAccAzureRMHealthCareService_complete(data acceptance.TestData) string {
+	// currently only supported in "ukwest", "northcentralus", "westus2".
+	location := "westus2"
+
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -221,5 +206,5 @@ resource "azurerm_healthcare_service" "test" {
     allow_credentials  = true
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, location, data.RandomInteger)
 }
