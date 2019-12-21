@@ -1,4 +1,4 @@
-package compute
+package tests
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -15,26 +14,20 @@ import (
 )
 
 func TestAccAzureRMSharedImage_basic(t *testing.T) {
-	resourceName := "azurerm_shared_image.test"
-	ri := tf.AccRandTimeInt()
-
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImage_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSharedImage_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					testCheckAzureRMSharedImageExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -44,55 +37,43 @@ func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_shared_image.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImage_basic(ri, location),
+				Config: testAccAzureRMSharedImage_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", ""),
+					testCheckAzureRMSharedImageExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
 				),
 			},
-			{
-				Config:      testAccAzureRMSharedImage_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_shared_image"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMSharedImage_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMSharedImage_complete(t *testing.T) {
-	resourceName := "azurerm_shared_image.test"
-	ri := tf.AccRandTimeInt()
-
+	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSharedImage_complete(ri, acceptance.Location()),
+				Config: testAccAzureRMSharedImage_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
-					resource.TestCheckResourceAttr(resourceName, "description", "Wubba lubba dub dub"),
-					resource.TestCheckResourceAttr(resourceName, "eula", "Do you agree there's infinite Rick's and Infinite Morty's?"),
-					resource.TestCheckResourceAttr(resourceName, "privacy_statement_uri", "https://council.of.ricks/privacy-statement"),
-					resource.TestCheckResourceAttr(resourceName, "release_note_uri", "https://council.of.ricks/changelog.md"),
+					testCheckAzureRMSharedImageExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "os_type", "Linux"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Wubba lubba dub dub"),
+					resource.TestCheckResourceAttr(data.ResourceName, "eula", "Do you agree there's infinite Rick's and Infinite Morty's?"),
+					resource.TestCheckResourceAttr(data.ResourceName, "privacy_statement_uri", "https://council.of.ricks/privacy-statement"),
+					resource.TestCheckResourceAttr(data.ResourceName, "release_note_uri", "https://council.of.ricks/changelog.md"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -157,7 +138,7 @@ func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFu
 	}
 }
 
-func testAccAzureRMSharedImage_basic(rInt int, location string) string {
+func testAccAzureRMSharedImage_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -183,10 +164,11 @@ resource "azurerm_shared_image" "test" {
     sku       = "AccTesSku%d"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSharedImage_requiresImport(rInt int, location string) string {
+func testAccAzureRMSharedImage_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMSharedImage_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -203,10 +185,10 @@ resource "azurerm_shared_image" "import" {
     sku       = "AccTesSku%d"
   }
 }
-`, testAccAzureRMSharedImage_basic(rInt, location), rInt, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMSharedImage_complete(rInt int, location string) string {
+func testAccAzureRMSharedImage_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -236,5 +218,5 @@ resource "azurerm_shared_image" "test" {
     sku       = "AccTesSku%d"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
