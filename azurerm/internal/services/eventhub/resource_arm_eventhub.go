@@ -59,13 +59,13 @@ func resourceArmEventHub() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateEventHubPartitionCount,
+				ValidateFunc: ValidateEventHubPartitionCount,
 			},
 
 			"message_retention": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validateEventHubMessageRetentionCount,
+				ValidateFunc: ValidateEventHubMessageRetentionCount,
 			},
 
 			"capture_description": {
@@ -123,7 +123,7 @@ func resourceArmEventHub() *schema.Resource {
 									"archive_name_format": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validateEventHubArchiveNameFormat,
+										ValidateFunc: ValidateEventHubArchiveNameFormat,
 									},
 									"blob_container_name": {
 										Type:     schema.TypeString,
@@ -276,7 +276,7 @@ func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func validateEventHubPartitionCount(v interface{}, _ string) (warnings []string, errors []error) {
+func ValidateEventHubPartitionCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 
 	if !(32 >= value && value >= 1) {
@@ -286,7 +286,7 @@ func validateEventHubPartitionCount(v interface{}, _ string) (warnings []string,
 	return warnings, errors
 }
 
-func validateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []string, errors []error) {
+func ValidateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 
 	if !(7 >= value && value >= 1) {
@@ -296,7 +296,7 @@ func validateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []
 	return warnings, errors
 }
 
-func validateEventHubArchiveNameFormat(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateEventHubArchiveNameFormat(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	requiredComponents := []string{
