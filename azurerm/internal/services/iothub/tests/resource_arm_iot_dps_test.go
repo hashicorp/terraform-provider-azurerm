@@ -1,4 +1,4 @@
-package iothub
+package tests
 
 import (
 	"fmt"
@@ -7,49 +7,37 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func TestAccAzureRMIotHubDPS_basic(t *testing.T) {
-	resourceName := "azurerm_iothub_dps.test"
-	rInt := tf.AccRandTimeInt()
+func TestAccAzureRMIotDPS_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iot_dps", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
+		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubDPS_basic(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotDPS_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "allocation_policy"),
-					resource.TestCheckResourceAttrSet(resourceName, "device_provisioning_host_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "id_scope"),
-					resource.TestCheckResourceAttrSet(resourceName, "service_operations_host_name"),
+					testCheckAzureRMIotDPSExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func TestAccAzureRMIotHubDPS_requiresImport(t *testing.T) {
+func TestAccAzureRMIotDPS_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
-	resourceName := "azurerm_iothub_dps.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_iot_dps", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -57,22 +45,21 @@ func TestAccAzureRMIotHubDPS_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubDPS_basic(rInt, location),
+				Config: testAccAzureRMIotDPS_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSExists(resourceName),
+					testCheckAzureRMIotDPSExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMIotHubDPS_requiresImport(rInt, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothubdps"),
+				Config:      testAccAzureRMIotDPS_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_iotdps"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMIotHubDPS_update(t *testing.T) {
-	resourceName := "azurerm_iothub_dps.test"
-	rInt := tf.AccRandTimeInt()
+func TestAccAzureRMIotDPS_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iot_dps", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,72 +67,55 @@ func TestAccAzureRMIotHubDPS_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubDPS_basic(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotDPS_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSExists(resourceName),
+					testCheckAzureRMIotDPSExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMIotHubDPS_update(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotDPS_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSExists(resourceName),
+					testCheckAzureRMIotDPSExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func TestAccAzureRMIotHubDPS_linkedHubs(t *testing.T) {
-	resourceName := "azurerm_iothub_dps.test"
-	rInt := tf.AccRandTimeInt()
+func TestAccAzureRMIotDPS_linkedHubs(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iot_dps", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
+		CheckDestroy: testCheckAzureRMIotDPSDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubDPS_linkedHubs(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotDPS_linkedHubs(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSExists(resourceName),
+					testCheckAzureRMIotDPSExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMIotHubDPS_linkedHubsUpdated(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotDPS_linkedHubsUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubDPSExists(resourceName),
+					testCheckAzureRMIotDPSExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testCheckAzureRMIotHubDPSDestroy(s *terraform.State) error {
+func testCheckAzureRMIotDPSDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothubdps" {
+		if rs.Type != "azurerm_iotdps" {
 			continue
 		}
 
@@ -165,7 +135,7 @@ func testCheckAzureRMIotHubDPSDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMIotHubDPSExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMIotDPSExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -193,14 +163,14 @@ func testCheckAzureRMIotHubDPSExists(resourceName string) resource.TestCheckFunc
 	}
 }
 
-func testAccAzureRMIotHubDPS_basic(rInt int, location string) string {
+func testAccAzureRMIotDPS_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_iothub_dps" "test" {
+resource "azurerm_iot_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -211,18 +181,18 @@ resource "azurerm_iothub_dps" "test" {
     capacity = "1"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHubDPS_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMIotHubDPS_basic(rInt, location)
+func testAccAzureRMIotDPS_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMIotDPS_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iothub_dps" "import" {
-  name                = "${azurerm_iothub_dps.test.name}"
-  resource_group_name = "${azurerm_iothub_dps.test.name}"
-  location            = "${azurerm_iothub_dps.test.location}"
+resource "azurerm_iot_dps" "import" {
+  name                = "${azurerm_iot_dps.test.name}"
+  resource_group_name = "${azurerm_iot_dps.test.name}"
+  location            = "${azurerm_iot_dps.test.location}"
 
   sku {
     name     = "S1"
@@ -233,14 +203,14 @@ resource "azurerm_iothub_dps" "import" {
 `, template)
 }
 
-func testAccAzureRMIotHubDPS_update(rInt int, location string) string {
+func testAccAzureRMIotDPS_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_iothub_dps" "test" {
+resource "azurerm_iot_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -255,17 +225,17 @@ resource "azurerm_iothub_dps" "test" {
     purpose = "testing"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHubDPS_linkedHubs(rInt int, location string) string {
+func testAccAzureRMIotDPS_linkedHubs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_iothub_dps" "test" {
+resource "azurerm_iot_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -288,17 +258,17 @@ resource "azurerm_iothub_dps" "test" {
     location          = "${azurerm_resource_group.test.location}"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHubDPS_linkedHubsUpdated(rInt int, location string) string {
+func testAccAzureRMIotDPS_linkedHubsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_iothub_dps" "test" {
+resource "azurerm_iot_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -315,5 +285,5 @@ resource "azurerm_iothub_dps" "test" {
     allocation_weight = 150
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

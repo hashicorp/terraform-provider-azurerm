@@ -1,14 +1,12 @@
-package iothub
+package tests
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -16,9 +14,7 @@ import (
 )
 
 func TestAccAzureRMIotHubFallbackRoute_basic(t *testing.T) {
-	resourceName := "azurerm_iothub_fallback_route.test"
-	rInt := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
+	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,16 +22,12 @@ func TestAccAzureRMIotHubFallbackRoute_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubFallbackRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(rInt, rs, acceptance.Location()),
+				Config: testAccAzureRMIotHubFallbackRoute_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubFallbackRouteExists(resourceName),
+					testCheckAzureRMIotHubFallbackRouteExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -46,10 +38,7 @@ func TestAccAzureRMIotHubFallbackRoute_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_iothub_fallback_route.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	rs := acctest.RandString(4)
+	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -57,13 +46,13 @@ func TestAccAzureRMIotHubFallbackRoute_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(rInt, rs, location),
+				Config: testAccAzureRMIotHubFallbackRoute_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubFallbackRouteExists(resourceName),
+					testCheckAzureRMIotHubFallbackRouteExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMIotHubFallbackRoute_requiresImport(rInt, location),
+				Config:      testAccAzureRMIotHubFallbackRoute_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_iothub_fallback_route"),
 			},
 		},
@@ -71,9 +60,7 @@ func TestAccAzureRMIotHubFallbackRoute_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMIotHubFallbackRoute_update(t *testing.T) {
-	resourceName := "azurerm_iothub_fallback_route.test"
-	rInt := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
+	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -81,27 +68,19 @@ func TestAccAzureRMIotHubFallbackRoute_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubFallbackRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(rInt, rs, acceptance.Location()),
+				Config: testAccAzureRMIotHubFallbackRoute_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubFallbackRouteExists(resourceName),
+					testCheckAzureRMIotHubFallbackRouteExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMIotHubFallbackRoute_update(rInt, rs, acceptance.Location()),
+				Config: testAccAzureRMIotHubFallbackRoute_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubFallbackRouteExists(resourceName),
+					testCheckAzureRMIotHubFallbackRouteExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -170,8 +149,8 @@ func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.Tes
 	}
 }
 
-func testAccAzureRMIotHubFallbackRoute_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMIotHub_basic(rInt, location)
+func testAccAzureRMIotHubFallbackRoute_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMIotHub_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -187,7 +166,7 @@ resource "azurerm_iothub_fallback_route" "import" {
 `, template)
 }
 
-func testAccAzureRMIotHubFallbackRoute_basic(rInt int, rStr string, location string) string {
+func testAccAzureRMIotHubFallbackRoute_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
@@ -246,10 +225,10 @@ resource "azurerm_iothub_fallback_route" "test" {
   endpoint_names = ["${azurerm_iothub_endpoint_storage_container.test.name}"]
   enabled        = true
 }
-`, rInt, location, rStr)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMIotHubFallbackRoute_update(rInt int, rStr string, location string) string {
+func testAccAzureRMIotHubFallbackRoute_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
@@ -308,5 +287,5 @@ resource "azurerm_iothub_fallback_route" "test" {
   endpoint_names = ["${azurerm_iothub_endpoint_storage_container.test.name}"]
   enabled        = false
 }
-`, rInt, location, rStr)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
