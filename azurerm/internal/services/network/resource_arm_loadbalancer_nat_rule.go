@@ -133,7 +133,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 
 	natRules := append(*loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules, *newNatRule)
 
-	existingNatRule, existingNatRuleIndex, exists := findLoadBalancerNatRuleByName(loadBalancer, name)
+	existingNatRule, existingNatRuleIndex, exists := FindLoadBalancerNatRuleByName(loadBalancer, name)
 	if exists {
 		if name == *existingNatRule.Name {
 			if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -202,7 +202,7 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	config, _, exists := findLoadBalancerNatRuleByName(loadBalancer, name)
+	config, _, exists := FindLoadBalancerNatRuleByName(loadBalancer, name)
 	if !exists {
 		d.SetId("")
 		log.Printf("[INFO] Load Balancer Nat Rule %q not found. Removing from state", name)
@@ -254,7 +254,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	_, index, exists := findLoadBalancerNatRuleByName(loadBalancer, d.Get("name").(string))
+	_, index, exists := FindLoadBalancerNatRuleByName(loadBalancer, d.Get("name").(string))
 	if !exists {
 		return nil
 	}
@@ -300,7 +300,7 @@ func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBa
 	}
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
-		rule, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v)
+		rule, exists := FindLoadBalancerFrontEndIpConfigurationByName(lb, v)
 		if !exists {
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}
