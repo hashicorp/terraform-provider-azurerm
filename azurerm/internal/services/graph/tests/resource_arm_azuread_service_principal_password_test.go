@@ -1,4 +1,4 @@
-package graph
+package tests
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 )
 
 func TestAccAzureRMActiveDirectoryServicePrincipalPassword_basic(t *testing.T) {
-	resourceName := "azurerm_azuread_service_principal_password.test"
+	data := acceptance.BuildTestData(t, "azurerm_azuread_service_principal_password", "test")
 	applicationId, err := uuid.GenerateUUID()
 	if err != nil {
 		t.Fatal(err)
@@ -36,10 +36,10 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					// can't assert on Value since it's not returned
-					testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "start_date"),
-					resource.TestCheckResourceAttrSet(resourceName, "key_id"),
-					resource.TestCheckResourceAttr(resourceName, "end_date", "2020-01-01T01:02:03Z"),
+					testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "start_date"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "end_date", "2020-01-01T01:02:03Z"),
 				),
 			},
 		},
@@ -52,7 +52,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_requiresImport(t *tes
 		return
 	}
 
-	resourceName := "azurerm_azuread_service_principal_password.test"
+	data := acceptance.BuildTestData(t, "azurerm_azuread_service_principal_password", "test")
 	applicationId, err := uuid.GenerateUUID()
 	if err != nil {
 		t.Fatal(err)
@@ -70,7 +70,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_requiresImport(t *tes
 			{
 				Config: testAccAzureRMActiveDirectoryServicePrincipalPassword_basic(applicationId, value),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(resourceName),
+					testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(data.ResourceName),
 				),
 			},
 			{
@@ -82,7 +82,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_requiresImport(t *tes
 }
 
 func TestAccAzureRMActiveDirectoryServicePrincipalPassword_customKeyId(t *testing.T) {
-	resourceName := "azurerm_azuread_service_principal_password.test"
+	data := acceptance.BuildTestData(t, "azurerm_azuread_service_principal_password", "test")
 	applicationId, err := uuid.GenerateUUID()
 	if err != nil {
 		t.Fatal(err)
@@ -106,10 +106,10 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_customKeyId(t *testin
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					// can't assert on Value since it's not returned
-					testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "start_date"),
-					resource.TestCheckResourceAttr(resourceName, "key_id", keyId),
-					resource.TestCheckResourceAttr(resourceName, "end_date", "2020-01-01T01:02:03Z"),
+					testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "start_date"),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_id", keyId),
+					resource.TestCheckResourceAttr(data.ResourceName, "end_date", "2020-01-01T01:02:03Z"),
 				),
 			},
 		},

@@ -1,4 +1,4 @@
-package graph
+package tests
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(t *testing.T) {
-	dataSourceName := "data.azurerm_azuread_service_principal.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_azuread_service_principal", "test")
 	id := uuid.New().String()
 	config := testAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(id)
 
@@ -22,10 +22,10 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(t *testing.
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActiveDirectoryServicePrincipalExists(dataSourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "application_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "object_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "display_name"),
+					testCheckAzureRMActiveDirectoryServicePrincipalExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "application_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "object_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
 				),
 			},
 		},
@@ -33,7 +33,7 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(t *testing.
 }
 
 func TestAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(t *testing.T) {
-	dataSourceName := "data.azurerm_azuread_service_principal.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_azuread_service_principal", "test")
 	id := uuid.New().String()
 	config := testAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(id)
 
@@ -45,10 +45,10 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(t *testing.T)
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActiveDirectoryServicePrincipalExists(dataSourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "application_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "object_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "display_name"),
+					testCheckAzureRMActiveDirectoryServicePrincipalExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "application_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "object_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
 				),
 			},
 		},
@@ -56,7 +56,7 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(t *testing.T)
 }
 
 func TestAccDataSourceAzureRMAzureADServicePrincipal_byObjectId(t *testing.T) {
-	dataSourceName := "data.azurerm_azuread_service_principal.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_azuread_service_principal", "test")
 	id := uuid.New().String()
 	config := testAccDataSourceAzureRMAzureADServicePrincipal_byObjectId(id)
 
@@ -68,10 +68,10 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byObjectId(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMActiveDirectoryServicePrincipalExists(dataSourceName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "application_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "object_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "display_name"),
+					testCheckAzureRMActiveDirectoryServicePrincipalExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "application_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "object_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
 				),
 			},
 		},
