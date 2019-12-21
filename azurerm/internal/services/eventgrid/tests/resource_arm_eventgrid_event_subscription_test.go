@@ -1,26 +1,19 @@
-package eventgrid
+package tests
 
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMEventGridEventSubscription_basic(t *testing.T) {
-	resourceName := "azurerm_eventgrid_event_subscription.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -28,33 +21,26 @@ func TestAccAzureRMEventGridEventSubscription_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_basic(ri, rs, location),
+				Config: testAccAzureRMEventGridEventSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "event_delivery_schema", "EventGridSchema"),
-					resource.TestCheckResourceAttr(resourceName, "storage_queue_endpoint.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "storage_blob_dead_letter_destination.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "included_event_types.0", "All"),
-					resource.TestCheckResourceAttr(resourceName, "retry_policy.0.max_delivery_attempts", "11"),
-					resource.TestCheckResourceAttr(resourceName, "retry_policy.0.event_time_to_live", "11"),
-					resource.TestCheckResourceAttr(resourceName, "labels.0", "test"),
-					resource.TestCheckResourceAttr(resourceName, "labels.2", "test2"),
+					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "EventGridSchema"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_queue_endpoint.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_blob_dead_letter_destination.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "All"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.max_delivery_attempts", "11"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.event_time_to_live", "11"),
+					resource.TestCheckResourceAttr(data.ResourceName, "labels.0", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "labels.2", "test2"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMEventGridEventSubscription_eventhub(t *testing.T) {
-	resourceName := "azurerm_eventgrid_event_subscription.test"
-	ri := tf.AccRandTimeInt()
-
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -62,27 +48,20 @@ func TestAccAzureRMEventGridEventSubscription_eventhub(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_eventhub(ri, location),
+				Config: testAccAzureRMEventGridEventSubscription_eventhub(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "event_delivery_schema", "CloudEventV01Schema"),
-					resource.TestCheckResourceAttr(resourceName, "eventhub_endpoint.#", "1"),
+					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventV01Schema"),
+					resource.TestCheckResourceAttr(data.ResourceName, "eventhub_endpoint.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMEventGridEventSubscription_update(t *testing.T) {
-	resourceName := "azurerm_eventgrid_event_subscription.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -90,31 +69,31 @@ func TestAccAzureRMEventGridEventSubscription_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_basic(ri, rs, location),
+				Config: testAccAzureRMEventGridEventSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "event_delivery_schema", "EventGridSchema"),
-					resource.TestCheckResourceAttr(resourceName, "storage_queue_endpoint.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "storage_blob_dead_letter_destination.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "included_event_types.0", "All"),
-					resource.TestCheckResourceAttr(resourceName, "retry_policy.0.max_delivery_attempts", "11"),
-					resource.TestCheckResourceAttr(resourceName, "retry_policy.0.event_time_to_live", "11"),
-					resource.TestCheckResourceAttr(resourceName, "labels.0", "test"),
-					resource.TestCheckResourceAttr(resourceName, "labels.2", "test2"),
+					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "EventGridSchema"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_queue_endpoint.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_blob_dead_letter_destination.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "All"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.max_delivery_attempts", "11"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.event_time_to_live", "11"),
+					resource.TestCheckResourceAttr(data.ResourceName, "labels.0", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "labels.2", "test2"),
 				),
 			},
 			{
-				Config: testAccAzureRMEventGridEventSubscription_update(ri, rs, location),
+				Config: testAccAzureRMEventGridEventSubscription_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "included_event_types.0", "Microsoft.Storage.BlobCreated"),
-					resource.TestCheckResourceAttr(resourceName, "included_event_types.1", "Microsoft.Storage.BlobDeleted"),
-					resource.TestCheckResourceAttr(resourceName, "subject_filter.0.subject_ends_with", ".jpg"),
-					resource.TestCheckResourceAttr(resourceName, "subject_filter.0.subject_begins_with", "test/test"),
-					resource.TestCheckResourceAttr(resourceName, "retry_policy.0.max_delivery_attempts", "10"),
-					resource.TestCheckResourceAttr(resourceName, "retry_policy.0.event_time_to_live", "12"),
-					resource.TestCheckResourceAttr(resourceName, "labels.0", "test4"),
-					resource.TestCheckResourceAttr(resourceName, "labels.2", "test6"),
+					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "Microsoft.Storage.BlobCreated"),
+					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.1", "Microsoft.Storage.BlobDeleted"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_ends_with", ".jpg"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_begins_with", "test/test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.max_delivery_attempts", "10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.event_time_to_live", "12"),
+					resource.TestCheckResourceAttr(data.ResourceName, "labels.0", "test4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "labels.2", "test6"),
 				),
 			},
 		},
@@ -122,11 +101,7 @@ func TestAccAzureRMEventGridEventSubscription_update(t *testing.T) {
 }
 
 func TestAccAzureRMEventGridEventSubscription_filter(t *testing.T) {
-	resourceName := "azurerm_eventgrid_event_subscription.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -134,20 +109,16 @@ func TestAccAzureRMEventGridEventSubscription_filter(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_filter(ri, rs, location),
+				Config: testAccAzureRMEventGridEventSubscription_filter(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridEventSubscriptionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "included_event_types.0", "Microsoft.Storage.BlobCreated"),
-					resource.TestCheckResourceAttr(resourceName, "included_event_types.1", "Microsoft.Storage.BlobDeleted"),
-					resource.TestCheckResourceAttr(resourceName, "subject_filter.0.subject_ends_with", ".jpg"),
-					resource.TestCheckResourceAttr(resourceName, "subject_filter.0.subject_begins_with", "test/test"),
+					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "Microsoft.Storage.BlobCreated"),
+					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.1", "Microsoft.Storage.BlobDeleted"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_ends_with", ".jpg"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_begins_with", "test/test"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -210,7 +181,7 @@ func testCheckAzureRMEventGridEventSubscriptionExists(resourceName string) resou
 	}
 }
 
-func testAccAzureRMEventGridEventSubscription_basic(rInt int, rString string, location string) string {
+func testAccAzureRMEventGridEventSubscription_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -274,10 +245,10 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 
   labels = ["test", "test1", "test2"]
 }
-`, rInt, location, rString, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_update(rInt int, rString string, location string) string {
+func testAccAzureRMEventGridEventSubscription_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -347,10 +318,10 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
   labels               = ["test4", "test5", "test6"]
 }
-`, rInt, location, rString, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_eventhub(rInt int, location string) string {
+func testAccAzureRMEventGridEventSubscription_eventhub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -381,10 +352,10 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     eventhub_id = "${azurerm_eventhub.test.id}"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_filter(rInt int, rString string, location string) string {
+func testAccAzureRMEventGridEventSubscription_filter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -425,5 +396,5 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     subject_ends_with   = ".jpg"
   }
 }
-`, rInt, location, rString, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
