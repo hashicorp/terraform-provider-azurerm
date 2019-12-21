@@ -1,4 +1,4 @@
-package eventgrid
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMEventGridDomain_basic(t *testing.T) {
-	resourceName := "azurerm_eventgrid_domain.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,27 +21,21 @@ func TestAccAzureRMEventGridDomain_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridDomain_basic(ri, location),
+				Config: testAccAzureRMEventGridDomain_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridDomainExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
+					testCheckAzureRMEventGridDomainExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMEventGridDomain_mapping(t *testing.T) {
-	resourceName := "azurerm_eventgrid_domain.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -52,28 +43,22 @@ func TestAccAzureRMEventGridDomain_mapping(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridDomain_mapping(ri, location),
+				Config: testAccAzureRMEventGridDomain_mapping(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridDomainExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "input_mapping_fields.0.topic", "test"),
-					resource.TestCheckResourceAttr(resourceName, "input_mapping_fields.0.topic", "test"),
-					resource.TestCheckResourceAttr(resourceName, "input_mapping_default_values.0.data_version", "1.0"),
-					resource.TestCheckResourceAttr(resourceName, "input_mapping_default_values.0.subject", "DefaultSubject"),
+					testCheckAzureRMEventGridDomainExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_fields.0.topic", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_fields.0.topic", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_default_values.0.data_version", "1.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_default_values.0.subject", "DefaultSubject"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMEventGridDomain_basicWithTags(t *testing.T) {
-	resourceName := "azurerm_eventgrid_domain.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -81,18 +66,14 @@ func TestAccAzureRMEventGridDomain_basicWithTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridDomain_basicWithTags(ri, location),
+				Config: testAccAzureRMEventGridDomain_basicWithTags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridDomainExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.foo", "bar"),
+					testCheckAzureRMEventGridDomainExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -155,7 +136,7 @@ func testCheckAzureRMEventGridDomainExists(resourceName string) resource.TestChe
 	}
 }
 
-func testAccAzureRMEventGridDomain_basic(rInt int, location string) string {
+func testAccAzureRMEventGridDomain_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -167,10 +148,10 @@ resource "azurerm_eventgrid_domain" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridDomain_mapping(rInt int, location string) string {
+func testAccAzureRMEventGridDomain_mapping(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -194,10 +175,10 @@ resource "azurerm_eventgrid_domain" "test" {
     subject      = "DefaultSubject"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridDomain_basicWithTags(rInt int, location string) string {
+func testAccAzureRMEventGridDomain_basicWithTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -213,5 +194,5 @@ resource "azurerm_eventgrid_domain" "test" {
     "foo" = "bar"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

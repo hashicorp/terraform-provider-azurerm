@@ -1,4 +1,4 @@
-package eventgrid
+package tests
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -15,8 +14,7 @@ import (
 )
 
 func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
-	resourceName := "azurerm_eventgrid_topic.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,19 +22,15 @@ func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridTopic_basic(ri),
+				Config: testAccAzureRMEventGridTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridTopicExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
+					testCheckAzureRMEventGridTopicExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -47,8 +41,7 @@ func TestAccAzureRMEventGridTopic_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_eventgrid_topic.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,13 +49,13 @@ func TestAccAzureRMEventGridTopic_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridTopic_basic(ri),
+				Config: testAccAzureRMEventGridTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridTopicExists(resourceName),
+					testCheckAzureRMEventGridTopicExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMEventGridTopic_requiresImport(ri),
+				Config:      testAccAzureRMEventGridTopic_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_topic"),
 			},
 		},
@@ -70,8 +63,7 @@ func TestAccAzureRMEventGridTopic_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
-	resourceName := "azurerm_eventgrid_topic.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -79,21 +71,17 @@ func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridTopic_basicWithTags(ri),
+				Config: testAccAzureRMEventGridTopic_basicWithTags(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridTopicExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.foo", "bar"),
-					resource.TestCheckResourceAttrSet(resourceName, "endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
+					testCheckAzureRMEventGridTopicExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -156,7 +144,7 @@ func testCheckAzureRMEventGridTopicExists(resourceName string) resource.TestChec
 	}
 }
 
-func testAccAzureRMEventGridTopic_basic(rInt int) string {
+func testAccAzureRMEventGridTopic_basic(data acceptance.TestData) string {
 	// TODO: confirm if this is still the case
 	// currently only supported in "West Central US" & "West US 2"
 	location := "westus2"
@@ -171,11 +159,11 @@ resource "azurerm_eventgrid_topic" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, location, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridTopic_requiresImport(rInt int) string {
-	template := testAccAzureRMEventGridTopic_basic(rInt)
+func testAccAzureRMEventGridTopic_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMEventGridTopic_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -187,7 +175,7 @@ resource "azurerm_eventgrid_topic" "import" {
 `, template)
 }
 
-func testAccAzureRMEventGridTopic_basicWithTags(rInt int) string {
+func testAccAzureRMEventGridTopic_basicWithTags(data acceptance.TestData) string {
 	// currently only supported in "West Central US" & "West US 2"
 	location := "westus2"
 	return fmt.Sprintf(`
@@ -205,5 +193,5 @@ resource "azurerm_eventgrid_topic" "test" {
     "foo" = "bar"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, location, data.RandomInteger)
 }
