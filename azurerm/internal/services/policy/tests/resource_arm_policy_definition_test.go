@@ -1,4 +1,4 @@
-package policy
+package tests
 
 import (
 	"fmt"
@@ -7,32 +7,25 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
-	resourceName := "azurerm_policy_definition.test"
-	ri := tf.AccRandTimeInt()
-
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyDefinition_basic(ri),
+				Config: testAzureRMPolicyDefinition_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyDefinitionExists(resourceName),
+					testCheckAzureRMPolicyDefinitionExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -43,74 +36,55 @@ func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_policy_definition.test"
-
-	ri := tf.AccRandTimeInt()
-
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyDefinition_basic(ri),
+				Config: testAzureRMPolicyDefinition_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyDefinitionExists(resourceName),
+					testCheckAzureRMPolicyDefinitionExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAzureRMPolicyDefinition_requiresImport(ri),
-				ExpectError: acceptance.RequiresImportError("azurerm_policy_definition"),
-			},
+			data.RequiresImportErrorStep(testAzureRMPolicyDefinition_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
-	resourceName := "azurerm_policy_definition.test"
-	ri := tf.AccRandTimeInt()
-
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyDefinition_computedMetadata(ri),
+				Config: testAzureRMPolicyDefinition_computedMetadata(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyDefinitionExists(resourceName),
+					testCheckAzureRMPolicyDefinitionExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
-	resourceName := "azurerm_policy_definition.test"
-
-	ri := tf.AccRandTimeInt()
-
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyDefinition_ManagementGroup(ri),
+				Config: testAzureRMPolicyDefinition_ManagementGroup(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(resourceName),
+					testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -191,7 +165,7 @@ func testCheckAzureRMPolicyDefinitionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAzureRMPolicyDefinition_basic(ri int) string {
+func testAzureRMPolicyDefinition_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
@@ -226,11 +200,11 @@ POLICY_RULE
   }
 PARAMETERS
 }
-`, ri, ri)
+`, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicyDefinition_requiresImport(ri int) string {
-	template := testAzureRMPolicyDefinition_basic(ri)
+func testAzureRMPolicyDefinition_requiresImport(data acceptance.TestData) string {
+	template := testAzureRMPolicyDefinition_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -245,7 +219,7 @@ resource "azurerm_policy_definition" "import" {
 `, template)
 }
 
-func testAzureRMPolicyDefinition_computedMetadata(rInt int) string {
+func testAzureRMPolicyDefinition_computedMetadata(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_policy_definition" "test" {
   name         = "acctest-%d"
@@ -276,10 +250,10 @@ resource "azurerm_policy_definition" "test" {
   }
 POLICY_RULE
 }
-`, rInt)
+`, data.RandomInteger)
 }
 
-func testAzureRMPolicyDefinition_ManagementGroup(ri int) string {
+func testAzureRMPolicyDefinition_ManagementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_management_group" "test" {
   display_name = "acctestmg-%d"
@@ -319,5 +293,5 @@ POLICY_RULE
   }
 PARAMETERS
 }
-`, ri, ri, ri)
+`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
