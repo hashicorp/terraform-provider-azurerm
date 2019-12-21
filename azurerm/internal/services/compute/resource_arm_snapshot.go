@@ -41,7 +41,7 @@ func resourceArmSnapshot() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateSnapshotName,
+				ValidateFunc: ValidateSnapshotName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -241,7 +241,7 @@ func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func validateSnapshotName(v interface{}, _ string) (warnings []string, errors []error) {
+func ValidateSnapshotName(v interface{}, _ string) (warnings []string, errors []error) {
 	// a-z, A-Z, 0-9, _ and -. The max name length is 80
 	value := v.(string)
 
