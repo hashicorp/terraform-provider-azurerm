@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 )
 
 func TestAzureRMDatabrickWorkspaceName(t *testing.T) {

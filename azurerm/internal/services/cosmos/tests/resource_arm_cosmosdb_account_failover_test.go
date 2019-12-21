@@ -1,18 +1,16 @@
-package cosmos
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMCosmosDBAccount_failover_boundedStaleness(t *testing.T) {
-	resourceName := "azurerm_cosmosdb_account.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCosmosDBAccount_failover_boundedStaleness(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	config := testAccAzureRMCosmosDBAccount_failover_boundedStaleness(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,8 +20,8 @@ func TestAccAzureRMCosmosDBAccount_failover_boundedStaleness(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
+					testCheckAzureRMCosmosDBAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "GlobalDocumentDB"),
 				),
 			},
 		},
@@ -31,8 +29,8 @@ func TestAccAzureRMCosmosDBAccount_failover_boundedStaleness(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	config := testAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -50,8 +48,8 @@ func TestAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(t *testing.
 }
 
 func TestAccAzureRMCosmosDBAccount_failover_eventualConsistency(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCosmosDBAccount_failover_eventualConsistency(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	config := testAccAzureRMCosmosDBAccount_failover_eventualConsistency(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,9 +67,8 @@ func TestAccAzureRMCosmosDBAccount_failover_eventualConsistency(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_failover_mongoDB(t *testing.T) {
-	resourceName := "azurerm_cosmosdb_account.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCosmosDBAccount_failover_mongoDB(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	config := testAccAzureRMCosmosDBAccount_failover_mongoDB(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -81,8 +78,8 @@ func TestAccAzureRMCosmosDBAccount_failover_mongoDB(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
+					testCheckAzureRMCosmosDBAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "MongoDB"),
 				),
 			},
 		},
@@ -90,8 +87,8 @@ func TestAccAzureRMCosmosDBAccount_failover_mongoDB(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_failover_session(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCosmosDBAccount_failover_session(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	config := testAccAzureRMCosmosDBAccount_failover_session(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -109,8 +106,8 @@ func TestAccAzureRMCosmosDBAccount_failover_session(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_failover_strong(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCosmosDBAccount_failover_strong(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	config := testAccAzureRMCosmosDBAccount_failover_strong(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -128,8 +125,8 @@ func TestAccAzureRMCosmosDBAccount_failover_strong(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_failover_geoReplicated(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCosmosDBAccount_failover_geoReplicated(ri, acceptance.Location(), acceptance.AltLocation())
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+	config := testAccAzureRMCosmosDBAccount_failover_geoReplicated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -146,7 +143,7 @@ func TestAccAzureRMCosmosDBAccount_failover_geoReplicated(t *testing.T) {
 	})
 }
 
-func testAccAzureRMCosmosDBAccount_failover_boundedStaleness(rInt int, location string) string {
+func testAccAzureRMCosmosDBAccount_failover_boundedStaleness(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -168,10 +165,10 @@ resource "azurerm_cosmosdb_account" "test" {
     priority = 0
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(rInt int, location string) string {
+func testAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -195,10 +192,10 @@ resource "azurerm_cosmosdb_account" "test" {
     priority = 0
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDBAccount_failover_eventualConsistency(rInt int, location string) string {
+func testAccAzureRMCosmosDBAccount_failover_eventualConsistency(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -220,10 +217,10 @@ resource "azurerm_cosmosdb_account" "test" {
     priority = 0
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDBAccount_failover_session(rInt int, location string) string {
+func testAccAzureRMCosmosDBAccount_failover_session(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -245,10 +242,10 @@ resource "azurerm_cosmosdb_account" "test" {
     priority = 0
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDBAccount_failover_mongoDB(rInt int, location string) string {
+func testAccAzureRMCosmosDBAccount_failover_mongoDB(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -271,10 +268,10 @@ resource "azurerm_cosmosdb_account" "test" {
     priority = 0
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDBAccount_failover_strong(rInt int, location string) string {
+func testAccAzureRMCosmosDBAccount_failover_strong(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -296,10 +293,10 @@ resource "azurerm_cosmosdb_account" "test" {
     priority = 0
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDBAccount_failover_geoReplicated(rInt int, location string, altLocation string) string {
+func testAccAzureRMCosmosDBAccount_failover_geoReplicated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -328,5 +325,5 @@ resource "azurerm_cosmosdb_account" "test" {
     priority = 1
   }
 }
-`, rInt, location, rInt, altLocation)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
 }
