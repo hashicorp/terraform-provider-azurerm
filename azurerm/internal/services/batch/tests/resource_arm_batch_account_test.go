@@ -1,15 +1,14 @@
-package batch
+package tests
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
 	"net/http"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -30,7 +29,7 @@ func TestValidateBatchAccountName(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		_, es := validateAzureRMBatchAccountName(test.input, "name")
+		_, es := batch.ValidateAzureRMBatchAccountName(test.input, "name")
 
 		if test.shouldError && len(es) == 0 {
 			t.Fatalf("Expected validating name %q to fail", test.input)
@@ -43,12 +42,9 @@ func TestValidateBatchAccountName(t *testing.T) {
 }
 
 func TestAccAzureRMBatchAccount_basic(t *testing.T) {
-	resourceName := "azurerm_batch_account.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
 
-	config := testAccAzureRMBatchAccount_basic(ri, rs, location)
+	config := testAccAzureRMBatchAccount_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -58,8 +54,8 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "BatchService"),
+					testCheckAzureRMBatchAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "BatchService"),
 				),
 			},
 		},
@@ -71,12 +67,7 @@ func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_batch_account.test"
-	ri := tf.AccRandTimeInt()
-
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -84,13 +75,13 @@ func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBatchAccount_basic(ri, rs, location),
+				Config: testAccAzureRMBatchAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchAccountExists(resourceName),
+					testCheckAzureRMBatchAccountExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMBatchAccount_requiresImport(ri, rs, location),
+				Config:      testAccAzureRMBatchAccount_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_batch_account"),
 			},
 		},
@@ -98,13 +89,10 @@ func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMBatchAccount_complete(t *testing.T) {
-	resourceName := "azurerm_batch_account.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
 
-	config := testAccAzureRMBatchAccount_complete(ri, rs, location)
-	configUpdate := testAccAzureRMBatchAccount_completeUpdated(ri, rs, location)
+	config := testAccAzureRMBatchAccount_complete(data)
+	configUpdate := testAccAzureRMBatchAccount_completeUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -114,20 +102,20 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "BatchService"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
+					testCheckAzureRMBatchAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "BatchService"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
 				),
 			},
 			{
 				Config: configUpdate,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "BatchService"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
-					resource.TestCheckResourceAttr(resourceName, "tags.version", "2"),
+					testCheckAzureRMBatchAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "BatchService"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.version", "2"),
 				),
 			},
 		},
@@ -135,14 +123,9 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 }
 
 func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
-	resourceName := "azurerm_batch_account.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
-
-	config := testAccAzureRMBatchAccount_userSubscription(ri, rs, location, tenantID)
+	config := testAccAzureRMBatchAccount_userSubscription(data, tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -152,8 +135,8 @@ func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "pool_allocation_mode", "UserSubscription"),
+					testCheckAzureRMBatchAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "UserSubscription"),
 				),
 			},
 		},
@@ -213,7 +196,7 @@ func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBatchAccount_basic(rInt int, batchAccountSuffix string, location string) string {
+func testAccAzureRMBatchAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batchaccount"
@@ -226,11 +209,11 @@ resource "azurerm_batch_account" "test" {
   location             = "${azurerm_resource_group.test.location}"
   pool_allocation_mode = "BatchService"
 }
-`, rInt, location, batchAccountSuffix)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMBatchAccount_requiresImport(rInt int, batchAccountSuffix string, location string) string {
-	template := testAccAzureRMBatchAccount_basic(rInt, batchAccountSuffix, location)
+func testAccAzureRMBatchAccount_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMBatchAccount_basic(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "import" {
@@ -242,7 +225,7 @@ resource "azurerm_batch_account" "import" {
 `, template)
 }
 
-func testAccAzureRMBatchAccount_complete(rInt int, rString string, location string) string {
+func testAccAzureRMBatchAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batchaccount"
@@ -268,10 +251,10 @@ resource "azurerm_batch_account" "test" {
     env = "test"
   }
 }
-`, rInt, location, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMBatchAccount_completeUpdated(rInt int, rString string, location string) string {
+func testAccAzureRMBatchAccount_completeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testaccRG-%d-batchaccount"
@@ -298,10 +281,10 @@ resource "azurerm_batch_account" "test" {
     version = "2"
   }
 }
-`, rInt, location, data.RandomString, data.RandomString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMBatchAccount_userSubscription(rInt int, batchAccountSuffix string, location string, tenantID string) string {
+func testAccAzureRMBatchAccount_userSubscription(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 data "azuread_service_principal" "test" {
   display_name = "Microsoft Azure Batch"
@@ -351,5 +334,5 @@ resource "azurerm_batch_account" "test" {
     url = "${azurerm_key_vault.test.vault_uri}"
   }
 }
-`, rInt, location, batchAccountSuffix, tenantID, tenantID, batchAccountSuffix)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID, tenantID, data.RandomString)
 }
