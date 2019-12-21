@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
@@ -26,8 +25,8 @@ func TestAccDataSourceAzureRMAutomationVariableInt_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAutomationVariableInt_basic(rInt int, location string) string {
-	config := testAccAzureRMAutomationVariableInt_basic(rInt, location)
+func testAccDataSourceAutomationVariableInt_basic(data acceptance.TestData) string {
+	config := testAccAzureRMAutomationVariableInt_basic(data)
 	return fmt.Sprintf(`
 %s
 

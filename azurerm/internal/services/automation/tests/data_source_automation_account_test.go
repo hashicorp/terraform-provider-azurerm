@@ -26,7 +26,7 @@ func TestAccDataSourceAutomationAccount(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAutomationAccount_complete(resourceGroupName string, location string, ri int) string {
+func testAccDataSourceAutomationAccount_complete(resourceGroupName string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "%s"
@@ -42,5 +42,5 @@ data "azurerm_automation_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "${azurerm_automation_account.test.name}"
 }
-`, resourceGroupName, location, ri)
+`, resourceGroupName, data.Locations.Primary, data.RandomInteger)
 }
