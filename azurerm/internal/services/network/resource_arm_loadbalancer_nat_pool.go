@@ -127,7 +127,7 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta int
 
 	natPools := append(*loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools, *newNatPool)
 
-	existingNatPool, existingNatPoolIndex, exists := findLoadBalancerNatPoolByName(loadBalancer, name)
+	existingNatPool, existingNatPoolIndex, exists := FindLoadBalancerNatPoolByName(loadBalancer, name)
 	if exists {
 		if name == *existingNatPool.Name {
 			if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -195,7 +195,7 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	config, _, exists := findLoadBalancerNatPoolByName(loadBalancer, name)
+	config, _, exists := FindLoadBalancerNatPoolByName(loadBalancer, name)
 	if !exists {
 		d.SetId("")
 		log.Printf("[INFO] Load Balancer Nat Pool %q not found. Removing from state", name)
@@ -243,7 +243,7 @@ func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	_, index, exists := findLoadBalancerNatPoolByName(loadBalancer, d.Get("name").(string))
+	_, index, exists := FindLoadBalancerNatPoolByName(loadBalancer, d.Get("name").(string))
 	if !exists {
 		return nil
 	}
@@ -286,7 +286,7 @@ func expandAzureRmLoadBalancerNatPool(d *schema.ResourceData, lb *network.LoadBa
 	}
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
-		rule, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v)
+		rule, exists := FindLoadBalancerFrontEndIpConfigurationByName(lb, v)
 		if !exists {
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}

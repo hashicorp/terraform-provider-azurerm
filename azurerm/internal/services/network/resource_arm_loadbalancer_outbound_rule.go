@@ -140,7 +140,7 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 		outboundRules = *loadBalancer.LoadBalancerPropertiesFormat.OutboundRules
 	}
 
-	existingOutboundRule, existingOutboundRuleIndex, exists := findLoadBalancerOutboundRuleByName(loadBalancer, name)
+	existingOutboundRule, existingOutboundRuleIndex, exists := FindLoadBalancerOutboundRuleByName(loadBalancer, name)
 	if exists {
 		if name == *existingOutboundRule.Name {
 			if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -211,7 +211,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 		return nil
 	}
 
-	config, _, exists := findLoadBalancerOutboundRuleByName(loadBalancer, name)
+	config, _, exists := FindLoadBalancerOutboundRuleByName(loadBalancer, name)
 	if !exists {
 		d.SetId("")
 		log.Printf("[INFO] Load Balancer Outbound Rule %q not found. Removing from state", name)
@@ -279,7 +279,7 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta inte
 		return nil
 	}
 
-	_, index, exists := findLoadBalancerOutboundRuleByName(loadBalancer, d.Get("name").(string))
+	_, index, exists := FindLoadBalancerOutboundRuleByName(loadBalancer, d.Get("name").(string))
 	if !exists {
 		return nil
 	}
@@ -323,7 +323,7 @@ func expandAzureRmLoadBalancerOutboundRule(d *schema.ResourceData, lb *network.L
 
 	for _, raw := range feConfigs {
 		v := raw.(map[string]interface{})
-		rule, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v["name"].(string))
+		rule, exists := FindLoadBalancerFrontEndIpConfigurationByName(lb, v["name"].(string))
 		if !exists {
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v["name"])
 		}

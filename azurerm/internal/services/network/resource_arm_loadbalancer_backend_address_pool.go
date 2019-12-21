@@ -96,7 +96,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 	}
 
 	backendAddressPools := append(*loadBalancer.LoadBalancerPropertiesFormat.BackendAddressPools, expandAzureRmLoadBalancerBackendAddressPools(d))
-	existingPool, existingPoolIndex, exists := findLoadBalancerBackEndAddressPoolByName(loadBalancer, name)
+	existingPool, existingPoolIndex, exists := FindLoadBalancerBackEndAddressPoolByName(loadBalancer, name)
 	if exists {
 		if name == *existingPool.Name {
 			if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -164,7 +164,7 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta 
 		return nil
 	}
 
-	config, _, exists := findLoadBalancerBackEndAddressPoolByName(loadBalancer, name)
+	config, _, exists := FindLoadBalancerBackEndAddressPoolByName(loadBalancer, name)
 	if !exists {
 		d.SetId("")
 		log.Printf("[INFO] Load Balancer Backend Address Pool %q not found. Removing from state", name)
@@ -215,7 +215,7 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 		return nil
 	}
 
-	_, index, exists := findLoadBalancerBackEndAddressPoolByName(loadBalancer, d.Get("name").(string))
+	_, index, exists := FindLoadBalancerBackEndAddressPoolByName(loadBalancer, d.Get("name").(string))
 	if !exists {
 		return nil
 	}

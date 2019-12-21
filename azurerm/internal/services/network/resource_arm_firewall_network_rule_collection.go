@@ -41,14 +41,14 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureFirewallName,
+				ValidateFunc: ValidateAzureFirewallName,
 			},
 
 			"azure_firewall_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureFirewallName,
+				ValidateFunc: ValidateAzureFirewallName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

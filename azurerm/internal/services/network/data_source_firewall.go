@@ -26,7 +26,7 @@ func dataSourceArmFirewall() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureFirewallName,
+				ValidateFunc: ValidateAzureFirewallName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),

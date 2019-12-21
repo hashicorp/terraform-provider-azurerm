@@ -43,7 +43,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmLoadBalancerRuleName,
+				ValidateFunc: ValidateArmLoadBalancerRuleName,
 			},
 
 			"location": azure.SchemaLocationDeprecated(),
@@ -158,7 +158,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 
 	lbRules := append(*loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules, *newLbRule)
 
-	existingRule, existingRuleIndex, exists := findLoadBalancerRuleByName(loadBalancer, name)
+	existingRule, existingRuleIndex, exists := FindLoadBalancerRuleByName(loadBalancer, name)
 	if exists {
 		if name == *existingRule.Name {
 			if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -226,7 +226,7 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	config, _, exists := findLoadBalancerRuleByName(loadBalancer, name)
+	config, _, exists := FindLoadBalancerRuleByName(loadBalancer, name)
 	if !exists {
 		d.SetId("")
 		log.Printf("[INFO] Load Balancer Rule %q not found. Removing from state", name)
@@ -294,7 +294,7 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 		return nil
 	}
 
-	_, index, exists := findLoadBalancerRuleByName(loadBalancer, d.Get("name").(string))
+	_, index, exists := FindLoadBalancerRuleByName(loadBalancer, d.Get("name").(string))
 	if !exists {
 		return nil
 	}
@@ -346,7 +346,7 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 	}
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
-		rule, exists := findLoadBalancerFrontEndIpConfigurationByName(lb, v)
+		rule, exists := FindLoadBalancerFrontEndIpConfigurationByName(lb, v)
 		if !exists {
 			return nil, fmt.Errorf("[ERROR] Cannot find FrontEnd IP Configuration with the name %s", v)
 		}
@@ -374,7 +374,7 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 	}, nil
 }
 
-func validateArmLoadBalancerRuleName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateArmLoadBalancerRuleName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-zA-Z_0-9.-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(

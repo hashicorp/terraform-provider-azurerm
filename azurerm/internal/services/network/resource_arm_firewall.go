@@ -43,7 +43,7 @@ func resourceArmFirewall() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureFirewallName,
+				ValidateFunc: ValidateAzureFirewallName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -394,7 +394,7 @@ func flattenArmFirewallIPConfigurations(input *[]network.AzureFirewallIPConfigur
 	return result
 }
 
-func validateAzureFirewallName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateAzureFirewallName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// From the Portal:
