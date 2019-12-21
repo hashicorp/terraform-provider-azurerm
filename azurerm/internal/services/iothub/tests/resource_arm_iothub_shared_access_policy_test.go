@@ -1,4 +1,4 @@
-package iothub
+package tests
 
 import (
 	"fmt"
@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -17,8 +16,7 @@ import (
 )
 
 func TestAccAzureRMIotHubSharedAccessPolicy_basic(t *testing.T) {
-	resourceName := "azurerm_iothub_shared_access_policy.test"
-	rInt := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_iothub_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,27 +24,23 @@ func TestAccAzureRMIotHubSharedAccessPolicy_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubSharedAccessPolicy_basic(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotHubSharedAccessPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubSharedAccessPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "registry_read", "true"),
-					resource.TestCheckResourceAttr(resourceName, "registry_write", "true"),
-					resource.TestCheckResourceAttr(resourceName, "service_connect", "false"),
-					resource.TestCheckResourceAttr(resourceName, "device_connect", "false"),
-					resource.TestCheckResourceAttr(resourceName, "name", "acctest"),
+					testCheckAzureRMIotHubSharedAccessPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "registry_read", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "registry_write", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "service_connect", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "device_connect", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "acctest"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(t *testing.T) {
-	rInt := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_iothub_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -54,7 +48,7 @@ func TestAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(rInt, acceptance.Location()),
+				Config:      testAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(data),
 				ExpectError: regexp.MustCompile("If `registry_write` is set to true, `registry_read` must also be set to true"),
 			},
 		},
@@ -67,9 +61,7 @@ func TestAccAzureRMIotHubSharedAccessPolicy_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_iothub_shared_access_policy.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_iothub_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -77,20 +69,20 @@ func TestAccAzureRMIotHubSharedAccessPolicy_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubSharedAccessPolicy_basic(rInt, location),
+				Config: testAccAzureRMIotHubSharedAccessPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubSharedAccessPolicyExists(resourceName),
+					testCheckAzureRMIotHubSharedAccessPolicyExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMIotHubSharedAccessPolicy_requiresImport(rInt, location),
+				Config:      testAccAzureRMIotHubSharedAccessPolicy_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_iothub_shared_access_policy"),
 			},
 		},
 	})
 }
 
-func testAccAzureRMIotHubSharedAccessPolicy_basic(rInt int, location string) string {
+func testAccAzureRMIotHubSharedAccessPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -121,11 +113,11 @@ resource "azurerm_iothub_shared_access_policy" "test" {
   registry_read  = true
   registry_write = true
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHubSharedAccessPolicy_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMIotHubSharedAccessPolicy_basic(rInt, location)
+func testAccAzureRMIotHubSharedAccessPolicy_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMIotHubSharedAccessPolicy_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -140,7 +132,7 @@ resource "azurerm_iothub_shared_access_policy" "import" {
 `, template)
 }
 
-func testAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(rInt int, location string) string {
+func testAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -170,7 +162,7 @@ resource "azurerm_iothub_shared_access_policy" "test" {
 
   registry_write = true
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testCheckAzureRMIotHubSharedAccessPolicyExists(resourceName string) resource.TestCheckFunc {

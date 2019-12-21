@@ -1,4 +1,4 @@
-package iothub
+package tests
 
 import (
 	"fmt"
@@ -8,16 +8,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMIotHubEndpointServiceBusTopic_basic(t *testing.T) {
-	resourceName := "azurerm_iothub_endpoint_servicebus_topic.test"
-	rInt := tf.AccRandTimeInt()
+func TestAccAzureRMIotHubEndpointEventHub_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,75 +23,70 @@ func TestAccAzureRMIotHubEndpointServiceBusTopic_basic(t *testing.T) {
 		CheckDestroy: testAccAzureRMIotHubEndpointStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubEndpointServiceBusTopic_basic(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotHubEndpointEventHub_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName),
+					testAccAzureRMIotHubEndpointEventHubExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func TestAccAzureRMIotHubEndpointServiceBusTopic_requiresImport(t *testing.T) {
+func TestAccAzureRMIotHubEndpointEventHub_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_iothub_endpoint_servicebus_topic.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMIotHubEndpointServiceBusTopicDestroy,
+		CheckDestroy: testAccAzureRMIotHubEndpointEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubEndpointServiceBusTopic_basic(rInt, location),
+				Config: testAccAzureRMIotHubEndpointEventHub_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName),
+					testAccAzureRMIotHubEndpointEventHubExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMIotHubEndpointServiceBusTopic_requiresImport(rInt, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_iothub_endpoint_servicebus_topic"),
+				Config:      testAccAzureRMIotHubEndpointEventHub_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_endpoint_eventhub"),
 			},
 		},
 	})
 }
 
-func testAccAzureRMIotHubEndpointServiceBusTopic_basic(rInt int, location string) string {
+func testAccAzureRMIotHubEndpointEventHub_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"
 }
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctest-%[1]d"
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-}
-  
-resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%[1]d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Basic"
 }
 
-resource "azurerm_servicebus_topic_authorization_rule" "test" {
+resource "azurerm_eventhub" "test" {
+  name                = "acctesteventhub-%[1]d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub_authorization_rule" "test" {
   name                = "acctest-%[1]d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  eventhub_name       = "${azurerm_eventhub.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-
+ 
   listen = false
   send   = true
   manage = false
@@ -115,32 +108,32 @@ resource "azurerm_iothub" "test" {
   }
 }
 
-resource "azurerm_iothub_endpoint_servicebus_topic" "test" {
+resource "azurerm_iothub_endpoint_eventhub" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
   name                = "acctest"
   
-  connection_string = "${azurerm_servicebus_topic_authorization_rule.test.primary_connection_string}"
+  connection_string = "${azurerm_eventhub_authorization_rule.test.primary_connection_string}"
 }
-`, rInt, location)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMIotHubEndpointServiceBusTopic_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMIotHubEndpointServiceBusTopic_basic(rInt, location)
+func testAccAzureRMIotHubEndpointEventHub_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMIotHubEndpointEventHub_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iothub_endpoint_servicebus_topic" "import" {
+resource "azurerm_iothub_endpoint_eventhub" "import" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
   name                = "acctest"
     
-  connection_string = "${azurerm_servicebus_topic_authorization_rule.test.primary_connection_string}"
+  connection_string = "${azurerm_eventhub_authorization_rule.test.primary_connection_string}"
 }
 `, template)
 }
 
-func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) resource.TestCheckFunc {
+func testAccAzureRMIotHubEndpointEventHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -170,35 +163,34 @@ func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) reso
 		if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
 			return fmt.Errorf("Bad: No endpoint %s defined for IotHub %s", endpointName, iothubName)
 		}
-		endpoints := iothub.Properties.Routing.Endpoints.ServiceBusTopics
+		endpoints := iothub.Properties.Routing.Endpoints.EventHubs
 
 		if endpoints == nil {
-			return fmt.Errorf("Bad: No ServiceBus Topic endpoint %s defined for IotHub %s", endpointName, iothubName)
+			return fmt.Errorf("Bad: No EventHub endpoint %s defined for IotHub %s", endpointName, iothubName)
 		}
 
 		for _, endpoint := range *endpoints {
-			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
-				if strings.EqualFold(*existingEndpointName, endpointName) {
-					return nil
-				}
+			if strings.EqualFold(*endpoint.Name, endpointName) {
+				return nil
 			}
 		}
-		return fmt.Errorf("Bad: No ServiceBus Topic endpoint %s defined for IotHub %s", endpointName, iothubName)
+
+		return fmt.Errorf("Bad: No EventHub endpoint %s defined for IotHub %s", endpointName, iothubName)
 	}
 }
 
-func testAccAzureRMIotHubEndpointServiceBusTopicDestroy(s *terraform.State) error {
+func testAccAzureRMIotHubEndpointEventHubDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothub_endpoint_servicebus_topic" {
+		if rs.Type != "azurerm_iothub_endpoint_eventhub" {
 			continue
 		}
-
 		endpointName := rs.Primary.Attributes["name"]
 		iothubName := rs.Primary.Attributes["iothub_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if utils.ResponseWasNotFound(iothub.Response) {
@@ -210,7 +202,7 @@ func testAccAzureRMIotHubEndpointServiceBusTopicDestroy(s *terraform.State) erro
 		if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
 			return nil
 		}
-		endpoints := iothub.Properties.Routing.Endpoints.ServiceBusTopics
+		endpoints := iothub.Properties.Routing.Endpoints.EventHubs
 
 		if endpoints == nil {
 			return nil
@@ -219,7 +211,7 @@ func testAccAzureRMIotHubEndpointServiceBusTopicDestroy(s *terraform.State) erro
 		for _, endpoint := range *endpoints {
 			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
 				if strings.EqualFold(*existingEndpointName, endpointName) {
-					return fmt.Errorf("Bad: ServiceBus Topic endpoint %s still exists on IoTHb %s", endpointName, iothubName)
+					return fmt.Errorf("Bad: EventHub endpoint %s still exists on IoTHb %s", endpointName, iothubName)
 				}
 			}
 		}

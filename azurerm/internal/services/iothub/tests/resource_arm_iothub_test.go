@@ -1,22 +1,19 @@
-package iothub
+package tests
 
 import (
 	"fmt"
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMIotHub_basic(t *testing.T) {
-	resourceName := "azurerm_iothub.test"
-	rInt := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,23 +21,18 @@ func TestAccAzureRMIotHub_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_basic(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotHub_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists(resourceName),
+					testCheckAzureRMIotHubExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMIotHub_ipFilterRules(t *testing.T) {
-	resourceName := "azurerm_iothub.test"
-	rInt := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -48,16 +40,12 @@ func TestAccAzureRMIotHub_ipFilterRules(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_ipFilterRules(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotHub_ipFilterRules(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists(resourceName),
+					testCheckAzureRMIotHubExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -68,9 +56,7 @@ func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_iothub.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,13 +64,13 @@ func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_basic(rInt, location),
+				Config: testAccAzureRMIotHub_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists(resourceName),
+					testCheckAzureRMIotHubExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMIotHub_requiresImport(rInt, location),
+				Config:      testAccAzureRMIotHub_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_iothub"),
 			},
 		},
@@ -92,8 +78,7 @@ func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMIotHub_standard(t *testing.T) {
-	resourceName := "azurerm_iothub.test"
-	rInt := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -101,24 +86,18 @@ func TestAccAzureRMIotHub_standard(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_standard(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotHub_standard(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists(resourceName),
+					testCheckAzureRMIotHubExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
-	resourceName := "azurerm_iothub.test"
-	rInt := tf.AccRandTimeInt()
-	rStr := acctest.RandString(5)
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -126,28 +105,22 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_customRoutes(rInt, rStr, acceptance.Location()),
+				Config: testAccAzureRMIotHub_customRoutes(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "endpoint.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "endpoint.0.type", "AzureIotHub.StorageContainer"),
-					resource.TestCheckResourceAttr(resourceName, "endpoint.1.type", "AzureIotHub.EventHub"),
-					resource.TestCheckResourceAttr(resourceName, "route.#", "2"),
+					testCheckAzureRMIotHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "endpoint.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "endpoint.0.type", "AzureIotHub.StorageContainer"),
+					resource.TestCheckResourceAttr(data.ResourceName, "endpoint.1.type", "AzureIotHub.EventHub"),
+					resource.TestCheckResourceAttr(data.ResourceName, "route.#", "2"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMIotHub_fileUpload(t *testing.T) {
-	resourceName := "azurerm_iothub.test"
-	rInt := tf.AccRandTimeInt()
-	rStr := acctest.RandString(5)
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -155,25 +128,20 @@ func TestAccAzureRMIotHub_fileUpload(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_fileUpload(rInt, rStr, acceptance.Location()),
+				Config: testAccAzureRMIotHub_fileUpload(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "file_upload.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "file_upload.0.lock_duration", "PT5M"),
+					testCheckAzureRMIotHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "file_upload.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "file_upload.0.lock_duration", "PT5M"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMIotHub_fallbackRoute(t *testing.T) {
-	resourceName := "azurerm_iothub.test"
-	rInt := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -181,19 +149,15 @@ func TestAccAzureRMIotHub_fallbackRoute(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_fallbackRoute(rInt, acceptance.Location()),
+				Config: testAccAzureRMIotHub_fallbackRoute(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "fallback_route.0.source", "DeviceMessages"),
-					resource.TestCheckResourceAttr(resourceName, "fallback_route.0.endpoint_names.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "fallback_route.0.enabled", "true"),
+					testCheckAzureRMIotHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "fallback_route.0.source", "DeviceMessages"),
+					resource.TestCheckResourceAttr(data.ResourceName, "fallback_route.0.endpoint_names.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "fallback_route.0.enabled", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -251,7 +215,7 @@ func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMIotHub_basic(rInt int, location string) string {
+func testAccAzureRMIotHub_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -273,11 +237,11 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHub_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMIotHub_basic(rInt, location)
+func testAccAzureRMIotHub_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMIotHub_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -299,7 +263,7 @@ resource "azurerm_iothub" "import" {
 `, template)
 }
 
-func testAccAzureRMIotHub_standard(rInt int, location string) string {
+func testAccAzureRMIotHub_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -321,10 +285,10 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHub_ipFilterRules(rInt int, location string) string {
+func testAccAzureRMIotHub_ipFilterRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -352,10 +316,10 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHub_customRoutes(rInt int, rStr string, location string) string {
+func testAccAzureRMIotHub_customRoutes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -448,10 +412,10 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, rInt, location, rStr, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMIotHub_fallbackRoute(rInt int, location string) string {
+func testAccAzureRMIotHub_fallbackRoute(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -479,10 +443,10 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHub_fileUpload(rInt int, rStr string, location string) string {
+func testAccAzureRMIotHub_fileUpload(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -525,5 +489,5 @@ resource "azurerm_iothub" "test" {
     lock_duration      = "PT5M"
   }
 }
-`, rInt, location, rStr, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
