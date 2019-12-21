@@ -1,10 +1,11 @@
-package keyvault
+package tests
 
 import (
 	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault`
 )
 
 func TestAzureRMKeyVaultMigrateState(t *testing.T) {
@@ -365,7 +366,7 @@ func TestAzureRMKeyVaultMigrateState(t *testing.T) {
 			ID:         tc.ID,
 			Attributes: tc.Attributes,
 		}
-		is, err := resourceAzureRMKeyVaultMigrateState(tc.StateVersion, is, tc.Meta)
+		is, err := keyvault.ResourceAzureRMKeyVaultMigrateState(tc.StateVersion, is, tc.Meta)
 
 		if err != nil {
 			t.Fatalf("bad: %q, err: %+v", tn, err)
