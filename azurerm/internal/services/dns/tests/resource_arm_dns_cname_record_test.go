@@ -1,4 +1,4 @@
-package dns
+package tests
 
 import (
 	"fmt"
@@ -8,16 +8,14 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsCNameRecord_basic(t *testing.T) {
-	resourceName := "azurerm_dns_cname_record.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsCNameRecord_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
+	config := testAccAzureRMDnsCNameRecord_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,15 +25,11 @@ func TestAccAzureRMDnsCNameRecord_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "fqdn"),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -46,9 +40,7 @@ func TestAccAzureRMDnsCNameRecord_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_dns_cname_record.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,13 +48,13 @@ func TestAccAzureRMDnsCNameRecord_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsCNameRecord_basic(ri, location),
+				Config: testAccAzureRMDnsCNameRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDnsCNameRecord_requiresImport(ri, location),
+				Config:      testAccAzureRMDnsCNameRecord_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_dns_cname_record"),
 			},
 		},
@@ -70,9 +62,8 @@ func TestAccAzureRMDnsCNameRecord_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMDnsCNameRecord_subdomain(t *testing.T) {
-	resourceName := "azurerm_dns_cname_record.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsCNameRecord_subdomain(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
+	config := testAccAzureRMDnsCNameRecord_subdomain(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -82,25 +73,19 @@ func TestAccAzureRMDnsCNameRecord_subdomain(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "record", "test.contoso.com"),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "record", "test.contoso.com"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDnsCNameRecord_updateRecords(t *testing.T) {
-	resourceName := "azurerm_dns_cname_record.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMDnsCNameRecord_basic(ri, location)
-	postConfig := testAccAzureRMDnsCNameRecord_updateRecords(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
+	preConfig := testAccAzureRMDnsCNameRecord_basic(data)
+	postConfig := testAccAzureRMDnsCNameRecord_updateRecords(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -110,13 +95,13 @@ func TestAccAzureRMDnsCNameRecord_updateRecords(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
 				),
 			},
 		},
@@ -124,11 +109,9 @@ func TestAccAzureRMDnsCNameRecord_updateRecords(t *testing.T) {
 }
 
 func TestAccAzureRMDnsCNameRecord_withTags(t *testing.T) {
-	resourceName := "azurerm_dns_cname_record.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMDnsCNameRecord_withTags(ri, location)
-	postConfig := testAccAzureRMDnsCNameRecord_withTagsUpdate(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
+	preConfig := testAccAzureRMDnsCNameRecord_withTags(data)
+	postConfig := testAccAzureRMDnsCNameRecord_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -138,34 +121,28 @@ func TestAccAzureRMDnsCNameRecord_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDnsCNameRecord_withAlias(t *testing.T) {
-	resourceName := "azurerm_dns_cname_record.test"
+	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	targetResourceName := "azurerm_dns_cname_record.target"
 	targetResourceName2 := "azurerm_dns_cname_record.target2"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMDnsCNameRecord_withAlias(ri, location)
-	postConfig := testAccAzureRMDnsCNameRecord_withAliasUpdate(ri, location)
+	preConfig := testAccAzureRMDnsCNameRecord_withAlias(data)
+	postConfig := testAccAzureRMDnsCNameRecord_withAliasUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -175,33 +152,27 @@ func TestAccAzureRMDnsCNameRecord_withAlias(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
-					resource.TestCheckResourceAttrPair(resourceName, "target_resource_id", targetResourceName, "id"),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
-					resource.TestCheckResourceAttrPair(resourceName, "target_resource_id", targetResourceName2, "id"),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName2, "id"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDnsCNameRecord_RecordToAlias(t *testing.T) {
-	resourceName := "azurerm_dns_cname_record.test"
+	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	targetResourceName := "azurerm_public_ip.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(ri, location)
-	postConfig := testAccAzureRMDnsCNameRecord_AliasToRecord(ri, location)
+	preConfig := testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(data)
+	postConfig := testAccAzureRMDnsCNameRecord_AliasToRecord(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -211,33 +182,27 @@ func TestAccAzureRMDnsCNameRecord_RecordToAlias(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
-					resource.TestCheckResourceAttrPair(resourceName, "target_resource_id", targetResourceName, "id"),
-					resource.TestCheckNoResourceAttr(resourceName, "record"),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "record"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDnsCNameRecord_AliasToRecord(t *testing.T) {
-	resourceName := "azurerm_dns_cname_record.test"
+	data := acceptance.BuildTestData(t, "azurerm_dns_cname_record", "test")
 	targetResourceName := "azurerm_public_ip.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMDnsCNameRecord_AliasToRecord(ri, location)
-	postConfig := testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(ri, location)
+	preConfig := testAccAzureRMDnsCNameRecord_AliasToRecord(data)
+	postConfig := testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -247,22 +212,18 @@ func TestAccAzureRMDnsCNameRecord_AliasToRecord(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
-					resource.TestCheckResourceAttrPair(resourceName, "target_resource_id", targetResourceName, "id"),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCNameRecordExists(resourceName),
-					resource.TestCheckNoResourceAttr(resourceName, "target_resource_id"),
+					testCheckAzureRMDnsCNameRecordExists(data.ResourceName),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "target_resource_id"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -326,7 +287,7 @@ func testCheckAzureRMDnsCNameRecordDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDnsCNameRecord_basic(rInt int, location string) string {
+func testAccAzureRMDnsCNameRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -345,11 +306,11 @@ resource "azurerm_dns_cname_record" "test" {
   ttl                 = 300
   record              = "contoso.com"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCNameRecord_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMDnsCNameRecord_basic(rInt, location)
+func testAccAzureRMDnsCNameRecord_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDnsCNameRecord_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -363,7 +324,7 @@ resource "azurerm_dns_cname_record" "import" {
 `, template)
 }
 
-func testAccAzureRMDnsCNameRecord_subdomain(rInt int, location string) string {
+func testAccAzureRMDnsCNameRecord_subdomain(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -382,10 +343,10 @@ resource "azurerm_dns_cname_record" "test" {
   ttl                 = 300
   record              = "test.contoso.com"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCNameRecord_updateRecords(rInt int, location string) string {
+func testAccAzureRMDnsCNameRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -404,10 +365,10 @@ resource "azurerm_dns_cname_record" "test" {
   ttl                 = 300
   record              = "contoso.co.uk"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCNameRecord_withTags(rInt int, location string) string {
+func testAccAzureRMDnsCNameRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -431,10 +392,10 @@ resource "azurerm_dns_cname_record" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCNameRecord_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMDnsCNameRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -457,10 +418,10 @@ resource "azurerm_dns_cname_record" "test" {
     environment = "staging"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCNameRecord_withAlias(rInt int, location string) string {
+func testAccAzureRMDnsCNameRecord_withAlias(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -487,10 +448,10 @@ resource "azurerm_dns_cname_record" "test" {
   ttl                 = 300
   target_resource_id   = "${azurerm_dns_cname_record.target.id}"
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCNameRecord_withAliasUpdate(rInt int, location string) string {
+func testAccAzureRMDnsCNameRecord_withAliasUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -517,10 +478,10 @@ resource "azurerm_dns_cname_record" "test" {
   ttl                 = 300
   target_resource_id  = "${azurerm_dns_cname_record.target2.id}"
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCNameRecord_AliasToRecord(rInt int, location string) string {
+func testAccAzureRMDnsCNameRecord_AliasToRecord(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -547,10 +508,10 @@ resource "azurerm_dns_cname_record" "test" {
   ttl                 = 300
   target_resource_id  = "${azurerm_dns_cname_record.target2.id}"
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(rInt int, location string) string {
+func testAccAzureRMDnsCNameRecord_AliasToRecordUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -569,5 +530,5 @@ resource "azurerm_dns_cname_record" "test" {
   ttl                 = 300
   record              = "1.2.3.4"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

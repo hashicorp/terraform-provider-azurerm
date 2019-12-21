@@ -1,4 +1,4 @@
-package dns
+package tests
 
 import (
 	"fmt"
@@ -8,16 +8,14 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
-	resourceName := "azurerm_dns_caa_record.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsCaaRecord_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
+	config := testAccAzureRMDnsCaaRecord_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,15 +25,11 @@ func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCaaRecordExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "fqdn"),
+					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -46,9 +40,7 @@ func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_dns_caa_record.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,13 +48,13 @@ func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsCaaRecord_basic(ri, location),
+				Config: testAccAzureRMDnsCaaRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCaaRecordExists(resourceName),
+					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDnsCaaRecord_requiresImport(ri, location),
+				Config:      testAccAzureRMDnsCaaRecord_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_dns_caa_record"),
 			},
 		},
@@ -70,11 +62,9 @@ func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
-	resourceName := "azurerm_dns_caa_record.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMDnsCaaRecord_basic(ri, location)
-	postConfig := testAccAzureRMDnsCaaRecord_updateRecords(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
+	preConfig := testAccAzureRMDnsCaaRecord_basic(data)
+	postConfig := testAccAzureRMDnsCaaRecord_updateRecords(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -84,15 +74,15 @@ func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCaaRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "record.#", "4"),
+					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "4"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCaaRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "record.#", "5"),
+					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "5"),
 				),
 			},
 		},
@@ -100,11 +90,9 @@ func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
 }
 
 func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
-	resourceName := "azurerm_dns_caa_record.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMDnsCaaRecord_withTags(ri, location)
-	postConfig := testAccAzureRMDnsCaaRecord_withTagsUpdate(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
+	preConfig := testAccAzureRMDnsCaaRecord_withTags(data)
+	postConfig := testAccAzureRMDnsCaaRecord_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -114,22 +102,18 @@ func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCaaRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsCaaRecordExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					testCheckAzureRMDnsCaaRecordExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -193,7 +177,7 @@ func testCheckAzureRMDnsCaaRecordDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDnsCaaRecord_basic(rInt int, location string) string {
+func testAccAzureRMDnsCaaRecord_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -235,11 +219,11 @@ resource "azurerm_dns_caa_record" "test" {
     value = "mailto:terraform@nonexist.tld"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCaaRecord_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMDnsCaaRecord_basic(rInt, location)
+func testAccAzureRMDnsCaaRecord_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDnsCaaRecord_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -276,7 +260,7 @@ resource "azurerm_dns_caa_record" "import" {
 `, template)
 }
 
-func testAccAzureRMDnsCaaRecord_updateRecords(rInt int, location string) string {
+func testAccAzureRMDnsCaaRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -324,10 +308,10 @@ resource "azurerm_dns_caa_record" "test" {
     value = "letsencrypt.org"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCaaRecord_withTags(rInt int, location string) string {
+func testAccAzureRMDnsCaaRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -362,10 +346,10 @@ resource "azurerm_dns_caa_record" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDnsCaaRecord_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMDnsCaaRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -399,5 +383,5 @@ resource "azurerm_dns_caa_record" "test" {
     environment = "staging"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
