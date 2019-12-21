@@ -26,7 +26,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 		Create:        resourceArmDataLakeStoreFileCreate,
 		Read:          resourceArmDataLakeStoreFileRead,
 		Delete:        resourceArmDataLakeStoreFileDelete,
-		MigrateState:  resourceDataLakeStoreFileMigrateState,
+		MigrateState:  ResourceDataLakeStoreFileMigrateState,
 		SchemaVersion: 1,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -50,7 +50,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateDataLakeStoreRemoteFilePath(),
+				ValidateFunc: ValidateDataLakeStoreRemoteFilePath(),
 			},
 
 			"local_file_path": {
@@ -198,7 +198,7 @@ func parseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId
 	return &file, nil
 }
 
-func validateDataLakeStoreRemoteFilePath() schema.SchemaValidateFunc {
+func ValidateDataLakeStoreRemoteFilePath() schema.SchemaValidateFunc {
 	return func(v interface{}, k string) (warnings []string, errors []error) {
 		val := v.(string)
 
