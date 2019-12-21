@@ -1,4 +1,4 @@
-package mariadb
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,9 +13,8 @@ import (
 )
 
 func TestAccAzureRMMariaDbServer_basic(t *testing.T) {
-	resourceName := "azurerm_mariadb_server.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbServer_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	config := testAccAzureRMMariaDbServer_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,20 +24,13 @@ func TestAccAzureRMMariaDbServer_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
-					resource.TestCheckResourceAttr(resourceName, "version", "10.2"),
-					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
+					resource.TestCheckResourceAttr(data.ResourceName, "version", "10.2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
-			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
 		},
 	})
 }
@@ -50,9 +41,7 @@ func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_mariadb_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -60,13 +49,13 @@ func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbServer_basic(ri, location),
+				Config: testAccAzureRMMariaDbServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMariaDbServer_requiresImport(ri, location),
+				Config:      testAccAzureRMMariaDbServer_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_server"),
 			},
 		},
@@ -74,9 +63,8 @@ func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDbServer_basicMaxStorage(t *testing.T) {
-	resourceName := "azurerm_mariadb_server.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbServer_basicMaxStorage(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	config := testAccAzureRMMariaDbServer_basicMaxStorage(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -86,28 +74,20 @@ func TestAccAzureRMMariaDbServer_basicMaxStorage(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
-					resource.TestCheckResourceAttr(resourceName, "version", "10.2"),
-					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
+					resource.TestCheckResourceAttr(data.ResourceName, "version", "10.2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
-			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
 		},
 	})
 }
 
 func TestAccAzureRMMariaDbServer_generalPurpose(t *testing.T) {
-	resourceName := "azurerm_mariadb_server.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbServer_generalPurpose(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	config := testAccAzureRMMariaDbServer_generalPurpose(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -117,25 +97,17 @@ func TestAccAzureRMMariaDbServer_generalPurpose(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
-			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
 		},
 	})
 }
 
 func TestAccAzureRMMariaDbServer_memoryOptimized(t *testing.T) {
-	resourceName := "azurerm_mariadb_server.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDbServer_memoryOptimizedGeoRedundant(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	config := testAccAzureRMMariaDbServer_memoryOptimizedGeoRedundant(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -145,27 +117,18 @@ func TestAccAzureRMMariaDbServer_memoryOptimized(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
-			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
 		},
 	})
 }
 
 func TestAccAzureRMMariaDbServer_updatePassword(t *testing.T) {
-	resourceName := "azurerm_mariadb_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMMariaDbServer_basic(ri, location)
-	updatedConfig := testAccAzureRMMariaDbServer_basicUpdatedPassword(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	config := testAccAzureRMMariaDbServer_basic(data)
+	updatedConfig := testAccAzureRMMariaDbServer_basicUpdatedPassword(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -175,13 +138,13 @@ func TestAccAzureRMMariaDbServer_updatePassword(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 				),
 			},
 		},
@@ -189,11 +152,9 @@ func TestAccAzureRMMariaDbServer_updatePassword(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
-	resourceName := "azurerm_mariadb_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMMariaDbServer_basic(ri, location)
-	updatedConfig := testAccAzureRMMariaDbServer_basicUpdated(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	config := testAccAzureRMMariaDbServer_basic(data)
+	updatedConfig := testAccAzureRMMariaDbServer_basicUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -203,21 +164,21 @@ func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "B_Gen5_2"),
-					resource.TestCheckResourceAttr(resourceName, "version", "10.2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "51200"),
-					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "B_Gen5_2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "version", "10.2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "51200"),
+					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "B_Gen5_1"),
-					resource.TestCheckResourceAttr(resourceName, "version", "10.2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
-					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "B_Gen5_1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "version", "10.2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
 			},
 		},
@@ -225,11 +186,9 @@ func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
-	resourceName := "azurerm_mariadb_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMMariaDbServer_generalPurpose(ri, location)
-	updatedConfig := testAccAzureRMMariaDbServer_memoryOptimized(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	config := testAccAzureRMMariaDbServer_generalPurpose(data)
+	updatedConfig := testAccAzureRMMariaDbServer_memoryOptimized(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -239,25 +198,25 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5_32"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "32"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "GeneralPurpose"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen5"),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
-					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_32"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "32"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "GeneralPurpose"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "MO_Gen5_16"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "16"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "MemoryOptimized"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen5"),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "4096000"),
-					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "MO_Gen5_16"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "16"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "MemoryOptimized"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "4096000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
 			},
 		},
@@ -265,11 +224,9 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDbServer_storageAutogrow(t *testing.T) {
-	resourceName := "azurerm_mariadb_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMMariaDbServer_basic(ri, location)
-	updatedConfig := testAccAzureRMMariaDbServer_storageAutogrowUpdated(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
+	config := testAccAzureRMMariaDbServer_basic(data)
+	updatedConfig := testAccAzureRMMariaDbServer_storageAutogrowUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -279,15 +236,15 @@ func TestAccAzureRMMariaDbServer_storageAutogrow(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Enabled"),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Enabled"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Disabled"),
+					testCheckAzureRMMariaDbServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Disabled"),
 				),
 			},
 		},
@@ -351,7 +308,7 @@ func testCheckAzureRMMariaDbServerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMariaDbServer_basic(rInt int, location string) string {
+func testAccAzureRMMariaDbServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -381,11 +338,11 @@ resource "azurerm_mariadb_server" "test" {
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDbServer_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMMariaDbServer_basic(rInt, location)
+func testAccAzureRMMariaDbServer_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMMariaDbServer_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -415,7 +372,7 @@ resource "azurerm_mariadb_server" "import" {
 `, template)
 }
 
-func testAccAzureRMMariaDbServer_basicUpdatedPassword(rInt int, location string) string {
+func testAccAzureRMMariaDbServer_basicUpdatedPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -445,10 +402,10 @@ resource "azurerm_mariadb_server" "test" {
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDbServer_basicUpdated(rInt int, location string) string {
+func testAccAzureRMMariaDbServer_basicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -478,10 +435,10 @@ resource "azurerm_mariadb_server" "test" {
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDbServer_basicMaxStorage(rInt int, location string) string {
+func testAccAzureRMMariaDbServer_basicMaxStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -511,10 +468,10 @@ resource "azurerm_mariadb_server" "test" {
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDbServer_generalPurpose(rInt int, location string) string {
+func testAccAzureRMMariaDbServer_generalPurpose(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -544,10 +501,10 @@ resource "azurerm_mariadb_server" "test" {
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDbServer_memoryOptimized(rInt int, location string) string {
+func testAccAzureRMMariaDbServer_memoryOptimized(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -577,10 +534,10 @@ resource "azurerm_mariadb_server" "test" {
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDbServer_memoryOptimizedGeoRedundant(rInt int, location string) string {
+func testAccAzureRMMariaDbServer_memoryOptimizedGeoRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -610,10 +567,10 @@ resource "azurerm_mariadb_server" "test" {
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDbServer_storageAutogrowUpdated(rInt int, location string) string {
+func testAccAzureRMMariaDbServer_storageAutogrowUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -644,5 +601,5 @@ resource "azurerm_mariadb_server" "test" {
   version                      = "10.2"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
