@@ -1,4 +1,4 @@
-package automation
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
-	resourceName := "azurerm_automation_runbook.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,18 +21,13 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationRunbook_PSWorkflow(ri, acceptance.Location()),
+				Config: testAccAzureRMAutomationRunbook_PSWorkflow(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "runbook_type", "PowerShellWorkflow"),
+					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "runbook_type", "PowerShellWorkflow"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"publish_content_link"},
-			},
+			data.ImportStep("publish_content_link"),
 		},
 	})
 }
@@ -44,10 +37,7 @@ func TestAccAzureRMAutomationRunbook_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_automation_runbook.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,22 +45,18 @@ func TestAccAzureRMAutomationRunbook_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationRunbook_PSWorkflow(ri, location),
+				Config: testAccAzureRMAutomationRunbook_PSWorkflow(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(resourceName),
+					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMAutomationRunbook_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_automation_runbook"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMAutomationRunbook_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
-	resourceName := "azurerm_automation_runbook.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,25 +64,19 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationRunbook_PSWorkflowWithHash(ri, acceptance.Location()),
+				Config: testAccAzureRMAutomationRunbook_PSWorkflowWithHash(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "runbook_type", "PowerShellWorkflow"),
+					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "runbook_type", "PowerShellWorkflow"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"publish_content_link"},
-			},
+			data.ImportStep("publish_content_link"),
 		},
 	})
 }
 
 func TestAccAzureRMAutomationRunbook_PSWithContent(t *testing.T) {
-	resourceName := "azurerm_automation_runbook.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -104,19 +84,14 @@ func TestAccAzureRMAutomationRunbook_PSWithContent(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationRunbook_PSWithContent(ri, acceptance.Location()),
+				Config: testAccAzureRMAutomationRunbook_PSWithContent(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "runbook_type", "PowerShell"),
-					resource.TestCheckResourceAttr(resourceName, "content", "# Some test content\n# for Terraform acceptance test\n"),
+					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "runbook_type", "PowerShell"),
+					resource.TestCheckResourceAttr(data.ResourceName, "content", "# Some test content\n# for Terraform acceptance test\n"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"publish_content_link"},
-			},
+			data.ImportStep("publish_content_link"),
 		},
 	})
 }
@@ -187,7 +162,7 @@ func testCheckAzureRMAutomationRunbookExists(resourceName string) resource.TestC
 	}
 }
 
-func testAccAzureRMAutomationRunbook_PSWorkflow(rInt int, location string) string {
+func testAccAzureRMAutomationRunbook_PSWorkflow(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -219,11 +194,11 @@ resource "azurerm_automation_runbook" "test" {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationRunbook_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMAutomationRunbook_PSWorkflow(rInt, location)
+func testAccAzureRMAutomationRunbook_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAutomationRunbook_PSWorkflow(data)
 	return fmt.Sprintf(`
 %s
 
@@ -245,7 +220,7 @@ resource "azurerm_automation_runbook" "import" {
 `, template)
 }
 
-func testAccAzureRMAutomationRunbook_PSWorkflowWithHash(rInt int, location string) string {
+func testAccAzureRMAutomationRunbook_PSWorkflowWithHash(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -283,10 +258,10 @@ resource "azurerm_automation_runbook" "test" {
     }
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationRunbook_PSWithContent(rInt int, location string) string {
+func testAccAzureRMAutomationRunbook_PSWithContent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -323,5 +298,5 @@ resource "azurerm_automation_runbook" "test" {
 # for Terraform acceptance test
 CONTENT
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

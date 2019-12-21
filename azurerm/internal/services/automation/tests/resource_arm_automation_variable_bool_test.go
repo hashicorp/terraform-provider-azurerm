@@ -1,4 +1,4 @@
-package automation
+package tests
 
 import (
 	"fmt"
@@ -6,14 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMAutomationVariableBool_basic(t *testing.T) {
-	resourceName := "azurerm_automation_variable_bool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -21,25 +18,19 @@ func TestAccAzureRMAutomationVariableBool_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationVariableBool_basic(ri, location),
+				Config: testAccAzureRMAutomationVariableBool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableBoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "value", "false"),
+					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "false"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAutomationVariableBool_complete(t *testing.T) {
-	resourceName := "azurerm_automation_variable_bool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -47,26 +38,20 @@ func TestAccAzureRMAutomationVariableBool_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationVariableBool_complete(ri, location),
+				Config: testAccAzureRMAutomationVariableBool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableBoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", "This variable is created by Terraform acceptance test."),
-					resource.TestCheckResourceAttr(resourceName, "value", "true"),
+					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "This variable is created by Terraform acceptance test."),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAutomationVariableBool_basicCompleteUpdate(t *testing.T) {
-	resourceName := "azurerm_automation_variable_bool.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -74,25 +59,25 @@ func TestAccAzureRMAutomationVariableBool_basicCompleteUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationVariableBool_basic(ri, location),
+				Config: testAccAzureRMAutomationVariableBool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableBoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "value", "false"),
+					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "false"),
 				),
 			},
 			{
-				Config: testAccAzureRMAutomationVariableBool_complete(ri, location),
+				Config: testAccAzureRMAutomationVariableBool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableBoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "description", "This variable is created by Terraform acceptance test."),
-					resource.TestCheckResourceAttr(resourceName, "value", "true"),
+					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "This variable is created by Terraform acceptance test."),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "true"),
 				),
 			},
 			{
-				Config: testAccAzureRMAutomationVariableBool_basic(ri, location),
+				Config: testAccAzureRMAutomationVariableBool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableBoolExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "value", "false"),
+					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "false"),
 				),
 			},
 		},
@@ -107,7 +92,7 @@ func testCheckAzureRMAutomationVariableBoolDestroy(s *terraform.State) error {
 	return testCheckAzureRMAutomationVariableDestroy(s, "Bool")
 }
 
-func testAccAzureRMAutomationVariableBool_basic(rInt int, location string) string {
+func testAccAzureRMAutomationVariableBool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -130,10 +115,10 @@ resource "azurerm_automation_variable_bool" "test" {
   automation_account_name = "${azurerm_automation_account.test.name}"
   value                   = false
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationVariableBool_complete(rInt int, location string) string {
+func testAccAzureRMAutomationVariableBool_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -157,5 +142,5 @@ resource "azurerm_automation_variable_bool" "test" {
   description             = "This variable is created by Terraform acceptance test."
   value                   = true
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
