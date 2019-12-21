@@ -1,4 +1,4 @@
-package devtestlabs
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDevTestLinuxVirtualMachine_basic(t *testing.T) {
-	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,24 +21,19 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestLinuxVirtualMachine_basic(rInt, location),
+				Config: testAccAzureRMDevTestLinuxVirtualMachine_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "Canonical"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMDevTestLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "Canonical"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"lab_subnet_name",
-					"lab_virtual_network_id",
-					"password",
-				},
-			},
+			data.ImportStep(
+				// not returned from the API
+				"lab_subnet_name",
+				"lab_virtual_network_id",
+				"password",
+			),
 		},
 	})
 }
@@ -52,9 +44,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -62,13 +52,13 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestLinuxVirtualMachine_basic(rInt, location),
+				Config: testAccAzureRMDevTestLinuxVirtualMachine_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName),
+					testCheckAzureRMDevTestLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDevTestLinuxVirtualMachine_requiresImport(rInt, location),
+				Config:      testAccAzureRMDevTestLinuxVirtualMachine_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_lab_linux_virtual_machine"),
 			},
 		},
@@ -76,9 +66,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
-	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -86,32 +74,25 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestLinuxVirtualMachine_basicSSH(rInt, location),
+				Config: testAccAzureRMDevTestLinuxVirtualMachine_basicSSH(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "Canonical"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMDevTestLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "Canonical"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"lab_subnet_name",
-					"lab_virtual_network_id",
-					"ssh_key",
-				},
-			},
+			data.ImportStep(
+				// not returned from the API
+				"lab_subnet_name",
+				"lab_virtual_network_id",
+				"password",
+			),
 		},
 	})
 }
 
 func TestAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(t *testing.T) {
-	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -119,35 +100,28 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(rInt, location),
+				Config: testAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "disallow_public_ip_address", "true"),
-					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "Canonical"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
+					testCheckAzureRMDevTestLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "disallow_public_ip_address", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "Canonical"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					// not returned from the API
-					"inbound_nat_rule",
-					"lab_subnet_name",
-					"lab_virtual_network_id",
-					"password",
-				},
-			},
+			data.ImportStep(
+				// not returned from the API
+				"inbound_nat_rule",
+				"lab_subnet_name",
+				"lab_virtual_network_id",
+				"password",
+			),
 		},
 	})
 }
 
 func TestAccAzureRMDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
-	resourceName := "azurerm_dev_test_linux_virtual_machine.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -155,21 +129,21 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestLinuxVirtualMachine_storage(rInt, location, "Standard"),
+				Config: testAccAzureRMDevTestLinuxVirtualMachine_storage(data, "Standard"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "Canonical"),
-					resource.TestCheckResourceAttr(resourceName, "storage_type", "Standard"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMDevTestLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "Canonical"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Standard"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			{
-				Config: testAccAzureRMDevTestLinuxVirtualMachine_storage(rInt, location, "Premium"),
+				Config: testAccAzureRMDevTestLinuxVirtualMachine_storage(data, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "gallery_image_reference.0.publisher", "Canonical"),
-					resource.TestCheckResourceAttr(resourceName, "storage_type", "Premium"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMDevTestLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "Canonical"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Premium"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 		},
@@ -233,8 +207,8 @@ func testCheckAzureRMDevTestLinuxVirtualMachineDestroy(s *terraform.State) error
 	return nil
 }
 
-func testAccAzureRMDevTestLinuxVirtualMachine_basic(rInt int, location string) string {
-	template := testAccAzureRMDevTestLinuxVirtualMachine_template(rInt, location)
+func testAccAzureRMDevTestLinuxVirtualMachine_basic(data acceptance.TestData) string {
+	template := testAccAzureRMDevTestLinuxVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -257,11 +231,11 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMDevTestLinuxVirtualMachine_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMDevTestLinuxVirtualMachine_basic(rInt, location)
+func testAccAzureRMDevTestLinuxVirtualMachine_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDevTestLinuxVirtualMachine_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -287,8 +261,8 @@ resource "azurerm_dev_test_linux_virtual_machine" "import" {
 `, template)
 }
 
-func testAccAzureRMDevTestLinuxVirtualMachine_basicSSH(rInt int, location string) string {
-	template := testAccAzureRMDevTestLinuxVirtualMachine_template(rInt, location)
+func testAccAzureRMDevTestLinuxVirtualMachine_basicSSH(data acceptance.TestData) string {
+	template := testAccAzureRMDevTestLinuxVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -311,11 +285,11 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(rInt int, location string) string {
-	template := testAccAzureRMDevTestLinuxVirtualMachine_template(rInt, location)
+func testAccAzureRMDevTestLinuxVirtualMachine_inboundNatRules(data acceptance.TestData) string {
+	template := testAccAzureRMDevTestLinuxVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -353,11 +327,11 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
     "Acceptance" = "Test"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMDevTestLinuxVirtualMachine_storage(rInt int, location, storageType string) string {
-	template := testAccAzureRMDevTestLinuxVirtualMachine_template(rInt, location)
+func testAccAzureRMDevTestLinuxVirtualMachine_storage(data acceptance.TestData, storageType string) string {
+	template := testAccAzureRMDevTestLinuxVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -380,10 +354,10 @@ resource "azurerm_dev_test_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, rInt, storageType)
+`, template, data.RandomInteger, storageType)
 }
 
-func testAccAzureRMDevTestLinuxVirtualMachine_template(rInt int, location string) string {
+func testAccAzureRMDevTestLinuxVirtualMachine_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -406,5 +380,5 @@ resource "azurerm_dev_test_virtual_network" "test" {
     use_in_virtual_machine_creation = "Allow"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
