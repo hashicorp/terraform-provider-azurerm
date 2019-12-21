@@ -2,11 +2,12 @@ package keyvault
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"log"
 	"net/http"
 	"regexp"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/hashicorp/go-azure-helpers/response"

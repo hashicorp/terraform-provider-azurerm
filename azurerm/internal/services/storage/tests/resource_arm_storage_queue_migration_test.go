@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 
 // NOTE: this is intentionally an acceptance test (and we're not explicitly setting the env)
