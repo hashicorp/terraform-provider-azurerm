@@ -1,22 +1,18 @@
-package kusto
+package tests
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMKustoDatabase_basic(t *testing.T) {
-	resourceName := "azurerm_kusto_database.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
+	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,26 +20,20 @@ func TestAccAzureRMKustoDatabase_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoDatabase_basic(ri, rs, acceptance.Location()),
+				Config: testAccAzureRMKustoDatabase_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(resourceName),
+					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMKustoDatabase_softDeletePeriod(t *testing.T) {
-	resourceName := "azurerm_kusto_database.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
-	preConfig := testAccAzureRMKustoDatabase_softDeletePeriod(ri, rs, acceptance.Location())
-	postConfig := testAccAzureRMKustoDatabase_softDeletePeriodUpdate(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
+	preConfig := testAccAzureRMKustoDatabase_softDeletePeriod(data)
+	postConfig := testAccAzureRMKustoDatabase_softDeletePeriodUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,15 +43,15 @@ func TestAccAzureRMKustoDatabase_softDeletePeriod(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "soft_delete_period", "P7D"),
+					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_period", "P7D"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "soft_delete_period", "P31D"),
+					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_period", "P31D"),
 				),
 			},
 		},
@@ -69,11 +59,9 @@ func TestAccAzureRMKustoDatabase_softDeletePeriod(t *testing.T) {
 }
 
 func TestAccAzureRMKustoDatabase_hotCachePeriod(t *testing.T) {
-	resourceName := "azurerm_kusto_database.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
-	preConfig := testAccAzureRMKustoDatabase_hotCachePeriod(ri, rs, acceptance.Location())
-	postConfig := testAccAzureRMKustoDatabase_hotCachePeriodUpdate(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
+	preConfig := testAccAzureRMKustoDatabase_hotCachePeriod(data)
+	postConfig := testAccAzureRMKustoDatabase_hotCachePeriodUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -83,22 +71,22 @@ func TestAccAzureRMKustoDatabase_hotCachePeriod(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "hot_cache_period", "P7D"),
+					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "hot_cache_period", "P7D"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "hot_cache_period", "P14DT12H"),
+					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "hot_cache_period", "P14DT12H"),
 				),
 			},
 		},
 	})
 }
 
-func testAccAzureRMKustoDatabase_basic(rInt int, rs string, location string) string {
+func testAccAzureRMKustoDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
@@ -122,10 +110,10 @@ resource "azurerm_kusto_database" "test" {
   location            = azurerm_resource_group.rg.location
   cluster_name        = azurerm_kusto_cluster.cluster.name
 }
-`, rInt, location, rs, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabase_softDeletePeriod(rInt int, rs string, location string) string {
+func testAccAzureRMKustoDatabase_softDeletePeriod(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
@@ -151,10 +139,10 @@ resource "azurerm_kusto_database" "test" {
 
   soft_delete_period = "P7D"
 }
-`, rInt, location, rs, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabase_softDeletePeriodUpdate(rInt int, rs string, location string) string {
+func testAccAzureRMKustoDatabase_softDeletePeriodUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
@@ -180,10 +168,10 @@ resource "azurerm_kusto_database" "test" {
 
   soft_delete_period = "P31D"
 }
-`, rInt, location, rs, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabase_hotCachePeriod(rInt int, rs string, location string) string {
+func testAccAzureRMKustoDatabase_hotCachePeriod(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
@@ -209,10 +197,10 @@ resource "azurerm_kusto_database" "test" {
 
   hot_cache_period = "P7D"
 }
-`, rInt, location, rs, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMKustoDatabase_hotCachePeriodUpdate(rInt int, rs string, location string) string {
+func testAccAzureRMKustoDatabase_hotCachePeriodUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "rg" {
   name     = "acctestRG-%d"
@@ -238,7 +226,7 @@ resource "azurerm_kusto_database" "test" {
 
   hot_cache_period = "P14DT12H"
 }
-`, rInt, location, rs, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func testCheckAzureRMKustoDatabaseDestroy(s *terraform.State) error {
