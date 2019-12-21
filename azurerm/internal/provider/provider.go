@@ -25,8 +25,8 @@ func AzureProvider() terraform.ResourceProvider {
 		log.Printf(f, v...)
 	}
 
-	dataSources := make(map[string]*schema.Resource, 0)
-	resources := make(map[string]*schema.Resource, 0)
+	dataSources := make(map[string]*schema.Resource)
+	resources := make(map[string]*schema.Resource)
 	for _, service := range SupportedServices() {
 		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for k, v := range service.SupportedDataSources() {

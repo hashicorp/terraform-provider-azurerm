@@ -52,7 +52,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMApplicationInsights_requiresImport(data, "web"),
+				Config:      testAccAzureRMApplicationInsightsAPIKey_requiresImport(data, "[]", "[]"),
 				ExpectError: acceptance.RequiresImportError("azurerm_application_insights"),
 			},
 		},

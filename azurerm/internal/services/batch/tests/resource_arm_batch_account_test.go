@@ -282,7 +282,7 @@ resource "azurerm_batch_account" "test" {
     version = "2"
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMBatchAccount_userSubscription(data acceptance.TestData, tenantID string) string {
