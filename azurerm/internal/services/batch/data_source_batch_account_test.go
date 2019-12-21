@@ -140,7 +140,7 @@ data "azurerm_batch_account" "test" {
   name                = "${azurerm_batch_account.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rString, rString)
+`, rInt, location, data.RandomString, data.RandomString)
 }
 
 func testAccDataSourceAzureBatchAccount_userSubscription(rInt int, rString string, location string, tenantID string, subscriptionID string) string {

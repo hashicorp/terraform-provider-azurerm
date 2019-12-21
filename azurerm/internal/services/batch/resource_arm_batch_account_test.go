@@ -268,7 +268,7 @@ resource "azurerm_batch_account" "test" {
     env = "test"
   }
 }
-`, rInt, location, rString, rString)
+`, rInt, location, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMBatchAccount_completeUpdated(rInt int, rString string, location string) string {
@@ -298,7 +298,7 @@ resource "azurerm_batch_account" "test" {
     version = "2"
   }
 }
-`, rInt, location, rString, rString)
+`, rInt, location, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMBatchAccount_userSubscription(rInt int, batchAccountSuffix string, location string, tenantID string) string {

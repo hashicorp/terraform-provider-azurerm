@@ -1,4 +1,4 @@
-package keyvault
+package tests
 
 import (
 	"fmt"
@@ -10,16 +10,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
-	resourceName := "azurerm_key_vault_secret.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basic(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	config := testAccAzureRMKeyVaultSecret_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -29,23 +27,18 @@ func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultSecretExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "value", "rick-and-morty"),
+					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "rick-and-morty"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMKeyVaultSecret_basicClassic(t *testing.T) {
-	resourceName := "azurerm_key_vault_secret.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basicClasic(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	config := testAccAzureRMKeyVaultSecret_basicClasic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,15 +48,11 @@ func TestAccAzureRMKeyVaultSecret_basicClassic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultSecretExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "value", "rick-and-morty"),
+					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "rick-and-morty"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -74,9 +63,7 @@ func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_key_vault_secret.test"
-	rs := acctest.RandString(6)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -84,14 +71,14 @@ func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKeyVaultSecret_basic(rs, location),
+				Config: testAccAzureRMKeyVaultSecret_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultSecretExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "value", "rick-and-morty"),
+					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "rick-and-morty"),
 				),
 			},
 			{
-				Config:      testAccAzureRMKeyVaultSecret_requiresImport(rs, location),
+				Config:      testAccAzureRMKeyVaultSecret_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_key_vault_secret"),
 			},
 		},
@@ -99,9 +86,8 @@ func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
-	resourceName := "azurerm_key_vault_secret.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basic(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	config := testAccAzureRMKeyVaultSecret_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -111,8 +97,8 @@ func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultSecretExists(resourceName),
-					testCheckAzureRMKeyVaultSecretDisappears(resourceName),
+					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
+					testCheckAzureRMKeyVaultSecretDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -121,8 +107,8 @@ func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basic(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	config := testAccAzureRMKeyVaultSecret_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -142,9 +128,8 @@ func TestAccAzureRMKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing
 }
 
 func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
-	resourceName := "azurerm_key_vault_secret.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_complete(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	config := testAccAzureRMKeyVaultSecret_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -154,27 +139,22 @@ func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultSecretExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "not_before_date", "2019-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(resourceName, "expiration_date", "2020-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
+					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "not_before_date", "2019-01-01T01:02:03Z"),
+					resource.TestCheckResourceAttr(data.ResourceName, "expiration_date", "2020-01-01T01:02:03Z"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
-	resourceName := "azurerm_key_vault_secret.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultSecret_basic(rs, acceptance.Location())
-	updatedConfig := testAccAzureRMKeyVaultSecret_basicUpdated(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	config := testAccAzureRMKeyVaultSecret_basic(data)
+	updatedConfig := testAccAzureRMKeyVaultSecret_basicUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -184,15 +164,15 @@ func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultSecretExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "value", "rick-and-morty"),
+					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "rick-and-morty"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultSecretExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "value", "szechuan"),
+					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "szechuan"),
 				),
 			},
 		},
@@ -308,7 +288,7 @@ func testCheckAzureRMKeyVaultSecretDisappears(resourceName string) resource.Test
 	}
 }
 
-func testAccAzureRMKeyVaultSecret_basic(rString string, location string) string {
+func testAccAzureRMKeyVaultSecret_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -350,10 +330,10 @@ resource "azurerm_key_vault_secret" "test" {
   value        = "rick-and-morty"
   key_vault_id = "${azurerm_key_vault.test.id}"
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultSecret_basicClasic(rString string, location string) string {
+func testAccAzureRMKeyVaultSecret_basicClasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -395,11 +375,11 @@ resource "azurerm_key_vault_secret" "test" {
   value     = "rick-and-morty"
   vault_uri = "${azurerm_key_vault.test.vault_uri}"
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultSecret_requiresImport(rString string, location string) string {
-	template := testAccAzureRMKeyVaultSecret_basic(rString, location)
+func testAccAzureRMKeyVaultSecret_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultSecret_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -411,7 +391,7 @@ resource "azurerm_key_vault_secret" "import" {
 `, template)
 }
 
-func testAccAzureRMKeyVaultSecret_complete(rString string, location string) string {
+func testAccAzureRMKeyVaultSecret_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -460,10 +440,10 @@ resource "azurerm_key_vault_secret" "test" {
     "hello" = "world"
   }
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultSecret_basicUpdated(rString string, location string) string {
+func testAccAzureRMKeyVaultSecret_basicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -505,5 +485,5 @@ resource "azurerm_key_vault_secret" "test" {
   value     = "szechuan"
   vault_uri = "${azurerm_key_vault.test.vault_uri}"
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }

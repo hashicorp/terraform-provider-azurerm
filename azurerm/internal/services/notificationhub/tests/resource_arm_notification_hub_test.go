@@ -1,4 +1,4 @@
-package notificationhub
+package tests
 
 import (
 	"fmt"
@@ -7,34 +7,27 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMNotificationHub_basic(t *testing.T) {
-	resourceName := "azurerm_notification_hub.test"
-	ri := tf.AccRandTimeInt()
-
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHub_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMNotificationHub_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "gcm_credential.#", "0"),
+					testCheckAzureRMNotificationHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "apns_credential.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "gcm_credential.#", "0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -45,26 +38,21 @@ func TestAccAzureRMNotificationHub_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_notification_hub.test"
-	ri := tf.AccRandTimeInt()
-
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNotificationHub_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMNotificationHub_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "apns_credential.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "gcm_credential.#", "0"),
+					testCheckAzureRMNotificationHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "apns_credential.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "gcm_credential.#", "0"),
 				),
 			},
-			{
-				Config:      testAccAzureRMNotificationHub_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_notification_hub"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMNotificationHub_requiresImport),
 		},
 	})
 }
@@ -123,7 +111,7 @@ func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMNotificationHub_basic(ri int, location string) string {
+func testAccAzureRMNotificationHub_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRGpol-%d"
@@ -147,10 +135,11 @@ resource "azurerm_notification_hub" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 }
-`, ri, location, ri, ri)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMNotificationHub_requiresImport(ri int, location string) string {
+func testAccAzureRMNotificationHub_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMNotificationHub_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -160,5 +149,5 @@ resource "azurerm_notification_hub" "import" {
   resource_group_name = "${azurerm_notification_hub.test.resource_group_name}"
   location            = "${azurerm_notification_hub.test.location}"
 }
-`, testAccAzureRMNotificationHub_basic(ri, location))
+`, template)
 }
