@@ -51,7 +51,7 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMContainerRegistryName,
+				ValidateFunc: ValidateAzureRMContainerRegistryName,
 			},
 
 			"service_uri": {

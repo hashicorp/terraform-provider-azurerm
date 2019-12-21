@@ -1,4 +1,4 @@
-package containers
+package tests
 
 import (
 	"fmt"
@@ -9,10 +9,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -64,7 +64,7 @@ func TestAccAzureRMContainerRegistryName_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateAzureRMContainerRegistryName(tc.Value, "azurerm_container_registry")
+		_, errors := containers.ValidateAzureRMContainerRegistryName(tc.Value, "azurerm_container_registry")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM Container Registry Name to trigger a validation error: %v", errors)
@@ -73,9 +73,7 @@ func TestAccAzureRMContainerRegistryName_validation(t *testing.T) {
 }
 
 func TestAccAzureRMContainerRegistry_basic_basic(t *testing.T) {
-	rn := "azurerm_container_registry.test"
-	ri := tf.AccRandTimeInt()
-	l := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -83,16 +81,12 @@ func TestAccAzureRMContainerRegistry_basic_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistry_basic_basic(ri, l),
+				Config: testAccAzureRMContainerRegistry_basic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      rn,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -103,9 +97,7 @@ func TestAccAzureRMContainerRegistry_requiresImport(t *testing.T) {
 		return
 	}
 
-	rn := "azurerm_container_registry.test"
-	ri := tf.AccRandTimeInt()
-	l := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -113,13 +105,13 @@ func TestAccAzureRMContainerRegistry_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistry_basicManaged(ri, l, "Basic"),
+				Config: testAccAzureRMContainerRegistry_basicManaged(data, "Basic"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMContainerRegistry_requiresImport(ri, l, "Basic"),
+				Config:      testAccAzureRMContainerRegistry_requiresImport(data, "Basic"),
 				ExpectError: acceptance.RequiresImportError("azurerm_container_registry"),
 			},
 		},
@@ -127,8 +119,7 @@ func TestAccAzureRMContainerRegistry_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMContainerRegistry_basic_standard(t *testing.T) {
-	rn := "azurerm_container_registry.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -136,23 +127,18 @@ func TestAccAzureRMContainerRegistry_basic_standard(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistry_basicManaged(ri, acceptance.Location(), "Standard"),
+				Config: testAccAzureRMContainerRegistry_basicManaged(data, "Standard"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      rn,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMContainerRegistry_basic_premium(t *testing.T) {
-	rn := "azurerm_container_registry.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -160,23 +146,18 @@ func TestAccAzureRMContainerRegistry_basic_premium(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistry_basicManaged(ri, acceptance.Location(), "Premium"),
+				Config: testAccAzureRMContainerRegistry_basicManaged(data, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      rn,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMContainerRegistry_basic_basic2Premium2basic(t *testing.T) {
-	rn := "azurerm_container_registry.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -184,24 +165,24 @@ func TestAccAzureRMContainerRegistry_basic_basic2Premium2basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistry_basic_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMContainerRegistry_basic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
-					resource.TestCheckResourceAttr(rn, "sku", "Basic"),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Basic"),
 				),
 			},
 			{
-				Config: testAccAzureRMContainerRegistry_basicManaged(ri, acceptance.Location(), "Premium"),
+				Config: testAccAzureRMContainerRegistry_basicManaged(data, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
-					resource.TestCheckResourceAttr(rn, "sku", "Premium"),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Premium"),
 				),
 			},
 			{
-				Config: testAccAzureRMContainerRegistry_basic_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMContainerRegistry_basic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
-					resource.TestCheckResourceAttr(rn, "sku", "Basic"),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Basic"),
 				),
 			},
 		},
@@ -209,8 +190,7 @@ func TestAccAzureRMContainerRegistry_basic_basic2Premium2basic(t *testing.T) {
 }
 
 func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
-	rn := "azurerm_container_registry.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -218,24 +198,18 @@ func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistry_complete(ri, acceptance.Location()),
+				Config: testAccAzureRMContainerRegistry_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      rn,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMContainerRegistry_update(t *testing.T) {
-	rn := "azurerm_container_registry.test"
-	ri := tf.AccRandTimeInt()
-	l := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -243,15 +217,15 @@ func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistry_complete(ri, l),
+				Config: testAccAzureRMContainerRegistry_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMContainerRegistry_completeUpdated(ri, l),
+				Config: testAccAzureRMContainerRegistry_completeUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
 				),
 			},
 		},
@@ -259,8 +233,7 @@ func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 }
 
 func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
-	dsn := "azurerm_container_registry.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	skuPremium := "Premium"
 	skuBasic := "Basic"
@@ -273,50 +246,50 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 			// first config creates an ACR with locations
 			{
 				// TODO: fix this to use dynamic locations
-				Config: testAccAzureRMContainerRegistry_geoReplication(ri, acceptance.Location(), skuPremium, `eastus", "westus`),
+				Config: testAccAzureRMContainerRegistry_geoReplication(data, skuPremium, `eastus", "westus`),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dsn, "sku", skuPremium),
-					resource.TestCheckResourceAttr(dsn, "georeplication_locations.#", "2"),
-					testCheckAzureRMContainerRegistryExists(dsn),
-					testCheckAzureRMContainerRegistryGeoreplications(dsn, skuPremium, []string{`"eastus"`, `"westus"`}),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", skuPremium),
+					resource.TestCheckResourceAttr(data.ResourceName, "georeplication_locations.#", "2"),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(data.ResourceName, skuPremium, []string{`"eastus"`, `"westus"`}),
 				),
 			},
 			// second config udpates the ACR with updated locations
 			{
-				Config: testAccAzureRMContainerRegistry_geoReplication(ri, acceptance.Location(), skuPremium, `centralus", "eastus`),
+				Config: testAccAzureRMContainerRegistry_geoReplication(data, skuPremium, `centralus", "eastus`),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dsn, "sku", skuPremium),
-					resource.TestCheckResourceAttr(dsn, "georeplication_locations.#", "2"),
-					testCheckAzureRMContainerRegistryExists(dsn),
-					testCheckAzureRMContainerRegistryGeoreplications(dsn, skuPremium, []string{`"eastus"`, `"centralus"`}),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", skuPremium),
+					resource.TestCheckResourceAttr(data.ResourceName, "georeplication_locations.#", "2"),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(data.ResourceName, skuPremium, []string{`"eastus"`, `"centralus"`}),
 				),
 			},
 			// third config udpates the ACR with no location
 			{
-				Config: testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, acceptance.Location(), skuPremium),
+				Config: testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(data, skuPremium),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dsn, "sku", skuPremium),
-					testCheckAzureRMContainerRegistryExists(dsn),
-					testCheckAzureRMContainerRegistryGeoreplications(dsn, skuPremium, nil),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", skuPremium),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(data.ResourceName, skuPremium, nil),
 				),
 			},
 			// fourth config updates an ACR with replicas
 			{
-				Config: testAccAzureRMContainerRegistry_geoReplication(ri, acceptance.Location(), skuPremium, `eastus", "westus`),
+				Config: testAccAzureRMContainerRegistry_geoReplication(data, skuPremium, `eastus", "westus`),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dsn, "sku", skuPremium),
-					resource.TestCheckResourceAttr(dsn, "georeplication_locations.#", "2"),
-					testCheckAzureRMContainerRegistryExists(dsn),
-					testCheckAzureRMContainerRegistryGeoreplications(dsn, skuPremium, []string{`"eastus"`, `"westus"`}),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", skuPremium),
+					resource.TestCheckResourceAttr(data.ResourceName, "georeplication_locations.#", "2"),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(data.ResourceName, skuPremium, []string{`"eastus"`, `"westus"`}),
 				),
 			},
 			// fifth config updates the SKU to basic and no replicas (should remove the existing replicas if any)
 			{
-				Config: testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dsn, "sku", skuBasic),
-					testCheckAzureRMContainerRegistryExists(dsn),
-					testCheckAzureRMContainerRegistryGeoreplications(dsn, skuBasic, nil),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", skuBasic),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					testCheckAzureRMContainerRegistryGeoreplications(data.ResourceName, skuBasic, nil),
 				),
 			},
 		},
@@ -324,9 +297,7 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 }
 
 func TestAccAzureRMContainerRegistry_networkAccessProfileIp(t *testing.T) {
-	rn := "azurerm_container_registry.test"
-	ri := tf.AccRandTimeInt()
-	l := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -334,26 +305,20 @@ func TestAccAzureRMContainerRegistry_networkAccessProfileIp(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistry_networkAccessProfile_ip(ri, l, "Premium"),
+				Config: testAccAzureRMContainerRegistry_networkAccessProfile_ip(data, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
-					resource.TestCheckResourceAttr(rn, "network_rule_set.0.default_action", "Allow"),
-					resource.TestCheckResourceAttr(rn, "network_rule_set.0.ip_rule.#", "1"),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.default_action", "Allow"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.ip_rule.#", "1"),
 				),
 			},
-			{
-				ResourceName:      rn,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMContainerRegistry_networkAccessProfile_update(t *testing.T) {
-	rn := "azurerm_container_registry.test"
-	ri := tf.AccRandTimeInt()
-	l := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -361,58 +326,44 @@ func TestAccAzureRMContainerRegistry_networkAccessProfile_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistry_basicManaged(ri, l, "Basic"),
+				Config: testAccAzureRMContainerRegistry_basicManaged(data, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMContainerRegistry_networkAccessProfile_ip(ri, l, "Premium"),
+				Config: testAccAzureRMContainerRegistry_networkAccessProfile_ip(data, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
-					resource.TestCheckResourceAttr(rn, "network_rule_set.0.default_action", "Allow"),
-					resource.TestCheckResourceAttr(rn, "network_rule_set.0.ip_rule.#", "2"),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.default_action", "Allow"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.ip_rule.#", "2"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      rn,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMContainerRegistry_networkAccessProfile_vnet(ri, l),
+				Config: testAccAzureRMContainerRegistry_networkAccessProfile_vnet(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
-					resource.TestCheckResourceAttr(rn, "network_rule_set.0.default_action", "Deny"),
-					resource.TestCheckResourceAttr(rn, "network_rule_set.0.virtual_network.#", "1"),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.default_action", "Deny"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.virtual_network.#", "1"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      rn,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMContainerRegistry_networkAccessProfile_both(ri, l),
+				Config: testAccAzureRMContainerRegistry_networkAccessProfile_both(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
-					resource.TestCheckResourceAttr(rn, "network_rule_set.0.default_action", "Deny"),
-					resource.TestCheckResourceAttr(rn, "network_rule_set.0.ip_rule.#", "1"),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.default_action", "Deny"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.ip_rule.#", "1"),
 				),
 			},
-			{
-				ResourceName:      rn,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMContainerRegistry_networkAccessProfileVnet(t *testing.T) {
-	rn := "azurerm_container_registry.test"
-	ri := tf.AccRandTimeInt()
-	l := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -420,18 +371,14 @@ func TestAccAzureRMContainerRegistry_networkAccessProfileVnet(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistry_networkAccessProfile_vnet(ri, l),
+				Config: testAccAzureRMContainerRegistry_networkAccessProfile_vnet(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerRegistryExists(rn),
-					resource.TestCheckResourceAttr(rn, "network_rule_set.0.default_action", "Deny"),
-					resource.TestCheckResourceAttr(rn, "network_rule_set.0.virtual_network.#", "1"),
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.default_action", "Deny"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.virtual_network.#", "1"),
 				),
 			},
-			{
-				ResourceName:      rn,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -531,7 +478,7 @@ func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku s
 	}
 }
 
-func testAccAzureRMContainerRegistry_basic_basic(rInt int, location string) string {
+func testAccAzureRMContainerRegistry_basic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -548,10 +495,10 @@ resource "azurerm_container_registry" "test" {
   # premiuim SKU will automaticcally populate network_rule_set.default_action to allow
   network_rule_set = []
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMContainerRegistry_basicManaged(rInt int, location string, sku string) string {
+func testAccAzureRMContainerRegistry_basicManaged(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -564,11 +511,11 @@ resource "azurerm_container_registry" "test" {
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "%s"
 }
-`, rInt, location, rInt, sku)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
 }
 
-func testAccAzureRMContainerRegistry_requiresImport(rInt int, location string, sku string) string {
-	template := testAccAzureRMContainerRegistry_basicManaged(rInt, location, sku)
+func testAccAzureRMContainerRegistry_requiresImport(data acceptance.TestData, sku string) string {
+	template := testAccAzureRMContainerRegistry_basicManaged(data, sku)
 	return fmt.Sprintf(`
 %s
 
@@ -582,7 +529,7 @@ resource "azurerm_container_registry" "import" {
 `, template)
 }
 
-func testAccAzureRMContainerRegistry_complete(rInt int, location string) string {
+func testAccAzureRMContainerRegistry_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -600,10 +547,10 @@ resource "azurerm_container_registry" "test" {
     environment = "production"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMContainerRegistry_completeUpdated(rInt int, location string) string {
+func testAccAzureRMContainerRegistry_completeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -621,10 +568,10 @@ resource "azurerm_container_registry" "test" {
     environment = "production"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMContainerRegistry_geoReplication(rInt int, location string, sku string, georeplicationLocations string) string {
+func testAccAzureRMContainerRegistry_geoReplication(data acceptance.TestData, sku string, georeplicationLocations string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -638,10 +585,10 @@ resource "azurerm_container_registry" "test" {
   sku                      = "%s"
   georeplication_locations = ["%s"]
 }
-`, rInt, location, rInt, sku, georeplicationLocations)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, georeplicationLocations)
 }
 
-func testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(rInt int, location string, sku string) string {
+func testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -654,10 +601,10 @@ resource "azurerm_container_registry" "test" {
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "%s"
 }
-`, rInt, location, rInt, sku)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
 }
 
-func testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation_basic(rInt int, location string) string {
+func testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -674,10 +621,10 @@ resource "azurerm_container_registry" "test" {
   # premiuim SKU will automaticcally populate network_rule_set.default_action to allow
   network_rule_set = []
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMContainerRegistry_networkAccessProfile_ip(rInt int, location string, sku string) string {
+func testAccAzureRMContainerRegistry_networkAccessProfile_ip(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%[1]d"
@@ -705,10 +652,10 @@ resource "azurerm_container_registry" "test" {
     }
   }
 }
-`, rInt, location, sku)
+`, data.RandomInteger, data.Locations.Primary, sku)
 }
 
-func testAccAzureRMContainerRegistry_networkAccessProfile_vnet(rInt int, location string) string {
+func testAccAzureRMContainerRegistry_networkAccessProfile_vnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%[1]d"
@@ -752,10 +699,10 @@ resource "azurerm_container_registry" "test" {
     }
   }
 }
-`, rInt, location)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMContainerRegistry_networkAccessProfile_both(rInt int, location string) string {
+func testAccAzureRMContainerRegistry_networkAccessProfile_both(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%[1]d"
@@ -799,5 +746,5 @@ resource "azurerm_container_registry" "test" {
     }
   }
 }
-`, rInt, location)
+`, data.RandomInteger, data.Locations.Primary)
 }

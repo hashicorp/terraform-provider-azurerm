@@ -1,4 +1,4 @@
-package containers
+package tests
 
 import (
 	"context"
@@ -9,11 +9,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 )
 
 func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
@@ -39,7 +40,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 
 	client.StopContext = acceptance.AzureProvider.StopContext()
 
-	rs := acctest.RandString(4)
+	rs := acctest.RandString(7)
 	resourceGroupName := fmt.Sprintf("acctestRG%s", rs)
 	storageAccountName := fmt.Sprintf("acctestsa%s", rs)
 	location := azure.NormalizeLocation(acceptance.Location())
@@ -98,7 +99,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 			ID:         tc.ID,
 			Attributes: tc.Attributes,
 		}
-		is, err := resourceAzureRMContainerRegistryMigrateState(tc.StateVersion, is, tc.Meta)
+		is, err := containers.ResourceAzureRMContainerRegistryMigrateState(tc.StateVersion, is, tc.Meta)
 
 		if err != nil {
 			t.Fatalf("bad: %q, err: %#v", tn, err)
