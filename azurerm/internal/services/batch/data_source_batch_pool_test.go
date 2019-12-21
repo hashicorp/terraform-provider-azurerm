@@ -162,5 +162,5 @@ data "azurerm_batch_pool" "test" {
   account_name        = "${azurerm_batch_pool.test.account_name}"
   resource_group_name = "${azurerm_batch_pool.test.resource_group_name}"
 }
-`, rInt, location, rString, rString, rString)
+`, rInt, location, rString, data.RandomString, data.RandomString)
 }

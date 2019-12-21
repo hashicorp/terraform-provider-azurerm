@@ -44,7 +44,7 @@ func resourceArmKeyVault() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		MigrateState:  resourceAzureRMKeyVaultMigrateState,
+		MigrateState:  ResourceAzureRMKeyVaultMigrateState,
 		SchemaVersion: 1,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -59,7 +59,7 @@ func resourceArmKeyVault() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateKeyVaultName,
+				ValidateFunc: ValidateKeyVaultName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -516,7 +516,7 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	return []interface{}{output}
 }
 
-func validateKeyVaultName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateKeyVaultName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`).Match([]byte(value)); !matched {
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 3-24 chars", k))

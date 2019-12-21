@@ -1,4 +1,4 @@
-package keyvault
+package tests
 
 import (
 	"fmt"
@@ -10,16 +10,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
-	resourceName := "azurerm_key_vault_certificate.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultCertificate_basicImportPFX(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	config := testAccAzureRMKeyVaultCertificate_basicImportPFX(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -29,24 +27,18 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
+					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"certificate"},
-			},
+			data.ImportStep("certificate"),
 		},
 	})
 }
 
 func TestAccAzureRMKeyVaultCertificate_basicImportPFXClassic(t *testing.T) {
-	resourceName := "azurerm_key_vault_certificate.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	config := testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,16 +48,11 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFXClassic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
+					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"certificate"},
-			},
+			data.ImportStep("certificate"),
 		},
 	})
 }
@@ -76,9 +63,7 @@ func TestAccAzureRMKeyVaultCertificate_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_key_vault_certificate.test"
-	rs := acctest.RandString(6)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -86,14 +71,14 @@ func TestAccAzureRMKeyVaultCertificate_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKeyVaultCertificate_basicImportPFX(rs, location),
+				Config: testAccAzureRMKeyVaultCertificate_basicImportPFX(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
+					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
 				),
 			},
 			{
-				Config:      testAccAzureRMKeyVaultCertificate_requiresImport(rs, location),
+				Config:      testAccAzureRMKeyVaultCertificate_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_key_vault_certificate"),
 			},
 		},
@@ -101,9 +86,8 @@ func TestAccAzureRMKeyVaultCertificate_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
-	resourceName := "azurerm_key_vault_certificate.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultCertificate_basicGenerate(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	config := testAccAzureRMKeyVaultCertificate_basicGenerate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -113,8 +97,8 @@ func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateExists(resourceName),
-					testCheckAzureRMKeyVaultCertificateDisappears(resourceName),
+					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
+					testCheckAzureRMKeyVaultCertificateDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -123,8 +107,8 @@ func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultCertificate_basicGenerate(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	config := testAccAzureRMKeyVaultCertificate_basicGenerate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -144,9 +128,8 @@ func TestAccAzureRMKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *te
 }
 
 func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
-	resourceName := "azurerm_key_vault_certificate.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultCertificate_basicGenerate(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	config := testAccAzureRMKeyVaultCertificate_basicGenerate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -156,24 +139,19 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "secret_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
+					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secret_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
-	resourceName := "azurerm_key_vault_certificate.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultCertificate_basicGenerateSans(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	config := testAccAzureRMKeyVaultCertificate_basicGenerateSans(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -183,11 +161,11 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns.#", "1"),
+					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.emails.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.dns_names.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_policy.0.x509_certificate_properties.0.subject_alternative_names.0.upns.#", "1"),
 				),
 			},
 		},
@@ -195,9 +173,8 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
-	resourceName := "azurerm_key_vault_certificate.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultCertificate_basicGenerateTags(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	config := testAccAzureRMKeyVaultCertificate_basicGenerateTags(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -207,25 +184,20 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
+					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
-	resourceName := "azurerm_key_vault_certificate.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	config := testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -235,12 +207,12 @@ func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.extended_key_usage.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.extended_key_usage.0", "1.3.6.1.5.5.7.3.1"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.extended_key_usage.1", "1.3.6.1.5.5.7.3.2"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.extended_key_usage.2", "1.3.6.1.4.1.311.21.10"),
+					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_policy.0.x509_certificate_properties.0.extended_key_usage.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_policy.0.x509_certificate_properties.0.extended_key_usage.0", "1.3.6.1.5.5.7.3.1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_policy.0.x509_certificate_properties.0.extended_key_usage.1", "1.3.6.1.5.5.7.3.2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_policy.0.x509_certificate_properties.0.extended_key_usage.2", "1.3.6.1.4.1.311.21.10"),
 				),
 			},
 		},
@@ -248,9 +220,8 @@ func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(t *testing.T) {
-	resourceName := "azurerm_key_vault_certificate.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+	config := testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -260,9 +231,9 @@ func TestAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultCertificateExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_policy.0.x509_certificate_properties.0.extended_key_usage.#", "0"),
+					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_policy.0.x509_certificate_properties.0.extended_key_usage.#", "0"),
 				),
 			},
 		},
@@ -379,7 +350,7 @@ func testCheckAzureRMKeyVaultCertificateDisappears(resourceName string) resource
 	}
 }
 
-func testAccAzureRMKeyVaultCertificate_basicImportPFX(rString string, location string) string {
+func testAccAzureRMKeyVaultCertificate_basicImportPFX(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -442,10 +413,10 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(rString string, location string) string {
+func testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -512,11 +483,11 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultCertificate_requiresImport(rString string, location string) string {
-	template := testAccAzureRMKeyVaultCertificate_basicImportPFX(rString, location)
+func testAccAzureRMKeyVaultCertificate_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultCertificate_basicImportPFX(data)
 	return fmt.Sprintf(`
 %s
 
@@ -549,7 +520,7 @@ resource "azurerm_key_vault_certificate" "import" {
 `, template)
 }
 
-func testAccAzureRMKeyVaultCertificate_basicGenerate(rString string, location string) string {
+func testAccAzureRMKeyVaultCertificate_basicGenerate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -636,10 +607,10 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultCertificate_basicGenerateSans(rString string, location string) string {
+func testAccAzureRMKeyVaultCertificate_basicGenerateSans(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -733,10 +704,10 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultCertificate_basicGenerateTags(rString string, location string) string {
+func testAccAzureRMKeyVaultCertificate_basicGenerateTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -823,10 +794,10 @@ resource "azurerm_key_vault_certificate" "test" {
     "hello" = "world"
   }
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(rString string, location string) string {
+func testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -919,10 +890,10 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(rString string, location string) string {
+func testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -1011,5 +982,5 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
