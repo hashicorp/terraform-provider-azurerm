@@ -1,4 +1,4 @@
-package mariadb
+package tests
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -16,8 +15,7 @@ import (
 )
 
 func TestAccAzureRMMariaDBVirtualNetworkRule_basic(t *testing.T) {
-	resourceName := "azurerm_mariadb_virtual_network_rule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,9 +23,9 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDBVirtualNetworkRule_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMMariaDBVirtualNetworkRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName),
+					testCheckAzureRMMariaDBVirtualNetworkRuleExists(data.ResourceName),
 				),
 			},
 		},
@@ -40,8 +38,7 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_mariadb_virtual_network_rule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -49,13 +46,13 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDBVirtualNetworkRule_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMMariaDBVirtualNetworkRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName),
+					testCheckAzureRMMariaDBVirtualNetworkRuleExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMariaDBVirtualNetworkRule_requiresImport(ri, acceptance.Location()),
+				Config:      testAccAzureRMMariaDBVirtualNetworkRule_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_virtual_network_rule"),
 			},
 		},
@@ -63,15 +60,14 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDBVirtualNetworkRule_switchSubnets(t *testing.T) {
-	resourceName := "azurerm_mariadb_virtual_network_rule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
 
-	preConfig := testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPre(ri, acceptance.Location())
-	postConfig := testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPost(ri, acceptance.Location())
+	preConfig := testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPre(data)
+	postConfig := testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPost(data)
 
 	// Create regex strings that will ensure that one subnet name exists, but not the other
-	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", ri, ri))  //subnet 1 but not 2
-	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", ri, ri)) //subnet 2 but not 1
+	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", data.RandomInteger, data.RandomInteger))  //subnet 1 but not 2
+	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", data.RandomInteger, data.RandomInteger)) //subnet 2 but not 1
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -81,15 +77,15 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_switchSubnets(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName),
-					resource.TestMatchResourceAttr(resourceName, "subnet_id", preConfigRegex),
+					testCheckAzureRMMariaDBVirtualNetworkRuleExists(data.ResourceName),
+					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", preConfigRegex),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName),
-					resource.TestMatchResourceAttr(resourceName, "subnet_id", postConfigRegex),
+					testCheckAzureRMMariaDBVirtualNetworkRuleExists(data.ResourceName),
+					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", postConfigRegex),
 				),
 			},
 		},
@@ -97,9 +93,8 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_switchSubnets(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDBVirtualNetworkRule_disappears(t *testing.T) {
-	resourceName := "azurerm_mariadb_virtual_network_rule.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDBVirtualNetworkRule_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
+	config := testAccAzureRMMariaDBVirtualNetworkRule_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -109,8 +104,8 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName),
-					testCheckAzureRMMariaDBVirtualNetworkRuleDisappears(resourceName),
+					testCheckAzureRMMariaDBVirtualNetworkRuleExists(data.ResourceName),
+					testCheckAzureRMMariaDBVirtualNetworkRuleDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -119,11 +114,10 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(t *testing.T) {
-	resourceName1 := "azurerm_mariadb_virtual_network_rule.rule1"
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "rule1")
 	resourceName2 := "azurerm_mariadb_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_mariadb_virtual_network_rule.rule3"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(ri, acceptance.Location())
+	config := testAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -133,7 +127,7 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName1),
+					testCheckAzureRMMariaDBVirtualNetworkRuleExists(data.ResourceName),
 					testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName2),
 					testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName3),
 				),
@@ -236,7 +230,7 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleDisappears(resourceName string) re
 	}
 }
 
-func testAccAzureRMMariaDBVirtualNetworkRule_basic(rInt int, location string) string {
+func testAccAzureRMMariaDBVirtualNetworkRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -287,10 +281,10 @@ resource "azurerm_mariadb_virtual_network_rule" "test" {
   server_name         = "${azurerm_mariadb_server.test.name}"
   subnet_id           = "${azurerm_subnet.test.id}"
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDBVirtualNetworkRule_requiresImport(rInt int, location string) string {
+func testAccAzureRMMariaDBVirtualNetworkRule_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -300,10 +294,10 @@ resource "azurerm_mariadb_virtual_network_rule" "import" {
   server_name         = "${azurerm_mariadb_virtual_network_rule.test.server_name}"
   subnet_id           = "${azurerm_mariadb_virtual_network_rule.test.subnet_id}"
 }
-`, testAccAzureRMMariaDBVirtualNetworkRule_basic(rInt, location))
+`, testAccAzureRMMariaDBVirtualNetworkRule_basic(data))
 }
 
-func testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPre(rInt int, location string) string {
+func testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPre(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -362,10 +356,10 @@ resource "azurerm_mariadb_virtual_network_rule" "test" {
   server_name         = "${azurerm_mariadb_server.test.name}"
   subnet_id           = "${azurerm_subnet.test1.id}"
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPost(rInt int, location string) string {
+func testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -424,10 +418,10 @@ resource "azurerm_mariadb_virtual_network_rule" "test" {
   server_name         = "${azurerm_mariadb_server.test.name}"
   subnet_id           = "${azurerm_subnet.test2.id}"
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(rInt int, location string) string {
+func testAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -515,5 +509,5 @@ resource "azurerm_mariadb_virtual_network_rule" "rule3" {
   server_name         = "${azurerm_mariadb_server.test.name}"
   subnet_id           = "${azurerm_subnet.vnet2_subnet1.id}"
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

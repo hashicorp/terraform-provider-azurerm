@@ -1,4 +1,4 @@
-package mariadb
+package tests
 
 import (
 	"fmt"
@@ -6,105 +6,94 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMariaDbDatabase_basic(t *testing.T) {
-	resourceName := "azurerm_mariadb_database.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+func TestAccAzureRMMariaDBFirewallRule_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
+		CheckDestroy: testCheckAzureRMMariaDBFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbDatabase_basic(ri, location),
+				Config: testAccAzureRMMariaDBFirewallRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
-					resource.TestCheckResourceAttr(resourceName, "collation", "utf8_general_ci"),
+					testCheckAzureRMMariaDBFirewallRuleExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func TestAccAzureRMMariaDbDatabase_requiresImport(t *testing.T) {
+func TestAccAzureRMMariaDBFirewallRule_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
-	resourceName := "azurerm_mariadb_database.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_mariadb_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
+		CheckDestroy: testCheckAzureRMMariaDBFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMariaDbDatabase_basic(ri, location),
+				Config: testAccAzureRMMariaDBFirewallRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMariaDbDatabaseExists(resourceName),
+					testCheckAzureRMMariaDBFirewallRuleExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMariaDbDatabase_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_database"),
+				Config:      testAccAzureRMMariaDBFirewallRule_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_mariadb_firewall_rule"),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMMariaDbDatabaseExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMMariaDBFirewallRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %q", resourceName)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("bad: no resource group found in state for MariaDB database: %q", name)
+			return fmt.Errorf("Bad: no resource group found in state for MariaDB Firewall Rule: %s", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.DatabasesClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.FirewallRulesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: MariaDB database %q (Server %q Resource Group: %q) does not exist", name, serverName, resourceGroup)
+				return fmt.Errorf("Bad: MariaDB Firewall Rule %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
 			}
-			return fmt.Errorf("bad: get on mariadbDatabasesClient: %+v", err)
+			return fmt.Errorf("Bad: Get on mariadbFirewallRulesClient: %s", err)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMMariaDbDatabaseDestroy(s *terraform.State) error {
+func testCheckAzureRMMariaDBFirewallRuleDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.DatabasesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_mariadb_database" {
+		if rs.Type != "azurerm_mariadb_firewall_rule" {
 			continue
 		}
 
@@ -113,23 +102,24 @@ func testCheckAzureRMMariaDbDatabaseDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
+
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
-			return fmt.Errorf("error MariaDB database %q (Resource Group %q) still exists:\n%+v", name, resourceGroup, err)
+
+			return fmt.Errorf("MariaDB Firewall Rule still exists:\n%#v", resp)
 		}
-		return fmt.Errorf("MariaDB database %q (Resource Group %q) still exists:\n%#+v", name, resourceGroup, resp)
 	}
 
 	return nil
 }
 
-func testAccAzureRMMariaDbDatabase_basic(rInt int, location string) string {
+func testAccAzureRMMariaDBFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = %q
+  location = "%s"
 }
 
 resource "azurerm_mariadb_server" "test" {
@@ -138,9 +128,9 @@ resource "azurerm_mariadb_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen5_2"
+    name     = "GP_Gen5_2"
     capacity = 2
-    tier     = "Basic"
+    tier     = "GeneralPurpose"
     family   = "Gen5"
   }
 
@@ -156,27 +146,26 @@ resource "azurerm_mariadb_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 
-resource "azurerm_mariadb_database" "test" {
-  name                = "acctestmariadb_%d"
+resource "azurerm_mariadb_firewall_rule" "test" {
+  name                = "acctestfwrule-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_mariadb_server.test.name}"
-  charset             = "utf8"
-  collation           = "utf8_general_ci"
+  start_ip_address    = "0.0.0.0"
+  end_ip_address      = "255.255.255.255"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMariaDbDatabase_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMMariaDbDatabase_basic(rInt, location)
+func testAccAzureRMMariaDBFirewallRule_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_mariadb_database" "import" {
-  name                = "${azurerm_mariadb_database.test.name}"
-  resource_group_name = "${azurerm_mariadb_database.test.resource_group_name}"
-  server_name         = "${azurerm_mariadb_database.test.server_name}"
-  charset             = "${azurerm_mariadb_database.test.charset}"
-  collation           = "${azurerm_mariadb_database.test.collation}"
+resource "azurerm_mariadb_firewall_rule" "import" {
+  name                = "${azurerm_mariadb_firewall_rule.test.name}"
+  resource_group_name = "${azurerm_mariadb_firewall_rule.test.resource_group_name}"
+  server_name         = "${azurerm_mariadb_firewall_rule.test.server_name}"
+  start_ip_address    = "${azurerm_mariadb_firewall_rule.test.start_ip_address}"
+  end_ip_address      = "${azurerm_mariadb_firewall_rule.test.end_ip_address}"
 }
-`, template)
+`, testAccAzureRMMariaDBFirewallRule_basic(data))
 }
