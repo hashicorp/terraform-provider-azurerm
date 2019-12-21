@@ -1,14 +1,12 @@
-package recoveryservices
+package tests
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -17,8 +15,7 @@ import (
 
 // TODO: These tests fail because enabling backup on file shares with no content
 func TestAccAzureRMBackupProtectedFileShare_basic(t *testing.T) {
-	resourceName := "azurerm_backup_protected_file_share.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,19 +23,15 @@ func TestAccAzureRMBackupProtectedFileShare_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectedFileShare_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedFileShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBackupProtectedFileShareExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					testCheckAzureRMBackupProtectedFileShareExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{ //vault cannot be deleted unless we unregister all backups
-				Config: testAccAzureRMBackupProtectedFileShare_base(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedFileShare_base(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -51,8 +44,7 @@ func TestAccAzureRMBackupProtectedFileShare_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_backup_protected_file_share.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -60,18 +52,15 @@ func TestAccAzureRMBackupProtectedFileShare_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectedFileShare_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedFileShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBackupProtectedFileShareExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					testCheckAzureRMBackupProtectedFileShareExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
 				),
 			},
-			{
-				Config:      testAccAzureRMBackupProtectedFileShare_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_backup_protected_file_share"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMBackupProtectedFileShare_requiresImport),
 			{ //vault cannot be deleted unless we unregister all backups
-				Config: testAccAzureRMBackupProtectedFileShare_base(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedFileShare_base(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -79,11 +68,10 @@ func TestAccAzureRMBackupProtectedFileShare_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
-	protectedFileShareResourceName := "azurerm_backup_protected_file_share.test"
 	fBackupPolicyResourceName := "azurerm_backup_policy_file_share.test1"
 	sBackupPolicyResourceName := "azurerm_backup_policy_file_share.test2"
 
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -91,20 +79,20 @@ func TestAccAzureRMBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
 		Steps: []resource.TestStep{
 			{ // Create resources and link first backup policy id
-				Config: testAccAzureRMBackupProtectedFileShare_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedFileShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrPair(protectedFileShareResourceName, "backup_policy_id", fBackupPolicyResourceName, "id"),
+					resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", fBackupPolicyResourceName, "id"),
 				),
 			},
 			{ // Modify backup policy id to the second one
 				// Set Destroy false to prevent error from cleaning up dangling resource
-				Config: testAccAzureRMBackupProtectedFileShare_updatePolicy(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedFileShare_updatePolicy(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrPair(protectedFileShareResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
+					resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
 				),
 			},
 			{ // Remove protected items first before the associated policies are deleted
-				Config: testAccAzureRMBackupProtectedFileShare_base(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedFileShare_base(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -197,8 +185,7 @@ func testCheckAzureRMBackupProtectedFileShareExists(resourceName string) resourc
 	}
 }
 
-func testAccAzureRMBackupProtectedFileShare_base(rInt int, location string) string {
-	rstr := strconv.Itoa(rInt)
+func testAccAzureRMBackupProtectedFileShare_base(data acceptance.TestData) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-backup-%[1]d"
@@ -244,10 +231,11 @@ resource "azurerm_backup_policy_file_share" "test1" {
     count = 10
   }
 }
-`, rInt, location, rstr[len(rstr)-5:])
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMBackupProtectedFileShare_basic(rInt int, location string) string {
+func testAccAzureRMBackupProtectedFileShare_basic(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedFileShare_base(data)
 	return fmt.Sprintf(`
 %s
 
@@ -264,10 +252,11 @@ resource "azurerm_backup_protected_file_share" "test" {
   source_file_share_name    = "${azurerm_storage_share.test.name}"
   backup_policy_id          = "${azurerm_backup_policy_file_share.test1.id}"
 }
-`, testAccAzureRMBackupProtectedFileShare_base(rInt, location))
+`, template)
 }
 
-func testAccAzureRMBackupProtectedFileShare_updatePolicy(rInt int, location string) string {
+func testAccAzureRMBackupProtectedFileShare_updatePolicy(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedFileShare_base(data)
 	return fmt.Sprintf(`
 %s
 
@@ -299,10 +288,11 @@ resource "azurerm_backup_protected_file_share" "test" {
   source_file_share_name    = "${azurerm_storage_share.test.name}"
   backup_policy_id          = "${azurerm_backup_policy_file_share.test2.id}"
 }
-`, testAccAzureRMBackupProtectedFileShare_base(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMBackupProtectedFileShare_requiresImport(rInt int, location string) string {
+func testAccAzureRMBackupProtectedFileShare_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedFileShare_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -313,5 +303,5 @@ resource "azurerm_backup_protected_file_share" "test_import" {
   source_file_share_name    = "${azurerm_storage_share.test.name}"
   backup_policy_id          = "${azurerm_backup_policy_file_share.test1.id}"
 }
-`, testAccAzureRMBackupProtectedFileShare_basic(rInt, location))
+`, template)
 }

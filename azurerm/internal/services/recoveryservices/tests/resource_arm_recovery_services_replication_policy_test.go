@@ -1,4 +1,4 @@
-package recoveryservices
+package tests
 
 import (
 	"fmt"
@@ -7,14 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMRecoveryReplicationPolicy_basic(t *testing.T) {
-	resourceName := "azurerm_recovery_services_replication_policy.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_replication_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,21 +20,17 @@ func TestAccAzureRMRecoveryReplicationPolicy_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRecoveryReplicationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryReplicationPolicy_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMRecoveryReplicationPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryReplicationPolicyExists(resourceName),
+					testCheckAzureRMRecoveryReplicationPolicyExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testAccAzureRMRecoveryReplicationPolicy_basic(rInt int, location string) string {
+func testAccAzureRMRecoveryReplicationPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -57,7 +51,7 @@ resource "azurerm_recovery_services_replication_policy" "test" {
   recovery_point_retention_in_minutes                  = "${24 * 60}"
   application_consistent_snapshot_frequency_in_minutes = "${4 * 60}"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testCheckAzureRMRecoveryReplicationPolicyExists(resourceName string) resource.TestCheckFunc {

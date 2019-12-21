@@ -1,23 +1,19 @@
-package recoveryservices
+package tests
 
 import (
 	"fmt"
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMBackupProtectionContainerStorageAccount_basic(t *testing.T) {
-	resourceName := "azurerm_backup_container_storage_account.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
+	data := acceptance.BuildTestData(t, "azurerm_backup_container_storage_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,21 +21,17 @@ func TestAccAzureRMBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectionContainerStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionContainerStorageAccount_basic(ri, rs, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectionContainerStorageAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBackupProtectionContainerStorageAccountExists(resourceName),
+					testCheckAzureRMBackupProtectionContainerStorageAccountExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testAccAzureRMBackupProtectionContainerStorageAccount_basic(rInt int, rString string, location string) string {
+func testAccAzureRMBackupProtectionContainerStorageAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
   name     = "acctestRG-backup-%d"
@@ -67,7 +59,7 @@ resource "azurerm_backup_container_storage_account" "test" {
   recovery_vault_name  = "${azurerm_recovery_services_vault.testvlt.name}"
   storage_account_id   = "${azurerm_storage_account.testsa.id}"
 }
-`, rInt, location, rInt, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func testCheckAzureRMBackupProtectionContainerStorageAccountExists(resourceName string) resource.TestCheckFunc {

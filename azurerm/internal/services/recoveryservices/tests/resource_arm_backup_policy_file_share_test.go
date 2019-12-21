@@ -1,13 +1,11 @@
-package recoveryservices
+package tests
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -15,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMBackupProtectionPolicyFileShare_basicDaily(t *testing.T) {
-	resourceName := "azurerm_backup_policy_file_share.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,14 +21,10 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_basicDaily(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data.ResourceName, data.RandomInteger),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -42,8 +35,7 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_requiresImport(t *testing.T) 
 		return
 	}
 
-	resourceName := "azurerm_backup_policy_file_share.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -51,20 +43,16 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_requiresImport(t *testing.T) 
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data.ResourceName, data.RandomInteger),
 			},
-			{
-				Config:      testAccAzureRMBackupProtectionPolicyFileShare_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_backup_policy_file_share"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMBackupProtectionPolicyFileShare_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMBackupProtectionPolicyFileShare_updateDaily(t *testing.T) {
-	resourceName := "azurerm_backup_policy_file_share.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -72,23 +60,15 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_updateDaily(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data.ResourceName, data.RandomInteger),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config: testAccAzureRMBackupProtectionPolicyFileShare_updateDaily(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_updateDaily(data.ResourceName, data.RandomInteger),
 			},
-			{
-				Config: testAccAzureRMBackupProtectionPolicyFileShare_updateDaily(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyFileShare_updateDaily(resourceName, ri),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -152,23 +132,24 @@ func testCheckAzureRMBackupProtectionPolicyFileShareExists(resourceName string) 
 	}
 }
 
-func testAccAzureRMBackupProtectionPolicyFileShare_base(rInt int, location string) string {
+func testAccAzureRMBackupProtectionPolicyFileShare_base(data acceptance.TestData) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-backup-%[1]d"
-  location = "%[2]s"
+  name     = "acctestRG-backup-%d"
+  location = "%s"
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-RSV-%[1]d"
+  name                = "acctest-RSV-%s"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
-`, rInt, location, strconv.Itoa(rInt)[12:17])
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(rInt int, location string) string {
+func testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectionPolicyFileShare_base(data)
 	return fmt.Sprintf(`
 %s
 
@@ -186,10 +167,11 @@ resource "azurerm_backup_policy_file_share" "test" {
     count = 10
   }
 }
-`, testAccAzureRMBackupProtectionPolicyFileShare_base(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMBackupProtectionPolicyFileShare_updateDaily(rInt int, location string) string {
+func testAccAzureRMBackupProtectionPolicyFileShare_updateDaily(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectionPolicyFileShare_base(data)
 	return fmt.Sprintf(`
 %s
 
@@ -207,10 +189,11 @@ resource "azurerm_backup_policy_file_share" "test" {
     count = 180
   }
 }
-`, testAccAzureRMBackupProtectionPolicyFileShare_base(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMBackupProtectionPolicyFileShare_requiresImport(rInt int, location string) string {
+func testAccAzureRMBackupProtectionPolicyFileShare_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data)
 	return fmt.Sprintf(`
 %s
 
@@ -228,7 +211,7 @@ resource "azurerm_backup_policy_file_share" "import" {
     count = 10
   }
 }
-`, testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(rInt, location))
+`, template)
 }
 
 func checkAccAzureRMBackupProtectionPolicyFileShare_basicDaily(resourceName string, ri int) resource.TestCheckFunc {
