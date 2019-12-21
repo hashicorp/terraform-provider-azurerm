@@ -1,28 +1,24 @@
-package compute
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMSharedImage_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_shared_image.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "data.azurerm_shared_image", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSharedImage_basic(rInt, location),
+				Config: testAccDataSourceSharedImage_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 		},
@@ -30,27 +26,24 @@ func TestAccDataSourceAzureRMSharedImage_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMSharedImage_complete(t *testing.T) {
-	dataSourceName := "data.azurerm_shared_image.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "data.azurerm_shared_image", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSharedImage_complete(rInt, location),
+				Config: testAccDataSourceSharedImage_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceSharedImage_basic(rInt int, location string) string {
-	template := testAccAzureRMSharedImage_basic(rInt, location)
+func testAccDataSourceSharedImage_basic(data acceptance.TestData) string {
+	template := testAccAzureRMSharedImage_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -62,8 +55,8 @@ data "azurerm_shared_image" "test" {
 `, template)
 }
 
-func testAccDataSourceSharedImage_complete(rInt int, location string) string {
-	template := testAccAzureRMSharedImage_complete(rInt, location)
+func testAccDataSourceSharedImage_complete(data acceptance.TestData) string {
+	template := testAccAzureRMSharedImage_complete(data)
 	return fmt.Sprintf(`
 %s
 
