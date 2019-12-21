@@ -1,4 +1,4 @@
-package mysql
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMMySQLFirewallRule_basic(t *testing.T) {
-	resourceName := "azurerm_mysql_firewall_rule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mysql_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,16 +21,12 @@ func TestAccAzureRMMySQLFirewallRule_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLFirewallRule_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLFirewallRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLFirewallRuleExists(resourceName),
+					testCheckAzureRMMySQLFirewallRuleExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -43,8 +37,7 @@ func TestAccAzureRMMySQLFirewallRule_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_mysql_firewall_rule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mysql_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -52,13 +45,13 @@ func TestAccAzureRMMySQLFirewallRule_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLFirewallRule_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLFirewallRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLFirewallRuleExists(resourceName),
+					testCheckAzureRMMySQLFirewallRuleExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMySQLFirewallRule_requiresImport(ri, acceptance.Location()),
+				Config:      testAccAzureRMMySQLFirewallRule_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_mysql_firewall_rule"),
 			},
 		},
@@ -122,7 +115,7 @@ func testCheckAzureRMMySQLFirewallRuleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMySQLFirewallRule_basic(rInt int, location string) string {
+func testAccAzureRMMySQLFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -160,10 +153,10 @@ resource "azurerm_mysql_firewall_rule" "test" {
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "255.255.255.255"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLFirewallRule_requiresImport(rInt int, location string) string {
+func testAccAzureRMMySQLFirewallRule_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -174,5 +167,5 @@ resource "azurerm_mysql_firewall_rule" "import" {
   start_ip_address    = "${azurerm_mysql_firewall_rule.test.start_ip_address}"
   end_ip_address      = "${azurerm_mysql_firewall_rule.test.end_ip_address}"
 }
-`, testAccAzureRMMySQLFirewallRule_basic(rInt, location))
+`, testAccAzureRMMySQLFirewallRule_basic(data))
 }
