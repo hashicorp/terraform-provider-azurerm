@@ -177,7 +177,7 @@ resource "azurerm_sql_active_directory_administrator" "test" {
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
   object_id           = "${data.azurerm_client_config.current.client_id}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMSqlAdministrator_requiresImport(data acceptance.TestData) string {

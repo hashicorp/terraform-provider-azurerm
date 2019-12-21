@@ -8,18 +8,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMSqlServer_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_sql_server", "test")
+func TestAccDataSourceAzureRMPPostgreSqlServer_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_postgresql_server", "test")
+	version := "9.5"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMSqlServer_basic(data),
+				Config: testAccDataSourceAzureRMPostgreSqlServer_basic(data, version),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists(data.ResourceName),
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "version"),
@@ -31,13 +32,13 @@ func TestAccDataSourceAzureRMSqlServer_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMSqlServer_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSqlServer_basic(data)
+func testAccDataSourceAzureRMPostgreSqlServer_basic(data acceptance.TestData, version string) string {
+	template := testAccAzureRMPostgreSQLServer_basic(data, version)
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_sql_server" "test" {
-  name                = "${azurerm_sql_server.test.name}"
+data "azurerm_postgresql_server" "test" {
+  name                = "${azurerm_postgresql_server.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, template)
