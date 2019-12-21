@@ -1,4 +1,4 @@
-package mysql
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
-	resourceName := "azurerm_mysql_database.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,16 +21,12 @@ func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLDatabase_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLDatabase_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLDatabaseExists(resourceName),
+					testCheckAzureRMMySQLDatabaseExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -43,8 +37,7 @@ func TestAccAzureRMMySQLDatabase_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_mysql_database.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -52,13 +45,13 @@ func TestAccAzureRMMySQLDatabase_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLDatabase_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLDatabase_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLDatabaseExists(resourceName),
+					testCheckAzureRMMySQLDatabaseExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMySQLDatabase_requiresImport(ri, acceptance.Location()),
+				Config:      testAccAzureRMMySQLDatabase_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_mysql_database"),
 			},
 		},
@@ -66,9 +59,8 @@ func TestAccAzureRMMySQLDatabase_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
-	resourceName := "azurerm_mysql_database.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMySQLDatabase_charsetUppercase(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
+	config := testAccAzureRMMySQLDatabase_charsetUppercase(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,23 +70,18 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
+					testCheckAzureRMMySQLDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "charset", "utf8"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
-	resourceName := "azurerm_mysql_database.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMySQLDatabase_charsetMixedcase(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
+	config := testAccAzureRMMySQLDatabase_charsetMixedcase(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -104,15 +91,11 @@ func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "charset", "utf8"),
+					testCheckAzureRMMySQLDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "charset", "utf8"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -173,7 +156,7 @@ func testCheckAzureRMMySQLDatabaseDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMySQLDatabase_basic(rInt int, location string) string {
+func testAccAzureRMMySQLDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -211,10 +194,10 @@ resource "azurerm_mysql_database" "test" {
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLDatabase_requiresImport(rInt int, location string) string {
+func testAccAzureRMMySQLDatabase_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -225,10 +208,10 @@ resource "azurerm_mysql_database" "import" {
   charset             = "${azurerm_mysql_database.test.charset}"
   collation           = "${azurerm_mysql_database.test.collation}"
 }
-`, testAccAzureRMMySQLDatabase_basic(rInt, location))
+`, testAccAzureRMMySQLDatabase_basic(data))
 }
 
-func testAccAzureRMMySQLDatabase_charsetUppercase(rInt int, location string) string {
+func testAccAzureRMMySQLDatabase_charsetUppercase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -266,10 +249,10 @@ resource "azurerm_mysql_database" "test" {
   charset             = "UTF8"
   collation           = "utf8_unicode_ci"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLDatabase_charsetMixedcase(rInt int, location string) string {
+func testAccAzureRMMySQLDatabase_charsetMixedcase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -307,5 +290,5 @@ resource "azurerm_mysql_database" "test" {
   charset             = "Utf8"
   collation           = "utf8_unicode_ci"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

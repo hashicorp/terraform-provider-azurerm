@@ -1,4 +1,4 @@
-package mysql
+package tests
 
 import (
 	"fmt"
@@ -6,15 +6,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
-	resourceName := "azurerm_mysql_configuration.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,21 +20,17 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLConfiguration_characterSetServer(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLConfiguration_characterSetServer(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLConfigurationValue(resourceName, "hebrew"),
+					testCheckAzureRMMySQLConfigurationValue(data.ResourceName, "hebrew"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMySQLConfiguration_empty(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLConfiguration_empty(data),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
-					testCheckAzureRMMySQLConfigurationValueReset(ri, "character_set_server"),
+					testCheckAzureRMMySQLConfigurationValueReset(data, "character_set_server"),
 				),
 			},
 		},
@@ -44,8 +38,7 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
-	resourceName := "azurerm_mysql_configuration.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,21 +46,17 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLConfiguration_interactiveTimeout(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLConfigurationValue(resourceName, "30"),
+					testCheckAzureRMMySQLConfigurationValue(data.ResourceName, "30"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMySQLConfiguration_empty(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLConfiguration_empty(data),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
-					testCheckAzureRMMySQLConfigurationValueReset(ri, "interactive_timeout"),
+					testCheckAzureRMMySQLConfigurationValueReset(data, "interactive_timeout"),
 				),
 			},
 		},
@@ -75,8 +64,7 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
-	resourceName := "azurerm_mysql_configuration.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mysql_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -84,21 +72,17 @@ func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLConfiguration_logSlowAdminStatements(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLConfigurationValue(resourceName, "on"),
+					testCheckAzureRMMySQLConfigurationValue(data.ResourceName, "on"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMySQLConfiguration_empty(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLConfiguration_empty(data),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
-					testCheckAzureRMMySQLConfigurationValueReset(ri, "log_slow_admin_statements"),
+					testCheckAzureRMMySQLConfigurationValueReset(data, "log_slow_admin_statements"),
 				),
 			},
 		},
@@ -140,10 +124,10 @@ func testCheckAzureRMMySQLConfigurationValue(resourceName string, value string) 
 	}
 }
 
-func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
+func testCheckAzureRMMySQLConfigurationValueReset(data acceptance.TestData, configurationName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
-		serverName := fmt.Sprintf("acctestmysqlsvr-%d", rInt)
+		resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+		serverName := fmt.Sprintf("acctestmysqlsvr-%d", data.RandomInteger)
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ConfigurationsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -194,20 +178,20 @@ func testCheckAzureRMMySQLConfigurationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMySQLConfiguration_characterSetServer(rInt int, location string) string {
-	return testAccAzureRMMySQLConfiguration_template(rInt, location, "character_set_server", "hebrew")
+func testAccAzureRMMySQLConfiguration_characterSetServer(data acceptance.TestData) string {
+	return testAccAzureRMMySQLConfiguration_template(data, "character_set_server", "hebrew")
 }
 
-func testAccAzureRMMySQLConfiguration_interactiveTimeout(rInt int, location string) string {
-	return testAccAzureRMMySQLConfiguration_template(rInt, location, "interactive_timeout", "30")
+func testAccAzureRMMySQLConfiguration_interactiveTimeout(data acceptance.TestData) string {
+	return testAccAzureRMMySQLConfiguration_template(data, "interactive_timeout", "30")
 }
 
-func testAccAzureRMMySQLConfiguration_logSlowAdminStatements(rInt int, location string) string {
-	return testAccAzureRMMySQLConfiguration_template(rInt, location, "log_slow_admin_statements", "on")
+func testAccAzureRMMySQLConfiguration_logSlowAdminStatements(data acceptance.TestData) string {
+	return testAccAzureRMMySQLConfiguration_template(data, "log_slow_admin_statements", "on")
 }
 
-func testAccAzureRMMySQLConfiguration_template(rInt int, location string, name string, value string) string {
-	server := testAccAzureRMMySQLConfiguration_empty(rInt, location)
+func testAccAzureRMMySQLConfiguration_template(data acceptance.TestData, name string, value string) string {
+	server := testAccAzureRMMySQLConfiguration_empty(data)
 	config := fmt.Sprintf(`
 resource "azurerm_mysql_configuration" "test" {
   name                = "%s"
@@ -219,7 +203,7 @@ resource "azurerm_mysql_configuration" "test" {
 	return server + config
 }
 
-func testAccAzureRMMySQLConfiguration_empty(rInt int, location string) string {
+func testAccAzureRMMySQLConfiguration_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -249,5 +233,5 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.7"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

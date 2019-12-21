@@ -1,4 +1,4 @@
-package mysql
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
-	resourceName := "azurerm_mysql_server.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,19 +21,12 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLServer_basicFiveSix(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLServer_basicFiveSix(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(resourceName),
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
-			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
 		},
 	})
 }
@@ -46,8 +37,7 @@ func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_mysql_server.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,13 +45,13 @@ func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLServer_basicFiveSevenUpdated(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLServer_basicFiveSevenUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(resourceName),
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMySQLServer_requiresImport(ri, acceptance.Location()),
+				Config:      testAccAzureRMMySQLServer_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_mysql_server"),
 			},
 		},
@@ -74,9 +64,8 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_mysql_server.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	config := testAccAzureRMMySQLServer_basicFiveSeven(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -86,24 +75,16 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(resourceName),
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
-			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
 		},
 	})
 }
 
 func TestAccAzureRMMySQLServer_basicEightZero(t *testing.T) {
-	resourceName := "azurerm_mysql_server.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -111,27 +92,19 @@ func TestAccAzureRMMySQLServer_basicEightZero(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLServer_basicEightZero(ri, acceptance.Location()),
+				Config: testAccAzureRMMySQLServer_basicEightZero(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(resourceName),
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
-			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
 		},
 	})
 }
 
 func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
-	resourceName := "azurerm_mysql_server.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMySQLServer_generalPurpose(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	config := testAccAzureRMMySQLServer_generalPurpose(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -141,25 +114,17 @@ func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(resourceName),
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
-			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
 		},
 	})
 }
 
 func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
-	resourceName := "azurerm_mysql_server.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	config := testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -169,26 +134,17 @@ func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(resourceName),
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
-			}, {
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
-			},
+			}, data.ImportStep("administrator_login_password"), // not returned as sensitive
 		},
 	})
 }
 
 func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
-	resourceName := "azurerm_mysql_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, location)
-	updatedConfig := testAccAzureRMMySQLServer_basicFiveSevenUpdated(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	config := testAccAzureRMMySQLServer_basicFiveSeven(data)
+	updatedConfig := testAccAzureRMMySQLServer_basicFiveSevenUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -198,41 +154,32 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5_2"),
-					resource.TestCheckResourceAttr(resourceName, "version", "5.7"),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "51200"),
-					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "version", "5.7"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "51200"),
+					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5_4"),
-					resource.TestCheckResourceAttr(resourceName, "version", "5.7"),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
-					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "version", "5.7"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
-			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
 		},
 	})
 }
 
 func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
-	resourceName := "azurerm_mysql_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMMySQLServer_generalPurpose(ri, location)
-	updatedConfig := testAccAzureRMMySQLServer_memoryOptimized(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	config := testAccAzureRMMySQLServer_generalPurpose(data)
+	updatedConfig := testAccAzureRMMySQLServer_memoryOptimized(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -242,25 +189,25 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5_32"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "32"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "GeneralPurpose"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen5"),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
-					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_32"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "32"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "GeneralPurpose"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "MO_Gen5_16"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "16"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "MemoryOptimized"),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen5"),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "4194304"),
-					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "MO_Gen5_16"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "16"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "MemoryOptimized"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "4194304"),
+					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
 			},
 		},
@@ -268,11 +215,9 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLServer_storageAutogrow(t *testing.T) {
-	resourceName := "azurerm_mysql_server.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, location)
-	updatedConfig := testAccAzureRMMySQLServer_autogrow(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	config := testAccAzureRMMySQLServer_basicFiveSeven(data)
+	updatedConfig := testAccAzureRMMySQLServer_autogrow(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -282,15 +227,15 @@ func TestAccAzureRMMySQLServer_storageAutogrow(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Enabled"),
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Enabled"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Disabled"),
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Disabled"),
 				),
 			},
 		},
@@ -354,7 +299,7 @@ func testCheckAzureRMMySQLServerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMySQLServer_basicFiveSix(rInt int, location string) string {
+func testAccAzureRMMySQLServer_basicFiveSix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -384,10 +329,10 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLServer_basicFiveSeven(rInt int, location string) string {
+func testAccAzureRMMySQLServer_basicFiveSeven(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -417,10 +362,10 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.7"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLServer_basicEightZero(rInt int, location string) string {
+func testAccAzureRMMySQLServer_basicEightZero(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -450,10 +395,10 @@ resource "azurerm_mysql_server" "test" {
   version                      = "8.0"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLServer_requiresImport(rInt int, location string) string {
+func testAccAzureRMMySQLServer_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -480,10 +425,10 @@ resource "azurerm_mysql_server" "import" {
   version                      = "5.7"
   ssl_enforcement              = "Enabled"
 }
-`, testAccAzureRMMySQLServer_basicFiveSevenUpdated(rInt, location))
+`, testAccAzureRMMySQLServer_basicFiveSevenUpdated(data))
 }
 
-func testAccAzureRMMySQLServer_basicFiveSevenUpdated(rInt int, location string) string {
+func testAccAzureRMMySQLServer_basicFiveSevenUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -513,10 +458,10 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.7"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLServer_generalPurpose(rInt int, location string) string {
+func testAccAzureRMMySQLServer_generalPurpose(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -546,10 +491,10 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.7"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLServer_memoryOptimized(rInt int, location string) string {
+func testAccAzureRMMySQLServer_memoryOptimized(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -579,10 +524,10 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.7"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(rInt int, location string) string {
+func testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -612,10 +557,10 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.7"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLServer_autogrow(rInt int, location string) string {
+func testAccAzureRMMySQLServer_autogrow(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -646,5 +591,5 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.7"
   ssl_enforcement              = "Enabled"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
