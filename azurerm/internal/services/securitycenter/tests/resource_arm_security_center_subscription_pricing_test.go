@@ -1,4 +1,4 @@
-package securitycenter
+package tests
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 )
 
 func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
-	resourceName := "azurerm_security_center_subscription_pricing.test"
+	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -21,27 +21,19 @@ func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 			{
 				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Standard"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterSubscriptionPricingExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tier", "Standard"),
+					testCheckAzureRMSecurityCenterSubscriptionPricingExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tier", "Standard"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterSubscriptionPricingExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tier", "Free"),
+					testCheckAzureRMSecurityCenterSubscriptionPricingExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tier", "Free"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
