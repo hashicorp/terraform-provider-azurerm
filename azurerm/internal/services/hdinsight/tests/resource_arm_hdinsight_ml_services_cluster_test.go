@@ -1,53 +1,39 @@
-package hdinsight
+package tests
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMHDInsightMLServicesCluster_basic(t *testing.T) {
-	resourceName := "azurerm_hdinsight_ml_services_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_ml_services_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightMLServicesCluster_basic(ri, rs, location),
+				Config: testAccAzureRMHDInsightMLServicesCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_ssh_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "edge_ssh_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"roles.0.head_node.0.password",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.password",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.password",
-					"roles.0.zookeeper_node.0.vm_size",
-					"roles.0.edge_node.0.password",
-					"roles.0.edge_node.0.vm_size",
-					"storage_account",
-				},
-			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"roles.0.edge_node.0.password",
+				"roles.0.edge_node.0.vm_size",
+				"storage_account"),
 		},
 	})
 }
@@ -58,220 +44,162 @@ func TestAccAzureRMHDInsightMLServicesCluster_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_hdinsight_ml_services_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_ml_services_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightMLServicesCluster_basic(ri, rs, location),
+				Config: testAccAzureRMHDInsightMLServicesCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_ssh_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "edge_ssh_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				Config:      testAccAzureRMHDInsightMLServicesCluster_requiresImport(ri, rs, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_hdinsight_ml_services_cluster"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMHDInsightMLServicesCluster_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMHDInsightMLServicesCluster_update(t *testing.T) {
-	resourceName := "azurerm_hdinsight_ml_services_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_ml_services_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightMLServicesCluster_basic(ri, rs, location),
+				Config: testAccAzureRMHDInsightMLServicesCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_ssh_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "edge_ssh_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"roles.0.edge_node.0.password",
+				"roles.0.edge_node.0.vm_size",
+				"storage_account"),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"roles.0.head_node.0.password",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.password",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.password",
-					"roles.0.zookeeper_node.0.vm_size",
-					"roles.0.edge_node.0.password",
-					"roles.0.edge_node.0.vm_size",
-					"storage_account",
-				},
-			},
-			{
-				Config: testAccAzureRMHDInsightMLServicesCluster_updated(ri, rs, location),
+				Config: testAccAzureRMHDInsightMLServicesCluster_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_ssh_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "edge_ssh_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"roles.0.head_node.0.password",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.password",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.password",
-					"roles.0.zookeeper_node.0.vm_size",
-					"roles.0.edge_node.0.password",
-					"roles.0.edge_node.0.vm_size",
-					"storage_account",
-				},
-			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"roles.0.edge_node.0.password",
+				"roles.0.edge_node.0.vm_size",
+				"storage_account"),
 		},
 	})
 }
 
 func TestAccAzureRMHDInsightMLServicesCluster_sshKeys(t *testing.T) {
-	resourceName := "azurerm_hdinsight_ml_services_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_ml_services_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightMLServicesCluster_sshKeys(ri, rs, location),
+				Config: testAccAzureRMHDInsightMLServicesCluster_sshKeys(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_ssh_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "edge_ssh_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"storage_account",
-					"roles.0.head_node.0.ssh_keys",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.ssh_keys",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.ssh_keys",
-					"roles.0.zookeeper_node.0.vm_size",
-					"roles.0.edge_node.0.ssh_keys",
-					"roles.0.edge_node.0.vm_size",
-				},
-			},
+			data.ImportStep("storage_account",
+				"roles.0.head_node.0.ssh_keys",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.ssh_keys",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.ssh_keys",
+				"roles.0.zookeeper_node.0.vm_size",
+				"roles.0.edge_node.0.ssh_keys",
+				"roles.0.edge_node.0.vm_size"),
 		},
 	})
 }
 
 func TestAccAzureRMHDInsightMLServicesCluster_virtualNetwork(t *testing.T) {
-	resourceName := "azurerm_hdinsight_ml_services_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_ml_services_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightMLServicesCluster_virtualNetwork(ri, rs, location),
+				Config: testAccAzureRMHDInsightMLServicesCluster_virtualNetwork(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_ssh_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "edge_ssh_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"roles.0.head_node.0.password",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.password",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.password",
-					"roles.0.zookeeper_node.0.vm_size",
-					"roles.0.edge_node.0.password",
-					"roles.0.edge_node.0.vm_size",
-					"storage_account",
-				},
-			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"roles.0.edge_node.0.password",
+				"roles.0.edge_node.0.vm_size",
+				"storage_account"),
 		},
 	})
 }
 
 func TestAccAzureRMHDInsightMLServicesCluster_complete(t *testing.T) {
-	resourceName := "azurerm_hdinsight_ml_services_cluster.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_ml_services_cluster"),
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightMLServicesCluster_complete(ri, rs, location),
+				Config: testAccAzureRMHDInsightMLServicesCluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "edge_ssh_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
-					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "edge_ssh_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"roles.0.head_node.0.password",
-					"roles.0.head_node.0.vm_size",
-					"roles.0.worker_node.0.password",
-					"roles.0.worker_node.0.vm_size",
-					"roles.0.zookeeper_node.0.password",
-					"roles.0.zookeeper_node.0.vm_size",
-					"roles.0.edge_node.0.password",
-					"roles.0.edge_node.0.vm_size",
-					"storage_account",
-				},
-			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"roles.0.edge_node.0.password",
+				"roles.0.edge_node.0.vm_size",
+				"storage_account"),
 		},
 	})
 }
 
-func testAccAzureRMHDInsightMLServicesCluster_basic(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightMLServicesCluster_template(rInt, rString, location)
+func testAccAzureRMHDInsightMLServicesCluster_basic(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightMLServicesCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -322,11 +250,11 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
     }
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightMLServicesCluster_requiresImport(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightMLServicesCluster_basic(rInt, rString, location)
+func testAccAzureRMHDInsightMLServicesCluster_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightMLServicesCluster_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -343,8 +271,8 @@ resource "azurerm_hdinsight_ml_services_cluster" "import" {
 `, template)
 }
 
-func testAccAzureRMHDInsightMLServicesCluster_sshKeys(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightMLServicesCluster_template(rInt, rString, location)
+func testAccAzureRMHDInsightMLServicesCluster_sshKeys(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightMLServicesCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -399,11 +327,11 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
     }
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightMLServicesCluster_updated(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightMLServicesCluster_template(rInt, rString, location)
+func testAccAzureRMHDInsightMLServicesCluster_updated(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightMLServicesCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -458,11 +386,11 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
     Hello = "World"
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightMLServicesCluster_virtualNetwork(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightMLServicesCluster_template(rInt, rString, location)
+func testAccAzureRMHDInsightMLServicesCluster_virtualNetwork(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightMLServicesCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -535,11 +463,11 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
     }
   }
 }
-`, template, rInt, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightMLServicesCluster_complete(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightMLServicesCluster_template(rInt, rString, location)
+func testAccAzureRMHDInsightMLServicesCluster_complete(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightMLServicesCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -616,10 +544,10 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
     Hello = "World"
   }
 }
-`, template, rInt, rInt, rInt)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightMLServicesCluster_template(rInt int, rString string, location string) string {
+func testAccAzureRMHDInsightMLServicesCluster_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -640,5 +568,5 @@ resource "azurerm_storage_container" "test" {
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
-`, rInt, location, rString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
