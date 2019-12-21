@@ -1,4 +1,4 @@
-package storage
+package tests
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage`
 )
 
 // NOTE: this is intentionally an acceptance test (and we're not explicitly setting the env)
@@ -61,7 +62,7 @@ func TestAccAzureRMStorageContainerMigrateState(t *testing.T) {
 			ID:         tc.ID,
 			Attributes: tc.InputAttributes,
 		}
-		is, err := ResourceStorageContainerMigrateState(tc.StateVersion, is, client)
+		is, err := storage.ResourceStorageContainerMigrateState(tc.StateVersion, is, client)
 
 		if err != nil {
 			t.Fatalf("bad: %s, err: %#v", tn, err)
