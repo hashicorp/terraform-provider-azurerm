@@ -131,7 +131,7 @@ resource "azurerm_api_management_diagnostic" "test" {
   api_management_name = "${azurerm_api_management.test.name}"
   enabled             = true
 }
-`, data.ResourceName, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMApiManagementDiagnostic_requiresImport(data acceptance.TestData) string {

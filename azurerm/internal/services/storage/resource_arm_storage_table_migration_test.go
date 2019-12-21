@@ -1,8 +1,7 @@
-package tests
+package storage
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"reflect"
 	"testing"
 
@@ -10,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAzureRMStorageShareMigrateStateV0ToV1(t *testing.T) {
+func TestAzureRMStorageTableMigrateStateV0ToV1(t *testing.T) {
 	clouds := []azure.Environment{
 		azure.ChinaCloud,
 		azure.GermanCloud,
@@ -22,26 +21,24 @@ func TestAzureRMStorageShareMigrateStateV0ToV1(t *testing.T) {
 		t.Logf("[DEBUG] Testing with Cloud %q", cloud.Name)
 
 		input := map[string]interface{}{
-			"id":                   "share1",
-			"name":                 "share1",
-			"resource_group_name":  "group1",
+			"id":                   "table1",
+			"name":                 "table1",
 			"storage_account_name": "account1",
-			"quota":                5120,
 		}
 		meta := &clients.Client{
 			Account: &clients.ResourceManagerAccount{
 				Environment: cloud,
 			},
 		}
+		suffix := meta.Account.Environment.StorageEndpointSuffix
+
 		expected := map[string]interface{}{
-			"id":                   "share1/group1/account1",
-			"name":                 "share1",
-			"resource_group_name":  "group1",
+			"id":                   fmt.Sprintf("https://account1.table.%s/table1", suffix),
+			"name":                 "table1",
 			"storage_account_name": "account1",
-			"quota":                5120,
 		}
 
-		actual, err := storage.ResourceStorageShareStateUpgradeV0ToV1(input, meta)
+		actual, err := resourceStorageTableStateUpgradeV0ToV1(input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}
@@ -54,7 +51,7 @@ func TestAzureRMStorageShareMigrateStateV0ToV1(t *testing.T) {
 	}
 }
 
-func TestAzureRMStorageShareMigrateStateV1ToV2(t *testing.T) {
+func TestAzureRMStorageTableMigrateStateV1ToV2(t *testing.T) {
 	clouds := []azure.Environment{
 		azure.ChinaCloud,
 		azure.GermanCloud,
@@ -65,27 +62,25 @@ func TestAzureRMStorageShareMigrateStateV1ToV2(t *testing.T) {
 	for _, cloud := range clouds {
 		t.Logf("[DEBUG] Testing with Cloud %q", cloud.Name)
 
-		input := map[string]interface{}{
-			"id":                   "share1/group1/account1",
-			"name":                 "share1",
-			"resource_group_name":  "group1",
-			"storage_account_name": "account1",
-			"quota":                5120,
-		}
 		meta := &clients.Client{
 			Account: &clients.ResourceManagerAccount{
 				Environment: cloud,
 			},
 		}
-		expected := map[string]interface{}{
-			"id":                   fmt.Sprintf("https://account1.file.%s/share1", cloud.StorageEndpointSuffix),
-			"name":                 "share1",
-			"resource_group_name":  "group1",
+		suffix := meta.Account.Environment.StorageEndpointSuffix
+
+		input := map[string]interface{}{
+			"id":                   fmt.Sprintf("https://account1.table.%s/table1", suffix),
+			"name":                 "table1",
 			"storage_account_name": "account1",
-			"quota":                5120,
+		}
+		expected := map[string]interface{}{
+			"id":                   fmt.Sprintf("https://account1.table.%s/Tables('table1')", suffix),
+			"name":                 "table1",
+			"storage_account_name": "account1",
 		}
 
-		actual, err := storage.ResourceStorageShareStateUpgradeV1ToV2(input, meta)
+		actual, err := resourceStorageTableStateUpgradeV1ToV2(input, meta)
 		if err != nil {
 			t.Fatalf("Expected no error but got: %s", err)
 		}
