@@ -15,15 +15,13 @@ import (
 
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	config := testAccAzureRMServiceBusNamespace_basic(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusNamespace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
 				),
@@ -57,15 +55,13 @@ func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	config := testAccAzureRMServiceBusNamespace_basic(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusNamespace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
 					resource.TestMatchResourceAttr(
@@ -84,7 +80,6 @@ func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	config := testAccAzureRMServiceBusNamespaceNonStandardCasing(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -92,13 +87,13 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusNamespaceNonStandardCasing(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
 				),
 			},
 			{
-				Config:             config,
+				Config:             testAccAzureRMServiceBusNamespaceNonStandardCasing(data),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -109,15 +104,13 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	config := testAccAzureRMServiceBusNamespace_premium(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusNamespace_premium(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
 				),
@@ -129,15 +122,13 @@ func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	config := testAccAzureRMServiceBusNamespace_basicCapacity(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      config,
+				Config:      testAccAzureRMServiceBusNamespace_basicCapacity(data),
 				ExpectError: regexp.MustCompile("Service Bus SKU \"Basic\" only supports `capacity` of 0"),
 			},
 		},
@@ -146,15 +137,13 @@ func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	config := testAccAzureRMServiceBusNamespace_premiumCapacity(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      config,
+				Config:      testAccAzureRMServiceBusNamespace_premiumCapacity(data),
 				ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `capacity` of 1, 2, 4 or 8"),
 			},
 		},
@@ -163,15 +152,13 @@ func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 
 func TestAccAzureRMServiceBusNamespace_zoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
-	config := testAccAzureRMServiceBusNamespace_zoneRedundant(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusNamespace_zoneRedundant(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "zone_redundant", "true"),
