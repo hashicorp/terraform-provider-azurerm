@@ -1,15 +1,13 @@
-package iothub
+package tests
 
 import (
 	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -17,9 +15,7 @@ import (
 )
 
 func TestAccAzureRMIotHubRoute_basic(t *testing.T) {
-	resourceName := "azurerm_iothub_route.test"
-	rInt := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
+	data := acceptance.BuildTestData(t, "azurerm_iothub_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,16 +23,12 @@ func TestAccAzureRMIotHubRoute_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubRoute_basic(rInt, rs, acceptance.Location()),
+				Config: testAccAzureRMIotHubRoute_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubRouteExists(resourceName),
+					testCheckAzureRMIotHubRouteExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -47,10 +39,7 @@ func TestAccAzureRMIotHubRoute_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_iothub_route.test"
-	rInt := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_iothub_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -58,13 +47,13 @@ func TestAccAzureRMIotHubRoute_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubRoute_basic(rInt, rs, location),
+				Config: testAccAzureRMIotHubRoute_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubRouteExists(resourceName),
+					testCheckAzureRMIotHubRouteExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMIotHubRoute_requiresImport(rInt, rs, location),
+				Config:      testAccAzureRMIotHubRoute_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_iothub_route"),
 			},
 		},
@@ -72,9 +61,7 @@ func TestAccAzureRMIotHubRoute_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMIotHubRoute_update(t *testing.T) {
-	resourceName := "azurerm_iothub_route.test"
-	rInt := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
+	data := acceptance.BuildTestData(t, "azurerm_iothub_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -82,27 +69,19 @@ func TestAccAzureRMIotHubRoute_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubRoute_basic(rInt, rs, acceptance.Location()),
+				Config: testAccAzureRMIotHubRoute_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubRouteExists(resourceName),
+					testCheckAzureRMIotHubRouteExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMIotHubRoute_update(rInt, rs, acceptance.Location()),
+				Config: testAccAzureRMIotHubRoute_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIotHubRouteExists(resourceName),
+					testCheckAzureRMIotHubRouteExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -192,8 +171,8 @@ func testCheckAzureRMIotHubRouteExists(resourceName string) resource.TestCheckFu
 	}
 }
 
-func testAccAzureRMIotHubRoute_requiresImport(rInt int, rStr string, location string) string {
-	template := testAccAzureRMIotHubRoute_basic(rInt, rStr, location)
+func testAccAzureRMIotHubRoute_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMIotHubRoute_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -210,7 +189,7 @@ resource "azurerm_iothub_route" "import" {
 `, template)
 }
 
-func testAccAzureRMIotHubRoute_basic(rInt int, rStr string, location string) string {
+func testAccAzureRMIotHubRoute_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
@@ -272,10 +251,10 @@ resource "azurerm_iothub_route" "test" {
   enabled        = true
 }
 
-`, rInt, location, rStr)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMIotHubRoute_update(rInt int, rStr string, location string) string {
+func testAccAzureRMIotHubRoute_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
@@ -337,5 +316,5 @@ resource "azurerm_iothub_route" "test" {
   enabled        = false
 }
 
-`, rInt, location, rStr)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
