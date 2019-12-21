@@ -29,7 +29,7 @@ func TestAccAzureRMBatchPool_basic(t *testing.T) {
 					testCheckAzureRMBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
-					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", rs)),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.0.publisher", "Canonical"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.0.sku", "16.04.0-LTS"),
