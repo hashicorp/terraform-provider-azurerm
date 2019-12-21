@@ -1,4 +1,4 @@
-package securitycenter
+package tests
 
 import (
 	"testing"
