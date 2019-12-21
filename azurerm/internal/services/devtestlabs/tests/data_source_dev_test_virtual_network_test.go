@@ -1,4 +1,4 @@
-package devtestlabs
+package tests
 
 import (
 	"fmt"
@@ -6,21 +6,19 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceArmDevTestVirtualNetwork_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_dev_test_virtual_network.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_virtual_network", "test")
 
-	name := fmt.Sprintf("acctestdtvn%d", ri)
-	labName := fmt.Sprintf("acctestdtl%d", ri)
-	resGroup := fmt.Sprintf("acctestRG-%d", ri)
+	name := fmt.Sprintf("acctestdtvn%d", data.RandomInteger)
+	labName := fmt.Sprintf("acctestdtl%d", data.RandomInteger)
+	resGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 	subnetName := name + "Subnet"
 	subnetResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, name, subnetName)
 
-	config := testAccDataSourceArmDevTestVirtualNetwork_basic(ri, acceptance.Location())
+	config := testAccDataSourceArmDevTestVirtualNetwork_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -29,24 +27,24 @@ func TestAccDataSourceArmDevTestVirtualNetwork_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "name", name),
-					resource.TestCheckResourceAttr(dataSourceName, "lab_name", labName),
-					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resGroup),
-					resource.TestCheckResourceAttr(dataSourceName, "allowed_subnets.0.allow_public_ip", "Allow"),
-					resource.TestCheckResourceAttr(dataSourceName, "allowed_subnets.0.lab_subnet_name", subnetName),
-					resource.TestCheckResourceAttr(dataSourceName, "allowed_subnets.0.resource_id", subnetResourceID),
-					resource.TestCheckResourceAttr(dataSourceName, "subnet_overrides.0.lab_subnet_name", subnetName),
-					resource.TestCheckResourceAttr(dataSourceName, "subnet_overrides.0.resource_id", subnetResourceID),
-					resource.TestCheckResourceAttr(dataSourceName, "subnet_overrides.0.use_in_vm_creation_permission", "Allow"),
-					resource.TestCheckResourceAttr(dataSourceName, "subnet_overrides.0.use_public_ip_address_permission", "Allow"),
-					resource.TestCheckResourceAttr(dataSourceName, "subnet_overrides.0.virtual_network_pool_name", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", name),
+					resource.TestCheckResourceAttr(data.ResourceName, "lab_name", labName),
+					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resGroup),
+					resource.TestCheckResourceAttr(data.ResourceName, "allowed_subnets.0.allow_public_ip", "Allow"),
+					resource.TestCheckResourceAttr(data.ResourceName, "allowed_subnets.0.lab_subnet_name", subnetName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allowed_subnets.0.resource_id", subnetResourceID),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnet_overrides.0.lab_subnet_name", subnetName),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnet_overrides.0.resource_id", subnetResourceID),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnet_overrides.0.use_in_vm_creation_permission", "Allow"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnet_overrides.0.use_public_ip_address_permission", "Allow"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnet_overrides.0.virtual_network_pool_name", ""),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceArmDevTestVirtualNetwork_basic(rInt int, location string) string {
+func testAccDataSourceArmDevTestVirtualNetwork_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -77,5 +75,5 @@ data "azurerm_dev_test_virtual_network" "test" {
 }
 
 
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

@@ -1,4 +1,4 @@
-package devtestlabs
+package tests
 
 import (
 	"fmt"
@@ -7,17 +7,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
-	resourceName := "azurerm_dev_test_schedule.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMDevTestLabSchedule_autoShutdownBasic(ri, location)
-	postConfig := testAccAzureRMDevTestLabSchedule_autoShutdownBasicUpdate(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
+	preConfig := testAccAzureRMDevTestLabSchedule_autoShutdownBasic(data)
+	postConfig := testAccAzureRMDevTestLabSchedule_autoShutdownBasicUpdate(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -26,30 +23,26 @@ func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLabScheduleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "status", "Disabled"),
-					resource.TestCheckResourceAttr(resourceName, "notification_settings.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "notification_settings.0.status", "Disabled"),
-					resource.TestCheckResourceAttr(resourceName, "daily_recurrence.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "daily_recurrence.0.time", "0100"),
+					testCheckAzureRMDevTestLabScheduleExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Disabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.status", "Disabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "daily_recurrence.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "daily_recurrence.0.time", "0100"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLabScheduleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "status", "Enabled"),
-					resource.TestCheckResourceAttr(resourceName, "notification_settings.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "notification_settings.0.status", "Enabled"),
-					resource.TestCheckResourceAttr(resourceName, "notification_settings.0.time_in_minutes", "30"),
-					resource.TestCheckResourceAttr(resourceName, "notification_settings.0.webhook_url", "https://www.bing.com/2/4"),
-					resource.TestCheckResourceAttr(resourceName, "daily_recurrence.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "daily_recurrence.0.time", "0900"),
+					testCheckAzureRMDevTestLabScheduleExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.status", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.time_in_minutes", "30"),
+					resource.TestCheckResourceAttr(data.ResourceName, "notification_settings.0.webhook_url", "https://www.bing.com/2/4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "daily_recurrence.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "daily_recurrence.0.time", "0900"),
 				),
 			},
 		},
@@ -57,11 +50,9 @@ func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestLabSchedule_autoStartupBasic(t *testing.T) {
-	resourceName := "azurerm_dev_test_schedule.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMDevTestLabSchedule_autoStartupBasic(ri, location)
-	postConfig := testAccAzureRMDevTestLabSchedule_autoStartupBasicUpdate(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
+	preConfig := testAccAzureRMDevTestLabSchedule_autoStartupBasic(data)
+	postConfig := testAccAzureRMDevTestLabSchedule_autoStartupBasicUpdate(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -70,29 +61,24 @@ func TestAccAzureRMDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLabScheduleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "status", "Disabled"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.0.time", "1100"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.0.week_days.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.0.week_days.1", "Tuesday"),
+					testCheckAzureRMDevTestLabScheduleExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Disabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.0.time", "1100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.0.week_days.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.0.week_days.1", "Tuesday"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"task_type"},
-			},
+			data.ImportStep("task_type"),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLabScheduleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "status", "Enabled"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.0.time", "1000"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.0.week_days.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "weekly_recurrence.0.week_days.1", "Thursday"),
+					testCheckAzureRMDevTestLabScheduleExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.0.time", "1000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.0.week_days.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "weekly_recurrence.0.week_days.1", "Thursday"),
 				),
 			},
 		},
@@ -100,10 +86,8 @@ func TestAccAzureRMDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestLabSchedule_concurrent(t *testing.T) {
-	firstResourceName := "azurerm_dev_test_schedule.test"
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
 	secondResourceName := "azurerm_dev_test_schedule.test2"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDevTestLabSchedule_concurrent(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -111,9 +95,9 @@ func TestAccAzureRMDevTestLabSchedule_concurrent(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestLabScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDevTestLabSchedule_concurrent(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLabScheduleExists(firstResourceName),
+					testCheckAzureRMDevTestLabScheduleExists(data.ResourceName),
 					testCheckAzureRMDevTestLabScheduleExists(secondResourceName),
 				),
 			},
@@ -175,7 +159,7 @@ func testCheckAzureRMDevTestLabScheduleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDevTestLabSchedule_autoShutdownBasic(rInt int, location string) string {
+func testAccAzureRMDevTestLabSchedule_autoShutdownBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -207,10 +191,10 @@ resource "azurerm_dev_test_schedule" "test" {
     environment = "Production"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDevTestLabSchedule_autoShutdownBasicUpdate(rInt int, location string) string {
+func testAccAzureRMDevTestLabSchedule_autoShutdownBasicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -245,10 +229,10 @@ resource "azurerm_dev_test_schedule" "test" {
   }
 }
 
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDevTestLabSchedule_autoStartupBasic(rInt int, location string) string {
+func testAccAzureRMDevTestLabSchedule_autoStartupBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -283,10 +267,10 @@ resource "azurerm_dev_test_schedule" "test" {
     environment = "Production"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDevTestLabSchedule_autoStartupBasicUpdate(rInt int, location string) string {
+func testAccAzureRMDevTestLabSchedule_autoStartupBasicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -324,10 +308,10 @@ resource "azurerm_dev_test_schedule" "test" {
   }
 }
 
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDevTestLabSchedule_concurrent(rInt int, location string) string {
+func testAccAzureRMDevTestLabSchedule_concurrent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -381,5 +365,5 @@ resource "azurerm_dev_test_schedule" "test2" {
     environment = "Production"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

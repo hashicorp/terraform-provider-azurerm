@@ -1,4 +1,4 @@
-package devtestlabs
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDevTestLab_basic(t *testing.T) {
-	resourceName := "azurerm_dev_test_lab.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,18 +21,14 @@ func TestAccAzureRMDevTestLab_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestLabDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestLab_basic(rInt, location),
+				Config: testAccAzureRMDevTestLab_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLabExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "storage_type", "Premium"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMDevTestLabExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Premium"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -46,9 +39,7 @@ func TestAccAzureRMDevTestLab_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_dev_test_lab.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,13 +47,13 @@ func TestAccAzureRMDevTestLab_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestLabDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestLab_basic(rInt, location),
+				Config: testAccAzureRMDevTestLab_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLabExists(resourceName),
+					testCheckAzureRMDevTestLabExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDevTestLab_requiresImport(rInt, location),
+				Config:      testAccAzureRMDevTestLab_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_lab"),
 			},
 		},
@@ -70,9 +61,7 @@ func TestAccAzureRMDevTestLab_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestLab_complete(t *testing.T) {
-	resourceName := "azurerm_dev_test_lab.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,19 +69,15 @@ func TestAccAzureRMDevTestLab_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestLabDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestLab_complete(rInt, location),
+				Config: testAccAzureRMDevTestLab_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLabExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "storage_type", "Standard"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Hello", "World"),
+					testCheckAzureRMDevTestLabExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Standard"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -154,7 +139,7 @@ func testCheckAzureRMDevTestLabDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDevTestLab_basic(rInt int, location string) string {
+func testAccAzureRMDevTestLab_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -166,11 +151,11 @@ resource "azurerm_dev_test_lab" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDevTestLab_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMDevTestLab_basic(rInt, location)
+func testAccAzureRMDevTestLab_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDevTestLab_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -182,7 +167,7 @@ resource "azurerm_dev_test_lab" "import" {
 `, template)
 }
 
-func testAccAzureRMDevTestLab_complete(rInt int, location string) string {
+func testAccAzureRMDevTestLab_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -199,5 +184,5 @@ resource "azurerm_dev_test_lab" "test" {
     Hello = "World"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

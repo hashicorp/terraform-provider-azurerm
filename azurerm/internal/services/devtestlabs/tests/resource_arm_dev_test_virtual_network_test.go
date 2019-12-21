@@ -1,4 +1,4 @@
-package devtestlabs
+package tests
 
 import (
 	"fmt"
@@ -7,10 +7,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 )
 
 func TestValidateDevTestVirtualNetworkName(t *testing.T) {
@@ -23,7 +23,7 @@ func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 		"double-hyphen--valid",
 	}
 	for _, v := range validNames {
-		_, errors := validateDevTestVirtualNetworkName()(v, "example")
+		_, errors := devtestlabs.ValidateDevTestVirtualNetworkName()(v, "example")
 		if len(errors) != 0 {
 			t.Fatalf("%q should be a valid Dev Test Virtual Network Name: %q", v, errors)
 		}
@@ -34,7 +34,7 @@ func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 		"!@£",
 	}
 	for _, v := range invalidNames {
-		_, errors := validateDevTestVirtualNetworkName()(v, "name")
+		_, errors := devtestlabs.ValidateDevTestVirtualNetworkName()(v, "name")
 		if len(errors) == 0 {
 			t.Fatalf("%q should be an invalid Dev Test Virtual Network Name", v)
 		}
@@ -42,9 +42,7 @@ func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
-	resourceName := "azurerm_dev_test_virtual_network.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -52,17 +50,13 @@ func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestVirtualNetwork_basic(rInt, location),
+				Config: testAccAzureRMDevTestVirtualNetwork_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestVirtualNetworkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMDevTestVirtualNetworkExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -73,9 +67,7 @@ func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_dev_test_virtual_network.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -83,14 +75,14 @@ func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestVirtualNetwork_basic(rInt, location),
+				Config: testAccAzureRMDevTestVirtualNetwork_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestVirtualNetworkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMDevTestVirtualNetworkExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			{
-				Config:      testAccAzureRMDevTestVirtualNetwork_requiresImport(rInt, location),
+				Config:      testAccAzureRMDevTestVirtualNetwork_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_virtual_network"),
 			},
 		},
@@ -98,9 +90,7 @@ func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
-	resourceName := "azurerm_dev_test_virtual_network.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -108,20 +98,16 @@ func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestVirtualNetwork_subnets(rInt, location),
+				Config: testAccAzureRMDevTestVirtualNetwork_subnets(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestVirtualNetworkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "subnet.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "subnet.0.use_public_ip_address", "Deny"),
-					resource.TestCheckResourceAttr(resourceName, "subnet.0.use_in_virtual_machine_creation", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMDevTestVirtualNetworkExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnet.0.use_public_ip_address", "Deny"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnet.0.use_in_virtual_machine_creation", "Allow"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -183,7 +169,7 @@ func testCheckAzureRMDevTestVirtualNetworkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDevTestVirtualNetwork_basic(rInt int, location string) string {
+func testAccAzureRMDevTestVirtualNetwork_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -201,11 +187,11 @@ resource "azurerm_dev_test_virtual_network" "test" {
   lab_name            = "${azurerm_dev_test_lab.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDevTestVirtualNetwork_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMDevTestVirtualNetwork_basic(rInt, location)
+func testAccAzureRMDevTestVirtualNetwork_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDevTestVirtualNetwork_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -217,7 +203,7 @@ resource "azurerm_dev_test_virtual_network" "import" {
 `, template)
 }
 
-func testAccAzureRMDevTestVirtualNetwork_subnets(rInt int, location string) string {
+func testAccAzureRMDevTestVirtualNetwork_subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -240,5 +226,5 @@ resource "azurerm_dev_test_virtual_network" "test" {
     use_in_virtual_machine_creation = "Allow"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

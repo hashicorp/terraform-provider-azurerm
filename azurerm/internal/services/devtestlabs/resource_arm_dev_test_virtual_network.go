@@ -41,7 +41,7 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateDevTestVirtualNetworkName(),
+				ValidateFunc: ValidateDevTestVirtualNetworkName(),
 			},
 
 			"lab_name": {
@@ -290,7 +290,7 @@ func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interfa
 	return err
 }
 
-func validateDevTestVirtualNetworkName() schema.SchemaValidateFunc {
+func ValidateDevTestVirtualNetworkName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[A-Za-z0-9_-]+$"),
 		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.")

@@ -1,4 +1,4 @@
-package devtestlabs
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDevTestPolicy_basic(t *testing.T) {
-	resourceName := "azurerm_dev_test_policy.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,17 +21,13 @@ func TestAccAzureRMDevTestPolicy_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestPolicy_basic(rInt, location),
+				Config: testAccAzureRMDevTestPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMDevTestPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -45,9 +38,7 @@ func TestAccAzureRMDevTestPolicy_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_dev_test_policy.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,14 +46,14 @@ func TestAccAzureRMDevTestPolicy_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestPolicy_basic(rInt, location),
+				Config: testAccAzureRMDevTestPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMDevTestPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			{
-				Config:      testAccAzureRMDevTestPolicy_requiresImport(rInt, location),
+				Config:      testAccAzureRMDevTestPolicy_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_policy"),
 			},
 		},
@@ -70,9 +61,7 @@ func TestAccAzureRMDevTestPolicy_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestPolicy_complete(t *testing.T) {
-	resourceName := "azurerm_dev_test_policy.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,18 +69,14 @@ func TestAccAzureRMDevTestPolicy_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevTestPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestPolicy_complete(rInt, location),
+				Config: testAccAzureRMDevTestPolicy_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestPolicyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
+					testCheckAzureRMDevTestPolicyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -155,7 +140,7 @@ func testCheckAzureRMDevTestPolicyDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDevTestPolicy_basic(rInt int, location string) string {
+func testAccAzureRMDevTestPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -176,11 +161,11 @@ resource "azurerm_dev_test_policy" "test" {
   threshold           = "999"
   evaluator_type      = "MaxValuePolicy"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDevTestPolicy_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMDevTestPolicy_basic(rInt, location)
+func testAccAzureRMDevTestPolicy_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDevTestPolicy_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -195,7 +180,7 @@ resource "azurerm_dev_test_policy" "import" {
 `, template)
 }
 
-func testAccAzureRMDevTestPolicy_complete(rInt int, location string) string {
+func testAccAzureRMDevTestPolicy_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -221,5 +206,5 @@ resource "azurerm_dev_test_policy" "test" {
     "Acceptance" = "Test"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
