@@ -45,7 +45,7 @@ func resourceArmBatchCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMBatchAccountName,
+				ValidateFunc: ValidateAzureRMBatchAccountName,
 			},
 
 			// TODO: make this case sensitive once this API bug has been fixed:

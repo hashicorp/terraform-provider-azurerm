@@ -48,7 +48,7 @@ func resourceArmBatchApplication() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMBatchAccountName,
+				ValidateFunc: ValidateAzureRMBatchAccountName,
 			},
 
 			"allow_updates": {

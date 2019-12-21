@@ -42,7 +42,7 @@ func resourceArmBatchAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMBatchAccountName,
+				ValidateFunc: ValidateAzureRMBatchAccountName,
 			},
 
 			// TODO: make this case sensitive once this API bug has been fixed:
@@ -303,7 +303,7 @@ func resourceArmBatchAccountDelete(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func validateAzureRMBatchAccountName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateAzureRMBatchAccountName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-z0-9]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf("lowercase letters and numbers only are allowed in %q: %q", k, value))
