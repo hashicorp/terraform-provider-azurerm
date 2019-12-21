@@ -1,18 +1,15 @@
-package datafactory
+package tests
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMDataFactoryDataSource_basic(t *testing.T) {
-	dsn := "azurerm_data_factory.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_data_factory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -20,17 +17,17 @@ func TestAccAzureRMDataFactoryDataSource_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryDataSource_basic(ri, location),
+				Config: testAccAzureRMDataFactoryDataSource_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryExists(dsn),
+					testCheckAzureRMDataFactoryExists(data.ResourceName),
 				),
 			},
 		},
 	})
 }
 
-func testAccAzureRMDataFactoryDataSource_basic(rInt int, location string) string {
-	config := testAccAzureRMDataFactory_basic(rInt, location)
+func testAccAzureRMDataFactoryDataSource_basic(data acceptance.TestData) string {
+	config := testAccAzureRMDataFactory_basic(data)
 	return fmt.Sprintf(`
 %s
 

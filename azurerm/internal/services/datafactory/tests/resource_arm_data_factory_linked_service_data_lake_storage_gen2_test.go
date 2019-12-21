@@ -1,4 +1,4 @@
-package datafactory
+package tests
 
 import (
 	"fmt"
@@ -7,16 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory_linked_service_data_lake_storage_gen2.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_data_lake_storage_gen2", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,28 +21,18 @@ func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Destroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Exists(resourceName),
+					testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Exists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"service_principal_key",
-				},
-			},
+			data.ImportStep("service_principal_key"),
 		},
 	})
 }
 
 func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update1(ri, acceptance.Location())
-	config2 := testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update2(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory_linked_service_data_lake_storage_gen2.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_data_lake_storage_gen2", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,33 +40,26 @@ func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update(t *testing
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Destroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update1(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Exists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "annotations.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "description", "test description"),
+					testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Exists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
 			{
-				Config: config2,
+				Config: testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Exists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "annotations.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "description", "test description 2"),
+					testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Exists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"service_principal_key",
-				},
-			},
+			data.ImportStep("service_principal_key"),
 		},
 	})
 }
@@ -142,7 +122,7 @@ func testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Destroy(s *terra
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(rInt int, location string) string {
+func testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -166,10 +146,10 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
   tenant                = "11111111-1111-1111-1111-111111111111"
   url                   = "https://test.azure.com"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update1(rInt int, location string) string {
+func testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -205,10 +185,10 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
     bar = "test2"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update2(rInt int, location string) string {
+func testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -244,5 +224,5 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
     foo = "test1"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

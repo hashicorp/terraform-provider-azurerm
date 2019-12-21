@@ -1,4 +1,4 @@
-package datafactory
+package tests
 
 import (
 	"fmt"
@@ -6,17 +6,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
-	resourceName := "azurerm_data_factory_pipeline.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMDataFactoryPipeline_basic(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,26 +20,20 @@ func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryPipelineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryPipeline_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryPipelineExists(resourceName),
+					testCheckAzureRMDataFactoryPipelineExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
-	resourceName := "azurerm_data_factory_pipeline.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMDataFactoryPipeline_update1(ri, location)
-	config2 := testAccAzureRMDataFactoryPipeline_update2(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
+	config := testAccAzureRMDataFactoryPipeline_update1(data)
+	config2 := testAccAzureRMDataFactoryPipeline_update2(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,28 +43,24 @@ func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryPipelineExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "annotations.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "description", "test description"),
-					resource.TestCheckResourceAttr(resourceName, "variables.%", "2"),
+					testCheckAzureRMDataFactoryPipelineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
+					resource.TestCheckResourceAttr(data.ResourceName, "variables.%", "2"),
 				),
 			},
 			{
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryPipelineExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "annotations.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "description", "test description2"),
-					resource.TestCheckResourceAttr(resourceName, "variables.%", "3"),
+					testCheckAzureRMDataFactoryPipelineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "variables.%", "3"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -129,7 +115,7 @@ func testCheckAzureRMDataFactoryPipelineExists(resourceName string) resource.Tes
 	}
 }
 
-func testAccAzureRMDataFactoryPipeline_basic(rInt int, location string) string {
+func testAccAzureRMDataFactoryPipeline_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -147,10 +133,10 @@ resource "azurerm_data_factory_pipeline" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryPipeline_update1(rInt int, location string) string {
+func testAccAzureRMDataFactoryPipeline_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -179,10 +165,10 @@ resource "azurerm_data_factory_pipeline" "test" {
     bar = "test2"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryPipeline_update2(rInt int, location string) string {
+func testAccAzureRMDataFactoryPipeline_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -213,5 +199,5 @@ resource "azurerm_data_factory_pipeline" "test" {
     baz = "test3"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

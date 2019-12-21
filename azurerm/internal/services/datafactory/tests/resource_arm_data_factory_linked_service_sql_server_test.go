@@ -1,4 +1,4 @@
-package datafactory
+package tests
 
 import (
 	"fmt"
@@ -7,17 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(ri, acceptance.Location())
-	config2 := testAccAzureRMDataFactoryLinkedServiceSQLServer_update(ri, acceptance.Location())
-	resourceName := "azurerm_data_factory_linked_service_sql_server.test"
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,32 +21,28 @@ func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "annotations.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "description", "test description"),
-					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
+					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "connection_string"),
 				),
 			},
 			{
-				Config: config2,
+				Config: testAccAzureRMDataFactoryLinkedServiceSQLServer_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "parameters.%", "3"),
-					resource.TestCheckResourceAttr(resourceName, "annotations.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "additional_properties.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "description", "test description 2"),
-					resource.TestCheckResourceAttrSet(resourceName, "connection_string"),
+					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "connection_string"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -113,7 +105,7 @@ func testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy(s *terraform.State
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(rInt int, location string) string {
+func testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -144,10 +136,10 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
     bar = "test2"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceSQLServer_update(rInt int, location string) string {
+func testAccAzureRMDataFactoryLinkedServiceSQLServer_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -178,5 +170,5 @@ resource "azurerm_data_factory_linked_service_sql_server" "test" {
     foo = "test1"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
