@@ -1,4 +1,4 @@
-package recoveryservices
+package tests
 
 import (
 	"fmt"
@@ -7,14 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMRecoveryProtectionContainer_basic(t *testing.T) {
-	resourceName := "azurerm_recovery_services_protection_container.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_protection_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,21 +20,17 @@ func TestAccAzureRMRecoveryProtectionContainer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRecoveryProtectionContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryProtectionContainer_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMRecoveryProtectionContainer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryProtectionContainerExists(resourceName),
+					testCheckAzureRMRecoveryProtectionContainerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testAccAzureRMRecoveryProtectionContainer_basic(rInt int, location string) string {
+func testAccAzureRMRecoveryProtectionContainer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -64,7 +58,7 @@ resource "azurerm_recovery_services_protection_container" "test" {
   name                 = "acctest-protection-cont-%d"
 }
 
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testCheckAzureRMRecoveryProtectionContainerExists(resourceName string) resource.TestCheckFunc {

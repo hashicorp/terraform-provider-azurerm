@@ -1,4 +1,4 @@
-package recoveryservices
+package tests
 
 import (
 	"fmt"
@@ -7,14 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMRecoveryProtectionContainerMapping_basic(t *testing.T) {
-	resourceName := "azurerm_recovery_services_protection_container_mapping.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_protection_container_mapping", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,21 +20,17 @@ func TestAccAzureRMRecoveryProtectionContainerMapping_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRecoveryProtectionContainerMappingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryProtectionContainerMapping_basic(ri, acceptance.Location(), acceptance.AltLocation()),
+				Config: testAccAzureRMRecoveryProtectionContainerMapping_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryProtectionContainerMappingExists(resourceName),
+					testCheckAzureRMRecoveryProtectionContainerMappingExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testAccAzureRMRecoveryProtectionContainerMapping_basic(rInt int, location string, altLocation string) string {
+func testAccAzureRMRecoveryProtectionContainerMapping_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-recovery1-%d"
@@ -96,7 +90,7 @@ resource "azurerm_recovery_services_protection_container_mapping" "test" {
   recovery_replication_policy_id            = "${azurerm_recovery_services_replication_policy.test.id}"
   name                                      = "mapping-%d"
 }
-`, rInt, location, rInt, rInt, rInt, altLocation, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testCheckAzureRMRecoveryProtectionContainerMappingExists(resourceName string) resource.TestCheckFunc {

@@ -1,14 +1,12 @@
-package recoveryservices
+package tests
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -16,8 +14,7 @@ import (
 )
 
 func TestAccAzureRMBackupProtectedVm_basic(t *testing.T) {
-	resourceName := "azurerm_backup_protected_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,19 +22,15 @@ func TestAccAzureRMBackupProtectedVm_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectedVm_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedVm_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBackupProtectedVmExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					testCheckAzureRMBackupProtectedVmExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{ //vault cannot be deleted unless we unregister all backups
-				Config: testAccAzureRMBackupProtectedVm_base(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedVm_base(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -50,8 +43,7 @@ func TestAccAzureRMBackupProtectedVm_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_backup_protected_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -59,18 +51,15 @@ func TestAccAzureRMBackupProtectedVm_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectedVm_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedVm_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBackupProtectedVmExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					testCheckAzureRMBackupProtectedVmExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
 				),
 			},
-			{
-				Config:      testAccAzureRMBackupProtectedVm_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_backup_protected_vm"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMBackupProtectedVm_requiresImport),
 			{ //vault cannot be deleted unless we unregister all backups
-				Config: testAccAzureRMBackupProtectedVm_base(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedVm_base(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -78,8 +67,7 @@ func TestAccAzureRMBackupProtectedVm_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMBackupProtectedVm_separateResourceGroups(t *testing.T) {
-	resourceName := "azurerm_backup_protected_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -87,19 +75,15 @@ func TestAccAzureRMBackupProtectedVm_separateResourceGroups(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectedVm_separateResourceGroups(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedVm_separateResourceGroups(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBackupProtectedVmExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					testCheckAzureRMBackupProtectedVmExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{ //vault cannot be deleted unless we unregister all backups
-				Config: testAccAzureRMBackupProtectedVm_additionalVault(ri, acceptance.Location()),
+				Config: testAccAzureRMBackupProtectedVm_additionalVault(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -108,11 +92,9 @@ func TestAccAzureRMBackupProtectedVm_separateResourceGroups(t *testing.T) {
 
 func TestAccAzureRMBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 	virtualMachine := "azurerm_virtual_machine.test"
-	protectedVmResourceName := "azurerm_backup_protected_vm.test"
 	fBackupPolicyResourceName := "azurerm_backup_policy_vm.test"
 	sBackupPolicyResourceName := "azurerm_backup_policy_vm.test_change_backup"
-
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -121,34 +103,34 @@ func TestAccAzureRMBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 		Steps: []resource.TestStep{
 			{ // Create resources and link first backup policy id
 				ResourceName: fBackupPolicyResourceName,
-				Config:       testAccAzureRMBackupProtectedVm_linkFirstBackupPolicy(ri, acceptance.Location()),
+				Config:       testAccAzureRMBackupProtectedVm_linkFirstBackupPolicy(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrPair(protectedVmResourceName, "backup_policy_id", fBackupPolicyResourceName, "id"),
+					resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", fBackupPolicyResourceName, "id"),
 				),
 			},
 			{ // Modify backup policy id to the second one
 				// Set Destroy false to prevent error from cleaning up dangling resource
 				ResourceName: sBackupPolicyResourceName,
-				Config:       testAccAzureRMBackupProtectedVm_linkSecondBackupPolicy(ri, acceptance.Location()),
+				Config:       testAccAzureRMBackupProtectedVm_linkSecondBackupPolicy(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrPair(protectedVmResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
+					resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
 				),
 			},
 			{ // Remove backup policy link
 				// Backup policy link will need to be removed first so the VM's backup policy subsequently reverts to Default
 				// Azure API is quite sensitive, adding the step to control resource cleanup order
 				ResourceName: fBackupPolicyResourceName,
-				Config:       testAccAzureRMBackupProtectedVm_withVM(ri, acceptance.Location()),
+				Config:       testAccAzureRMBackupProtectedVm_withVM(data),
 				Check:        resource.ComposeTestCheckFunc(),
 			},
 			{ // Then VM can be removed
 				ResourceName: virtualMachine,
-				Config:       testAccAzureRMBackupProtectedVm_withSecondPolicy(ri, acceptance.Location()),
+				Config:       testAccAzureRMBackupProtectedVm_withSecondPolicy(data),
 				Check:        resource.ComposeTestCheckFunc(),
 			},
 			{ // Remove backup policies and vault
-				ResourceName: protectedVmResourceName,
-				Config:       testAccAzureRMBackupProtectedVm_basePolicyTest(ri, acceptance.Location()),
+				ResourceName: data.ResourceName,
+				Config:       testAccAzureRMBackupProtectedVm_basePolicyTest(data),
 				Check:        resource.ComposeTestCheckFunc(),
 			},
 		},
@@ -240,12 +222,11 @@ func testCheckAzureRMBackupProtectedVmExists(resourceName string) resource.TestC
 	}
 }
 
-func testAccAzureRMBackupProtectedVm_base(rInt int, location string) string {
-	rstr := strconv.Itoa(rInt)
+func testAccAzureRMBackupProtectedVm_base(data acceptance.TestData) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -280,11 +261,11 @@ resource "azurerm_public_ip" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Dynamic"
-  domain_name_label   = "acctestip%[1]d"
+  domain_name_label   = "acctestip%d"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[3]s"
+  name                     = "acctest%s"
   location                 = "${azurerm_resource_group.test.location}"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   account_tier             = "Standard"
@@ -347,14 +328,14 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-%[1]d"
+  name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_backup_policy_vm" "test" {
-  name                = "acctest-%[1]d"
+  name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
@@ -367,10 +348,11 @@ resource "azurerm_backup_policy_vm" "test" {
     count = 10
   }
 }
-`, rInt, location, rstr[len(rstr)-5:])
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMBackupProtectedVm_basic(rInt int, location string) string {
+func testAccAzureRMBackupProtectedVm_basic(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedVm_base(data)
 	return fmt.Sprintf(`
 %s
 
@@ -380,16 +362,15 @@ resource "azurerm_backup_protected_vm" "test" {
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
   backup_policy_id    = "${azurerm_backup_policy_vm.test.id}"
 }
-`, testAccAzureRMBackupProtectedVm_base(rInt, location))
+`, template)
 }
 
 // For update backup policy id test
-func testAccAzureRMBackupProtectedVm_basePolicyTest(rInt int, location string) string {
-	rstr := strconv.Itoa(rInt)
+func testAccAzureRMBackupProtectedVm_basePolicyTest(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery1-%[1]d"
-  location = "%[2]s"
+  name     = "acctestRG-recovery1-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -424,11 +405,11 @@ resource "azurerm_public_ip" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Dynamic"
-  domain_name_label   = "acctestip%[1]d"
+  domain_name_label   = "acctestip%d"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[3]s"
+  name                     = "acctest%s"
   location                 = "${azurerm_resource_group.test.location}"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   account_tier             = "Standard"
@@ -443,30 +424,32 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "1023"
 }
-`, rInt, location, rstr[len(rstr)-5:])
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 // For update backup policy id test
-func testAccAzureRMBackupProtectedVm_withVault(rInt int, location string) string {
+func testAccAzureRMBackupProtectedVm_withVault(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedVm_basePolicyTest(data)
 	return fmt.Sprintf(`
-%[1]s
+%s
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-%[2]d"
+  name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
-`, testAccAzureRMBackupProtectedVm_basePolicyTest(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
 // For update backup policy id test
-func testAccAzureRMBackupProtectedVm_withFirstPolicy(rInt int, location string) string {
+func testAccAzureRMBackupProtectedVm_withFirstPolicy(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedVm_withVault(data)
 	return fmt.Sprintf(`
-%[1]s
+%s
 
 resource "azurerm_backup_policy_vm" "test" {
-  name                = "acctest-%[2]d"
+  name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
@@ -479,16 +462,17 @@ resource "azurerm_backup_policy_vm" "test" {
     count = 10
   }
 }
-`, testAccAzureRMBackupProtectedVm_withVault(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
 // For update backup policy id test
-func testAccAzureRMBackupProtectedVm_withSecondPolicy(rInt int, location string) string {
+func testAccAzureRMBackupProtectedVm_withSecondPolicy(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedVm_withFirstPolicy(data)
 	return fmt.Sprintf(`
-%[1]s
+%s
 
 resource "azurerm_backup_policy_vm" "test_change_backup" {
-  name                = "acctest2-%[2]d"
+  name                = "acctest2-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
 
@@ -501,16 +485,17 @@ resource "azurerm_backup_policy_vm" "test_change_backup" {
     count = 15
   }
 }
-`, testAccAzureRMBackupProtectedVm_withFirstPolicy(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
 // For update backup policy id test
-func testAccAzureRMBackupProtectedVm_withVM(rInt int, location string) string {
+func testAccAzureRMBackupProtectedVm_withVM(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedVm_withSecondPolicy(data)
 	return fmt.Sprintf(`
-%[1]s
+%s
 
 resource "azurerm_virtual_machine" "test" {
-  name                          = "acctestvm-%[2]d"
+  name                          = "acctestvm-%d"
   location                      = "${azurerm_resource_group.test.location}"
   resource_group_name           = "${azurerm_resource_group.test.name}"
   vm_size                       = "Standard_A0"
@@ -555,11 +540,12 @@ resource "azurerm_virtual_machine" "test" {
     storage_uri = "${azurerm_storage_account.test.primary_blob_endpoint}"
   }
 }
-`, testAccAzureRMBackupProtectedVm_withSecondPolicy(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
 // For update backup policy id test
-func testAccAzureRMBackupProtectedVm_linkFirstBackupPolicy(rInt int, location string) string {
+func testAccAzureRMBackupProtectedVm_linkFirstBackupPolicy(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedVm_withVM(data)
 	return fmt.Sprintf(`
 %s
 
@@ -569,11 +555,12 @@ resource "azurerm_backup_protected_vm" "test" {
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
   backup_policy_id    = "${azurerm_backup_policy_vm.test.id}"
 }
-`, testAccAzureRMBackupProtectedVm_withVM(rInt, location))
+`, template)
 }
 
 // For update backup policy id test
-func testAccAzureRMBackupProtectedVm_linkSecondBackupPolicy(rInt int, location string) string {
+func testAccAzureRMBackupProtectedVm_linkSecondBackupPolicy(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedVm_withVM(data)
 	return fmt.Sprintf(`
 %s
 
@@ -583,10 +570,11 @@ resource "azurerm_backup_protected_vm" "test" {
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
   backup_policy_id    = "${azurerm_backup_policy_vm.test_change_backup.id}"
 }
-`, testAccAzureRMBackupProtectedVm_withVM(rInt, location))
+`, template)
 }
 
-func testAccAzureRMBackupProtectedVm_requiresImport(rInt int, location string) string {
+func testAccAzureRMBackupProtectedVm_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedVm_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -596,27 +584,28 @@ resource "azurerm_backup_protected_vm" "import" {
   source_vm_id        = "${azurerm_backup_protected_vm.test.source_vm_id}"
   backup_policy_id    = "${azurerm_backup_protected_vm.test.backup_policy_id}"
 }
-`, testAccAzureRMBackupProtectedVm_basic(rInt, location))
+`, template)
 }
 
-func testAccAzureRMBackupProtectedVm_additionalVault(rInt int, location string) string {
+func testAccAzureRMBackupProtectedVm_additionalVault(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedVm_base(data)
 	return fmt.Sprintf(`
-%[1]s
+%s
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-recovery2-%[2]d"
-  location = "%[3]s"
+  name     = "acctestRG-recovery2-%d"
+  location = "%s"
 }
 
 resource "azurerm_recovery_services_vault" "test2" {
-  name                = "acctest2-%[2]d"
+  name                = "acctest2-%d"
   location            = "${azurerm_resource_group.test2.location}"
   resource_group_name = "${azurerm_resource_group.test2.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_backup_policy_vm" "test2" {
-  name                = "acctest2-%[2]d"
+  name                = "acctest2-%d"
   resource_group_name = "${azurerm_resource_group.test2.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test2.name}"
 
@@ -629,10 +618,11 @@ resource "azurerm_backup_policy_vm" "test2" {
     count = 10
   }
 }
-`, testAccAzureRMBackupProtectedVm_base(rInt, location), rInt, location)
+`, template, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMBackupProtectedVm_separateResourceGroups(rInt int, location string) string {
+func testAccAzureRMBackupProtectedVm_separateResourceGroups(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectedVm_additionalVault(data)
 	return fmt.Sprintf(`
 %s
 
@@ -642,5 +632,5 @@ resource "azurerm_backup_protected_vm" "test" {
   backup_policy_id    = "${azurerm_backup_policy_vm.test2.id}"
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
 }
-`, testAccAzureRMBackupProtectedVm_additionalVault(rInt, location))
+`, template)
 }

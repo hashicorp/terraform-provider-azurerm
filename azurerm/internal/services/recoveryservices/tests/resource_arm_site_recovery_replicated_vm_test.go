@@ -1,4 +1,4 @@
-package recoveryservices
+package tests
 
 import (
 	"fmt"
@@ -7,14 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMSiteRecoveryReplicatedVm_basic(t *testing.T) {
-	replicationName := "azurerm_site_recovery_replicated_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,21 +20,17 @@ func TestAccAzureRMSiteRecoveryReplicatedVm_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSiteRecoveryReplicatedVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSiteRecoveryReplicatedVm_basic(ri, acceptance.Location(), acceptance.AltLocation()),
+				Config: testAccAzureRMSiteRecoveryReplicatedVm_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSiteRecoveryReplicatedVmExists(replicationName),
+					testCheckAzureRMSiteRecoveryReplicatedVmExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      replicationName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testAccAzureRMSiteRecoveryReplicatedVm_basic(rInt int, location string, altLocation string) string {
+func testAccAzureRMSiteRecoveryReplicatedVm_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-recovery1-%d"
@@ -210,7 +204,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   }
   depends_on = ["azurerm_site_recovery_protection_container_mapping.test", "azurerm_site_recovery_network_mapping.test"]
 }
-`, rInt, location, rInt, altLocation, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceName string) resource.TestCheckFunc {
