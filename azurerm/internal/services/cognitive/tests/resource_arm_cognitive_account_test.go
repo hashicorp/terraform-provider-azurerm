@@ -1,4 +1,4 @@
-package cognitive
+package tests
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -15,9 +14,8 @@ import (
 )
 
 func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
-	resourceName := "azurerm_cognitive_account.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCognitiveAccount_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	config := testAccAzureRMCognitiveAccount_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,26 +25,21 @@ func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCognitiveAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "Face"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Face"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
-	resourceName := "azurerm_cognitive_account.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCognitiveAccount_speechServices(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	config := testAccAzureRMCognitiveAccount_speechServices(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,18 +49,14 @@ func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCognitiveAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "SpeechServices"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "SpeechServices"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -78,9 +67,7 @@ func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_cognitive_account.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -88,13 +75,13 @@ func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCognitiveAccount_basic(ri, location),
+				Config: testAccAzureRMCognitiveAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCognitiveAccountExists(resourceName),
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMCognitiveAccount_requiresImport(ri, location),
+				Config:      testAccAzureRMCognitiveAccount_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_cognitive_account"),
 			},
 		},
@@ -102,9 +89,8 @@ func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMCognitiveAccount_complete(t *testing.T) {
-	resourceName := "azurerm_cognitive_account.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCognitiveAccount_complete(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	config := testAccAzureRMCognitiveAccount_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -114,27 +100,21 @@ func TestAccAzureRMCognitiveAccount_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCognitiveAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "Face"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Face"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
-	resourceName := "azurerm_cognitive_account.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -142,24 +122,24 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCognitiveAccount_basic(ri, location),
+				Config: testAccAzureRMCognitiveAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCognitiveAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "Face"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Face"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
 			},
 			{
-				Config: testAccAzureRMCognitiveAccount_complete(ri, location),
+				Config: testAccAzureRMCognitiveAccount_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCognitiveAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "Face"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Acceptance", "Test"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Face"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
 			},
 		},
@@ -218,7 +198,7 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 	}
 }
 
-func testAccAzureRMCognitiveAccount_basic(rInt int, location string) string {
+func testAccAzureRMCognitiveAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -236,10 +216,10 @@ resource "azurerm_cognitive_account" "test" {
     tier = "Standard"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCognitiveAccount_speechServices(rInt int, location string) string {
+func testAccAzureRMCognitiveAccount_speechServices(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -257,11 +237,11 @@ resource "azurerm_cognitive_account" "test" {
     tier = "Standard"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCognitiveAccount_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMCognitiveAccount_basic(rInt, location)
+func testAccAzureRMCognitiveAccount_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMCognitiveAccount_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -279,7 +259,7 @@ resource "azurerm_cognitive_account" "import" {
 `, template)
 }
 
-func testAccAzureRMCognitiveAccount_complete(rInt int, location string) string {
+func testAccAzureRMCognitiveAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -301,5 +281,5 @@ resource "azurerm_cognitive_account" "test" {
     Acceptance = "Test"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
