@@ -1,4 +1,4 @@
-package privatedns
+package tests
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -15,26 +14,19 @@ import (
 )
 
 func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
-	resourceName := "azurerm_private_dns_zone_virtual_network_link.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(ri, acceptance.Location())
-
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName),
+					testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -45,36 +37,26 @@ func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(t *testing.T)
 		return
 	}
 
-	resourceName := "azurerm_private_dns_zone_virtual_network_link.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(ri, location),
+				Config: testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName),
+					testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_private_dns_zone_virtual_network_link"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(t *testing.T) {
-	resourceName := "azurerm_private_dns_zone_virtual_network_link.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(ri, location)
-	postConfig := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTagsUpdate(ri, location)
-
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
+	preConfig := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -83,22 +65,18 @@ func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -163,7 +141,7 @@ func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy(s *terraform.State)
 	return nil
 }
 
-func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(rInt int, location string) string {
+func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -194,11 +172,11 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
   resource_group_name   = "${azurerm_resource_group.test.name}"
 }
 
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(rInt, location)
+func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -211,7 +189,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "import" {
 `, template)
 }
 
-func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(rInt int, location string) string {
+func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -246,10 +224,10 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -283,5 +261,5 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
     environment = "staging"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
