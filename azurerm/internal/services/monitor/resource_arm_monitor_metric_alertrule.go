@@ -159,7 +159,7 @@ func resourceArmMonitorMetricAlertRule() *schema.Resource {
 				Type:         schema.TypeMap,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateMetricAlertRuleTags,
+				ValidateFunc: ValidateMetricAlertRuleTags,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -446,7 +446,7 @@ func expandAzureRmMonitorMetricThresholdAlertRule(d *schema.ResourceData) (*insi
 	return &alertRule, nil
 }
 
-func validateMonitorMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
+func ValidateMonitorMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
 	// Normal validation required by any AzureRM resource.
 	warnings, errors = tags.Validate(v, f)
 

@@ -1,23 +1,19 @@
-package monitor
+package tests
 
 import (
 	"fmt"
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,16 +21,12 @@ func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_basic(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -45,9 +37,7 @@ func TestAccAzureRMMonitorActionGroup_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,13 +45,13 @@ func TestAccAzureRMMonitorActionGroup_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_basic(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMonitorActionGroup_requiresImport(ri, location),
+				Config:      testAccAzureRMMonitorActionGroup_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_app_service_custom_hostname_binding"),
 			},
 		},
@@ -69,9 +59,7 @@ func TestAccAzureRMMonitorActionGroup_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorActionGroup_emailReceiver(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -79,24 +67,18 @@ func TestAccAzureRMMonitorActionGroup_emailReceiver(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_emailReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_emailReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_itsmReceiver(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -104,24 +86,18 @@ func TestAccAzureRMMonitorActionGroup_itsmReceiver(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_itsmReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_itsmReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_azureAppPushReceiver(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -129,24 +105,18 @@ func TestAccAzureRMMonitorActionGroup_azureAppPushReceiver(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_azureAppPushReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_azureAppPushReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_smsReceiver(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -154,24 +124,18 @@ func TestAccAzureRMMonitorActionGroup_smsReceiver(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_smsReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_smsReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_webhookReceiver(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -179,24 +143,18 @@ func TestAccAzureRMMonitorActionGroup_webhookReceiver(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_webhookReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_webhookReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_automationRunbookReceiver(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -204,24 +162,18 @@ func TestAccAzureRMMonitorActionGroup_automationRunbookReceiver(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_automationRunbookReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_automationRunbookReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_voiceReceiver(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -229,24 +181,18 @@ func TestAccAzureRMMonitorActionGroup_voiceReceiver(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_voiceReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_voiceReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_logicAppReceiver(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -254,25 +200,18 @@ func TestAccAzureRMMonitorActionGroup_logicAppReceiver(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_logicAppReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_logicAppReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_azureFunctionReceiver(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -280,24 +219,18 @@ func TestAccAzureRMMonitorActionGroup_azureFunctionReceiver(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_azureFunctionReceiver(ri, rs, location),
+				Config: testAccAzureRMMonitorActionGroup_azureFunctionReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_armRoleReceiver(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -305,25 +238,18 @@ func TestAccAzureRMMonitorActionGroup_armRoleReceiver(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_armRoleReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_armRoleReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -331,26 +257,20 @@ func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_complete(ri, rs, location),
+				Config: testAccAzureRMMonitorActionGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMMonitorActionGroup_disabledBasic(ri, location)
-	postConfig := testAccAzureRMMonitorActionGroup_basic(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
+	preConfig := testAccAzureRMMonitorActionGroup_disabledBasic(data)
+	postConfig := testAccAzureRMMonitorActionGroup_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -360,48 +280,33 @@ func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -409,124 +314,81 @@ func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_emailReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_emailReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMonitorActionGroup_itsmReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_itsmReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMonitorActionGroup_azureAppPushReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_azureAppPushReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMonitorActionGroup_smsReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_smsReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMonitorActionGroup_webhookReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_webhookReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMonitorActionGroup_automationRunbookReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_automationRunbookReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMonitorActionGroup_voiceReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_voiceReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMonitorActionGroup_logicAppReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_logicAppReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMonitorActionGroup_azureFunctionReceiver(ri, rs, location),
+				Config: testAccAzureRMMonitorActionGroup_azureFunctionReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMonitorActionGroup_armRoleReceiver(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_armRoleReceiver(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
-	resourceName := "azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -534,43 +396,31 @@ func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActionGroup_basic(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMonitorActionGroup_complete(ri, rs, location),
+				Config: testAccAzureRMMonitorActionGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMMonitorActionGroup_basic(ri, location),
+				Config: testAccAzureRMMonitorActionGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActionGroupExists(resourceName),
+					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testAccAzureRMMonitorActionGroup_basic(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -582,11 +432,11 @@ resource "azurerm_monitor_action_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   short_name          = "acctestag"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActionGroup_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMMonitorActionGroup_basic(rInt, location)
+func testAccAzureRMMonitorActionGroup_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorActionGroup_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -598,7 +448,7 @@ resource "azurerm_monitor_action_group" "import" {
 `, template)
 }
 
-func testAccAzureRMMonitorActionGroup_emailReceiver(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_emailReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -616,10 +466,10 @@ resource "azurerm_monitor_action_group" "test" {
 		use_common_alert_schema = false
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActionGroup_itsmReceiver(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_itsmReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -639,10 +489,10 @@ resource "azurerm_monitor_action_group" "test" {
 		region = "eastus"
 	}
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActionGroup_azureAppPushReceiver(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_azureAppPushReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -659,10 +509,10 @@ resource "azurerm_monitor_action_group" "test" {
 		email_address = "admin@contoso.com"
 	}
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActionGroup_smsReceiver(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_smsReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -680,10 +530,10 @@ resource "azurerm_monitor_action_group" "test" {
     phone_number = "1231231234"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActionGroup_webhookReceiver(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_webhookReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -701,10 +551,10 @@ resource "azurerm_monitor_action_group" "test" {
     use_common_alert_schema = true
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActionGroup_automationRunbookReceiver(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_automationRunbookReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -751,10 +601,10 @@ resource "azurerm_automation_runbook" "test" {
 		uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
 	}
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActionGroup_voiceReceiver(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_voiceReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -772,10 +622,10 @@ resource "azurerm_monitor_action_group" "test" {
 		phone_number = "1231231234"
 	}
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActionGroup_logicAppReceiver(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_logicAppReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -816,10 +666,10 @@ schema = <<SCHEMA
 }
 SCHEMA
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActionGroup_azureFunctionReceiver(rInt int, rString, location string) string {
+func testAccAzureRMMonitorActionGroup_azureFunctionReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -866,10 +716,10 @@ resource "azurerm_function_app" "test" {
 	app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
 	storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 }
-`, rInt, location, rInt, rString, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActionGroup_armRoleReceiver(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_armRoleReceiver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -887,10 +737,10 @@ resource "azurerm_monitor_action_group" "test" {
 		use_common_alert_schema = false
 	}
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActionGroup_complete(rInt int, rString, location string) string {
+func testAccAzureRMMonitorActionGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	resource "azurerm_resource_group" "test" {
 		name     = "acctestRG-%d"
@@ -1060,10 +910,10 @@ func testAccAzureRMMonitorActionGroup_complete(rInt int, rString, location strin
 		app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
 		storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 	}
-`, rInt, location, rInt, rInt, rInt, rString, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActionGroup_disabledBasic(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_disabledBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1076,7 +926,7 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
   enabled             = false
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testCheckAzureRMMonitorActionGroupDestroy(s *terraform.State) error {

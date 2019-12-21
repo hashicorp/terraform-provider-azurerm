@@ -1,11 +1,10 @@
-package monitor
+package tests
 
 import (
 	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -15,9 +14,7 @@ import (
 )
 
 func TestAccAzureRMMonitorDiagnosticSetting_eventhub(t *testing.T) {
-	resourceName := "azurerm_monitor_diagnostic_setting.test"
-	ri := acctest.RandIntRange(10000, 99999)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,22 +22,18 @@ func TestAccAzureRMMonitorDiagnosticSetting_eventhub(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorDiagnosticSetting_eventhub(ri, location),
+				Config: testAccAzureRMMonitorDiagnosticSetting_eventhub(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorDiagnosticSettingExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub_authorization_rule_id"),
-					resource.TestCheckResourceAttr(resourceName, "log.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "log.782743152.category", "AuditEvent"),
-					resource.TestCheckResourceAttr(resourceName, "metric.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "metric.1439188313.category", "AllMetrics"),
+					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub_authorization_rule_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log.782743152.category", "AuditEvent"),
+					resource.TestCheckResourceAttr(data.ResourceName, "metric.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "metric.1439188313.category", "AllMetrics"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -51,9 +44,7 @@ func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_monitor_diagnostic_setting.test"
-	ri := acctest.RandIntRange(10000, 99999)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -61,13 +52,13 @@ func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorDiagnosticSetting_eventhub(ri, location),
+				Config: testAccAzureRMMonitorDiagnosticSetting_eventhub(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorDiagnosticSettingExists(resourceName),
+					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMonitorDiagnosticSetting_requiresImport(ri, location),
+				Config:      testAccAzureRMMonitorDiagnosticSetting_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_monitor_diagnostic_setting"),
 			},
 		},
@@ -75,9 +66,7 @@ func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) {
-	resourceName := "azurerm_monitor_diagnostic_setting.test"
-	ri := acctest.RandIntRange(10000, 99999)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -85,29 +74,23 @@ func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) 
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(ri, location),
+				Config: testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorDiagnosticSettingExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "log_analytics_workspace_id"),
-					resource.TestCheckResourceAttr(resourceName, "log.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "log.782743152.category", "AuditEvent"),
-					resource.TestCheckResourceAttr(resourceName, "metric.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "metric.1439188313.category", "AllMetrics"),
+					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "log_analytics_workspace_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log.782743152.category", "AuditEvent"),
+					resource.TestCheckResourceAttr(data.ResourceName, "metric.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "metric.1439188313.category", "AllMetrics"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(t *testing.T) {
-	resourceName := "azurerm_monitor_diagnostic_setting.test"
-	ri := acctest.RandIntRange(10000, 99999)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -115,32 +98,26 @@ func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(t *te
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(ri, location),
+				Config: testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorDiagnosticSettingExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "log_analytics_workspace_id"),
-					resource.TestCheckResourceAttr(resourceName, "log_analytics_destination_type", "Dedicated"),
-					resource.TestCheckResourceAttr(resourceName, "log.#", "3"),
-					resource.TestCheckResourceAttr(resourceName, "log.3188484811.category", "ActivityRuns"),
-					resource.TestCheckResourceAttr(resourceName, "log.595859111.category", "PipelineRuns"),
-					resource.TestCheckResourceAttr(resourceName, "log.2542277390.category", "TriggerRuns"),
-					resource.TestCheckResourceAttr(resourceName, "metric.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "metric.4109484471.category", "AllMetrics"),
+					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "log_analytics_workspace_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log_analytics_destination_type", "Dedicated"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log.3188484811.category", "ActivityRuns"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log.595859111.category", "PipelineRuns"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log.2542277390.category", "TriggerRuns"),
+					resource.TestCheckResourceAttr(data.ResourceName, "metric.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "metric.4109484471.category", "AllMetrics"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorDiagnosticSetting_storageAccount(t *testing.T) {
-	resourceName := "azurerm_monitor_diagnostic_setting.test"
-	ri := acctest.RandIntRange(10000, 99999)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -148,21 +125,17 @@ func TestAccAzureRMMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorDiagnosticSetting_storageAccount(ri, location),
+				Config: testAccAzureRMMonitorDiagnosticSetting_storageAccount(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorDiagnosticSettingExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(resourceName, "log.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "log.782743152.category", "AuditEvent"),
-					resource.TestCheckResourceAttr(resourceName, "metric.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "metric.1439188313.category", "AllMetrics"),
+					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log.782743152.category", "AuditEvent"),
+					resource.TestCheckResourceAttr(data.ResourceName, "metric.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "metric.1439188313.category", "AllMetrics"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -220,7 +193,7 @@ func testCheckAzureRMMonitorDiagnosticSettingDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMonitorDiagnosticSetting_eventhub(rInt int, location string) string {
+func testAccAzureRMMonitorDiagnosticSetting_eventhub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -287,11 +260,11 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorDiagnosticSetting_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMMonitorDiagnosticSetting_eventhub(rInt, location)
+func testAccAzureRMMonitorDiagnosticSetting_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorDiagnosticSetting_eventhub(data)
 	return fmt.Sprintf(`
 %s
 
@@ -321,7 +294,7 @@ resource "azurerm_monitor_diagnostic_setting" "import" {
 `, template)
 }
 
-func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(rInt int, location string) string {
+func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -371,10 +344,10 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(rInt int, location string) string {
+func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -439,10 +412,10 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorDiagnosticSetting_storageAccount(rInt int, location string) string {
+func testAccAzureRMMonitorDiagnosticSetting_storageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -492,5 +465,5 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
