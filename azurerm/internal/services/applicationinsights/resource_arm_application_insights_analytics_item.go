@@ -118,7 +118,7 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 	id := d.Id()
 	itemID := ""
 	if id != "" {
-		_, _, _, itemID, err = resourcesArmApplicationInsightsAnalyticsItemParseID(id)
+		_, _, _, itemID, err = ResourcesArmApplicationInsightsAnalyticsItemParseID(id)
 		if err != nil {
 			return fmt.Errorf("Error parsing Application Insights Analytics Item ID %s: %s", id, err)
 		}
@@ -169,7 +169,7 @@ func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, met
 	defer cancel()
 
 	id := d.Id()
-	resourceGroupName, appInsightsName, itemScopePath, itemID, err := resourcesArmApplicationInsightsAnalyticsItemParseID(id)
+	resourceGroupName, appInsightsName, itemScopePath, itemID, err := ResourcesArmApplicationInsightsAnalyticsItemParseID(id)
 	if err != nil {
 		return fmt.Errorf("Error parsing Application Insights Analytics Item ID %s: %s", id, err)
 	}
@@ -203,7 +203,7 @@ func resourceArmApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, m
 	defer cancel()
 
 	id := d.Id()
-	resourceGroupName, appInsightsName, itemScopePath, itemID, err := resourcesArmApplicationInsightsAnalyticsItemParseID(id)
+	resourceGroupName, appInsightsName, itemScopePath, itemID, err := ResourcesArmApplicationInsightsAnalyticsItemParseID(id)
 	if err != nil {
 		return fmt.Errorf("Error parsing Application Insights Analytics Item ID %s: %s", id, err)
 	}
@@ -216,7 +216,7 @@ func resourceArmApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, m
 	return nil
 }
 
-func resourcesArmApplicationInsightsAnalyticsItemParseID(id string) (string, string, insights.ItemScopePath, string, error) {
+func ResourcesArmApplicationInsightsAnalyticsItemParseID(id string) (string, string, insights.ItemScopePath, string, error) {
 	resourceID, err := azure.ParseAzureResourceID(id)
 	if err != nil {
 		return "", "", "", "", fmt.Errorf("Error parsing resource ID: %s", err)

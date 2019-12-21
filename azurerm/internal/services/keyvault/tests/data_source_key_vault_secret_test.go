@@ -1,20 +1,17 @@
-package keyvault
+package tests
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMKeyVaultSecret_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_key_vault_secret.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_secret", "test")
 
-	rString := acctest.RandString(8)
-	location := acceptance.Location()
-	config := testAccDataSourceKeyVaultSecret_basic(rString, location)
+	config := testAccDataSourceKeyVaultSecret_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -23,8 +20,8 @@ func TestAccDataSourceAzureRMKeyVaultSecret_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "value", "rick-and-morty"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "rick-and-morty"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 		},
@@ -32,11 +29,9 @@ func TestAccDataSourceAzureRMKeyVaultSecret_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMKeyVaultSecret_complete(t *testing.T) {
-	dataSourceName := "data.azurerm_key_vault_secret.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_secret", "test")
 
-	rString := acctest.RandString(8)
-	location := acceptance.Location()
-	config := testAccDataSourceKeyVaultSecret_complete(rString, location)
+	config := testAccDataSourceKeyVaultSecret_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -45,17 +40,17 @@ func TestAccDataSourceAzureRMKeyVaultSecret_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "value", "<rick><morty /></rick>"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.hello", "world"),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "<rick><morty /></rick>"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceKeyVaultSecret_basic(rString string, location string) string {
-	r := testAccAzureRMKeyVaultSecret_basic(rString, location)
+func testAccDataSourceKeyVaultSecret_basic(data acceptance.TestData) string {
+	r := testAccAzureRMKeyVaultSecret_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -66,8 +61,8 @@ data "azurerm_key_vault_secret" "test" {
 `, r)
 }
 
-func testAccDataSourceKeyVaultSecret_complete(rString string, location string) string {
-	r := testAccAzureRMKeyVaultSecret_complete(rString, location)
+func testAccDataSourceKeyVaultSecret_complete(data acceptance.TestData) string {
+	r := testAccAzureRMKeyVaultSecret_complete(data)
 	return fmt.Sprintf(`
 %s
 

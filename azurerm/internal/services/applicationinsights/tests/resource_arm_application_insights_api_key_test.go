@@ -1,4 +1,4 @@
-package applicationinsights
+package tests
 
 import (
 	"fmt"
@@ -9,15 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMApplicationInsightsAPIKey_no_permission(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, acceptance.Location(), "[]", "[]")
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
+	config := testAccAzureRMApplicationInsightsAPIKey_basic(data, "[]", "[]")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -37,10 +36,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
-	resourceName := "azurerm_application_insights_api_key.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -48,25 +44,24 @@ func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsAPIKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationInsightsAPIKey_basic(ri, acceptance.Location(), "[]", `["annotations"]`),
+				Config: testAccAzureRMApplicationInsightsAPIKey_basic(data, "[]", `["annotations"]`),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "read_permissions.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "write_permissions.#", "1"),
+					testCheckAzureRMApplicationInsightsAPIKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "read_permissions.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "write_permissions.#", "1"),
 				),
 			},
 			{
-				Config:      testAccAzureRMApplicationInsightsAPIKey_requiresImport(ri, location, "[]", `["annotations"]`),
-				ExpectError: acceptance.RequiresImportError("azurerm_application_insights_api_key"),
+				Config:      testAccAzureRMApplicationInsights_requiresImport(data, "web"),
+				ExpectError: acceptance.RequiresImportError("azurerm_application_insights"),
 			},
 		},
 	})
 }
 
 func TestAccAzureRMApplicationInsightsAPIKey_read_telemetry_permissions(t *testing.T) {
-	resourceName := "azurerm_application_insights_api_key.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, acceptance.Location(), `["aggregate", "api", "draft", "extendqueries", "search"]`, "[]")
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
+	config := testAccAzureRMApplicationInsightsAPIKey_basic(data, `["aggregate", "api", "draft", "extendqueries", "search"]`, "[]")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -76,27 +71,19 @@ func TestAccAzureRMApplicationInsightsAPIKey_read_telemetry_permissions(t *testi
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "read_permissions.#", "5"),
-					resource.TestCheckResourceAttr(resourceName, "write_permissions.#", "0"),
+					testCheckAzureRMApplicationInsightsAPIKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "read_permissions.#", "5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "write_permissions.#", "0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"api_key", // not returned from API, sensitive
-				},
-			},
+			data.ImportStep("api_key"),
 		},
 	})
 }
 
 func TestAccAzureRMApplicationInsightsAPIKey_write_annotations_permission(t *testing.T) {
-	resourceName := "azurerm_application_insights_api_key.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, acceptance.Location(), "[]", `["annotations"]`)
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
+	config := testAccAzureRMApplicationInsightsAPIKey_basic(data, "[]", `["annotations"]`)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -106,27 +93,19 @@ func TestAccAzureRMApplicationInsightsAPIKey_write_annotations_permission(t *tes
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "read_permissions.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "write_permissions.#", "1"),
+					testCheckAzureRMApplicationInsightsAPIKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "read_permissions.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "write_permissions.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"api_key", // not returned from API, sensitive
-				},
-			},
+			data.ImportStep("api_key"),
 		},
 	})
 }
 
 func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.T) {
-	resourceName := "azurerm_application_insights_api_key.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, acceptance.Location(), `["agentconfig"]`, "[]")
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
+	config := testAccAzureRMApplicationInsightsAPIKey_basic(data, `["agentconfig"]`, "[]")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -136,27 +115,19 @@ func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "read_permissions.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "write_permissions.#", "0"),
+					testCheckAzureRMApplicationInsightsAPIKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "read_permissions.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "write_permissions.#", "0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"api_key", // not returned from API, sensitive
-				},
-			},
+			data.ImportStep("api_key"),
 		},
 	})
 }
 
 func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
-	resourceName := "azurerm_application_insights_api_key.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAPIKey_basic(ri, acceptance.Location(), `["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]`, `["annotations"]`)
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_api_key", "test")
+	config := testAccAzureRMApplicationInsightsAPIKey_basic(data, `["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]`, `["annotations"]`)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -166,19 +137,12 @@ func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "read_permissions.#", "6"),
-					resource.TestCheckResourceAttr(resourceName, "write_permissions.#", "1"),
+					testCheckAzureRMApplicationInsightsAPIKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "read_permissions.#", "6"),
+					resource.TestCheckResourceAttr(data.ResourceName, "write_permissions.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"api_key", // not returned from API, sensitive
-				},
-			},
+			data.ImportStep("api_key"),
 		},
 	})
 }
@@ -246,7 +210,7 @@ func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resour
 	}
 }
 
-func testAccAzureRMApplicationInsightsAPIKey_basic(rInt int, location, readPerms, writePerms string) string {
+func testAccAzureRMApplicationInsightsAPIKey_basic(data acceptance.TestData, readPerms, writePerms string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -266,11 +230,11 @@ resource "azurerm_application_insights_api_key" "test" {
   read_permissions        = %s
   write_permissions       = %s
 }
-`, rInt, location, rInt, rInt, readPerms, writePerms)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, readPerms, writePerms)
 }
 
-func testAccAzureRMApplicationInsightsAPIKey_requiresImport(rInt int, location, readPerms, writePerms string) string {
-	template := testAccAzureRMApplicationInsightsAPIKey_basic(rInt, location, readPerms, writePerms)
+func testAccAzureRMApplicationInsightsAPIKey_requiresImport(data acceptance.TestData, readPerms, writePerms string) string {
+	template := testAccAzureRMApplicationInsightsAPIKey_basic(data, readPerms, writePerms)
 	return fmt.Sprintf(`
 %s
 

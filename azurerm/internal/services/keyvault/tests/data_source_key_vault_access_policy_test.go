@@ -1,4 +1,4 @@
-package keyvault
+package tests
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_key(t *testing.T) {
-	dataSourceName := "data.azurerm_key_vault_access_policy.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -17,9 +17,9 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_key(t *testing.T) {
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Key Management"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "key_permissions.#", "9"),
-					resource.TestCheckNoResourceAttr(dataSourceName, "secret_permissions"),
-					resource.TestCheckNoResourceAttr(dataSourceName, "certificate_permissions"),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.#", "9"),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "secret_permissions"),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "certificate_permissions"),
 				),
 			},
 		},
@@ -27,7 +27,7 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_key(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secret(t *testing.T) {
-	dataSourceName := "data.azurerm_key_vault_access_policy.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -35,9 +35,9 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secret(t *testing.T) {
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Secret Management"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckNoResourceAttr(dataSourceName, "key_permissions"),
-					resource.TestCheckResourceAttr(dataSourceName, "secret_permissions.#", "7"),
-					resource.TestCheckNoResourceAttr(dataSourceName, "certificate_permissions"),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "key_permissions"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.#", "7"),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "certificate_permissions"),
 				),
 			},
 		},
@@ -45,7 +45,7 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secret(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_certificate(t *testing.T) {
-	dataSourceName := "data.azurerm_key_vault_access_policy.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -53,9 +53,9 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_certificate(t *testing.T) {
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Certificate Management"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckNoResourceAttr(dataSourceName, "key_permissions"),
-					resource.TestCheckNoResourceAttr(dataSourceName, "secret_permissions"),
-					resource.TestCheckResourceAttr(dataSourceName, "certificate_permissions.#", "12"),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "key_permissions"),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "secret_permissions"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_permissions.#", "12"),
 				),
 			},
 		},
@@ -63,7 +63,7 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_certificate(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecret(t *testing.T) {
-	dataSourceName := "data.azurerm_key_vault_access_policy.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -71,9 +71,9 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecret(t *testing.T) {
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Key & Secret Management"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "key_permissions.#", "9"),
-					resource.TestCheckResourceAttr(dataSourceName, "secret_permissions.#", "7"),
-					resource.TestCheckNoResourceAttr(dataSourceName, "certificate_permissions"),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.#", "9"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.#", "7"),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "certificate_permissions"),
 				),
 			},
 		},
@@ -81,7 +81,7 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecret(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keyCertificate(t *testing.T) {
-	dataSourceName := "data.azurerm_key_vault_access_policy.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -89,9 +89,9 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keyCertificate(t *testing.T) {
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Key & Certificate Management"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "key_permissions.#", "9"),
-					resource.TestCheckNoResourceAttr(dataSourceName, "secret_permissions"),
-					resource.TestCheckResourceAttr(dataSourceName, "certificate_permissions.#", "12"),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.#", "9"),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "secret_permissions"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_permissions.#", "12"),
 				),
 			},
 		},
@@ -99,7 +99,7 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keyCertificate(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secretCertificate(t *testing.T) {
-	dataSourceName := "data.azurerm_key_vault_access_policy.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -107,9 +107,9 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secretCertificate(t *testing.T
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Secret & Certificate Management"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckNoResourceAttr(dataSourceName, "key_permissions"),
-					resource.TestCheckResourceAttr(dataSourceName, "secret_permissions.#", "7"),
-					resource.TestCheckResourceAttr(dataSourceName, "certificate_permissions.#", "12"),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "key_permissions"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.#", "7"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_permissions.#", "12"),
 				),
 			},
 		},
@@ -117,7 +117,7 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secretCertificate(t *testing.T
 }
 
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecretCertificate(t *testing.T) {
-	dataSourceName := "data.azurerm_key_vault_access_policy.test"
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -125,9 +125,9 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecretCertificate(t *testin
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Key, Secret, & Certificate Management"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "key_permissions.#", "9"),
-					resource.TestCheckResourceAttr(dataSourceName, "secret_permissions.#", "7"),
-					resource.TestCheckResourceAttr(dataSourceName, "certificate_permissions.#", "12"),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.#", "9"),
+					resource.TestCheckResourceAttr(data.ResourceName, "secret_permissions.#", "7"),
+					resource.TestCheckResourceAttr(data.ResourceName, "certificate_permissions.#", "12"),
 				),
 			},
 		},

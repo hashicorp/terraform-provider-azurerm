@@ -1,4 +1,4 @@
-package keyvault
+package tests
 
 import (
 	"fmt"
@@ -10,16 +10,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
-	resourceName := "azurerm_key_vault_key.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicEC(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	config := testAccAzureRMKeyVaultKey_basicEC(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -29,23 +27,17 @@ func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"key_size"},
-			},
+			data.ImportStep("key_size"),
 		},
 	})
 }
 
 func TestAccAzureRMKeyVaultKey_basicECClassic(t *testing.T) {
-	resourceName := "azurerm_key_vault_key.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicECClassic(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	config := testAccAzureRMKeyVaultKey_basicECClassic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,15 +47,10 @@ func TestAccAzureRMKeyVaultKey_basicECClassic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"key_size"},
-			},
+			data.ImportStep("key_size"),
 		},
 	})
 }
@@ -74,9 +61,7 @@ func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_key_vault_key.test"
-	rs := acctest.RandString(6)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -84,13 +69,13 @@ func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKeyVaultKey_basicEC(rs, location),
+				Config: testAccAzureRMKeyVaultKey_basicEC(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMKeyVaultKey_requiresImport(rs, location),
+				Config:      testAccAzureRMKeyVaultKey_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_key_vault_key"),
 			},
 		},
@@ -98,9 +83,8 @@ func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultKey_basicECHSM(t *testing.T) {
-	resourceName := "azurerm_key_vault_key.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicECHSM(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	config := testAccAzureRMKeyVaultKey_basicECHSM(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -110,7 +94,7 @@ func TestAccAzureRMKeyVaultKey_basicECHSM(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
 				),
 			},
 		},
@@ -118,9 +102,8 @@ func TestAccAzureRMKeyVaultKey_basicECHSM(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultKey_curveEC(t *testing.T) {
-	resourceName := "azurerm_key_vault_key.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_curveEC(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	config := testAccAzureRMKeyVaultKey_curveEC(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -130,22 +113,17 @@ func TestAccAzureRMKeyVaultKey_curveEC(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMKeyVaultKey_basicRSA(t *testing.T) {
-	resourceName := "azurerm_key_vault_key.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicRSA(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	config := testAccAzureRMKeyVaultKey_basicRSA(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -155,23 +133,17 @@ func TestAccAzureRMKeyVaultKey_basicRSA(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"key_size"},
-			},
+			data.ImportStep("key_size"),
 		},
 	})
 }
 
 func TestAccAzureRMKeyVaultKey_basicRSAHSM(t *testing.T) {
-	resourceName := "azurerm_key_vault_key.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicRSAHSM(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	config := testAccAzureRMKeyVaultKey_basicRSAHSM(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -181,23 +153,17 @@ func TestAccAzureRMKeyVaultKey_basicRSAHSM(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"key_size"},
-			},
+			data.ImportStep("key_size"),
 		},
 	})
 }
 
 func TestAccAzureRMKeyVaultKey_complete(t *testing.T) {
-	resourceName := "azurerm_key_vault_key.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_complete(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	config := testAccAzureRMKeyVaultKey_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -207,26 +173,20 @@ func TestAccAzureRMKeyVaultKey_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"key_size"},
-			},
+			data.ImportStep("key_size"),
 		},
 	})
 }
 
 func TestAccAzureRMKeyVaultKey_update(t *testing.T) {
-	resourceName := "azurerm_key_vault_key.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicRSA(rs, acceptance.Location())
-	updatedConfig := testAccAzureRMKeyVaultKey_basicUpdated(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	config := testAccAzureRMKeyVaultKey_basicRSA(data)
+	updatedConfig := testAccAzureRMKeyVaultKey_basicUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -236,17 +196,17 @@ func TestAccAzureRMKeyVaultKey_update(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "key_opts.#", "6"),
-					resource.TestCheckResourceAttr(resourceName, "key_opts.0", "decrypt"),
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_opts.#", "6"),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_opts.0", "decrypt"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "key_opts.#", "5"),
-					resource.TestCheckResourceAttr(resourceName, "key_opts.0", "encrypt"),
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_opts.#", "5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_opts.0", "encrypt"),
 				),
 			},
 		},
@@ -254,9 +214,7 @@ func TestAccAzureRMKeyVaultKey_update(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultKey_disappears(t *testing.T) {
-	resourceName := "azurerm_key_vault_key.test"
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicEC(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -264,10 +222,10 @@ func TestAccAzureRMKeyVaultKey_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultKey_basicEC(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultKeyExists(resourceName),
-					testCheckAzureRMKeyVaultKeyDisappears(resourceName),
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
+					testCheckAzureRMKeyVaultKeyDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -276,8 +234,7 @@ func TestAccAzureRMKeyVaultKey_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
-	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultKey_basicEC(rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -285,7 +242,7 @@ func TestAccAzureRMKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T)
 		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultKey_basicEC(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultKeyExists("azurerm_key_vault_key.test"),
 					testCheckAzureRMKeyVaultDisappears("azurerm_key_vault.test"),
@@ -406,7 +363,7 @@ func testCheckAzureRMKeyVaultKeyDisappears(resourceName string) resource.TestChe
 	}
 }
 
-func testAccAzureRMKeyVaultKey_basicEC(rString string, location string) string {
+func testAccAzureRMKeyVaultKey_basicEC(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -456,10 +413,10 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_basicECClassic(rString string, location string) string {
+func testAccAzureRMKeyVaultKey_basicECClassic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -509,11 +466,11 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_requiresImport(rString string, location string) string {
-	template := testAccAzureRMKeyVaultKey_basicEC(rString, location)
+func testAccAzureRMKeyVaultKey_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultKey_basicEC(data)
 	return fmt.Sprintf(`
 %s
 
@@ -531,7 +488,7 @@ resource "azurerm_key_vault_key" "import" {
 `, template)
 }
 
-func testAccAzureRMKeyVaultKey_basicRSA(rString string, location string) string {
+func testAccAzureRMKeyVaultKey_basicRSA(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -586,10 +543,10 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_basicRSAHSM(rString string, location string) string {
+func testAccAzureRMKeyVaultKey_basicRSAHSM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -643,10 +600,10 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_complete(rString string, location string) string {
+func testAccAzureRMKeyVaultKey_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -704,10 +661,10 @@ resource "azurerm_key_vault_key" "test" {
     "hello" = "world"
   }
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_basicUpdated(rString string, location string) string {
+func testAccAzureRMKeyVaultKey_basicUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -761,10 +718,10 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_curveEC(rString string, location string) string {
+func testAccAzureRMKeyVaultKey_curveEC(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -816,10 +773,10 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMKeyVaultKey_basicECHSM(rString string, location string) string {
+func testAccAzureRMKeyVaultKey_basicECHSM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -871,5 +828,5 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, rString, location, rString, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
