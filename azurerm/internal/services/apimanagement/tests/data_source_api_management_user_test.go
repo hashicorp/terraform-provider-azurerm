@@ -21,7 +21,7 @@ func TestAccDataSourceAzureRMApiManagementUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "user_id", "test-user"),
 					resource.TestCheckResourceAttr(data.ResourceName, "first_name", "Acceptance"),
 					resource.TestCheckResourceAttr(data.ResourceName, "last_name", "Test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "email", fmt.Sprintf("azure-acctest%d@example.com", rInt)),
+					resource.TestCheckResourceAttr(data.ResourceName, "email", fmt.Sprintf("azure-acctest%d@example.com", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "active"),
 					resource.TestCheckResourceAttr(data.ResourceName, "note", "Used for testing in dimension C-137."),
 				),
