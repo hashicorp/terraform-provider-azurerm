@@ -1,4 +1,4 @@
-package recoveryservices
+package tests
 
 import (
 	"fmt"
@@ -7,36 +7,30 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMSiteRecoveryFabric_basic(t *testing.T) {
-	resourceName := "azurerm_site_recovery_fabric.test"
-	ri := tf.AccRandTimeInt()
+func TestAccAzureRMSiteRecoveryProtectionContainer_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_protection_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSiteRecoveryFabricDestroy,
+		CheckDestroy: testCheckAzureRMSiteRecoveryProtectionContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSiteRecoveryFabric_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMSiteRecoveryProtectionContainer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSiteRecoveryFabricExists(resourceName),
+					testCheckAzureRMSiteRecoveryProtectionContainerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testAccAzureRMSiteRecoveryFabric_basic(rInt int, location string) string {
+func testAccAzureRMSiteRecoveryProtectionContainer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -56,10 +50,18 @@ resource "azurerm_site_recovery_fabric" "test" {
   name                = "acctest-fabric-%d"
   location            = "${azurerm_resource_group.test.location}"
 }
-`, rInt, location, rInt, rInt)
+
+resource "azurerm_site_recovery_protection_container" "test" {
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  recovery_vault_name  = "${azurerm_recovery_services_vault.test.name}"
+  recovery_fabric_name = "${azurerm_site_recovery_fabric.test.name}"
+  name                 = "acctest-protection-cont-%d"
 }
 
-func testCheckAzureRMSiteRecoveryFabricExists(resourceName string) resource.TestCheckFunc {
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testCheckAzureRMSiteRecoveryProtectionContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		state, ok := s.RootModule().Resources[resourceName]
@@ -69,44 +71,46 @@ func testCheckAzureRMSiteRecoveryFabricExists(resourceName string) resource.Test
 
 		resourceGroupName := state.Primary.Attributes["resource_group_name"]
 		vaultName := state.Primary.Attributes["recovery_vault_name"]
-		fabricName := state.Primary.Attributes["name"]
+		fabricName := state.Primary.Attributes["recovery_fabric_name"]
+		protectionContainerName := state.Primary.Attributes["name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.FabricClient(resourceGroupName, vaultName)
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		resp, err := client.Get(ctx, fabricName)
+		resp, err := client.Get(ctx, fabricName, protectionContainerName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on fabricClient: %+v", err)
+			return fmt.Errorf("Bad: Get on RecoveryServices.ProtectionContainerClient: %+v", err)
 		}
 
 		if resp.Response.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: fabric: %q does not exist", fabricName)
+			return fmt.Errorf("Bad: Protection Container: %q does not exist", fabricName)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMSiteRecoveryFabricDestroy(s *terraform.State) error {
+func testCheckAzureRMSiteRecoveryProtectionContainerDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_site_recovery_fabric" {
+		if rs.Type != "azurerm_site_recovery_protection_container" {
 			continue
 		}
 
 		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
 		vaultName := rs.Primary.Attributes["recovery_vault_name"]
-		fabricName := rs.Primary.Attributes["name"]
+		fabricName := rs.Primary.Attributes["recovery_fabric_name"]
+		protectionContainerName := rs.Primary.Attributes["name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.FabricClient(resourceGroupName, vaultName)
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		resp, err := client.Get(ctx, fabricName)
+		resp, err := client.Get(ctx, fabricName, protectionContainerName)
 		if err != nil {
 			return nil
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Fabric still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Protection Container still exists:\n%#v", resp.Properties)
 		}
 	}
 

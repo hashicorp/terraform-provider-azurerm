@@ -1,4 +1,4 @@
-package recoveryservices
+package tests
 
 import (
 	"fmt"
@@ -7,14 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMRecoveryFabric_basic(t *testing.T) {
-	resourceName := "azurerm_recovery_services_fabric.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_fabric", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,21 +20,17 @@ func TestAccAzureRMRecoveryFabric_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRecoveryFabricDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryFabric_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMRecoveryFabric_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryFabricExists(resourceName),
+					testCheckAzureRMRecoveryFabricExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testAccAzureRMRecoveryFabric_basic(rInt int, location string) string {
+func testAccAzureRMRecoveryFabric_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -56,7 +50,7 @@ resource "azurerm_recovery_services_fabric" "test" {
   name                = "acctest-fabric-%d"
   location            = "${azurerm_resource_group.test.location}"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testCheckAzureRMRecoveryFabricExists(resourceName string) resource.TestCheckFunc {

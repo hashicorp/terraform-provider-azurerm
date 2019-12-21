@@ -1,4 +1,4 @@
-package recoveryservices
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMRecoveryServicesVault_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_recovery_services_vault.test"
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,21 +21,17 @@ func TestAccAzureRMRecoveryServicesVault_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryServicesVault_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMRecoveryServicesVault_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesVaultExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttrSet(resourceName, "location"),
-					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "sku", "Standard"),
+					testCheckAzureRMRecoveryServicesVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -48,8 +42,7 @@ func TestAccAzureRMRecoveryServicesVault_requiresImport(t *testing.T) {
 		return
 	}
 
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_recovery_services_vault.test"
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -57,20 +50,17 @@ func TestAccAzureRMRecoveryServicesVault_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRecoveryServicesVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryServicesVault_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMRecoveryServicesVault_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesVaultExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttrSet(resourceName, "location"),
-					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "sku", "Standard"),
+					testCheckAzureRMRecoveryServicesVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
 				),
 			},
-			{
-				Config:      testAccAzureRMRecoveryServicesVault_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_recovery_services_vault"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMRecoveryServicesVault_requiresImport),
 		},
 	})
 }
@@ -132,7 +122,7 @@ func testCheckAzureRMRecoveryServicesVaultExists(resourceName string) resource.T
 	}
 }
 
-func testAccAzureRMRecoveryServicesVault_basic(rInt int, location string) string {
+func testAccAzureRMRecoveryServicesVault_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -145,10 +135,11 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMRecoveryServicesVault_requiresImport(rInt int, location string) string {
+func testAccAzureRMRecoveryServicesVault_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMRecoveryServicesVault_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -158,5 +149,5 @@ resource "azurerm_recovery_services_vault" "import" {
   resource_group_name = "${azurerm_recovery_services_vault.test.resource_group_name}"
   sku                 = "${azurerm_recovery_services_vault.test.sku}"
 }
-`, testAccAzureRMRecoveryServicesVault_basic(rInt, location))
+`, template)
 }

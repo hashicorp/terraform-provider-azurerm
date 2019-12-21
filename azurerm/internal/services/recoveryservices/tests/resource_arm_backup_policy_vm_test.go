@@ -1,13 +1,11 @@
-package recoveryservices
+package tests
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -15,8 +13,7 @@ import (
 )
 
 func TestAccAzureRMBackupProtectionPolicyVM_basicDaily(t *testing.T) {
-	resourceName := "azurerm_backup_policy_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,14 +21,10 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(data.ResourceName, data.RandomInteger),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -42,8 +35,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_backup_policy_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -51,20 +43,16 @@ func TestAccAzureRMBackupProtectionPolicyVM_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(data.ResourceName, data.RandomInteger),
 			},
-			{
-				Config:      testAccAzureRMBackupProtectionPolicyVM_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_backup_policy_vm"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMBackupProtectionPolicyVM_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_basicWeekly(t *testing.T) {
-	resourceName := "azurerm_backup_policy_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -72,21 +60,16 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicWeekly(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(data.ResourceName, data.RandomInteger),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_completeDaily(t *testing.T) {
-	resourceName := "azurerm_backup_policy_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -94,21 +77,16 @@ func TestAccAzureRMBackupProtectionPolicyVM_completeDaily(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_completeDaily(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeDaily(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_completeDaily(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeDaily(data.ResourceName, data.RandomInteger),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_completeWeekly(t *testing.T) {
-	resourceName := "azurerm_backup_policy_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -116,21 +94,16 @@ func TestAccAzureRMBackupProtectionPolicyVM_completeWeekly(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(data.ResourceName, data.RandomInteger),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_updateDaily(t *testing.T) {
-	resourceName := "azurerm_backup_policy_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -138,25 +111,20 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateDaily(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(data.ResourceName, data.RandomInteger),
 			},
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_completeDaily(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeDaily(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_completeDaily(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeDaily(data.ResourceName, data.RandomInteger),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_updateWeekly(t *testing.T) {
-	resourceName := "azurerm_backup_policy_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -164,75 +132,62 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeekly(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(data.ResourceName, data.RandomInteger),
 			},
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(data.ResourceName, data.RandomInteger),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_updateDailyToWeekly(t *testing.T) {
-	resourceName := "azurerm_backup_policy_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(data.ResourceName, data.RandomInteger),
 			},
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(data.ResourceName, data.RandomInteger),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToDaily(t *testing.T) {
-	resourceName := "azurerm_backup_policy_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(data.ResourceName, data.RandomInteger),
 			},
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(data.ResourceName, data.RandomInteger),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) {
-	resourceName := "azurerm_backup_policy_vm.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -240,18 +195,14 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) 
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(data.ResourceName, data.RandomInteger),
 			},
 			{
-				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(ri, acceptance.Location()),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(resourceName, ri),
+				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(data),
+				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(data.ResourceName, data.RandomInteger),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -315,23 +266,24 @@ func testCheckAzureRMBackupProtectionPolicyVmExists(resourceName string) resourc
 	}
 }
 
-func testAccAzureRMBackupProtectionPolicyVM_base(rInt int, location string) string {
+func testAccAzureRMBackupProtectionPolicyVM_base(data acceptance.TestData) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-%[1]d"
+  name                = "acctest-%s"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
-`, rInt, location, strconv.Itoa(rInt)[12:17])
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMBackupProtectionPolicyVM_basicDaily(rInt int, location string) string {
+func testAccAzureRMBackupProtectionPolicyVM_basicDaily(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectionPolicyVM_base(data)
 	return fmt.Sprintf(`
 %s
 
@@ -349,10 +301,11 @@ resource "azurerm_backup_policy_vm" "test" {
     count = 10
   }
 }
-`, testAccAzureRMBackupProtectionPolicyVM_base(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMBackupProtectionPolicyVM_requiresImport(rInt int, location string) string {
+func testAccAzureRMBackupProtectionPolicyVM_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectionPolicyVM_basicDaily(data)
 	return fmt.Sprintf(`
 %s
 
@@ -370,7 +323,7 @@ resource "azurerm_backup_policy_vm" "import" {
     count = 10
   }
 }
-`, testAccAzureRMBackupProtectionPolicyVM_basicDaily(rInt, location))
+`, template)
 }
 
 func checkAccAzureRMBackupProtectionPolicyVM_basicDaily(resourceName string, ri int) resource.TestCheckFunc {
@@ -385,7 +338,8 @@ func checkAccAzureRMBackupProtectionPolicyVM_basicDaily(resourceName string, ri 
 	)
 }
 
-func testAccAzureRMBackupProtectionPolicyVM_basicWeekly(rInt int, location string) string {
+func testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectionPolicyVM_base(data)
 	return fmt.Sprintf(`
 %s
 
@@ -405,7 +359,7 @@ resource "azurerm_backup_policy_vm" "test" {
     weekdays = ["Sunday", "Wednesday"]
   }
 }
-`, testAccAzureRMBackupProtectionPolicyVM_base(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
 func checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(resourceName string, ri int) resource.TestCheckFunc {
@@ -421,7 +375,8 @@ func checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(resourceName string, ri
 	)
 }
 
-func testAccAzureRMBackupProtectionPolicyVM_completeDaily(rInt int, location string) string {
+func testAccAzureRMBackupProtectionPolicyVM_completeDaily(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectionPolicyVM_base(data)
 	return fmt.Sprintf(`
 %s
 
@@ -457,7 +412,7 @@ resource "azurerm_backup_policy_vm" "test" {
     months   = ["January", "July"]
   }
 }
-`, testAccAzureRMBackupProtectionPolicyVM_base(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
 func checkAccAzureRMBackupProtectionPolicyVM_completeDaily(resourceName string, ri int) resource.TestCheckFunc {
@@ -481,7 +436,8 @@ func checkAccAzureRMBackupProtectionPolicyVM_completeDaily(resourceName string, 
 	)
 }
 
-func testAccAzureRMBackupProtectionPolicyVM_completeWeekly(rInt int, location string) string {
+func testAccAzureRMBackupProtectionPolicyVM_completeWeekly(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectionPolicyVM_base(data)
 	return fmt.Sprintf(`
 %s
 
@@ -514,7 +470,7 @@ resource "azurerm_backup_policy_vm" "test" {
     months   = ["January", "July"]
   }
 }
-`, testAccAzureRMBackupProtectionPolicyVM_base(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
 func checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(resourceName string, ri int) resource.TestCheckFunc {
@@ -538,7 +494,8 @@ func checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(resourceName string,
 	)
 }
 
-func testAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(rInt int, location string) string {
+func testAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectionPolicyVM_base(data)
 	return fmt.Sprintf(`
 %s
 
@@ -571,7 +528,7 @@ resource "azurerm_backup_policy_vm" "test" {
     months   = ["January"]
   }
 }
-`, testAccAzureRMBackupProtectionPolicyVM_base(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
 func checkAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(resourceName string, ri int) resource.TestCheckFunc {
