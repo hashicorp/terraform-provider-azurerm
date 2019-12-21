@@ -1,4 +1,4 @@
-package devspace
+package tests
 
 import (
 	"fmt"
@@ -9,16 +9,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
-	resourceName := "azurerm_devspace_controller.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_devspace_controller", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
@@ -28,11 +25,11 @@ func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevSpaceControllerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevSpaceController_basic(rInt, location, clientId, clientSecret),
+				Config: testAccAzureRMDevSpaceController_basic(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevSpaceControllerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					testCheckAzureRMDevSpaceControllerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 		},
@@ -45,9 +42,7 @@ func TestAccAzureRMDevSpaceController_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_devspace_controller.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_devspace_controller", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
@@ -57,13 +52,13 @@ func TestAccAzureRMDevSpaceController_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDevSpaceControllerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevSpaceController_basic(rInt, location, clientId, clientSecret),
+				Config: testAccAzureRMDevSpaceController_basic(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevSpaceControllerExists(resourceName),
+					testCheckAzureRMDevSpaceControllerExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDevSpaceController_requiresImport(rInt, location, clientId, clientSecret),
+				Config:      testAccAzureRMDevSpaceController_requiresImport(data, clientId, clientSecret),
 				ExpectError: acceptance.RequiresImportError("azurerm_devspace_controller"),
 			},
 		},
@@ -128,7 +123,7 @@ func testCheckAzureRMDevSpaceControllerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDevSpaceController_basic(rInt int, location string, clientId string, clientSecret string) string {
+func testAccAzureRMDevSpaceController_basic(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -173,11 +168,11 @@ resource "azurerm_devspace_controller" "test" {
     tier = "Standard"
   }
 }
-`, rInt, location, rInt, clientId, clientSecret, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, clientId, clientSecret, data.RandomInteger)
 }
 
-func testAccAzureRMDevSpaceController_requiresImport(rInt int, location string, clientId string, clientSecret string) string {
-	template := testAccAzureRMDevSpaceController_basic(rInt, location, clientId, clientSecret)
+func testAccAzureRMDevSpaceController_requiresImport(data acceptance.TestData, clientId string, clientSecret string) string {
+	template := testAccAzureRMDevSpaceController_basic(data, clientId, clientSecret)
 	return fmt.Sprintf(`
 %s
 
