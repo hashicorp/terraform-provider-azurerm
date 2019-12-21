@@ -1,4 +1,4 @@
-package frontdoor
+package tests
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -14,26 +13,19 @@ import (
 )
 
 func TestAccAzureRMFrontDoor_basic(t *testing.T) {
-	resourceName := "azurerm_frontdoor.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFrontDoor_basic(ri, location),
+				Config: testAccAzureRMFrontDoor_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(resourceName),
+					testCheckAzureRMFrontDoorExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -44,124 +36,87 @@ func TestAccAzureRMFrontDoor_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_frontdoor.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFrontDoor_basic(ri, location),
+				Config: testAccAzureRMFrontDoor_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(resourceName),
+					testCheckAzureRMFrontDoorExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMFrontDoor_requiresImport(ri, location),
-				ExpectError: acceptance.RequiresImportError("azurerm_frontdoor"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMFrontDoor_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMFrontDoor_update(t *testing.T) {
-	resourceName := "azurerm_frontdoor.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-
+	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFrontDoor_basic(ri, location),
+				Config: testAccAzureRMFrontDoor_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(resourceName),
+					testCheckAzureRMFrontDoorExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMFrontDoor_complete(ri, location),
+				Config: testAccAzureRMFrontDoor_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(resourceName),
+					testCheckAzureRMFrontDoorExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMFrontDoor_basic(ri, location),
+				Config: testAccAzureRMFrontDoor_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(resourceName),
+					testCheckAzureRMFrontDoorExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMFrontDoor_complete(t *testing.T) {
-	resourceName := "azurerm_frontdoor.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMFrontDoor_complete(ri, location)
-
+	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMFrontDoor_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(resourceName),
+					testCheckAzureRMFrontDoorExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMFrontDoor_waf(t *testing.T) {
-	resourceName := "azurerm_frontdoor.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	config := testAccAzureRMFrontDoor_waf(ri, location)
-
+	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMFrontDoor_waf(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(resourceName),
+					testCheckAzureRMFrontDoorExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -214,7 +169,7 @@ func testCheckAzureRMFrontDoorDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMFrontDoor_basic(rInt int, location string) string {
+func testAccAzureRMFrontDoor_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -272,11 +227,11 @@ resource "azurerm_frontdoor" "test" {
     custom_https_provisioning_enabled = false
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFrontDoor_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMFrontDoor_basic(rInt, location)
+func testAccAzureRMFrontDoor_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMFrontDoor_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -324,10 +279,10 @@ resource "azurerm_frontdoor" "import" {
     custom_https_provisioning_enabled = false
   }
 }
-`, template, rInt)
+`, template, data.RandomInteger)
 }
 
-func testAccAzureRMFrontDoor_complete(rInt int, location string) string {
+func testAccAzureRMFrontDoor_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -385,10 +340,10 @@ resource "azurerm_frontdoor" "test" {
     custom_https_provisioning_enabled = false
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFrontDoor_waf(rInt int, location string) string {
+func testAccAzureRMFrontDoor_waf(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -453,5 +408,5 @@ resource "azurerm_frontdoor" "test" {
     web_application_firewall_policy_link_id = azurerm_frontdoor_firewall_policy.test.id
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
