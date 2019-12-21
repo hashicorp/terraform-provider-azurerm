@@ -1,4 +1,4 @@
-package eventhub
+package tests
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -31,7 +30,7 @@ func TestAccAzureRMEventHubAuthorizationRule_manage(t *testing.T) {
 }
 
 func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage bool) {
-	resourceName := "azurerm_eventhub_authorization_rule.test"
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -39,26 +38,22 @@ func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage 
 		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubAuthorizationRule_base(tf.AccRandTimeInt(), acceptance.Location(), listen, send, manage),
+				Config: testAccAzureRMEventHubAuthorizationRule_base(data, listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubAuthorizationRuleExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttrSet(resourceName, "namespace_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_connection_string"),
-					resource.TestCheckResourceAttr(resourceName, "listen", strconv.FormatBool(listen)),
-					resource.TestCheckResourceAttr(resourceName, "send", strconv.FormatBool(send)),
-					resource.TestCheckResourceAttr(resourceName, "manage", strconv.FormatBool(manage)),
+					testCheckAzureRMEventHubAuthorizationRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "namespace_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
+					resource.TestCheckResourceAttr(data.ResourceName, "listen", strconv.FormatBool(listen)),
+					resource.TestCheckResourceAttr(data.ResourceName, "send", strconv.FormatBool(send)),
+					resource.TestCheckResourceAttr(data.ResourceName, "manage", strconv.FormatBool(manage)),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -69,10 +64,7 @@ func TestAccAzureRMEventHubAuthorizationRule_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_eventhub_authorization_rule.test"
-	rInt := tf.AccRandTimeInt()
-
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,13 +72,13 @@ func TestAccAzureRMEventHubAuthorizationRule_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubAuthorizationRule_base(rInt, location, true, true, true),
+				Config: testAccAzureRMEventHubAuthorizationRule_base(data, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubAuthorizationRuleExists(resourceName),
+					testCheckAzureRMEventHubAuthorizationRuleExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMEventHubAuthorizationRule_requiresImport(rInt, location, true, true, true),
+				Config:      testAccAzureRMEventHubAuthorizationRule_requiresImport(data, true, true, true),
 				ExpectError: acceptance.RequiresImportError("azurerm_eventhub_authorization_rule"),
 			},
 		},
@@ -94,7 +86,7 @@ func TestAccAzureRMEventHubAuthorizationRule_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMEventHubAuthorizationRule_rightsUpdate(t *testing.T) {
-	resourceName := "azurerm_eventhub_authorization_rule.test"
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -102,34 +94,30 @@ func TestAccAzureRMEventHubAuthorizationRule_rightsUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubAuthorizationRule_base(tf.AccRandTimeInt(), acceptance.Location(), true, false, false),
+				Config: testAccAzureRMEventHubAuthorizationRule_base(data, true, false, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubAuthorizationRuleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
-					resource.TestCheckResourceAttr(resourceName, "send", "false"),
-					resource.TestCheckResourceAttr(resourceName, "manage", "false"),
+					testCheckAzureRMEventHubAuthorizationRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "send", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "manage", "false"),
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubAuthorizationRule_base(tf.AccRandTimeInt(), acceptance.Location(), true, true, true),
+				Config: testAccAzureRMEventHubAuthorizationRule_base(data, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubAuthorizationRuleExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttrSet(resourceName, "namespace_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_connection_string"),
-					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
-					resource.TestCheckResourceAttr(resourceName, "send", "true"),
-					resource.TestCheckResourceAttr(resourceName, "manage", "true"),
+					testCheckAzureRMEventHubAuthorizationRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "namespace_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
+					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "send", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "manage", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -190,7 +178,7 @@ func testCheckAzureRMEventHubAuthorizationRuleExists(resourceName string) resour
 	}
 }
 
-func testAccAzureRMEventHubAuthorizationRule_base(rInt int, location string, listen, send, manage bool) string {
+func testAccAzureRMEventHubAuthorizationRule_base(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -224,11 +212,11 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   send   = %[4]t
   manage = %[5]t
 }
-`, rInt, location, listen, send, manage)
+`, data.RandomInteger, data.Locations.Primary, listen, send, manage)
 }
 
-func testAccAzureRMEventHubAuthorizationRule_requiresImport(rInt int, location string, listen, send, manage bool) string {
-	template := testAccAzureRMEventHubAuthorizationRule_base(rInt, location, listen, send, manage)
+func testAccAzureRMEventHubAuthorizationRule_requiresImport(data acceptance.TestData, listen, send, manage bool) string {
+	template := testAccAzureRMEventHubAuthorizationRule_base(data, listen, send, manage)
 	return fmt.Sprintf(`
 %s
 
