@@ -1,4 +1,4 @@
-package servicebus
+package tests
 
 import (
 	"fmt"
@@ -8,16 +8,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
-	resourceName := "azurerm_servicebus_namespace.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespace_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	config := testAccAzureRMServiceBusNamespace_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,14 +25,10 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(resourceName),
+					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -43,8 +37,7 @@ func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-	resourceName := "azurerm_servicebus_namespace.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -52,23 +45,19 @@ func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusNamespace_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMServiceBusNamespace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(resourceName),
+					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMServiceBusNamespace_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_servicebus_namespace"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMServiceBusNamespace_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
-	resourceName := "azurerm_servicebus_namespace.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespace_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	config := testAccAzureRMServiceBusNamespace_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,15 +67,15 @@ func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(resourceName),
+					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
 					resource.TestMatchResourceAttr(
-						resourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
+						data.ResourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
 					resource.TestMatchResourceAttr(
-						resourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
+						data.ResourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
 					resource.TestMatchResourceAttr(
-						resourceName, "default_primary_key", regexp.MustCompile(".+")),
+						data.ResourceName, "default_primary_key", regexp.MustCompile(".+")),
 					resource.TestMatchResourceAttr(
-						resourceName, "default_secondary_key", regexp.MustCompile(".+")),
+						data.ResourceName, "default_secondary_key", regexp.MustCompile(".+")),
 				),
 			},
 		},
@@ -94,10 +83,8 @@ func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
-	resourceName := "azurerm_servicebus_namespace.test"
-
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespaceNonStandardCasing(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	config := testAccAzureRMServiceBusNamespaceNonStandardCasing(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -107,7 +94,7 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(resourceName),
+					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
 				),
 			},
 			{
@@ -115,19 +102,14 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
-	resourceName := "azurerm_servicebus_namespace.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespace_premium(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	config := testAccAzureRMServiceBusNamespace_premium(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -137,21 +119,17 @@ func TestAccAzureRMServiceBusNamespace_premium(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(resourceName),
+					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespace_basicCapacity(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	config := testAccAzureRMServiceBusNamespace_basicCapacity(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -167,8 +145,8 @@ func TestAccAzureRMServiceBusNamespace_basicCapacity(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespace_premiumCapacity(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	config := testAccAzureRMServiceBusNamespace_premiumCapacity(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -184,9 +162,8 @@ func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusNamespace_zoneRedundant(t *testing.T) {
-	resourceName := "azurerm_servicebus_namespace.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusNamespace_zoneRedundant(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
+	config := testAccAzureRMServiceBusNamespace_zoneRedundant(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -196,15 +173,11 @@ func TestAccAzureRMServiceBusNamespace_zoneRedundant(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "zone_redundant", "true"),
+					testCheckAzureRMServiceBusNamespaceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "zone_redundant", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -265,7 +238,7 @@ func testCheckAzureRMServiceBusNamespaceExists(resourceName string) resource.Tes
 	}
 }
 
-func testAccAzureRMServiceBusNamespace_basic(rInt int, location string) string {
+func testAccAzureRMServiceBusNamespace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -278,10 +251,10 @@ resource "azurerm_servicebus_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "basic"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusNamespace_requiresImport(rInt int, location string) string {
+func testAccAzureRMServiceBusNamespace_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -291,10 +264,10 @@ resource "azurerm_servicebus_namespace" "import" {
   resource_group_name = "${azurerm_servicebus_namespace.test.resource_group_name}"
   sku                 = "${azurerm_servicebus_namespace.test.sku}"
 }
-`, testAccAzureRMServiceBusNamespace_basic(rInt, location))
+`, testAccAzureRMServiceBusNamespace_basic(data))
 }
 
-func testAccAzureRMServiceBusNamespaceNonStandardCasing(rInt int, location string) string {
+func testAccAzureRMServiceBusNamespaceNonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -307,10 +280,10 @@ resource "azurerm_servicebus_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Basic"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusNamespace_premium(rInt int, location string) string {
+func testAccAzureRMServiceBusNamespace_premium(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -324,10 +297,10 @@ resource "azurerm_servicebus_namespace" "test" {
   sku                 = "Premium"
   capacity            = 1
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusNamespace_basicCapacity(rInt int, location string) string {
+func testAccAzureRMServiceBusNamespace_basicCapacity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -341,10 +314,10 @@ resource "azurerm_servicebus_namespace" "test" {
   sku                 = "Basic"
   capacity            = 1
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusNamespace_premiumCapacity(rInt int, location string) string {
+func testAccAzureRMServiceBusNamespace_premiumCapacity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -358,10 +331,10 @@ resource "azurerm_servicebus_namespace" "test" {
   sku                 = "Premium"
   capacity            = 0
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusNamespace_zoneRedundant(rInt int, location string) string {
+func testAccAzureRMServiceBusNamespace_zoneRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -376,5 +349,5 @@ resource "azurerm_servicebus_namespace" "test" {
   capacity            = 1
   zone_redundant      = true
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

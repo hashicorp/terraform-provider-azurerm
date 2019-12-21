@@ -37,7 +37,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		MigrateState:  resourceAzureRMServiceBusNamespaceMigrateState,
+		MigrateState:  ResourceAzureRMServiceBusNamespaceMigrateState,
 		SchemaVersion: 1,
 
 		Timeouts: &schema.ResourceTimeout{
