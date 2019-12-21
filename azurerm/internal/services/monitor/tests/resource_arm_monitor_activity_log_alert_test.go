@@ -1,24 +1,19 @@
-package monitor
+package tests
 
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
-	resourceName := "azurerm_monitor_activity_log_alert.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,21 +21,17 @@ func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActivityLogAlert_basic(ri, location),
+				Config: testAccAzureRMMonitorActivityLogAlert_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.category", "Recommendation"),
-					resource.TestCheckResourceAttr(resourceName, "action.#", "0"),
+					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.category", "Recommendation"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "0"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -51,9 +42,7 @@ func TestAccAzureRMMonitorActivityLogAlert_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_monitor_activity_log_alert.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -61,13 +50,13 @@ func TestAccAzureRMMonitorActivityLogAlert_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActivityLogAlert_basic(ri, location),
+				Config: testAccAzureRMMonitorActivityLogAlert_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
+					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMonitorActivityLogAlert_requiresImport(ri, location),
+				Config:      testAccAzureRMMonitorActivityLogAlert_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_monitor_activity_log_alert"),
 			},
 		},
@@ -75,10 +64,8 @@ func TestAccAzureRMMonitorActivityLogAlert_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
-	resourceName := "azurerm_monitor_activity_log_alert.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMMonitorActivityLogAlert_singleResource(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	config := testAccAzureRMMonitorActivityLogAlert_singleResource(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -88,30 +75,24 @@ func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.operation_name", "Microsoft.Storage/storageAccounts/write"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.category", "Recommendation"),
-					resource.TestCheckResourceAttrSet(resourceName, "criteria.0.resource_id"),
-					resource.TestCheckResourceAttr(resourceName, "action.#", "1"),
+					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.operation_name", "Microsoft.Storage/storageAccounts/write"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.category", "Recommendation"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "1"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
-	resourceName := "azurerm_monitor_activity_log_alert.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	config := testAccAzureRMMonitorActivityLogAlert_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -121,39 +102,32 @@ func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "description", "This is just a test resource."),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.operation_name", "Microsoft.Storage/storageAccounts/write"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.category", "Recommendation"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.resource_provider", "Microsoft.Storage"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.resource_type", "Microsoft.Storage/storageAccounts"),
-					resource.TestCheckResourceAttrSet(resourceName, "criteria.0.resource_group"),
-					resource.TestCheckResourceAttrSet(resourceName, "criteria.0.resource_id"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.caller", "user@example.com"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.level", "Error"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.status", "Failed"),
-					resource.TestCheckResourceAttr(resourceName, "action.#", "2"),
+					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is just a test resource."),
+					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.operation_name", "Microsoft.Storage/storageAccounts/write"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.category", "Recommendation"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_provider", "Microsoft.Storage"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_type", "Microsoft.Storage/storageAccounts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_group"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.caller", "user@example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.level", "Error"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.status", "Failed"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "2"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) {
-	resourceName := "azurerm_monitor_activity_log_alert.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := acceptance.Location()
-	basicConfig := testAccAzureRMMonitorActivityLogAlert_basic(ri, location)
-	completeConfig := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, location)
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	basicConfig := testAccAzureRMMonitorActivityLogAlert_basic(data)
+	completeConfig := testAccAzureRMMonitorActivityLogAlert_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -163,60 +137,60 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 			{
 				Config: basicConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.category", "Recommendation"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.resource_id", ""),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.caller", ""),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.level", ""),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.status", ""),
-					resource.TestCheckResourceAttr(resourceName, "action.#", "0"),
+					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.category", "Recommendation"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_id", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.caller", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.level", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.status", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "0"),
 				),
 			},
 			{
 				Config: completeConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "description", "This is just a test resource."),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.operation_name", "Microsoft.Storage/storageAccounts/write"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.category", "Recommendation"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.resource_provider", "Microsoft.Storage"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.resource_type", "Microsoft.Storage/storageAccounts"),
-					resource.TestCheckResourceAttrSet(resourceName, "criteria.0.resource_group"),
-					resource.TestCheckResourceAttrSet(resourceName, "criteria.0.resource_id"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.caller", "user@example.com"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.level", "Error"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.status", "Failed"),
-					resource.TestCheckResourceAttr(resourceName, "action.#", "2"),
+					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is just a test resource."),
+					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.operation_name", "Microsoft.Storage/storageAccounts/write"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.category", "Recommendation"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_provider", "Microsoft.Storage"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_type", "Microsoft.Storage/storageAccounts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_group"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.caller", "user@example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.level", "Error"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.status", "Failed"),
+					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "2"),
 				),
 			},
 			{
 				Config: basicConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "description", ""),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.category", "Recommendation"),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.resource_id", ""),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.caller", ""),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.level", ""),
-					resource.TestCheckResourceAttr(resourceName, "criteria.0.status", ""),
-					resource.TestCheckResourceAttr(resourceName, "action.#", "0"),
+					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.category", "Recommendation"),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_id", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.caller", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.level", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.status", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "0"),
 				),
 			},
 		},
 	})
 }
 
-func testAccAzureRMMonitorActivityLogAlert_basic(rInt int, location string) string {
+func testAccAzureRMMonitorActivityLogAlert_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -232,11 +206,11 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     category = "Recommendation"
   }
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActivityLogAlert_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMMonitorActivityLogAlert_basic(rInt, location)
+func testAccAzureRMMonitorActivityLogAlert_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorActivityLogAlert_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -252,7 +226,7 @@ resource "azurerm_monitor_activity_log_alert" "import" {
 `, template)
 }
 
-func testAccAzureRMMonitorActivityLogAlert_singleResource(rInt int, rString, location string) string {
+func testAccAzureRMMonitorActivityLogAlert_singleResource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -288,10 +262,10 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     action_group_id = "${azurerm_monitor_action_group.test.id}"
   }
 }
-`, rInt, location, rInt, rString, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorActivityLogAlert_complete(rInt int, rString, location string) string {
+func testAccAzureRMMonitorActivityLogAlert_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -354,7 +328,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     }
   }
 }
-`, rInt, location, rInt, rInt, rString, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
 
 func testCheckAzureRMMonitorActivityLogAlertDestroy(s *terraform.State) error {

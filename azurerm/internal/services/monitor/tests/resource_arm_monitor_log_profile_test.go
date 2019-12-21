@@ -1,13 +1,11 @@
-package monitor
+package tests
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -50,9 +48,7 @@ func TestAccAzureRMMonitorLogProfile(t *testing.T) {
 }
 
 func testAccAzureRMMonitorLogProfile_basic(t *testing.T) {
-	resourceName := "azurerm_monitor_log_profile.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(10)
+	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -60,16 +56,12 @@ func testAccAzureRMMonitorLogProfile_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorLogProfile_basicConfig(ri, rs, acceptance.Location()),
+				Config: testAccAzureRMMonitorLogProfile_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogProfileExists(resourceName),
+					testCheckAzureRMLogProfileExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -80,10 +72,7 @@ func testAccAzureRMMonitorLogProfile_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_monitor_log_profile.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(10)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -91,13 +80,13 @@ func testAccAzureRMMonitorLogProfile_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorLogProfile_basicConfig(ri, rs, location),
+				Config: testAccAzureRMMonitorLogProfile_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogProfileExists(resourceName),
+					testCheckAzureRMLogProfileExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMonitorLogProfile_requiresImportConfig(ri, rs, location),
+				Config:      testAccAzureRMMonitorLogProfile_requiresImportConfig(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_monitor_log_profile"),
 			},
 		},
@@ -105,9 +94,7 @@ func testAccAzureRMMonitorLogProfile_requiresImport(t *testing.T) {
 }
 
 func testAccAzureRMMonitorLogProfile_servicebus(t *testing.T) {
-	resourceName := "azurerm_monitor_log_profile.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(10)
+	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -115,9 +102,9 @@ func testAccAzureRMMonitorLogProfile_servicebus(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorLogProfile_servicebusConfig(ri, rs, acceptance.Location()),
+				Config: testAccAzureRMMonitorLogProfile_servicebusConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogProfileExists(resourceName),
+					testCheckAzureRMLogProfileExists(data.ResourceName),
 				),
 			},
 		},
@@ -125,9 +112,7 @@ func testAccAzureRMMonitorLogProfile_servicebus(t *testing.T) {
 }
 
 func testAccAzureRMMonitorLogProfile_complete(t *testing.T) {
-	resourceName := "azurerm_monitor_log_profile.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(10)
+	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -135,9 +120,9 @@ func testAccAzureRMMonitorLogProfile_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorLogProfile_completeConfig(ri, rs, acceptance.Location(), acceptance.AltLocation()),
+				Config: testAccAzureRMMonitorLogProfile_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogProfileExists(resourceName),
+					testCheckAzureRMLogProfileExists(data.ResourceName),
 				),
 			},
 		},
@@ -145,10 +130,7 @@ func testAccAzureRMMonitorLogProfile_complete(t *testing.T) {
 }
 
 func testAccAzureRMMonitorLogProfile_disappears(t *testing.T) {
-	resourceName := "azurerm_monitor_log_profile.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(10)
-	config := testAccAzureRMMonitorLogProfile_basicConfig(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -156,10 +138,10 @@ func testAccAzureRMMonitorLogProfile_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMonitorLogProfile_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogProfileExists(resourceName),
-					testCheckAzureRMLogProfileDisappears(resourceName),
+					testCheckAzureRMLogProfileExists(data.ResourceName),
+					testCheckAzureRMLogProfileDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -234,7 +216,7 @@ func testCheckAzureRMLogProfileDisappears(resourceName string) resource.TestChec
 	}
 }
 
-func testAccAzureRMMonitorLogProfile_basicConfig(rInt int, rString string, location string) string {
+func testAccAzureRMMonitorLogProfile_basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -267,11 +249,11 @@ resource "azurerm_monitor_log_profile" "test" {
     days    = 7
   }
 }
-`, rInt, location, rString, rInt, location)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMMonitorLogProfile_requiresImportConfig(rInt int, rString string, location string) string {
-	template := testAccAzureRMMonitorLogProfile_basicConfig(rInt, rString, location)
+func testAccAzureRMMonitorLogProfile_requiresImportConfig(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorLogProfile_basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
@@ -289,7 +271,7 @@ resource "azurerm_monitor_log_profile" "import" {
 `, template)
 }
 
-func testAccAzureRMMonitorLogProfile_servicebusConfig(rInt int, rString string, location string) string {
+func testAccAzureRMMonitorLogProfile_servicebusConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -330,10 +312,10 @@ resource "azurerm_monitor_log_profile" "test" {
     enabled = false
   }
 }
-`, rInt, location, rString, rString, rInt, location)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMMonitorLogProfile_completeConfig(rInt int, rString string, location string, altLocation string) string {
+func testAccAzureRMMonitorLogProfile_completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -379,5 +361,5 @@ resource "azurerm_monitor_log_profile" "test" {
     days    = 7
   }
 }
-`, rInt, location, rString, rString, rInt, location, altLocation)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

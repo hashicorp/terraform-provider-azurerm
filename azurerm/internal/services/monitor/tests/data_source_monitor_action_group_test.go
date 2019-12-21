@@ -1,20 +1,17 @@
-package monitor
+package tests
 
 import (
 	"fmt"
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceArmMonitorActionGroup_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccDataSourceArmMonitorActionGroup_basic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_action_group", "test")
+	config := testAccDataSourceArmMonitorActionGroup_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -23,19 +20,19 @@ func TestAccDataSourceArmMonitorActionGroup_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
-					resource.TestCheckResourceAttr(dataSourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "short_name", "acctestag"),
-					resource.TestCheckResourceAttr(dataSourceName, "email_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "itsm_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "azure_app_push_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "sms_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "webhook_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "automation_runbook_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "voice_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "logic_app_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "azure_function_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "arm_role_receiver.#", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "short_name", "acctestag"),
+					resource.TestCheckResourceAttr(data.ResourceName, "email_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "itsm_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "azure_app_push_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sms_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "webhook_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "automation_runbook_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "voice_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "logic_app_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "azure_function_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "arm_role_receiver.#", "0"),
 				),
 			},
 		},
@@ -43,9 +40,8 @@ func TestAccDataSourceArmMonitorActionGroup_basic(t *testing.T) {
 }
 
 func TestAccDataSourceArmMonitorActionGroup_disabledBasic(t *testing.T) {
-	dataSourceName := "data.azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccDataSourceArmMonitorActionGroup_disabledBasic(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_action_group", "test")
+	config := testAccDataSourceArmMonitorActionGroup_disabledBasic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -54,19 +50,19 @@ func TestAccDataSourceArmMonitorActionGroup_disabledBasic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
-					resource.TestCheckResourceAttr(dataSourceName, "enabled", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "short_name", "acctestag"),
-					resource.TestCheckResourceAttr(dataSourceName, "email_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "itsm_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "azure_app_push_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "sms_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "webhook_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "automation_runbook_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "voice_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "logic_app_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "azure_function_receiver.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "arm_role_receiver.#", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "short_name", "acctestag"),
+					resource.TestCheckResourceAttr(data.ResourceName, "email_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "itsm_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "azure_app_push_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sms_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "webhook_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "automation_runbook_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "voice_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "logic_app_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "azure_function_receiver.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "arm_role_receiver.#", "0"),
 				),
 			},
 		},
@@ -74,16 +70,14 @@ func TestAccDataSourceArmMonitorActionGroup_disabledBasic(t *testing.T) {
 }
 
 func TestAccDataSourceArmMonitorActionGroup_complete(t *testing.T) {
-	dataSourceName := "data.azurerm_monitor_action_group.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(5)
-	config := testAccDataSourceArmMonitorActionGroup_complete(ri, rs, acceptance.Location())
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_action_group", "test")
+	config := testAccDataSourceArmMonitorActionGroup_complete(data)
 
-	aaName := fmt.Sprintf("acctestAA-%d", ri)
-	faName := fmt.Sprintf("acctestFA-%d", ri)
-	laName := fmt.Sprintf("acctestLA-%d", ri)
+	aaName := fmt.Sprintf("acctestAA-%d", data.RandomInteger)
+	faName := fmt.Sprintf("acctestFA-%d", data.RandomInteger)
+	laName := fmt.Sprintf("acctestLA-%d", data.RandomInteger)
 	webhookName := "webhook_alert"
-	resGroup := fmt.Sprintf("acctestRG-%d", ri)
+	resGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 	aaResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/AutomationAccounts/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, aaName)
 	aaWebhookResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/AutomationAccounts/%s/webhooks/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, aaName, webhookName)
 	faResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, faName)
@@ -96,56 +90,56 @@ func TestAccDataSourceArmMonitorActionGroup_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
-					resource.TestCheckResourceAttr(dataSourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "email_receiver.#", "2"),
-					resource.TestCheckResourceAttr(dataSourceName, "email_receiver.0.email_address", "admin@contoso.com"),
-					resource.TestCheckResourceAttr(dataSourceName, "email_receiver.1.email_address", "devops@contoso.com"),
-					resource.TestCheckResourceAttr(dataSourceName, "email_receiver.1.use_common_alert_schema", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "itsm_receiver.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "itsm_receiver.0.workspace_id", "6eee3a18-aac3-40e4-b98e-1f309f329816"),
-					resource.TestCheckResourceAttr(dataSourceName, "itsm_receiver.0.connection_id", "53de6956-42b4-41ba-be3c-b154cdf17b13"),
-					resource.TestCheckResourceAttr(dataSourceName, "itsm_receiver.0.ticket_configuration", "{}"),
-					resource.TestCheckResourceAttr(dataSourceName, "itsm_receiver.0.region", "southcentralus"),
-					resource.TestCheckResourceAttr(dataSourceName, "azure_app_push_receiver.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "azure_app_push_receiver.0.email_address", "admin@contoso.com"),
-					resource.TestCheckResourceAttr(dataSourceName, "sms_receiver.#", "2"),
-					resource.TestCheckResourceAttr(dataSourceName, "sms_receiver.0.country_code", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "sms_receiver.0.phone_number", "1231231234"),
-					resource.TestCheckResourceAttr(dataSourceName, "sms_receiver.1.country_code", "86"),
-					resource.TestCheckResourceAttr(dataSourceName, "sms_receiver.1.phone_number", "13888888888"),
-					resource.TestCheckResourceAttr(dataSourceName, "webhook_receiver.#", "2"),
-					resource.TestCheckResourceAttr(dataSourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
-					resource.TestCheckResourceAttr(dataSourceName, "webhook_receiver.1.service_uri", "https://backup.example.com/warning"),
-					resource.TestCheckResourceAttr(dataSourceName, "webhook_receiver.1.use_common_alert_schema", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "automation_runbook_receiver.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "automation_runbook_receiver.0.automation_account_id", aaResourceID),
-					resource.TestCheckResourceAttr(dataSourceName, "automation_runbook_receiver.0.runbook_name", webhookName),
-					resource.TestCheckResourceAttr(dataSourceName, "automation_runbook_receiver.0.webhook_resource_id", aaWebhookResourceID),
-					resource.TestCheckResourceAttr(dataSourceName, "automation_runbook_receiver.0.service_uri", "https://s13events.azure-automation.net/webhooks?token=randomtoken"),
-					resource.TestCheckResourceAttr(dataSourceName, "automation_runbook_receiver.0.use_common_alert_schema", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "voice_receiver.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "voice_receiver.0.country_code", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "voice_receiver.0.phone_number", "1231231234"),
-					resource.TestCheckResourceAttr(dataSourceName, "logic_app_receiver.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "logic_app_receiver.0.resource_id", laResourceID),
-					resource.TestCheckResourceAttr(dataSourceName, "logic_app_receiver.0.callback_url", "http://test-host:100/workflows/fb9c8d79b15f41ce9b12861862f43546/versions/08587100027316071865/triggers/manualTrigger/paths/invoke?api-version=2015-08-01-preview&sp=%2Fversions%2F08587100027316071865%2Ftriggers%2FmanualTrigger%2Frun&sv=1.0&sig=IxEQ_ygZf6WNEQCbjV0Vs6p6Y4DyNEJVAa86U5B4xhk"),
-					resource.TestCheckResourceAttr(dataSourceName, "logic_app_receiver.0.use_common_alert_schema", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "azure_function_receiver.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "azure_function_receiver.0.function_app_resource_id", faResourceID),
-					resource.TestCheckResourceAttr(dataSourceName, "azure_function_receiver.0.function_name", "myfunc"),
-					resource.TestCheckResourceAttr(dataSourceName, "azure_function_receiver.0.http_trigger_url", "https://example.com/trigger"),
-					resource.TestCheckResourceAttr(dataSourceName, "azure_function_receiver.0.use_common_alert_schema", "false"),
-					resource.TestCheckResourceAttr(dataSourceName, "arm_role_receiver.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "arm_role_receiver.0.role_id", "43d0d8ad-25c7-4714-9337-8ba259a9fe05"),
-					resource.TestCheckResourceAttr(dataSourceName, "arm_role_receiver.0.use_common_alert_schema", "false"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "email_receiver.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "email_receiver.0.email_address", "admin@contoso.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "email_receiver.1.email_address", "devops@contoso.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "email_receiver.1.use_common_alert_schema", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "itsm_receiver.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "itsm_receiver.0.workspace_id", "6eee3a18-aac3-40e4-b98e-1f309f329816"),
+					resource.TestCheckResourceAttr(data.ResourceName, "itsm_receiver.0.connection_id", "53de6956-42b4-41ba-be3c-b154cdf17b13"),
+					resource.TestCheckResourceAttr(data.ResourceName, "itsm_receiver.0.ticket_configuration", "{}"),
+					resource.TestCheckResourceAttr(data.ResourceName, "itsm_receiver.0.region", "southcentralus"),
+					resource.TestCheckResourceAttr(data.ResourceName, "azure_app_push_receiver.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "azure_app_push_receiver.0.email_address", "admin@contoso.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sms_receiver.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sms_receiver.0.country_code", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sms_receiver.0.phone_number", "1231231234"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sms_receiver.1.country_code", "86"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sms_receiver.1.phone_number", "13888888888"),
+					resource.TestCheckResourceAttr(data.ResourceName, "webhook_receiver.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
+					resource.TestCheckResourceAttr(data.ResourceName, "webhook_receiver.1.service_uri", "https://backup.example.com/warning"),
+					resource.TestCheckResourceAttr(data.ResourceName, "webhook_receiver.1.use_common_alert_schema", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "automation_runbook_receiver.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "automation_runbook_receiver.0.automation_account_id", aaResourceID),
+					resource.TestCheckResourceAttr(data.ResourceName, "automation_runbook_receiver.0.runbook_name", webhookName),
+					resource.TestCheckResourceAttr(data.ResourceName, "automation_runbook_receiver.0.webhook_resource_id", aaWebhookResourceID),
+					resource.TestCheckResourceAttr(data.ResourceName, "automation_runbook_receiver.0.service_uri", "https://s13events.azure-automation.net/webhooks?token=randomtoken"),
+					resource.TestCheckResourceAttr(data.ResourceName, "automation_runbook_receiver.0.use_common_alert_schema", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "voice_receiver.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "voice_receiver.0.country_code", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "voice_receiver.0.phone_number", "1231231234"),
+					resource.TestCheckResourceAttr(data.ResourceName, "logic_app_receiver.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "logic_app_receiver.0.resource_id", laResourceID),
+					resource.TestCheckResourceAttr(data.ResourceName, "logic_app_receiver.0.callback_url", "http://test-host:100/workflows/fb9c8d79b15f41ce9b12861862f43546/versions/08587100027316071865/triggers/manualTrigger/paths/invoke?api-version=2015-08-01-preview&sp=%2Fversions%2F08587100027316071865%2Ftriggers%2FmanualTrigger%2Frun&sv=1.0&sig=IxEQ_ygZf6WNEQCbjV0Vs6p6Y4DyNEJVAa86U5B4xhk"),
+					resource.TestCheckResourceAttr(data.ResourceName, "logic_app_receiver.0.use_common_alert_schema", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "azure_function_receiver.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "azure_function_receiver.0.function_app_resource_id", faResourceID),
+					resource.TestCheckResourceAttr(data.ResourceName, "azure_function_receiver.0.function_name", "myfunc"),
+					resource.TestCheckResourceAttr(data.ResourceName, "azure_function_receiver.0.http_trigger_url", "https://example.com/trigger"),
+					resource.TestCheckResourceAttr(data.ResourceName, "azure_function_receiver.0.use_common_alert_schema", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "arm_role_receiver.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "arm_role_receiver.0.role_id", "43d0d8ad-25c7-4714-9337-8ba259a9fe05"),
+					resource.TestCheckResourceAttr(data.ResourceName, "arm_role_receiver.0.use_common_alert_schema", "false"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceArmMonitorActionGroup_basic(rInt int, location string) string {
+func testAccDataSourceArmMonitorActionGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -162,10 +156,10 @@ data "azurerm_monitor_action_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "${azurerm_monitor_action_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceArmMonitorActionGroup_disabledBasic(rInt int, location string) string {
+func testAccDataSourceArmMonitorActionGroup_disabledBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -183,10 +177,10 @@ data "azurerm_monitor_action_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "${azurerm_monitor_action_group.test.name}"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceArmMonitorActionGroup_complete(rInt int, rString, location string) string {
+func testAccDataSourceArmMonitorActionGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -365,5 +359,5 @@ data "azurerm_monitor_action_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "${azurerm_monitor_action_group.test.name}"
 }
-`, rInt, location, rInt, rInt, rInt, rString, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }

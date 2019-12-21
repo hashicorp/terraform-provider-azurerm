@@ -1,29 +1,25 @@
-package monitor
+package tests
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
-	dataSourceName := "data.azurerm_monitor_diagnostic_categories.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_diagnostic_categories", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceArmMonitorDiagnosticCategories_appService(ri, location),
+				Config: testAccDataSourceArmMonitorDiagnosticCategories_appService(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "metrics.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "logs.#", "6"),
+					resource.TestCheckResourceAttr(data.ResourceName, "metrics.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "logs.#", "6"),
 				),
 			},
 		},
@@ -31,26 +27,24 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
 }
 
 func TestAccDataSourceArmMonitorDiagnosticCategories_storageAccount(t *testing.T) {
-	dataSourceName := "data.azurerm_monitor_diagnostic_categories.test"
-	rs := acctest.RandString(8)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_monitor_diagnostic_categories", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(rs, location),
+				Config: testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "metrics.#", "2"),
-					resource.TestCheckResourceAttr(dataSourceName, "logs.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "metrics.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "logs.#", "0"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceArmMonitorDiagnosticCategories_appService(rInt int, location string) string {
+func testAccDataSourceArmMonitorDiagnosticCategories_appService(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -78,10 +72,10 @@ resource "azurerm_app_service" "test" {
 data "azurerm_monitor_diagnostic_categories" "test" {
   resource_id = "${azurerm_app_service.test.id}"
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(rString, location string) string {
+func testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%s"
@@ -103,5 +97,5 @@ resource "azurerm_storage_account" "test" {
 data "azurerm_monitor_diagnostic_categories" "test" {
   resource_id = "${azurerm_storage_account.test.id}"
 }
-`, rString, location, rString)
+`, data.RandomString, data.Locations.Primary, data.RandomString)
 }
