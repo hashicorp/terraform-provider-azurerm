@@ -1,4 +1,4 @@
-package relay
+package tests
 
 import (
 	"fmt"
@@ -7,15 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMRelayHybridConnection_basic(t *testing.T) {
-	resourceName := "azurerm_relay_hybrid_connection.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,24 +21,19 @@ func TestAccAzureRMRelayHybridConnection_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRelayHybridConnection_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMRelayHybridConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRelayHybridConnectionExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
+					testCheckAzureRMRelayHybridConnectionExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "requires_client_authorization"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMRelayHybridConnection_full(t *testing.T) {
-	resourceName := "azurerm_relay_hybrid_connection.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -48,43 +41,38 @@ func TestAccAzureRMRelayHybridConnection_full(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRelayHybridConnection_full(ri, acceptance.Location()),
+				Config: testAccAzureRMRelayHybridConnection_full(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRelayHybridConnectionExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
-					resource.TestCheckResourceAttr(resourceName, "user_metadata", "metadatatest"),
+					testCheckAzureRMRelayHybridConnectionExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "requires_client_authorization"),
+					resource.TestCheckResourceAttr(data.ResourceName, "user_metadata", "metadatatest"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMRelayHybridConnection_update(t *testing.T) {
-	resourceName := "azurerm_relay_hybrid_connection.test"
-	rInt := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRelayHybridConnection_basic(rInt, location),
+				Config: testAccAzureRMRelayHybridConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRelayHybridConnectionExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
+					testCheckAzureRMRelayHybridConnectionExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "requires_client_authorization"),
 				),
 			},
 			{
-				Config: testAccAzureRMRelayHybridConnection_update(rInt, location),
+				Config: testAccAzureRMRelayHybridConnection_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "requires_client_authorization", "false"),
-					resource.TestCheckResourceAttr(resourceName, "user_metadata", "metadataupdated"),
+					resource.TestCheckResourceAttr(data.ResourceName, "requires_client_authorization", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "user_metadata", "metadataupdated"),
 				),
 			},
 		},
@@ -97,8 +85,7 @@ func TestAccAzureRMRelayHybridConnection_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_relay_hybrid_connection.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -106,21 +93,18 @@ func TestAccAzureRMRelayHybridConnection_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRelayHybridConnection_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMRelayHybridConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRelayHybridConnectionExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
+					testCheckAzureRMRelayHybridConnectionExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "requires_client_authorization"),
 				),
 			},
-			{
-				Config:      testAccAzureRMRelayHybridConnection_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_relay_hybrid_connection"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMRelayHybridConnection_requiresImport),
 		},
 	})
 }
 
-func testAccAzureRMRelayHybridConnection_basic(rInt int, location string) string {
+func testAccAzureRMRelayHybridConnection_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -140,10 +124,10 @@ resource "azurerm_relay_hybrid_connection" "test" {
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	relay_namespace_name = "${azurerm_relay_namespace.test.name}"
   }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMRelayHybridConnection_full(rInt int, location string) string {
+func testAccAzureRMRelayHybridConnection_full(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -164,10 +148,10 @@ resource "azurerm_relay_hybrid_connection" "test" {
 	relay_namespace_name = "${azurerm_relay_namespace.test.name}"
 	user_metadata        = "metadatatest"
   }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMRelayHybridConnection_update(rInt int, location string) string {
+func testAccAzureRMRelayHybridConnection_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -189,10 +173,11 @@ resource "azurerm_relay_hybrid_connection" "test" {
 	requires_client_authorization = false
 	user_metadata                 = "metadataupdated"
   }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMRelayHybridConnection_requiresImport(rInt int, location string) string {
+func testAccAzureRMRelayHybridConnection_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMRelayHybridConnection_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -201,7 +186,7 @@ resource "azurerm_relay_namespace" "import" {
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	relay_namespace_name = "${azurerm_relay_namespace.test.name}"
 }
-`, testAccAzureRMRelayHybridConnection_basic(rInt, location), rInt)
+`, template, data.RandomInteger)
 }
 
 func testCheckAzureRMRelayHybridConnectionExists(resourceName string) resource.TestCheckFunc {
