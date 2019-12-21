@@ -1,4 +1,4 @@
-package databricks
+package tests
 
 import (
 	"fmt"
@@ -7,10 +7,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks`
 )
 
 func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
@@ -57,7 +57,7 @@ func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateDatabricksWorkspaceName(tc.Value, "test")
+		_, errors := databricks.ValidateDatabricksWorkspaceName(tc.Value, "test")
 
 		hasErrors := len(errors) > 0
 		if hasErrors && !tc.ShouldError {
@@ -71,8 +71,7 @@ func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 }
 
 func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
-	resourceName := "azurerm_databricks_workspace.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,17 +79,13 @@ func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDatabricksWorkspace_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMDatabricksWorkspace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
+					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_id"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -101,9 +96,7 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_databricks_workspace.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -111,13 +104,13 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDatabricksWorkspace_basic(ri, location),
+				Config: testAccAzureRMDatabricksWorkspace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
+					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDatabricksWorkspace_requiresImport(ri, location),
+				Config:      testAccAzureRMDatabricksWorkspace_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_databricks_workspace"),
 			},
 		},
@@ -125,9 +118,7 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
-	resourceName := "azurerm_databricks_workspace.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -135,31 +126,27 @@ func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDatabricksWorkspace_complete(ri, location),
+				Config: testAccAzureRMDatabricksWorkspace_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_name"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Environment", "Production"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Pricing", "Standard"),
+					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_name"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "Production"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Pricing", "Standard"),
 				),
 			},
 			{
-				Config: testAccAzureRMDatabricksWorkspace_completeUpdate(ri, location),
+				Config: testAccAzureRMDatabricksWorkspace_completeUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_name"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Pricing", "Standard"),
+					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_name"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Pricing", "Standard"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -217,7 +204,7 @@ func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDatabricksWorkspace_basic(rInt int, location string) string {
+func testAccAzureRMDatabricksWorkspace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -230,11 +217,11 @@ resource "azurerm_databricks_workspace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "standard"
 }
-`, rInt, location, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDatabricksWorkspace_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMDatabricksWorkspace_basic(rInt, location)
+func testAccAzureRMDatabricksWorkspace_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDatabricksWorkspace_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -247,7 +234,7 @@ resource "azurerm_databricks_workspace" "import" {
 `, template)
 }
 
-func testAccAzureRMDatabricksWorkspace_complete(rInt int, location string) string {
+func testAccAzureRMDatabricksWorkspace_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -266,10 +253,10 @@ resource "azurerm_databricks_workspace" "test" {
     Pricing     = "Standard"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDatabricksWorkspace_completeUpdate(rInt int, location string) string {
+func testAccAzureRMDatabricksWorkspace_completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -287,5 +274,5 @@ resource "azurerm_databricks_workspace" "test" {
     Pricing = "Standard"
   }
 }
-`, rInt, location, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
