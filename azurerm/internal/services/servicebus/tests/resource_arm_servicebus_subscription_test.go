@@ -1,4 +1,4 @@
-package servicebus
+package tests
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -15,8 +14,7 @@ import (
 )
 
 func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
-	resourceName := "azurerm_servicebus_subscription.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,16 +22,12 @@ func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusSubscription_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMServiceBusSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -43,8 +37,7 @@ func TestAccAzureRMServiceBusSubscription_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-	resourceName := "azurerm_servicebus_subscription.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -52,23 +45,19 @@ func TestAccAzureRMServiceBusSubscription_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusSubscription_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMServiceBusSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMServiceBusSubscription_requiresImport(ri, acceptance.Location()),
-				ExpectError: acceptance.RequiresImportError("azurerm_servicebus_subscription"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMServiceBusSubscription_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMServiceBusSubscription_defaultTtl(t *testing.T) {
-	resourceName := "azurerm_servicebus_subscription.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusSubscription_withDefaultTtl(ri, acceptance.Location())
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	config := testAccAzureRMServiceBusSubscription_withDefaultTtl(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,25 +67,19 @@ func TestAccAzureRMServiceBusSubscription_defaultTtl(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_servicebus_subscription.test", "default_message_ttl", "PT1H"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMServiceBusSubscription_updateEnableBatched(t *testing.T) {
-	resourceName := "azurerm_servicebus_subscription.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
-	postConfig := testAccAzureRMServiceBusSubscription_updateEnableBatched(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	preConfig := testAccAzureRMServiceBusSubscription_basic(data)
+	postConfig := testAccAzureRMServiceBusSubscription_updateEnableBatched(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -106,30 +89,24 @@ func TestAccAzureRMServiceBusSubscription_updateEnableBatched(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "enable_batched_operations", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_batched_operations", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMServiceBusSubscription_updateRequiresSession(t *testing.T) {
-	resourceName := "azurerm_servicebus_subscription.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
-	postConfig := testAccAzureRMServiceBusSubscription_updateRequiresSession(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	preConfig := testAccAzureRMServiceBusSubscription_basic(data)
+	postConfig := testAccAzureRMServiceBusSubscription_updateRequiresSession(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -139,32 +116,26 @@ func TestAccAzureRMServiceBusSubscription_updateRequiresSession(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "requires_session", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "requires_session", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
-	resourceName := "azurerm_servicebus_subscription.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
-	postConfig := testAccAzureRMServiceBusSubscription_updateForwardTo(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	preConfig := testAccAzureRMServiceBusSubscription_basic(data)
+	postConfig := testAccAzureRMServiceBusSubscription_updateForwardTo(data)
 
-	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_to-%d", ri)
+	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_to-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -174,32 +145,26 @@ func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "forward_to", expectedValue),
+					resource.TestCheckResourceAttr(data.ResourceName, "forward_to", expectedValue),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t *testing.T) {
-	resourceName := "azurerm_servicebus_subscription.test"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
-	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
-	postConfig := testAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(ri, location)
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+	preConfig := testAccAzureRMServiceBusSubscription_basic(data)
+	postConfig := testAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(data)
 
-	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_dl_messages_to-%d", ri)
+	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_dl_messages_to-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -209,20 +174,16 @@ func TestAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t 
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "forward_dead_lettered_messages_to", expectedValue),
+					resource.TestCheckResourceAttr(data.ResourceName, "forward_dead_lettered_messages_to", expectedValue),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -318,11 +279,11 @@ resource "azurerm_servicebus_subscription" "test" {
 }
 `
 
-func testAccAzureRMServiceBusSubscription_basic(rInt int, location string) string {
-	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, rInt, location, rInt, rInt, rInt, "")
+func testAccAzureRMServiceBusSubscription_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, "")
 }
 
-func testAccAzureRMServiceBusSubscription_requiresImport(rInt int, location string) string {
+func testAccAzureRMServiceBusSubscription_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
@@ -334,25 +295,25 @@ resource "azurerm_servicebus_subscription" "import" {
     resource_group_name = "${azurerm_servicebus_subscription.test.resource_group_name}"
     max_delivery_count  = "${azurerm_servicebus_subscription.test.max_delivery_count}"
 }
-`, testAccAzureRMServiceBusSubscription_basic(rInt, location))
+`, testAccAzureRMServiceBusSubscription_basic(data))
 }
 
-func testAccAzureRMServiceBusSubscription_withDefaultTtl(rInt int, location string) string {
-	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, rInt, location, rInt, rInt, rInt,
+func testAccAzureRMServiceBusSubscription_withDefaultTtl(data acceptance.TestData) string {
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"default_message_ttl = \"PT1H\"\n")
 }
 
-func testAccAzureRMServiceBusSubscription_updateEnableBatched(rInt int, location string) string {
-	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, rInt, location, rInt, rInt, rInt,
+func testAccAzureRMServiceBusSubscription_updateEnableBatched(data acceptance.TestData) string {
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"enable_batched_operations = true\n")
 }
 
-func testAccAzureRMServiceBusSubscription_updateRequiresSession(rInt int, location string) string {
-	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, rInt, location, rInt, rInt, rInt,
+func testAccAzureRMServiceBusSubscription_updateRequiresSession(data acceptance.TestData) string {
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"requires_session = true\n")
 }
 
-func testAccAzureRMServiceBusSubscription_updateForwardTo(rInt int, location string) string {
+func testAccAzureRMServiceBusSubscription_updateForwardTo(data acceptance.TestData) string {
 	forwardToTf := testAccAzureRMServiceBusSubscription_tfTemplate + `
 
 resource "azurerm_servicebus_topic" "forward_to" {
@@ -362,11 +323,11 @@ resource "azurerm_servicebus_topic" "forward_to" {
 }
 
 `
-	return fmt.Sprintf(forwardToTf, rInt, location, rInt, rInt, rInt,
-		"forward_to = \"${azurerm_servicebus_topic.forward_to.name}\"\n", rInt)
+	return fmt.Sprintf(forwardToTf, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		"forward_to = \"${azurerm_servicebus_topic.forward_to.name}\"\n", data.RandomInteger)
 }
 
-func testAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(rInt int, location string) string {
+func testAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(data acceptance.TestData) string {
 	forwardToTf := testAccAzureRMServiceBusSubscription_tfTemplate + `
 
 resource "azurerm_servicebus_topic" "forward_dl_messages_to" {
@@ -376,6 +337,6 @@ resource "azurerm_servicebus_topic" "forward_dl_messages_to" {
 }
 
 `
-	return fmt.Sprintf(forwardToTf, rInt, location, rInt, rInt, rInt,
-		"forward_dead_lettered_messages_to = \"${azurerm_servicebus_topic.forward_dl_messages_to.name}\"\n", rInt)
+	return fmt.Sprintf(forwardToTf, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		"forward_dead_lettered_messages_to = \"${azurerm_servicebus_topic.forward_dl_messages_to.name}\"\n", data.RandomInteger)
 }

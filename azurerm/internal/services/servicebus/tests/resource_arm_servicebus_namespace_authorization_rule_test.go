@@ -1,4 +1,4 @@
-package servicebus
+package tests
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -32,7 +31,7 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_manage(t *testing.T) {
 }
 
 func testAccAzureRMServiceBusNamespaceAuthorizationRule(t *testing.T, listen, send, manage bool) {
-	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -40,32 +39,27 @@ func testAccAzureRMServiceBusNamespaceAuthorizationRule(t *testing.T, listen, se
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(tf.AccRandTimeInt(), acceptance.Location(), listen, send, manage),
+				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(data, listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttrSet(resourceName, "namespace_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_connection_string"),
-					resource.TestCheckResourceAttr(resourceName, "listen", strconv.FormatBool(listen)),
-					resource.TestCheckResourceAttr(resourceName, "send", strconv.FormatBool(send)),
-					resource.TestCheckResourceAttr(resourceName, "manage", strconv.FormatBool(manage)),
+					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "namespace_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
+					resource.TestCheckResourceAttr(data.ResourceName, "listen", strconv.FormatBool(listen)),
+					resource.TestCheckResourceAttr(data.ResourceName, "send", strconv.FormatBool(send)),
+					resource.TestCheckResourceAttr(data.ResourceName, "manage", strconv.FormatBool(manage)),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
-	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -73,34 +67,30 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(ri, acceptance.Location(), true, false, false),
+				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(data, true, false, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
-					resource.TestCheckResourceAttr(resourceName, "send", "false"),
-					resource.TestCheckResourceAttr(resourceName, "manage", "false"),
+					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "send", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "manage", "false"),
 				),
 			},
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(ri, acceptance.Location(), true, true, true),
+				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(data, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttrSet(resourceName, "namespace_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(resourceName, "secondary_connection_string"),
-					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
-					resource.TestCheckResourceAttr(resourceName, "send", "true"),
-					resource.TestCheckResourceAttr(resourceName, "manage", "true"),
+					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "namespace_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
+					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "send", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "manage", "true"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -109,8 +99,7 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(t *testin
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
-	ri := tf.AccRandTimeInt()
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -118,16 +107,16 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(t *testin
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(ri, acceptance.Location(), true, false, false),
+				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(data, true, false, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
-					resource.TestCheckResourceAttr(resourceName, "send", "false"),
-					resource.TestCheckResourceAttr(resourceName, "manage", "false"),
+					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "send", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "manage", "false"),
 				),
 			},
 			{
-				Config:      testAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(ri, acceptance.Location(), true, false, false),
+				Config:      testAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(data, true, false, false),
 				ExpectError: acceptance.RequiresImportError("azurerm_servicebus_namespace_authorization_rule"),
 			},
 		},
@@ -188,7 +177,7 @@ func testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName str
 	}
 }
 
-func testAccAzureRMServiceBusNamespaceAuthorizationRule_base(rInt int, location string, listen, send, manage bool) string {
+func testAccAzureRMServiceBusNamespaceAuthorizationRule_base(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -211,10 +200,10 @@ resource "azurerm_servicebus_namespace_authorization_rule" "test" {
   send   = %[4]t
   manage = %[5]t
 }
-`, rInt, location, listen, send, manage)
+`, data.RandomInteger, data.Locations.Primary, listen, send, manage)
 }
 
-func testAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(rInt int, location string, listen, send, manage bool) string {
+func testAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -227,5 +216,5 @@ resource "azurerm_servicebus_namespace_authorization_rule" "import" {
   send   = "${azurerm_servicebus_namespace_authorization_rule.test.send}"
   manage = "${azurerm_servicebus_namespace_authorization_rule.test.manage}"
 }
-`, testAccAzureRMServiceBusNamespaceAuthorizationRule_base(rInt, location, listen, send, manage))
+`, testAccAzureRMServiceBusNamespaceAuthorizationRule_base(data, listen, send, manage))
 }
