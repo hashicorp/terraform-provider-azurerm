@@ -1,72 +1,73 @@
-package cosmos
+package tests
 
 import (
 	"fmt"
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCosmosDbMongoDatabase_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_mongo_database.test"
+func TestAccAzureRMCosmosDbSqlDatabase_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbMongoDatabaseDestroy,
+		CheckDestroy: testCheckAzureRMCosmosDbSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoDatabase_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosDbSqlDatabase_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName),
+					testCheckAzureRMCosmosDbSqlDatabaseExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func TestAccAzureRMCosmosDbMongoDatabase_complete(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_mongo_database.test"
+func TestAccAzureRMCosmosDbSqlDatabase_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbMongoDatabaseDestroy,
+		CheckDestroy: testCheckAzureRMCosmosDbSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoDatabase_complete(ri, acceptance.Location()),
+
+				Config: testAccAzureRMCosmosDbSqlDatabase_throughput(data, 700),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName),
+					testCheckAzureRMCosmosDbSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "700"),
 				),
 			},
+			data.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+
+				Config: testAccAzureRMCosmosDbSqlDatabase_throughput(data, 1700),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "1700"),
+				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func testCheckAzureRMCosmosDbMongoDatabaseDestroy(s *terraform.State) error {
+func testCheckAzureRMCosmosDbSqlDatabaseDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cosmosdb_mongo_database" {
+		if rs.Type != "azurerm_cosmosdb_sql_database" {
 			continue
 		}
 
@@ -74,22 +75,22 @@ func testCheckAzureRMCosmosDbMongoDatabaseDestroy(s *terraform.State) error {
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
+		resp, err := client.GetSQLDatabase(ctx, resourceGroup, account, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Error checking destroy for Cosmos Mongo Database %s (account %s) still exists:\n%v", name, account, err)
+				return fmt.Errorf("Bad: Error checking destroy for Cosmos SQL Database %s (account %s) still exists:\n%v", name, account, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Cosmos Mongo Database %s (account %s) still exists:\n%#v", name, account, resp)
+			return fmt.Errorf("Cosmos SQL Database %s (account %s) still exists:\n%#v", name, account, resp)
 		}
 	}
 
 	return nil
 }
 
-func testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMCosmosDbSqlDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -104,7 +105,7 @@ func testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName string) resource.T
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
+		resp, err := client.GetSQLDatabase(ctx, resourceGroup, account, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
 		}
@@ -117,27 +118,27 @@ func testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName string) resource.T
 	}
 }
 
-func testAccAzureRMCosmosDbMongoDatabase_basic(rInt int, location string) string {
+func testAccAzureRMCosmosDbSqlDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmosdb_mongo_database" "test" {
+resource "azurerm_cosmosdb_sql_database" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
 }
-`, testAccAzureRMCosmosDBAccount_mongoDB(rInt, location), rInt)
+`, testAccAzureRMCosmosDBAccount_basic(data, string(documentdb.Eventual), "", ""), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbMongoDatabase_complete(rInt int, location string) string {
+func testAccAzureRMCosmosDbSqlDatabase_throughput(data acceptance.TestData, throughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmosdb_mongo_database" "test" {
+resource "azurerm_cosmosdb_sql_database" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
-  throughput          = 700
+  throughput          = %[3]d
 }
-`, testAccAzureRMCosmosDBAccount_mongoDB(rInt, location), rInt)
+`, testAccAzureRMCosmosDBAccount_basic(data, string(documentdb.Eventual), "", ""), data.RandomInteger, throughput)
 }
