@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"log"
 	"time"
 
@@ -56,8 +57,8 @@ func resourceArmAdvisorConfigurations() *schema.Resource {
 }
 
 func resourceArmAdvisorConfigurationsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Advisor.ConfigurationsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Advisor.ConfigurationsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Advisor Configurations creation.")
@@ -130,8 +131,8 @@ func resourceArmAdvisorConfigurationsCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmAdvisorConfigurationsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Advisor.ConfigurationsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Advisor.ConfigurationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -187,8 +188,8 @@ func resourceArmAdvisorConfigurationsRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmAdvisorConfigurationsDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Advisor.ConfigurationsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Advisor.ConfigurationsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

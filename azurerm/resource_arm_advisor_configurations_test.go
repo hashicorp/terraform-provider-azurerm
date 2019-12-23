@@ -2,11 +2,13 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,8 +18,8 @@ func TestAccAzureRMAdvisorConfigurations_basic(t *testing.T) {
 	config := testAccAzureRMAdvisorConfigurations_basic()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAdvisorConfigurationsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -34,13 +36,13 @@ func TestAccAzureRMAdvisorConfigurations_basic(t *testing.T) {
 func TestAccAzureRMAdvisorConfigurations_complete(t *testing.T) {
 	resourceName := "azurerm_advisor_configurations.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	config := testAccAzureRMAdvisorConfigurations_complete(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAdvisorConfigurationsDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -63,8 +65,8 @@ func testCheckAzureRMAdvisorConfigurationsExists(resourceName string) resource.T
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		client := testAccProvider.Meta().(*ArmClient).Advisor.ConfigurationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Advisor.ConfigurationsClient
 
 		if resourceGroup, ok := rs.Primary.Attributes["resource_group_name"]; ok {
 			resp, err := client.ListByResourceGroup(ctx, resourceGroup)
@@ -89,8 +91,8 @@ func testCheckAzureRMAdvisorConfigurationsExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMAdvisorConfigurationsDestroy(s *terraform.State) error {
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
-	client := testAccProvider.Meta().(*ArmClient).Advisor.ConfigurationsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Advisor.ConfigurationsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_advisor_configurations" {
