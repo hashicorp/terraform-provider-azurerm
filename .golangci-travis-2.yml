@@ -9,7 +9,6 @@ issues:
 linters:
   disable-all: true
   enable:
-    - structcheck
     - typecheck
     - unused
     - unconvert
