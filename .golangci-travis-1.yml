@@ -19,6 +19,7 @@ linters:
     - interfacer
     - nakedret
     - misspell
+    - structcheck
 
 linters-settings:
   errcheck:
