@@ -53,6 +53,6 @@ func (td TestData) RequiresImportErrorStep(configBuilder func(data TestData) str
 	config := configBuilder(td)
 	return resource.TestStep{
 		Config:      config,
-		ExpectError: RequiresImportError(td.resourceType),
+		ExpectError: RequiresImportError(td.ResourceType),
 	}
 }

@@ -13,10 +13,17 @@ func (r Registration) Name() string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{}
+	return map[string]*schema.Resource{
+		"azurerm_application_insights": dataSourceArmApplicationInsights(),
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{}
+	return map[string]*schema.Resource{
+		"azurerm_application_insights_api_key":        resourceArmApplicationInsightsAPIKey(),
+		"azurerm_application_insights":                resourceArmApplicationInsights(),
+		"azurerm_application_insights_analytics_item": resourceArmApplicationInsightsAnalyticsItem(),
+		"azurerm_application_insights_web_test":       resourceArmApplicationInsightsWebTests(),
+	}
 }
