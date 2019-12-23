@@ -33,6 +33,36 @@ resource "azurerm_dns_a_record" "example" {
 }
 ```
 
+## Example Usage (Alias Record)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "acceptanceTestResourceGroup1"
+  location = "West US"
+}
+
+resource "azurerm_dns_zone" "example" {
+  name                = "mydomain.com"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+}
+
+resource "azurerm_public_ip" "example" {
+  name                = "mypublicip"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  allocation_method   = "Dynamic"
+  ip_version          = "IPv4"
+}
+
+resource "azurerm_dns_a_record" "example" {
+  name                = "test"
+  zone_name           = "${azurerm_dns_zone.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  ttl                 = 300
+  target_resource_id  = "${azurerm_public_ip.example.id}"
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -45,9 +75,13 @@ The following arguments are supported:
 
 * `TTL` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
-* `records` - (Required) List of IPv4 Addresses.
+* `records` - (Optional) List of IPv4 Addresses. Conflicts with `target_resource_id`.
+
+* `target_resource_id` - (Optional) The Azure resource id of the target object. Conflicts with `records`
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+~> **Note:** either `records` OR `target_resource_id` must be specified, but not both.
 
 ## Attributes Reference
 
