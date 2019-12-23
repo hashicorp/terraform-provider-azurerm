@@ -9,9 +9,9 @@ issues:
 linters:
   disable-all: true
   enable:
-    - typecheck
     - unused
     - unconvert
+    - varcheck
 
 linters-settings:
   errcheck:
