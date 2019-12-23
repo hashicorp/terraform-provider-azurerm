@@ -5,49 +5,41 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMAppServiceVirtualNetworkConnectionGateway_basic(t *testing.T) {
-	resourceName := "azurerm_app_service_virtual_network_connection_gateway.example"
-	ri := tf.AccRandTimeInt()
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_connection_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceVirtualNetworkConnectionGateway_basic(ri, location),
+				Config: testAccAzureRMAppServiceVirtualNetworkConnectionGateway_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "certificate_blob"),
-					resource.TestCheckResourceAttrSet(resourceName, "certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_blob"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_thumbprint"),
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"virtual_network_gateway_id"},
-			},
+			data.ImportStep("virtual_network_gateway_id"),
 		},
 	})
 }
 
-func testAccAzureRMAppServiceVirtualNetworkConnectionGateway_basic(rInt int, location string) string {
+func testAccAzureRMAppServiceVirtualNetworkConnectionGateway_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "example" {
+resource "azurerm_resource_group" "test" {
 	name     = "acctestRG-appservice-%d"
 	location = "%s"
 }
 
-resource "azurerm_app_service_plan" "example" {
+resource "azurerm_app_service_plan" "test" {
 	name                = "acctestASP-%d"
-	location            = "${azurerm_resource_group.example.location}"
-	resource_group_name = "${azurerm_resource_group.example.name}"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
 		
 	sku {
 		tier = "Standard"
@@ -55,39 +47,39 @@ resource "azurerm_app_service_plan" "example" {
 	}
 }
 		
-resource "azurerm_app_service" "example" {
+resource "azurerm_app_service" "test" {
 	name                = "acctestAS-%d"
-	location            = "${azurerm_resource_group.example.location}"
-	resource_group_name = "${azurerm_resource_group.example.name}"
-	app_service_plan_id = "${azurerm_app_service_plan.example.id}"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 }
 
-resource "azurerm_virtual_network" "example" {
+resource "azurerm_virtual_network" "test" {
 	name                = "acctestVnet-%d"
-	resource_group_name = "${azurerm_resource_group.example.name}"
-	location            = "${azurerm_resource_group.example.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	location            = "${azurerm_resource_group.test.location}"
 	address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_subnet" "example" {
+resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.1.0/24"
 }
 
-resource "azurerm_public_ip" "example" {
-  name                = "example"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+resource "azurerm_public_ip" "test" {
+  name                = "test"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
   allocation_method = "Dynamic"
 }
 
-resource "azurerm_virtual_network_gateway" "example" {
-  name                = "example"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "test"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
   type     = "Vpn"
   vpn_type = "RouteBased"
@@ -95,9 +87,9 @@ resource "azurerm_virtual_network_gateway" "example" {
 
   ip_configuration {
     name                          = "vnetGatewayConfig"
-    public_ip_address_id          = "${azurerm_public_ip.example.id}"
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
     private_ip_address_allocation = "Dynamic"
-    subnet_id                     = "${azurerm_subnet.example.id}"
+    subnet_id                     = "${azurerm_subnet.test.id}"
   }
 
   vpn_client_configuration {
@@ -112,11 +104,11 @@ resource "azurerm_virtual_network_gateway" "example" {
   }
 }
 				
-resource "azurerm_app_service_virtual_network_connection_gateway" "example" {
-	app_service_name      		= "${azurerm_app_service.example.name}"
-	resource_group_name   		= "${azurerm_resource_group.example.name}"
-	virtual_network_id    		= "${azurerm_virtual_network.example.id}"
-    virtual_network_gateway_id 	= "${azurerm_virtual_network_gateway.example.id}"
+resource "azurerm_app_service_virtual_network_connection_gateway" "test" {
+	app_service_name      		= "${azurerm_app_service.test.name}"
+	resource_group_name   		= "${azurerm_resource_group.test.name}"
+	virtual_network_id    		= "${azurerm_virtual_network.test.id}"
+    virtual_network_gateway_id 	= "${azurerm_virtual_network_gateway.test.id}"
 }
-`, rInt, location, rInt, rInt, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
