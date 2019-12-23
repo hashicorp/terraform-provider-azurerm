@@ -1,4 +1,4 @@
-package azurerm
+package web
 
 import (
 	"fmt"
@@ -134,7 +134,7 @@ func dataSourceAppServiceVirtualNetworkConnectionGatewayRead(d *schema.ResourceD
 		} else {
 			d.Set("dns_servers", []string{})
 		}
-		if err := d.Set("routes", flattenAppServiceVirtualNetworkConnectionPropertiesRoutes(props.Routes)); err != nil {
+		if err := d.Set("routes", web.flattenAppServiceVirtualNetworkConnectionPropertiesRoutes(props.Routes)); err != nil {
 			return fmt.Errorf("Error setting `routes`: %+v", err)
 		}
 	}
