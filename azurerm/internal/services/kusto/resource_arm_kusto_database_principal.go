@@ -118,7 +118,7 @@ func resourceArmKustoDatabasePrincipal() *schema.Resource {
 
 func resourceArmKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.DatabasesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Database Principal creation.")
@@ -202,8 +202,8 @@ func resourceArmKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Kusto.DatabasesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Kusto.DatabasesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -286,8 +286,8 @@ func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmKustoDatabasePrincipalDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Kusto.DatabasesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Kusto.DatabasesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

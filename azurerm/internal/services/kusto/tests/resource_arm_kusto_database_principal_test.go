@@ -2,33 +2,31 @@ package tests
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMKustoDatabasePrincipal_basic(t *testing.T) {
-	resourceName := "azurerm_kusto_database_principal.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
+	data := acceptance.BuildTestData(t, "azurerm_kusto_database_principal", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKustoDatabasePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKustoDatabasePrincipal_basic(ri, rs, testLocation()),
+				Config: testAccAzureRMKustoDatabasePrincipal_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoDatabasePrincipalExists(resourceName),
+					testCheckAzureRMKustoDatabasePrincipalExists(data.ResourceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      data.ResourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -37,7 +35,7 @@ func TestAccAzureRMKustoDatabasePrincipal_basic(t *testing.T) {
 }
 
 func testCheckAzureRMKustoDatabasePrincipalDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Kusto.DatabasesClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_kusto_database_principal" {
@@ -49,7 +47,7 @@ func testCheckAzureRMKustoDatabasePrincipalDestroy(s *terraform.State) error {
 		databaseName := rs.Primary.Attributes["database_name"]
 		role := rs.Primary.Attributes["role"]
 		fqn := rs.Primary.Attributes["fully_qualified_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.ListPrincipals(ctx, resourceGroup, clusterName, databaseName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -103,8 +101,8 @@ func testCheckAzureRMKustoDatabasePrincipalExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no datbase name found in state for Kusto Database Principal: %s", fqn)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Kusto.DatabasesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.ListPrincipals(ctx, resourceGroup, clusterName, databaseName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -132,7 +130,7 @@ func testCheckAzureRMKustoDatabasePrincipalExists(resourceName string) resource.
 	}
 }
 
-func testAccAzureRMKustoDatabasePrincipal_basic(rInt int, rs string, location string) string {
+func testAccAzureRMKustoDatabasePrincipal_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -170,5 +168,5 @@ resource "azurerm_kusto_database_principal" "test" {
   client_id = data.azurerm_client_config.current.tenant_id
   object_id = data.azurerm_client_config.current.client_id
 }
-`, rInt, location, rs, rInt)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
