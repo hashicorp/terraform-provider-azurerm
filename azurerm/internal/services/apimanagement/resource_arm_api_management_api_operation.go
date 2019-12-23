@@ -250,15 +250,27 @@ func expandApiManagementOperationRequestContract(input []interface{}) (*apimanag
 	}
 
 	vs := input[0].(map[string]interface{})
+	if vs == nil {
+		return nil, fmt.Errorf("Error mapping input")
+	}
 	description := vs["description"].(string)
 
 	headersRaw := vs["header"].([]interface{})
+	if headersRaw == nil {
+		return nil, fmt.Errorf("Error mapping `header`")
+	}
 	headers := azure.ExpandApiManagementOperationParameterContract(headersRaw)
 
 	queryParametersRaw := vs["query_parameter"].([]interface{})
+	if queryParametersRaw == nil {
+		return nil, fmt.Errorf("Error mapping `query_parameter`")
+	}
 	queryParameters := azure.ExpandApiManagementOperationParameterContract(queryParametersRaw)
 
 	representationsRaw := vs["representation"].([]interface{})
+	if representationsRaw == nil {
+		return nil, fmt.Errorf("Error mapping `representation`")
+	}
 	representations, err := azure.ExpandApiManagementOperationRepresentation(representationsRaw)
 	if err != nil {
 		return nil, err
