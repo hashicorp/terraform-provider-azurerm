@@ -26,11 +26,7 @@ func TestAccAzureRMApiManagementApiVersionSet_basic(t *testing.T) {
 					testCheckAzureRMApiManagementApiVersionSetExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -72,11 +68,7 @@ func TestAccAzureRMApiManagementApiVersionSet_header(t *testing.T) {
 					testCheckAzureRMApiManagementApiVersionSetExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -95,11 +87,7 @@ func TestAccAzureRMApiManagementApiVersionSet_query(t *testing.T) {
 					testCheckAzureRMApiManagementApiVersionSetExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -128,11 +116,7 @@ func TestAccAzureRMApiManagementApiVersionSet_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestApiVersionSet2%d", data.RandomInteger)),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

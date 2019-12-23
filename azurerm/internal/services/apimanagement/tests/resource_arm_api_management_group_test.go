@@ -29,11 +29,7 @@ func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "type", "custom"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -82,11 +78,7 @@ func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "type", "external"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

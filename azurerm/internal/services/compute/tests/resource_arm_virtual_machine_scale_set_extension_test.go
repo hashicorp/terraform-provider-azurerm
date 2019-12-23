@@ -444,7 +444,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "import" {
 func testAccAzureRMVirtualMachineScaleSetExtension_templateLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -505,7 +505,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func testAccAzureRMVirtualMachineScaleSetExtension_templateWindows(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

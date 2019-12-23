@@ -10,14 +10,13 @@ import (
 
 func TestAccDataSourceAzureRMBatchCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_certificate", "test")
-	config := testAccDataSourceAzureRMBatchCertificate_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMBatchCertificate_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda"),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),

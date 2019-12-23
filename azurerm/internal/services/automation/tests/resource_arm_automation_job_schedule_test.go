@@ -26,11 +26,7 @@ func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
 				Config: testAccAzureRMAutomationJobSchedule_basic(data),
 				Check:  checkAccAzureRMAutomationJobSchedule_basic(data.ResourceName),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -47,11 +43,7 @@ func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
 				Config: testAccAzureRMAutomationJobSchedule_complete(data),
 				Check:  checkAccAzureRMAutomationJobSchedule_complete(data.ResourceName),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -76,11 +68,7 @@ func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
 				Config: testAccAzureRMAutomationJobSchedule_basic(data),
 				Check:  checkAccAzureRMAutomationJobSchedule_basic(data.ResourceName),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

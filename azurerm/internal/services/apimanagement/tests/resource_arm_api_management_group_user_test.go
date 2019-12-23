@@ -26,11 +26,7 @@ func TestAccAzureRMAPIManagementGroupUser_basic(t *testing.T) {
 					testCheckAzureRMAPIManagementGroupUserExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

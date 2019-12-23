@@ -26,11 +26,7 @@ func TestAccAzureRMApiManagementApiSchema_basic(t *testing.T) {
 					testCheckAzureRMApiManagementApiSchemaExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
