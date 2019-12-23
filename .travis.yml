@@ -31,10 +31,11 @@ matrix:
       script: GOGC=15 make lintstatic
     - name: "make linttravis1"
       script: GOGC=5 make lintrest1
-    - name: "make linttravis2"
-      script: GOGC=5 make lintrest2
-    - name: "make linttravis3"
-      script: GOGC=5 make lintrest3
+    # TODO: fix/re-enable in a separate PR
+    #- name: "make linttravis2"
+    #  script: GOGC=5 make lintrest2
+    #- name: "make linttravis3"
+    #  script: GOGC=5 make lintrest3
     - name: "make tflint"
       script: make tflint
     - name: "make test"
