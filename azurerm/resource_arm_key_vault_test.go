@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -75,18 +77,17 @@ func TestAccAzureRMKeyVault_name(t *testing.T) {
 func TestAccAzureRMKeyVault_basic(t *testing.T) {
 	resourceName := "azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMKeyVault_basic(ri, testLocation())
+	config := testAccAzureRMKeyVault_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "sku_name", "premium"),
 				),
 			},
@@ -102,11 +103,11 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 // Remove in 2.0
 func TestAccAzureRMKeyVault_basicNotDefined(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMKeyVault_basicNotDefined(ri, testLocation())
+	config := testAccAzureRMKeyVault_basicNotDefined(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -121,18 +122,17 @@ func TestAccAzureRMKeyVault_basicNotDefined(t *testing.T) {
 func TestAccAzureRMKeyVault_basicClassic(t *testing.T) {
 	resourceName := "azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMKeyVault_basicClassic(ri, testLocation())
+	config := testAccAzureRMKeyVault_basicClassic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "premium"),
 				),
 			},
@@ -153,23 +153,22 @@ func TestAccAzureRMKeyVault_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVault_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.#", "0"),
 				),
 			},
 			{
 				Config:      testAccAzureRMKeyVault_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_key_vault"),
+				ExpectError: acceptance.RequiresImportError("azurerm_key_vault"),
 			},
 		},
 	})
@@ -178,34 +177,59 @@ func TestAccAzureRMKeyVault_requiresImport(t *testing.T) {
 func TestAccAzureRMKeyVault_networkAcls(t *testing.T) {
 	resourceName := "azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVault_networkAcls(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.bypass", "None"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.default_action", "Deny"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.ip_rules.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.virtual_network_subnet_ids.#", "2"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMKeyVault_networkAclsUpdated(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.bypass", "AzureServices"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.default_action", "Allow"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.ip_rules.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "network_acls.0.virtual_network_subnet_ids.#", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVault_networkAclsAllowed(t *testing.T) {
+	resourceName := "azurerm_key_vault.test"
+	ri := tf.AccRandTimeInt()
+	location := acceptance.Location()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_networkAclsAllowed(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -215,11 +239,11 @@ func TestAccAzureRMKeyVault_accessPolicyUpperLimit(t *testing.T) {
 	resourceName := "azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
-	config := testAccAzureRMKeyVault_accessPolicyUpperLimit(ri, testLocation(), rs)
+	config := testAccAzureRMKeyVault_accessPolicyUpperLimit(ri, acceptance.Location(), rs)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -237,11 +261,11 @@ func TestAccAzureRMKeyVault_accessPolicyUpperLimit(t *testing.T) {
 func TestAccAzureRMKeyVault_disappears(t *testing.T) {
 	resourceName := "azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMKeyVault_basic(ri, testLocation())
+	config := testAccAzureRMKeyVault_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -259,11 +283,11 @@ func TestAccAzureRMKeyVault_disappears(t *testing.T) {
 func TestAccAzureRMKeyVault_complete(t *testing.T) {
 	resourceName := "azurerm_key_vault.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMKeyVault_complete(ri, testLocation())
+	config := testAccAzureRMKeyVault_complete(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -285,14 +309,14 @@ func TestAccAzureRMKeyVault_complete(t *testing.T) {
 func TestAccAzureRMKeyVault_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_key_vault.test"
-	preConfig := testAccAzureRMKeyVault_basic(ri, testLocation())
-	postConfig := testAccAzureRMKeyVault_update(ri, testLocation())
-	noAccessPolicyConfig := testAccAzureRMKeyVault_noAccessPolicyBlocks(ri, testLocation())
-	forceZeroAccessPolicyConfig := testAccAzureRMKeyVault_accessPolicyExplicitZero(ri, testLocation())
+	preConfig := testAccAzureRMKeyVault_basic(ri, acceptance.Location())
+	postConfig := testAccAzureRMKeyVault_update(ri, acceptance.Location())
+	noAccessPolicyConfig := testAccAzureRMKeyVault_noAccessPolicyBlocks(ri, acceptance.Location())
+	forceZeroAccessPolicyConfig := testAccAzureRMKeyVault_accessPolicyExplicitZero(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -341,12 +365,12 @@ func TestAccAzureRMKeyVault_justCert(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKeyVault_justCert(ri, testLocation()),
+				Config: testAccAzureRMKeyVault_justCert(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "access_policy.0.certificate_permissions.0", "get"),
@@ -362,8 +386,8 @@ func TestAccAzureRMKeyVault_justCert(t *testing.T) {
 }
 
 func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).KeyVault.VaultsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_key_vault" {
@@ -401,8 +425,8 @@ func testCheckAzureRMKeyVaultExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for vault: %s", vaultName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).KeyVault.VaultsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vaultName)
 		if err != nil {
@@ -431,8 +455,8 @@ func testCheckAzureRMKeyVaultDisappears(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for vault: %s", vaultName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).KeyVault.VaultsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Delete(ctx, resourceGroup, vaultName)
 		if err != nil {
@@ -673,8 +697,42 @@ resource "azurerm_key_vault" "test" {
   network_acls {
     default_action             = "Allow"
     bypass                     = "AzureServices"
-    ip_rules                   = ["10.0.0.102/32"]
+    ip_rules                   = ["123.0.0.102/32"]
     virtual_network_subnet_ids = ["${azurerm_subnet.test_a.id}"]
+  }
+}
+`, template, rInt)
+}
+
+func testAccAzureRMKeyVault_networkAclsAllowed(rInt int, location string) string {
+	template := testAccAzureRMKeyVault_networkAclsTemplate(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku_name = "premium"
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.client_id}"
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
+  }
+
+  network_acls {
+    default_action = "Allow"
+    bypass         = "AzureServices"
   }
 }
 `, template, rInt)

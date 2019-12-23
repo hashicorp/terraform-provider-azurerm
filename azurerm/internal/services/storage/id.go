@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 )
 
 func AccountIDSchema() *schema.Schema {
@@ -23,15 +23,8 @@ func ValidateAccountID(i interface{}, k string) (warnings []string, errors []err
 		return
 	}
 
-	id, err := azure.ParseAzureResourceID(v)
-	if err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a Resource Id: %v", v, err))
-	}
-
-	if id != nil {
-		if id.Path["storageAccounts"] == "" {
-			errors = append(errors, fmt.Errorf("The 'storageAccounts' segment is missing from Resource ID %q", v))
-		}
+	if _, err := parsers.ParseAccountID(v); err != nil {
+		errors = append(errors, fmt.Errorf("Can not parse %q as a Resource ID: %v", v, err))
 	}
 
 	return warnings, errors

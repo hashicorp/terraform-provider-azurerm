@@ -7,16 +7,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	resourceName := "azurerm_application_insights_analytics_item.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAnalyticsItem_basic(ri, testLocation())
+	config := testAccAzureRMApplicationInsightsAnalyticsItem_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy(),
 		Steps: []resource.TestStep{
 			{
@@ -41,12 +43,12 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 func TestAccAzureRMApplicationInsightsAnalyticsItem_update(t *testing.T) {
 	resourceName := "azurerm_application_insights_analytics_item.test"
 	ri := tf.AccRandTimeInt()
-	config1 := testAccAzureRMApplicationInsightsAnalyticsItem_basic(ri, testLocation())
-	config2 := testAccAzureRMApplicationInsightsAnalyticsItem_basic2(ri, testLocation())
+	config1 := testAccAzureRMApplicationInsightsAnalyticsItem_basic(ri, acceptance.Location())
+	config2 := testAccAzureRMApplicationInsightsAnalyticsItem_basic2(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy(),
 		Steps: []resource.TestStep{
 			{
@@ -88,11 +90,11 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 	resourceName2 := "azurerm_application_insights_analytics_item.test2"
 	resourceName3 := "azurerm_application_insights_analytics_item.test3"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApplicationInsightsAnalyticsItem_multiple(ri, testLocation())
+	config := testAccAzureRMApplicationInsightsAnalyticsItem_multiple(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy(),
 		Steps: []resource.TestStep{
 			{
@@ -184,8 +186,8 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terrafor
 		return false, fmt.Errorf("Failed to parse ID (id: %s): %+v", id, err)
 	}
 
-	conn := testAccProvider.Meta().(*ArmClient).AppInsights.AnalyticsItemsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.AnalyticsItemsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	response, err := conn.Get(ctx, resGroup, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {

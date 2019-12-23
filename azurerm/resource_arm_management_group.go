@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -66,11 +67,11 @@ func resourceArmManagementGroup() *schema.Resource {
 }
 
 func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ManagementGroups.GroupsClient
-	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ManagementGroups.GroupsClient
+	subscriptionsClient := meta.(*clients.Client).ManagementGroups.SubscriptionClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	armTenantID := meta.(*ArmClient).Account.TenantId
+	armTenantID := meta.(*clients.Client).Account.TenantId
 
 	groupId := d.Get("group_id").(string)
 	if groupId == "" {
@@ -167,8 +168,8 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ManagementGroups.GroupsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ManagementGroups.GroupsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parseManagementGroupId(d.Id())
@@ -214,9 +215,9 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ManagementGroups.GroupsClient
-	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ManagementGroups.GroupsClient
+	subscriptionsClient := meta.(*clients.Client).ManagementGroups.SubscriptionClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parseManagementGroupId(d.Id())

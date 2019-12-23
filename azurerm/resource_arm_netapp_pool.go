@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -52,6 +53,7 @@ func resourceArmNetAppPool() *schema.Resource {
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: aznetapp.ValidateNetAppAccountName,
 			},
 
@@ -75,8 +77,8 @@ func resourceArmNetAppPool() *schema.Resource {
 }
 
 func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).NetApp.PoolClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).NetApp.PoolClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -130,8 +132,8 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).NetApp.PoolClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).NetApp.PoolClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -174,8 +176,8 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).NetApp.PoolClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).NetApp.PoolClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

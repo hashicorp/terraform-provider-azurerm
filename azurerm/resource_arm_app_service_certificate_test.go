@@ -7,19 +7,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAppServiceCertificate_Pfx(t *testing.T) {
 	resourceName := "azurerm_app_service_certificate.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	config := testAccAzureRMAppServiceCertificatePfx(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -42,13 +44,13 @@ func TestAccAzureRMAppServiceCertificate_Pfx(t *testing.T) {
 func TestAccAzureRMAppServiceCertificate_PfxNoPassword(t *testing.T) {
 	resourceName := "azurerm_app_service_certificate.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	config := testAccAzureRMAppServiceCertificatePfxNoPassword(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -70,13 +72,13 @@ func TestAccAzureRMAppServiceCertificate_PfxNoPassword(t *testing.T) {
 func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
 	resourceName := "azurerm_app_service_certificate.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	config := testAccAzureRMAppServiceCertificateKeyVault(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -202,8 +204,8 @@ resource "azurerm_app_service_certificate" "test" {
 }
 
 func testCheckAzureRMAppServiceCertificateDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Web.CertificatesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Web.CertificatesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_certificate" {

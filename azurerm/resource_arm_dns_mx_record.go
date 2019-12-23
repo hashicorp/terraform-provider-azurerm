@@ -7,11 +7,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -38,8 +39,9 @@ func resourceArmDnsMxRecord() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
+				Default:  "@",
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -85,8 +87,8 @@ func resourceArmDnsMxRecord() *schema.Resource {
 }
 
 func resourceArmDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Dns.RecordSetsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Dns.RecordSetsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -118,9 +120,7 @@ func resourceArmDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}
 		},
 	}
 
-	eTag := ""
-	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.MX, parameters, eTag, ifNoneMatch); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, name, dns.MX, parameters, "", ""); err != nil {
 		return fmt.Errorf("Error creating/updating DNS MX Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
@@ -139,8 +139,8 @@ func resourceArmDnsMxRecordCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Dns.RecordSetsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Dns.RecordSetsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -174,8 +174,8 @@ func resourceArmDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Dns.RecordSetsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Dns.RecordSetsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

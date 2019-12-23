@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -163,8 +164,8 @@ func resourceArmAppServiceSlot() *schema.Resource {
 }
 
 func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.AppServicesClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	slot := d.Get("name").(string)
@@ -238,8 +239,8 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.AppServicesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := webSvc.ParseAppServiceSlotID(d.Id())
@@ -247,7 +248,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	appServiceName := id.AppServiceName
 	slot := id.Name
 
@@ -373,8 +374,8 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.AppServicesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := webSvc.ParseAppServiceSlotID(d.Id())
@@ -382,7 +383,7 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	appServiceName := id.AppServiceName
 	slot := id.Name
 
@@ -507,8 +508,8 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.AppServicesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := webSvc.ParseAppServiceSlotID(d.Id())
@@ -516,7 +517,7 @@ func resourceArmAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	appServiceName := id.AppServiceName
 	slot := id.Name
 

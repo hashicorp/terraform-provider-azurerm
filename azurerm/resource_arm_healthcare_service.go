@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -78,6 +79,7 @@ func resourceArmHealthcareService() *schema.Resource {
 			"authentication_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -100,12 +102,13 @@ func resourceArmHealthcareService() *schema.Resource {
 			"cors_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"allowed_origins": {
 							Type:     schema.TypeSet,
-							Required: true,
+							Optional: true,
 							MaxItems: 64,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
@@ -114,7 +117,7 @@ func resourceArmHealthcareService() *schema.Resource {
 						},
 						"allowed_headers": {
 							Type:     schema.TypeSet,
-							Required: true,
+							Optional: true,
 							MaxItems: 64,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
@@ -123,7 +126,7 @@ func resourceArmHealthcareService() *schema.Resource {
 						},
 						"allowed_methods": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							MaxItems: 64,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -142,8 +145,8 @@ func resourceArmHealthcareService() *schema.Resource {
 						},
 						"max_age_in_seconds": {
 							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 2000000000),
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 2000000000),
 						},
 						"allow_credentials": {
 							Type:     schema.TypeBool,
@@ -159,8 +162,8 @@ func resourceArmHealthcareService() *schema.Resource {
 }
 
 func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).HealthCare.HealthcareServiceClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Healthcare Service creation.")
@@ -224,8 +227,8 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).HealthCare.HealthcareServiceClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -280,8 +283,8 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).HealthCare.HealthcareServiceClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).HealthCare.HealthcareServiceClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

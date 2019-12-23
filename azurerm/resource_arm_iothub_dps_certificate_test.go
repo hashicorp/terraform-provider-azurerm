@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -16,12 +18,12 @@ func TestAccAzureRMIotHubDPSCertificate_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubDPSCertificate_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotHubDPSCertificate_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubDPSCertificateExists(resourceName),
 				),
@@ -46,11 +48,11 @@ func TestAccAzureRMIotHubDPSCertificate_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_iothub_dps_certificate.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +63,7 @@ func TestAccAzureRMIotHubDPSCertificate_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubDPSCertificate_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_iothubdps"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothubdps"),
 			},
 		},
 	})
@@ -72,12 +74,12 @@ func TestAccAzureRMIotHubDPSCertificate_update(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubDPSCertificate_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotHubDPSCertificate_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubDPSCertificateExists(resourceName),
 				),
@@ -91,7 +93,7 @@ func TestAccAzureRMIotHubDPSCertificate_update(t *testing.T) {
 				},
 			},
 			{
-				Config: testAccAzureRMIotHubDPSCertificate_update(rInt, testLocation()),
+				Config: testAccAzureRMIotHubDPSCertificate_update(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubDPSCertificateExists(resourceName),
 				),
@@ -109,8 +111,8 @@ func TestAccAzureRMIotHubDPSCertificate_update(t *testing.T) {
 }
 
 func testCheckAzureRMIotHubDPSCertificateDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).IoTHub.DPSCertificateClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSCertificateClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothub_dps_certificate" {
@@ -136,7 +138,7 @@ func testCheckAzureRMIotHubDPSCertificateDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotHubDPSCertificateExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -150,7 +152,7 @@ func testCheckAzureRMIotHubDPSCertificateExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for IoT Device Provisioning Service Certificate: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).IoTHub.DPSCertificateClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSCertificateClient
 		resp, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

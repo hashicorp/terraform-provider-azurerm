@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,12 +34,12 @@ func testAccAzureRMServiceBusQueueAuthorizationRule(t *testing.T, listen, send, 
 	resourceName := "azurerm_servicebus_queue_authorization_rule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), listen, send, manage),
+				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(tf.AccRandTimeInt(), acceptance.Location(), listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -66,12 +68,12 @@ func TestAccAzureRMServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(ri, testLocation(), true, false, false),
+				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(ri, acceptance.Location(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
@@ -80,7 +82,7 @@ func TestAccAzureRMServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(ri, testLocation(), true, true, true),
+				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(ri, acceptance.Location(), true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
@@ -111,12 +113,12 @@ func TestAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(t *testing.T)
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(ri, testLocation(), true, false, false),
+				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(ri, acceptance.Location(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
@@ -125,16 +127,16 @@ func TestAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(t *testing.T)
 				),
 			},
 			{
-				Config:      testAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(ri, testLocation(), true, false, false),
-				ExpectError: testRequiresImportError("azurerm_servicebus_queue_authorization_rule"),
+				Config:      testAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(ri, acceptance.Location(), true, false, false),
+				ExpectError: acceptance.RequiresImportError("azurerm_servicebus_queue_authorization_rule"),
 			},
 		},
 	})
 }
 
 func testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ServiceBus.QueuesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_queue_authorization_rule" {
@@ -173,8 +175,8 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName string)
 			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Queue Authorization Rule: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).ServiceBus.QueuesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
 		if err != nil {

@@ -8,17 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsOutputEventHub_avro(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_eventhub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,11 +46,11 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_avro(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsOutputEventHub_csv(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_eventhub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -76,11 +78,11 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_csv(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsOutputEventHub_json(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_eventhub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -106,11 +108,11 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_json(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_eventhub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -138,11 +140,11 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_jsonArrayFormat(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsOutputEventHub_update(t *testing.T) {
 	resourceName := "azurerm_stream_analytics_output_eventhub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -179,11 +181,11 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_stream_analytics_output_eventhub.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -194,7 +196,7 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMStreamAnalyticsOutputEventHub_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_stream_analytics_output_eventhub"),
+				ExpectError: acceptance.RequiresImportError("azurerm_stream_analytics_output_eventhub"),
 			},
 		},
 	})
@@ -212,8 +214,8 @@ func testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName string) re
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.OutputsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on streamAnalyticsOutputsClient: %+v", err)
@@ -228,7 +230,7 @@ func testCheckAzureRMStreamAnalyticsOutputEventHubExists(resourceName string) re
 }
 
 func testCheckAzureRMStreamAnalyticsOutputEventHubDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.OutputsClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_output_eventhub" {
@@ -238,7 +240,7 @@ func testCheckAzureRMStreamAnalyticsOutputEventHubDestroy(s *terraform.State) er
 		name := rs.Primary.Attributes["name"]
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return nil

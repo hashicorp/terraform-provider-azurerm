@@ -18,6 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -456,8 +457,8 @@ func resourceArmContainerGroup() *schema.Resource {
 }
 
 func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Containers.GroupsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Containers.GroupsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resGroup := d.Get("resource_group_name").(string)
@@ -543,8 +544,8 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Containers.GroupsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Containers.GroupsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -605,8 +606,8 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Containers.GroupsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Containers.GroupsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -651,7 +652,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 			return err
 		}
 
-		networkProfileClient := meta.(*ArmClient).Network.ProfileClient
+		networkProfileClient := meta.(*clients.Client).Network.ProfileClient
 		networkProfileResourceGroup := parsedProfileId.ResourceGroup
 		networkProfileName := parsedProfileId.Path["networkProfiles"]
 

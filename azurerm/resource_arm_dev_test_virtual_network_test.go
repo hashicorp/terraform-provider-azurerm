@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -42,11 +44,11 @@ func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 	resourceName := "azurerm_dev_test_virtual_network.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,11 +75,11 @@ func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dev_test_virtual_network.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -89,7 +91,7 @@ func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDevTestVirtualNetwork_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_dev_test_virtual_network"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_virtual_network"),
 			},
 		},
 	})
@@ -98,11 +100,11 @@ func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
 func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
 	resourceName := "azurerm_dev_test_virtual_network.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -136,8 +138,8 @@ func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.T
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).DevTestLabs.VirtualNetworksClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualNetworksClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, labName, virtualNetworkName, "")
 		if err != nil {
@@ -153,8 +155,8 @@ func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMDevTestVirtualNetworkDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).DevTestLabs.VirtualNetworksClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualNetworksClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dev_test_virtual_network" {

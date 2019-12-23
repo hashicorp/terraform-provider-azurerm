@@ -6,16 +6,17 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_log_analytics_workspace.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(ri, testLocation())
+	config := testAccDataSourceAzureRMLogAnalyticsWorkspace_basicWithDataSource(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{

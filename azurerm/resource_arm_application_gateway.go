@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -243,6 +244,15 @@ func resourceArmApplicationGateway() *schema.Resource {
 										Computed: true,
 									},
 								},
+							},
+						},
+
+						"trusted_root_certificate_names": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
 						},
 
@@ -1348,9 +1358,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 }
 
 func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	armClient := meta.(*ArmClient)
+	armClient := meta.(*clients.Client)
 	client := armClient.Network.ApplicationGatewaysClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Application Gateway creation.")
@@ -1512,8 +1522,8 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.ApplicationGatewaysClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -1655,8 +1665,8 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.ApplicationGatewaysClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.ApplicationGatewaysClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -2011,6 +2021,23 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates = &authCertSubResources
 		}
 
+		if v["trusted_root_certificate_names"] != nil {
+			trustedRootCertNames := v["trusted_root_certificate_names"].([]interface{})
+			trustedRootCertSubResources := make([]network.SubResource, 0)
+
+			for _, rawTrustedRootCertName := range trustedRootCertNames {
+				trustedRootCertName := rawTrustedRootCertName.(string)
+				trustedRootCertID := fmt.Sprintf("%s/trustedRootCertificates/%s", gatewayID, trustedRootCertName)
+				trustedRootCertSubResource := network.SubResource{
+					ID: utils.String(trustedRootCertID),
+				}
+
+				trustedRootCertSubResources = append(trustedRootCertSubResources, trustedRootCertSubResource)
+			}
+
+			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.TrustedRootCertificates = &trustedRootCertSubResources
+		}
+
 		probeName := v["probe_name"].(string)
 		if probeName != "" {
 			probeID := fmt.Sprintf("%s/probes/%s", gatewayID, probeName)
@@ -2093,6 +2120,24 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 				}
 			}
 			output["authentication_certificate"] = authenticationCertificates
+
+			trustedRootCertificateNames := make([]interface{}, 0)
+			if certs := props.TrustedRootCertificates; certs != nil {
+				for _, cert := range *certs {
+					if cert.ID == nil {
+						continue
+					}
+
+					certId, err := azure.ParseAzureResourceID(*cert.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					certName := certId.Path["trustedRootCertificates"]
+					trustedRootCertificateNames = append(trustedRootCertificateNames, certName)
+				}
+			}
+			output["trusted_root_certificate_names"] = trustedRootCertificateNames
 
 			if probe := props.Probe; probe != nil {
 				if probe.ID != nil {

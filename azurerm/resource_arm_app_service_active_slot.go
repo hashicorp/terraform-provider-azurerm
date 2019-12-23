@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -51,8 +52,8 @@ func resourceArmAppServiceActiveSlot() *schema.Resource {
 }
 
 func resourceArmAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.AppServicesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	appServiceName := d.Get("app_service_name").(string)
@@ -93,8 +94,8 @@ func resourceArmAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.AppServicesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := webSvc.ParseAppServiceID(d.Id())
@@ -102,7 +103,7 @@ func resourceArmAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	resGroup := id.Base.ResourceGroup
+	resGroup := id.ResourceGroup
 	name := id.Name
 
 	resp, err := client.Get(ctx, resGroup, name)

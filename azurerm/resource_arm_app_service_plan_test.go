@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -56,12 +58,12 @@ func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServicePlan_basicWindows(ri, testLocation()),
+				Config: testAccAzureRMAppServicePlan_basicWindows(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "per_site_scaling", "false"),
@@ -82,18 +84,18 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServicePlan_basicLinux(ri, testLocation()),
+				Config: testAccAzureRMAppServicePlan_basicLinux(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMAppServicePlan_basicLinuxNew(ri, testLocation()),
+				Config: testAccAzureRMAppServicePlan_basicLinuxNew(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "per_site_scaling", "false"),
@@ -117,11 +119,11 @@ func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_app_service_plan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -132,7 +134,7 @@ func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAppServicePlan_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_app_service_plan"),
+				ExpectError: acceptance.RequiresImportError("azurerm_app_service_plan"),
 			},
 		},
 	})
@@ -143,12 +145,12 @@ func TestAccAzureRMAppServicePlan_standardWindows(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServicePlan_standardWindows(ri, testLocation()),
+				Config: testAccAzureRMAppServicePlan_standardWindows(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 				),
@@ -167,12 +169,12 @@ func TestAccAzureRMAppServicePlan_premiumWindows(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServicePlan_premiumWindows(ri, testLocation()),
+				Config: testAccAzureRMAppServicePlan_premiumWindows(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 				),
@@ -189,11 +191,11 @@ func TestAccAzureRMAppServicePlan_premiumWindows(t *testing.T) {
 func TestAccAzureRMAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -224,12 +226,12 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServicePlan_completeWindows(ri, testLocation()),
+				Config: testAccAzureRMAppServicePlan_completeWindows(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "properties.0.per_site_scaling", "true"),
@@ -237,7 +239,7 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMAppServicePlan_completeWindowsNew(ri, testLocation()),
+				Config: testAccAzureRMAppServicePlan_completeWindowsNew(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "per_site_scaling", "true"),
@@ -258,12 +260,12 @@ func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServicePlan_consumptionPlan(ri, testLocation()),
+				Config: testAccAzureRMAppServicePlan_consumptionPlan(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Dynamic"),
@@ -279,12 +281,12 @@ func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServicePlan_premiumConsumptionPlan(ri, testLocation()),
+				Config: testAccAzureRMAppServicePlan_premiumConsumptionPlan(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "ElasticPremium"),
@@ -301,12 +303,12 @@ func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServicePlan_basicWindowsContainer(ri, testLocation()),
+				Config: testAccAzureRMAppServicePlan_basicWindowsContainer(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "kind", "xenon"),
@@ -325,7 +327,7 @@ func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
 }
 
 func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Web.AppServicePlansClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicePlansClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_plan" {
@@ -334,7 +336,7 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -365,8 +367,8 @@ func testCheckAzureRMAppServicePlanExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for App Service Plan: %s", appServicePlanName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Web.AppServicePlansClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicePlansClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, appServicePlanName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

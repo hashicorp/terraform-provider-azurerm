@@ -5,21 +5,23 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_ptr_record.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsPtrRecord_basic(ri, testLocation())
+	config := testAccAzureRMDnsPtrRecord_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,11 +48,11 @@ func TestAccAzureRMDnsPtrRecord_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dns_ptr_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +63,7 @@ func TestAccAzureRMDnsPtrRecord_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDnsPtrRecord_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_dns_ptr_record"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dns_ptr_record"),
 			},
 		},
 	})
@@ -69,13 +71,13 @@ func TestAccAzureRMDnsPtrRecord_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsPtrRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsPtrRecord_updateRecords(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -100,13 +102,13 @@ func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_ptr_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsPtrRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsPtrRecord_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -148,8 +150,8 @@ func testCheckAzureRMDnsPtrRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for DNS PTR record: %s", ptrName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, ptrName, dns.PTR)
 		if err != nil {
 			return fmt.Errorf("Bad: Get PTR RecordSet: %+v", err)
@@ -164,8 +166,8 @@ func testCheckAzureRMDnsPtrRecordExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_ptr_record" {

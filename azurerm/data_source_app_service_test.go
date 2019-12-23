@@ -6,16 +6,17 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMAppService_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppService_basic(rInt, location),
@@ -33,11 +34,11 @@ func TestAccDataSourceAzureRMAppService_basic(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_tags(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppService_tags(rInt, location),
@@ -53,11 +54,11 @@ func TestAccDataSourceAzureRMAppService_tags(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_clientAppAffinityDisabled(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppService_clientAffinityDisabled(rInt, location),
@@ -72,11 +73,11 @@ func TestAccDataSourceAzureRMAppService_clientAppAffinityDisabled(t *testing.T) 
 func TestAccDataSourceAzureRMAppService_32Bit(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppService_32Bit(rInt, location),
@@ -91,11 +92,11 @@ func TestAccDataSourceAzureRMAppService_32Bit(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_appSettings(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppService_appSettings(rInt, location),
@@ -110,11 +111,11 @@ func TestAccDataSourceAzureRMAppService_appSettings(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_connectionString(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppService_connectionStrings(rInt, location),
@@ -134,11 +135,11 @@ func TestAccDataSourceAzureRMAppService_connectionString(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_ipRestriction(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppService_ipRestriction(rInt, location),
@@ -154,11 +155,11 @@ func TestAccDataSourceAzureRMAppService_ipRestriction(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_http2Enabled(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppService_http2Enabled(rInt, location),
@@ -173,11 +174,11 @@ func TestAccDataSourceAzureRMAppService_http2Enabled(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_minTls(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppService_minTls(rInt, location),
@@ -192,11 +193,11 @@ func TestAccDataSourceAzureRMAppService_minTls(t *testing.T) {
 func TestAccDataSourceAzureRMAppService_basicWindowsContainer(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppService_basicWindowsContainer(rInt, location),

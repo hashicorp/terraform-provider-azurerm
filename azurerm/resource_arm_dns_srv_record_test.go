@@ -5,21 +5,23 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsSrvRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_srv_record.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsSrvRecord_basic(ri, testLocation())
+	config := testAccAzureRMDnsSrvRecord_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsSrvRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,11 +48,11 @@ func TestAccAzureRMDnsSrvRecord_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dns_srv_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsSrvRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +63,7 @@ func TestAccAzureRMDnsSrvRecord_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDnsSrvRecord_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_dns_srv_record"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dns_srv_record"),
 			},
 		},
 	})
@@ -70,13 +72,13 @@ func TestAccAzureRMDnsSrvRecord_requiresImport(t *testing.T) {
 func TestAccAzureRMDnsSrvRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_srv_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsSrvRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsSrvRecord_updateRecords(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsSrvRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -100,13 +102,13 @@ func TestAccAzureRMDnsSrvRecord_updateRecords(t *testing.T) {
 func TestAccAzureRMDnsSrvRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_srv_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsSrvRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsSrvRecord_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsSrvRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -147,8 +149,8 @@ func testCheckAzureRMDnsSrvRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for DNS SRV record: %s", srvName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, srvName, dns.SRV)
 		if err != nil {
 			return fmt.Errorf("Bad: Get SRV RecordSet: %+v", err)
@@ -163,8 +165,8 @@ func testCheckAzureRMDnsSrvRecordExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMDnsSrvRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_srv_record" {

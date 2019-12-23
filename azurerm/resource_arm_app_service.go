@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -192,8 +193,8 @@ func resourceArmAppService() *schema.Resource {
 }
 
 func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.AppServicesClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
@@ -318,8 +319,8 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.AppServicesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := webSvc.ParseAppServiceID(d.Id())
@@ -327,7 +328,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	resGroup := id.Base.ResourceGroup
+	resGroup := id.ResourceGroup
 	name := id.Name
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -507,8 +508,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.AppServicesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := webSvc.ParseAppServiceID(d.Id())
@@ -516,7 +517,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	resGroup := id.Base.ResourceGroup
+	resGroup := id.ResourceGroup
 	name := id.Name
 
 	resp, err := client.Get(ctx, resGroup, name)
@@ -669,8 +670,8 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.AppServicesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := webSvc.ParseAppServiceID(d.Id())
@@ -678,7 +679,7 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	resGroup := id.Base.ResourceGroup
+	resGroup := id.ResourceGroup
 	name := id.Name
 
 	log.Printf("[DEBUG] Deleting App Service %q (resource group %q)", name, resGroup)

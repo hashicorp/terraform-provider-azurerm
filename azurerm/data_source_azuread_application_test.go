@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
@@ -14,8 +15,8 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 	config := testAccDataSourceAzureRMAzureADApplication_objectId(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -41,8 +42,8 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectIdComplete(t *testing.T)
 	dataSourceName := "data.azurerm_azuread_application.test"
 	id := uuid.New().String()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -70,8 +71,8 @@ func TestAccDataSourceAzureRMAzureADApplication_byName(t *testing.T) {
 	config := testAccDataSourceAzureRMAzureADApplication_name(id)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{

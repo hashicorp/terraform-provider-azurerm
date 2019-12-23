@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -57,11 +59,11 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	resourceName := "azurerm_storage_queue.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -88,11 +90,11 @@ func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
 	resourceName := "azurerm_storage_queue.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -103,7 +105,7 @@ func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMStorageQueue_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_storage_queue"),
+				ExpectError: acceptance.RequiresImportError("azurerm_storage_queue"),
 			},
 		},
 	})
@@ -113,11 +115,11 @@ func TestAccAzureRMStorageQueue_metaData(t *testing.T) {
 	resourceName := "azurerm_storage_queue.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -156,8 +158,8 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -194,8 +196,8 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

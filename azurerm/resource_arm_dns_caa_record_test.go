@@ -5,21 +5,23 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_caa_record.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDnsCaaRecord_basic(ri, testLocation())
+	config := testAccAzureRMDnsCaaRecord_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,11 +48,11 @@ func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dns_caa_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +63,7 @@ func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDnsCaaRecord_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_dns_caa_record"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dns_caa_record"),
 			},
 		},
 	})
@@ -70,13 +72,13 @@ func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
 func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_caa_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsCaaRecord_basic(ri, location)
 	postConfig := testAccAzureRMDnsCaaRecord_updateRecords(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -100,13 +102,13 @@ func TestAccAzureRMDnsCaaRecord_updateRecords(t *testing.T) {
 func TestAccAzureRMDnsCaaRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_caa_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMDnsCaaRecord_withTags(ri, location)
 	postConfig := testAccAzureRMDnsCaaRecord_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDnsCaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -147,8 +149,8 @@ func testCheckAzureRMDnsCaaRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for DNS CAA record: %s", caaName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, caaName, dns.CAA)
 		if err != nil {
 			return fmt.Errorf("Bad: Get CAA RecordSet: %+v", err)
@@ -163,8 +165,8 @@ func testCheckAzureRMDnsCaaRecordExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMDnsCaaRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_caa_record" {

@@ -7,24 +7,25 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 // NOTE: all of the tests in this file are for functionality which will be removed in 2.0
 
-func TestAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet(t *testing.T) {
+func testAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySetConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.type", "AvailabilitySet"),
@@ -36,20 +37,20 @@ func TestAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet(t *te
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS(t *testing.T) {
+func testAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSSConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.type", "VirtualMachineScaleSets"),
@@ -61,7 +62,7 @@ func TestAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS(t *testing.T) {
 	})
 }
 
-func testAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySetConfig(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -88,7 +89,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSSConfig(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

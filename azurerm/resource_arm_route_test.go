@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -16,12 +18,12 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRoute_basic(ri, testLocation()),
+				Config: testAccAzureRMRoute_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists("azurerm_route.test"),
 				),
@@ -42,11 +44,11 @@ func TestAccAzureRMRoute_requiresImport(t *testing.T) {
 	}
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -57,7 +59,7 @@ func TestAccAzureRMRoute_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMRoute_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_route"),
+				ExpectError: acceptance.RequiresImportError("azurerm_route"),
 			},
 		},
 	})
@@ -68,12 +70,12 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRoute_basic(ri, testLocation()),
+				Config: testAccAzureRMRoute_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "next_hop_type", "VnetLocal"),
@@ -81,7 +83,7 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMRoute_basicAppliance(ri, testLocation()),
+				Config: testAccAzureRMRoute_basicAppliance(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "next_hop_type", "VirtualAppliance"),
@@ -89,7 +91,7 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMRoute_basic(ri, testLocation()),
+				Config: testAccAzureRMRoute_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "next_hop_type", "VnetLocal"),
@@ -102,11 +104,11 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 
 func TestAccAzureRMRoute_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMRoute_basic(ri, testLocation())
+	config := testAccAzureRMRoute_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -123,13 +125,13 @@ func TestAccAzureRMRoute_disappears(t *testing.T) {
 
 func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMRoute_basic(ri, location)
 	postConfig := testAccAzureRMRoute_multipleRoutes(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -163,8 +165,8 @@ func testCheckAzureRMRouteExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for route: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.RoutesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RoutesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, rtName, name)
 		if err != nil {
@@ -192,8 +194,8 @@ func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for route: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.RoutesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RoutesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, rtName, name)
 		if err != nil {
@@ -209,8 +211,8 @@ func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMRouteDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.RoutesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.RoutesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_route" {

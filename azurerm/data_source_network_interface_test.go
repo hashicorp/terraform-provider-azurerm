@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceArmVirtualNetworkInterface_basic(t *testing.T) {
@@ -15,14 +16,14 @@ func TestAccDataSourceArmVirtualNetworkInterface_basic(t *testing.T) {
 	name := fmt.Sprintf("acctest-nic-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceArmVirtualNetworkInterface_basic(ri, testLocation()),
+				Config: testAccDataSourceArmVirtualNetworkInterface_basic(ri, acceptance.Location()),
 			},
 			{
-				Config: testAccDataSourceArmVirtualNetworkInterface_withDataSource(ri, testLocation()),
+				Config: testAccDataSourceArmVirtualNetworkInterface_withDataSource(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),

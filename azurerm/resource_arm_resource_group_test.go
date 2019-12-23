@@ -7,30 +7,26 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
-	resourceName := "azurerm_resource_group.test"
-	ri := tf.AccRandTimeInt()
+	testData := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMResourceGroup_basic(ri, testLocation()),
+				Config: testAccAzureRMResourceGroup_basic(testData),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(resourceName),
+					testCheckAzureRMResourceGroupExists(testData.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			testData.ImportStep(),
 		},
 	})
 }
@@ -41,88 +37,68 @@ func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_resource_group.test"
-	ri := tf.AccRandTimeInt()
+	testData := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMResourceGroup_basic(ri, testLocation()),
+				Config: testAccAzureRMResourceGroup_basic(testData),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(resourceName),
+					testCheckAzureRMResourceGroupExists(testData.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMResourceGroup_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_resource_group"),
-			},
+			testData.RequiresImportErrorStep(testAccAzureRMResourceGroup_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
-	resourceName := "azurerm_resource_group.test"
-	ri := tf.AccRandTimeInt()
+	testData := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMResourceGroup_basic(ri, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(resourceName),
-					testCheckAzureRMResourceGroupDisappears(resourceName),
-				),
-				ExpectNonEmptyPlan: true,
-			},
+			testData.DisappearsStep(acceptance.DisappearsStepData{
+				Config:      testAccAzureRMResourceGroup_basic,
+				CheckExists: testCheckAzureRMResourceGroupExists,
+				Destroy:     testCheckAzureRMResourceGroupDisappears,
+			}),
 		},
 	})
 }
 
 func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
-	resourceName := "azurerm_resource_group.test"
-	ri := tf.AccRandTimeInt()
-	location := testLocation()
-	preConfig := testAccAzureRMResourceGroup_withTags(ri, location)
-	postConfig := testAccAzureRMResourceGroup_withTagsUpdated(ri, location)
+	testData := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMResourceGroup_withTags(testData),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
+					testCheckAzureRMResourceGroupExists(testData.ResourceName),
+					resource.TestCheckResourceAttr(testData.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(testData.ResourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(testData.ResourceName, "tags.cost_center", "MSFT"),
 				),
 			},
+			testData.ImportStep(),
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: postConfig,
+				Config: testAccAzureRMResourceGroup_withTagsUpdated(testData),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
+					testCheckAzureRMResourceGroupExists(testData.ResourceName),
+					resource.TestCheckResourceAttr(testData.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(testData.ResourceName, "tags.environment", "staging"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			testData.ImportStep(),
 		},
 	})
 }
@@ -138,8 +114,8 @@ func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*ArmClient).Resource.GroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup)
 		if err != nil {
@@ -165,8 +141,8 @@ func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestC
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*ArmClient).Resource.GroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		deleteFuture, err := client.Delete(ctx, resourceGroup)
 		if err != nil {
@@ -183,8 +159,8 @@ func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Resource.GroupsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_resource_group" {
@@ -206,16 +182,17 @@ func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMResourceGroup_basic(rInt int, location string) string {
+func testAccAzureRMResourceGroup_basic(testData acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
-`, rInt, location)
+`, testData.RandomInteger, testData.Locations.Primary)
 }
 
-func testAccAzureRMResourceGroup_requiresImport(rInt int, location string) string {
+func testAccAzureRMResourceGroup_requiresImport(testData acceptance.TestData) string {
+	template := testAccAzureRMResourceGroup_basic(testData)
 	return fmt.Sprintf(`
 %s
 
@@ -223,10 +200,10 @@ resource "azurerm_resource_group" "import" {
   name     = "${azurerm_resource_group.test.name}"
   location = "${azurerm_resource_group.test.location}"
 }
-`, testAccAzureRMResourceGroup_basic(rInt, location))
+`, template)
 }
 
-func testAccAzureRMResourceGroup_withTags(rInt int, location string) string {
+func testAccAzureRMResourceGroup_withTags(testData acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -237,10 +214,10 @@ resource "azurerm_resource_group" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location)
+`, testData.RandomInteger, testData.Locations.Primary)
 }
 
-func testAccAzureRMResourceGroup_withTagsUpdated(rInt int, location string) string {
+func testAccAzureRMResourceGroup_withTagsUpdated(testData acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -250,5 +227,5 @@ resource "azurerm_resource_group" "test" {
     environment = "staging"
   }
 }
-`, rInt, location)
+`, testData.RandomInteger, testData.Locations.Primary)
 }

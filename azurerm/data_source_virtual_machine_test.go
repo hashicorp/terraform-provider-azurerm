@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceVirtualMachine_basic(t *testing.T) {
@@ -13,11 +14,11 @@ func TestAccDataSourceVirtualMachine_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctvm-%d", ri)
-	config := testAccDataSourceVirtualMachine_basic(ri, testLocation())
+	config := testAccDataSourceVirtualMachine_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

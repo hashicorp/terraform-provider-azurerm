@@ -5,15 +5,16 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMPlatformImage_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_platform_image.test"
-	config := testAccDataSourceAzureRMPlatformImageBasic(testLocation())
+	config := testAccDataSourceAzureRMPlatformImageBasic(acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

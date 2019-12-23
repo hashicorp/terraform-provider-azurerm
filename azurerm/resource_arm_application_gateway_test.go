@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -18,12 +20,12 @@ func TestAccAzureRMApplicationGateway_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_basic(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_Small"),
@@ -46,12 +48,12 @@ func TestAccAzureRMApplicationGateway_autoscaleConfiguration(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_autoscaleConfiguration(ri, testLocation(), 0, 10),
+				Config: testAccAzureRMApplicationGateway_autoscaleConfiguration(ri, acceptance.Location(), 0, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_v2"),
@@ -62,7 +64,7 @@ func TestAccAzureRMApplicationGateway_autoscaleConfiguration(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMApplicationGateway_autoscaleConfiguration(ri, testLocation(), 4, 12),
+				Config: testAccAzureRMApplicationGateway_autoscaleConfiguration(ri, acceptance.Location(), 4, 12),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_v2"),
@@ -86,12 +88,12 @@ func TestAccAzureRMApplicationGateway_autoscaleConfigurationNoMaxCapacity(t *tes
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_autoscaleConfigurationNoMaxCapacity(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_autoscaleConfigurationNoMaxCapacity(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_v2"),
@@ -114,12 +116,12 @@ func TestAccAzureRMApplicationGateway_zones(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_zones(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_zones(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_v2"),
@@ -143,12 +145,12 @@ func TestAccAzureRMApplicationGateway_overridePath(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_overridePath(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_overridePath(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.0.path", "/path1/"),
@@ -168,12 +170,12 @@ func TestAccAzureRMApplicationGateway_http2(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_http2(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_http2(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enable_http2", "true"),
@@ -196,11 +198,11 @@ func TestAccAzureRMApplicationGateway_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_application_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -211,7 +213,7 @@ func TestAccAzureRMApplicationGateway_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApplicationGateway_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_application_gateway"),
+				ExpectError: acceptance.RequiresImportError("azurerm_application_gateway"),
 			},
 		},
 	})
@@ -220,11 +222,11 @@ func TestAccAzureRMApplicationGateway_requiresImport(t *testing.T) {
 func TestAccAzureRMApplicationGateway_authCertificate(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -269,11 +271,11 @@ func TestAccAzureRMApplicationGateway_trustedRootCertificate_keyvault(t *testing
 
 	resourceName := "azurerm_application_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -295,11 +297,11 @@ func TestAccAzureRMApplicationGateway_trustedRootCertificate_keyvault(t *testing
 func TestAccAzureRMApplicationGateway_trustedRootCertificate(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -343,12 +345,12 @@ func TestAccAzureRMApplicationGateway_pathBasedRouting(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_pathBasedRouting(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_pathBasedRouting(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 				),
@@ -367,12 +369,12 @@ func TestAccAzureRMApplicationGateway_routingRedirect_httpListener(t *testing.T)
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_routingRedirect_httpListener(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_routingRedirect_httpListener(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "redirect_configuration.0.name"),
@@ -395,12 +397,12 @@ func TestAccAzureRMApplicationGateway_routingRedirect_httpListenerError(t *testi
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMApplicationGateway_routingRedirect_httpListenerError(ri, testLocation()),
+				Config:      testAccAzureRMApplicationGateway_routingRedirect_httpListenerError(ri, acceptance.Location()),
 				ExpectError: regexp.MustCompile("Conflict between `backend_address_pool_name` and `redirect_configuration_name`"),
 			},
 		},
@@ -412,12 +414,12 @@ func TestAccAzureRMApplicationGateway_routingRedirect_pathBased(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_routingRedirect_pathBased(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_routingRedirect_pathBased(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "redirect_configuration.0.name"),
@@ -445,12 +447,12 @@ func TestAccAzureRMApplicationGateway_customErrorConfigurations(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_customErrorConfigurations(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_customErrorConfigurations(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 				),
@@ -469,12 +471,12 @@ func TestAccAzureRMApplicationGateway_rewriteRuleSets_backend(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_rewriteRuleSets_backend(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_rewriteRuleSets_backend(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "rewrite_rule_set.0.name"),
@@ -494,12 +496,12 @@ func TestAccAzureRMApplicationGateway_rewriteRuleSets_redirect(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_rewriteRuleSets_redirect(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_rewriteRuleSets_redirect(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "rewrite_rule_set.0.name"),
@@ -519,12 +521,12 @@ func TestAccAzureRMApplicationGateway_probes(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_probes(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_probes(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 				),
@@ -543,12 +545,12 @@ func TestAccAzureRMApplicationGateway_probesEmptyMatch(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_probesEmptyMatch(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_probesEmptyMatch(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 				),
@@ -567,12 +569,12 @@ func TestAccAzureRMApplicationGateway_probesPickHostNameFromBackendHTTPSettings(
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_probesPickHostNameFromBackendHTTPSettings(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_probesPickHostNameFromBackendHTTPSettings(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "probe.0.pick_host_name_from_backend_http_settings", "true"),
@@ -593,12 +595,12 @@ func TestAccAzureRMApplicationGateway_backendHttpSettingsHostName(t *testing.T) 
 	hostName := "example.com"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_backendHttpSettingsHostName(ri, testLocation(), hostName, false),
+				Config: testAccAzureRMApplicationGateway_backendHttpSettingsHostName(ri, acceptance.Location(), hostName, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.0.host_name", hostName),
@@ -618,12 +620,12 @@ func TestAccAzureRMApplicationGateway_backendHttpSettingsHostNameAndPick(t *test
 	hostName := "example.com"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMApplicationGateway_backendHttpSettingsHostName(ri, testLocation(), hostName, true),
+				Config:      testAccAzureRMApplicationGateway_backendHttpSettingsHostName(ri, acceptance.Location(), hostName, true),
 				ExpectError: regexp.MustCompile("Only one of `host_name` or `pick_host_name_from_backend_address` can be set"),
 			},
 		},
@@ -635,12 +637,12 @@ func TestAccAzureRMApplicationGateway_settingsPickHostNameFromBackendAddress(t *
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_settingsPickHostNameFromBackendAddress(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_settingsPickHostNameFromBackendAddress(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.0.pick_host_name_from_backend_address", "true"),
@@ -660,12 +662,12 @@ func TestAccAzureRMApplicationGateway_sslCertificate(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_sslCertificate(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_sslCertificate(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 				),
@@ -681,7 +683,7 @@ func TestAccAzureRMApplicationGateway_sslCertificate(t *testing.T) {
 				},
 			},
 			{
-				Config: testAccAzureRMApplicationGateway_sslCertificateUpdated(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_sslCertificateUpdated(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 				),
@@ -705,12 +707,12 @@ func TestAccAzureRMApplicationGateway_webApplicationFirewall(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_webApplicationFirewall(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_webApplicationFirewall(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "WAF_Medium"),
@@ -734,12 +736,12 @@ func TestAccAzureRMApplicationGateway_connectionDraining(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_connectionDraining(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_connectionDraining(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.0.connection_draining.0.enabled", "true"),
@@ -751,7 +753,7 @@ func TestAccAzureRMApplicationGateway_connectionDraining(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMApplicationGateway_basic(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_Small"),
@@ -776,12 +778,12 @@ func TestAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups(
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "WAF_v2"),
@@ -805,7 +807,7 @@ func TestAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups(
 				),
 			},
 			{
-				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups_enabled_some_rules(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups_enabled_some_rules(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "WAF_v2"),
@@ -834,12 +836,12 @@ func TestAccAzureRMApplicationGateway_webApplicationFirewall_exclusions(t *testi
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_exclusions_many(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_exclusions_many(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "WAF_v2"),
@@ -870,7 +872,7 @@ func TestAccAzureRMApplicationGateway_webApplicationFirewall_exclusions(t *testi
 				),
 			},
 			{
-				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_exclusions_one(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_exclusions_one(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "WAF_v2"),
@@ -897,12 +899,12 @@ func TestAccAzureRMApplicationGateway_sslPolicy_policyType_predefined(t *testing
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_sslPolicy_policyType_predefined(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_sslPolicy_policyType_predefined(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ssl_policy.0.policy_type", "Predefined"),
@@ -918,12 +920,12 @@ func TestAccAzureRMApplicationGateway_sslPolicy_policyType_custom(t *testing.T) 
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_sslPolicy_policyType_custom(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_sslPolicy_policyType_custom(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ssl_policy.0.policy_type", "Custom"),
@@ -942,12 +944,12 @@ func TestAccAzureRMApplicationGateway_sslPolicy_disabledProtocols(t *testing.T) 
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_sslPolicy_disabledProtocols(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_sslPolicy_disabledProtocols(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ssl_policy.0.disabled_protocols.0", "TLSv1_0"),
@@ -963,12 +965,12 @@ func TestAccAzureRMApplicationGateway_disabledSslProtocols(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_disabledSslProtocols(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_disabledSslProtocols(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "disabled_ssl_protocols.0", "TLSv1_0"),
@@ -984,12 +986,12 @@ func TestAccAzureRMApplicationGateway_cookieAffinity(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_cookieAffinity(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_cookieAffinity(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.0.affinity_cookie_name", "testCookieName"),
@@ -1001,7 +1003,7 @@ func TestAccAzureRMApplicationGateway_cookieAffinity(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMApplicationGateway_cookieAffinityUpdated(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_cookieAffinityUpdated(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "backend_http_settings.0.affinity_cookie_name", ""),
@@ -1021,12 +1023,12 @@ func TestAccAzureRMApplicationGateway_gatewayIP(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_basic(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 				),
@@ -1037,7 +1039,7 @@ func TestAccAzureRMApplicationGateway_gatewayIP(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMApplicationGateway_gatewayIPUpdated(ri, testLocation()),
+				Config: testAccAzureRMApplicationGateway_gatewayIPUpdated(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 				),
@@ -1057,12 +1059,12 @@ func TestAccAzureRMApplicationGateway_UserAssignedIdentity(t *testing.T) {
 	rs := acctest.RandString(14)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_UserDefinedIdentity(ri, testLocation(), rs),
+				Config: testAccAzureRMApplicationGateway_UserDefinedIdentity(ri, acceptance.Location(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "UserAssigned"),
@@ -1086,8 +1088,8 @@ func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Application Gateway: %q", gatewayName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.ApplicationGatewaysClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {
@@ -1103,8 +1105,8 @@ func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.ApplicationGatewaysClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationGatewaysClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_application_gateway" {
@@ -1955,6 +1957,8 @@ resource "azurerm_application_gateway" "test" {
     key_vault_secret_id = "${azurerm_key_vault_certificate.test.secret_id}"
   }
 
+
+
   http_listener {
     name                           = "${local.listener_name}"
     frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
@@ -2033,6 +2037,9 @@ resource "azurerm_application_gateway" "test" {
     port                  = 443
     protocol              = "Https"
     request_timeout       = 1
+
+    pick_host_name_from_backend_address = true
+    trusted_root_certificate_names      = ["${local.auth_cert_name}"] 
   }
 
   trusted_root_certificate {
@@ -2200,6 +2207,9 @@ resource "azurerm_application_gateway" "test" {
     port                  = 443
     protocol              = "Https"
     request_timeout       = 1
+
+    pick_host_name_from_backend_address = true
+    trusted_root_certificate_names      = ["${local.auth_cert_name}"]
   }
 
   trusted_root_certificate {

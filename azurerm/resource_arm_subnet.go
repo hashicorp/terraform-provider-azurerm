@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	networksvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
@@ -141,25 +142,23 @@ func resourceArmSubnet() *schema.Resource {
 			},
 
 			"enforce_private_link_endpoint_network_policies": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"enforce_private_link_service_network_policies"},
-				Default:       false,
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"enforce_private_link_service_network_policies": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"enforce_private_link_endpoint_network_policies"},
-				Default:       false,
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 		},
 	}
 }
 
 func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.SubnetsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.SubnetsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
@@ -205,7 +204,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			ID: &nsgId,
 		}
 
-		parsedNsgId, err := networksvc.ParseNetworkSecurityGroupResourceID(nsgId)
+		parsedNsgId, err := networksvc.ParseNetworkSecurityGroupID(nsgId)
 		if err != nil {
 			return err
 		}
@@ -222,7 +221,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			ID: &rtId,
 		}
 
-		parsedRouteTableId, err := networksvc.ParseRouteTableResourceID(rtId)
+		parsedRouteTableId, err := networksvc.ParseRouteTableID(rtId)
 		if err != nil {
 			return err
 		}
@@ -280,8 +279,8 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.SubnetsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.SubnetsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -360,8 +359,8 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.SubnetsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.SubnetsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -374,7 +373,7 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		networkSecurityGroupId := v.(string)
-		parsedNetworkSecurityGroupId, err2 := networksvc.ParseNetworkSecurityGroupResourceID(networkSecurityGroupId)
+		parsedNetworkSecurityGroupId, err2 := networksvc.ParseNetworkSecurityGroupID(networkSecurityGroupId)
 		if err2 != nil {
 			return err2
 		}
@@ -385,7 +384,7 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("route_table_id"); ok {
 		rtId := v.(string)
-		parsedRouteTableId, err2 := networksvc.ParseRouteTableResourceID(rtId)
+		parsedRouteTableId, err2 := networksvc.ParseRouteTableID(rtId)
 		if err2 != nil {
 			return err2
 		}

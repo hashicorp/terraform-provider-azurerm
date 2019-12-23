@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -46,11 +48,11 @@ func TestAccAzureRMNetworkDDoSProtectionPlan(t *testing.T) {
 func testAccAzureRMNetworkDDoSProtectionPlan_basic(t *testing.T) {
 	resourceName := "azurerm_network_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -77,11 +79,11 @@ func testAccAzureRMNetworkDDoSProtectionPlan_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_network_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -92,7 +94,7 @@ func testAccAzureRMNetworkDDoSProtectionPlan_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMNetworkDDoSProtectionPlan_requiresImportConfig(ri, location),
-				ExpectError: testRequiresImportError("azurerm_network_ddos_protection_plan"),
+				ExpectError: acceptance.RequiresImportError("azurerm_network_ddos_protection_plan"),
 			},
 		},
 	})
@@ -101,11 +103,11 @@ func testAccAzureRMNetworkDDoSProtectionPlan_requiresImport(t *testing.T) {
 func testAccAzureRMNetworkDDoSProtectionPlan_withTags(t *testing.T) {
 	resourceName := "azurerm_network_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -137,11 +139,11 @@ func testAccAzureRMNetworkDDoSProtectionPlan_withTags(t *testing.T) {
 func testAccAzureRMNetworkDDoSProtectionPlan_disappears(t *testing.T) {
 	resourceName := "azurerm_network_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -158,8 +160,8 @@ func testAccAzureRMNetworkDDoSProtectionPlan_disappears(t *testing.T) {
 
 func testCheckAzureRMNetworkDDoSProtectionPlanExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Network.DDOSProtectionPlansClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.DDOSProtectionPlansClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -200,8 +202,8 @@ func testCheckAzureRMNetworkDDoSProtectionPlanDisappears(resourceName string) re
 			return fmt.Errorf("Bad: no resource group found in state for DDoS Protection Plan: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.DDOSProtectionPlansClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.DDOSProtectionPlansClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on NetworkDDoSProtectionPlanClient: %+v", err)
@@ -216,8 +218,8 @@ func testCheckAzureRMNetworkDDoSProtectionPlanDisappears(resourceName string) re
 }
 
 func testCheckAzureRMNetworkDDoSProtectionPlanDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.DDOSProtectionPlansClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.DDOSProtectionPlansClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_network_ddos_protection_plan" {

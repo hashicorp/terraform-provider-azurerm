@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	networkSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
@@ -51,8 +52,8 @@ func resourceArmSubnetNetworkSecurityGroupAssociation() *schema.Resource {
 }
 
 func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.SubnetsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.SubnetsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Subnet <-> Network Security Group Association creation.")
@@ -65,7 +66,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 		return err
 	}
 
-	parsedNetworkSecurityGroupId, err := networkSvc.ParseNetworkSecurityGroupResourceID(networkSecurityGroupId)
+	parsedNetworkSecurityGroupId, err := networkSvc.ParseNetworkSecurityGroupID(networkSecurityGroupId)
 	if err != nil {
 		return err
 	}
@@ -127,8 +128,8 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 }
 
 func resourceArmSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.SubnetsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.SubnetsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -169,8 +170,8 @@ func resourceArmSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData
 }
 
 func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.SubnetsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.SubnetsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -203,7 +204,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceDa
 	}
 
 	// once we have the network security group id to lock on, lock on that
-	parsedNetworkSecurityGroupId, err := networkSvc.ParseNetworkSecurityGroupResourceID(*props.NetworkSecurityGroup.ID)
+	parsedNetworkSecurityGroupId, err := networkSvc.ParseNetworkSecurityGroupID(*props.NetworkSecurityGroup.ID)
 	if err != nil {
 		return err
 	}

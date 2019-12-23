@@ -10,11 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func getTrafficManagerFQDN(hostname string) (string, error) {
-	environment, err := testArmEnvironment()
+	environment, err := acceptance.Environment()
 	if err != nil {
 		return "", err
 	}
@@ -27,12 +29,12 @@ func TestAccAzureRMTrafficManagerProfile_geographic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation()),
+				Config: testAccAzureRMTrafficManagerProfile_geographic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTrafficManagerProfileExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Geographic"),
@@ -56,20 +58,20 @@ func TestAccAzureRMTrafficManagerProfile_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation()),
+				Config: testAccAzureRMTrafficManagerProfile_geographic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTrafficManagerProfileExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Geographic"),
 				),
 			},
 			{
-				Config:      testAccAzureRMTrafficManagerProfile_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_traffic_manager_profile"),
+				Config:      testAccAzureRMTrafficManagerProfile_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_traffic_manager_profile"),
 			},
 		},
 	})
@@ -78,7 +80,7 @@ func TestAccAzureRMTrafficManagerProfile_requiresImport(t *testing.T) {
 func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMTrafficManagerProfile_weighted(ri, testLocation())
+	config := testAccAzureRMTrafficManagerProfile_weighted(ri, acceptance.Location())
 
 	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
 	if err != nil {
@@ -86,8 +88,8 @@ func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -110,7 +112,7 @@ func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 func TestAccAzureRMTrafficManagerProfile_weightedTCP(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMTrafficManagerProfile_weightedTCP(ri, testLocation())
+	config := testAccAzureRMTrafficManagerProfile_weightedTCP(ri, acceptance.Location())
 
 	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
 	if err != nil {
@@ -118,8 +120,8 @@ func TestAccAzureRMTrafficManagerProfile_weightedTCP(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -142,7 +144,7 @@ func TestAccAzureRMTrafficManagerProfile_weightedTCP(t *testing.T) {
 func TestAccAzureRMTrafficManagerProfile_performance(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMTrafficManagerProfile_performance(ri, testLocation())
+	config := testAccAzureRMTrafficManagerProfile_performance(ri, acceptance.Location())
 
 	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
 	if err != nil {
@@ -150,8 +152,8 @@ func TestAccAzureRMTrafficManagerProfile_performance(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -174,7 +176,7 @@ func TestAccAzureRMTrafficManagerProfile_performance(t *testing.T) {
 func TestAccAzureRMTrafficManagerProfile_priority(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMTrafficManagerProfile_priority(ri, testLocation())
+	config := testAccAzureRMTrafficManagerProfile_priority(ri, acceptance.Location())
 
 	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
 	if err != nil {
@@ -182,8 +184,8 @@ func TestAccAzureRMTrafficManagerProfile_priority(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -206,12 +208,12 @@ func TestAccAzureRMTrafficManagerProfile_priority(t *testing.T) {
 func TestAccAzureRMTrafficManagerProfile_withTags(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMTrafficManagerProfile_withTags(ri, testLocation())
-	postConfig := testAccAzureRMTrafficManagerProfile_withTagsUpdated(ri, testLocation())
+	preConfig := testAccAzureRMTrafficManagerProfile_withTags(ri, acceptance.Location())
+	postConfig := testAccAzureRMTrafficManagerProfile_withTagsUpdated(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -243,8 +245,8 @@ func TestAccAzureRMTrafficManagerProfile_withTags(t *testing.T) {
 func TestAccAzureRMTrafficManagerProfile_performanceToGeographic(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMTrafficManagerProfile_performance(ri, testLocation())
-	postConfig := testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation())
+	preConfig := testAccAzureRMTrafficManagerProfile_performance(ri, acceptance.Location())
+	postConfig := testAccAzureRMTrafficManagerProfile_geographic(ri, acceptance.Location())
 
 	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
 	if err != nil {
@@ -252,8 +254,8 @@ func TestAccAzureRMTrafficManagerProfile_performanceToGeographic(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -279,8 +281,8 @@ func TestAccAzureRMTrafficManagerProfile_performanceToGeographic(t *testing.T) {
 func TestAccAzureRMTrafficManagerProfile_priorityToWeighted(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMTrafficManagerProfile_priority(ri, testLocation())
-	postConfig := testAccAzureRMTrafficManagerProfile_weighted(ri, testLocation())
+	preConfig := testAccAzureRMTrafficManagerProfile_priority(ri, acceptance.Location())
+	postConfig := testAccAzureRMTrafficManagerProfile_weighted(ri, acceptance.Location())
 
 	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
 	if err != nil {
@@ -288,8 +290,8 @@ func TestAccAzureRMTrafficManagerProfile_priorityToWeighted(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -315,11 +317,11 @@ func TestAccAzureRMTrafficManagerProfile_priorityToWeighted(t *testing.T) {
 func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettings(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -350,11 +352,11 @@ func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettings(t *testing
 
 func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettingsError(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -380,8 +382,8 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).TrafficManager.ProfilesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.ProfilesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerProfilesClient: %+v", err)
@@ -396,7 +398,7 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).TrafficManager.ProfilesClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.ProfilesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_profile" {
@@ -407,7 +409,7 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return nil

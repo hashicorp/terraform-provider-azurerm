@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,12 +17,12 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLConfiguration_characterSetServer(ri, testLocation()),
+				Config: testAccAzureRMMySQLConfiguration_characterSetServer(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "hebrew"),
 				),
@@ -31,7 +33,7 @@ func TestAccAzureRMMySQLConfiguration_characterSetServer(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMMySQLConfiguration_empty(ri, testLocation()),
+				Config: testAccAzureRMMySQLConfiguration_empty(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMySQLConfigurationValueReset(ri, "character_set_server"),
@@ -46,12 +48,12 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, testLocation()),
+				Config: testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "30"),
 				),
@@ -62,7 +64,7 @@ func TestAccAzureRMMySQLConfiguration_interactiveTimeout(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMMySQLConfiguration_empty(ri, testLocation()),
+				Config: testAccAzureRMMySQLConfiguration_empty(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMySQLConfigurationValueReset(ri, "interactive_timeout"),
@@ -77,12 +79,12 @@ func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, testLocation()),
+				Config: testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLConfigurationValue(resourceName, "on"),
 				),
@@ -93,7 +95,7 @@ func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMMySQLConfiguration_empty(ri, testLocation()),
+				Config: testAccAzureRMMySQLConfiguration_empty(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMMySQLConfigurationValueReset(ri, "log_slow_admin_statements"),
@@ -118,8 +120,8 @@ func testCheckAzureRMMySQLConfigurationValue(resourceName string, value string) 
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Configuration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).MySQL.ConfigurationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ConfigurationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -143,8 +145,8 @@ func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName st
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestmysqlsvr-%d", rInt)
 
-		client := testAccProvider.Meta().(*ArmClient).MySQL.ConfigurationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ConfigurationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
 		if err != nil {
@@ -166,8 +168,8 @@ func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName st
 }
 
 func testCheckAzureRMMySQLConfigurationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).MySQL.ConfigurationsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ConfigurationsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mysql_configuration" {

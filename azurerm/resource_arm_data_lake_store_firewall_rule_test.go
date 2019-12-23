@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -20,12 +22,12 @@ func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
 	endIP := "2.2.2.2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, testLocation(), startIP, endIP),
+				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, acceptance.Location(), startIP, endIP),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", startIP),
@@ -51,13 +53,13 @@ func TestAccAzureRMDataLakeStoreFirewallRule_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_data_lake_store_firewall_rule.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -68,7 +70,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDataLakeStoreFirewallRule_requiresImport(ri, location, startIP, endIP),
-				ExpectError: testRequiresImportError("azurerm_data_lake_store_firewall_rule"),
+				ExpectError: acceptance.RequiresImportError("azurerm_data_lake_store_firewall_rule"),
 			},
 		},
 	})
@@ -79,12 +81,12 @@ func TestAccAzureRMDataLakeStoreFirewallRule_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, testLocation(), "1.1.1.1", "2.2.2.2"),
+				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, acceptance.Location(), "1.1.1.1", "2.2.2.2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "1.1.1.1"),
@@ -92,7 +94,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, testLocation(), "2.2.2.2", "3.3.3.3"),
+				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, acceptance.Location(), "2.2.2.2", "3.3.3.3"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "2.2.2.2"),
@@ -109,12 +111,12 @@ func TestAccAzureRMDataLakeStoreFirewallRule_azureServices(t *testing.T) {
 	azureServicesIP := "0.0.0.0"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, testLocation(), azureServicesIP, azureServicesIP),
+				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(ri, acceptance.Location(), azureServicesIP, azureServicesIP),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "start_ip_address", azureServicesIP),
@@ -145,8 +147,8 @@ func testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName string) resour
 			return fmt.Errorf("Bad: no resource group found in state for data lake store firewall rule: %s", firewallRuleName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Datalake.StoreFirewallRulesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.StoreFirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, firewallRuleName)
 		if err != nil {
@@ -162,8 +164,8 @@ func testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName string) resour
 }
 
 func testCheckAzureRMDataLakeStoreFirewallRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Datalake.StoreFirewallRulesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.StoreFirewallRulesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_lake_store_firewall_rule" {

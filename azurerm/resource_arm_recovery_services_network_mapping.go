@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -17,9 +18,10 @@ import (
 
 func resourceArmRecoveryServicesNetworkMapping() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRecoveryNetworkMappingCreate,
-		Read:   resourceArmRecoveryNetworkMappingRead,
-		Delete: resourceArmRecoveryNetworkMappingDelete,
+		DeprecationMessage: "`azurerm_recovery_network_mapping` resource is deprecated in favor of `azurerm_site_recovery_network_mapping` and will be removed in v2.0 of the AzureRM Provider",
+		Create:             resourceArmRecoveryNetworkMappingCreate,
+		Read:               resourceArmRecoveryNetworkMappingRead,
+		Delete:             resourceArmRecoveryNetworkMappingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -85,8 +87,8 @@ func resourceArmRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interf
 	targetNetworkId := d.Get("target_network_id").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	//get network name from id
@@ -154,8 +156,8 @@ func resourceArmRecoveryNetworkMappingRead(d *schema.ResourceData, meta interfac
 	networkName := id.Path["replicationNetworks"]
 	name := id.Path["replicationNetworkMappings"]
 
-	client := meta.(*ArmClient).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resp, err := client.Get(ctx, fabricName, networkName, name)
@@ -197,8 +199,8 @@ func resourceArmRecoveryNetworkMappingDelete(d *schema.ResourceData, meta interf
 	networkName := id.Path["replicationNetworks"]
 	name := id.Path["replicationNetworkMappings"]
 
-	client := meta.(*ArmClient).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	future, err := client.Delete(ctx, fabricName, networkName, name)

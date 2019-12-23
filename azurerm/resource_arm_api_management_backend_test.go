@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMApiManagementBackend_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_backend.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -41,11 +43,11 @@ func TestAccAzureRMApiManagementBackend_basic(t *testing.T) {
 func TestAccAzureRMApiManagementBackend_allProperties(t *testing.T) {
 	resourceName := "azurerm_api_management_backend.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -86,11 +88,11 @@ func TestAccAzureRMApiManagementBackend_allProperties(t *testing.T) {
 func TestAccAzureRMApiManagementBackend_credentialsNoCertificate(t *testing.T) {
 	resourceName := "azurerm_api_management_backend.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -111,11 +113,11 @@ func TestAccAzureRMApiManagementBackend_credentialsNoCertificate(t *testing.T) {
 func TestAccAzureRMApiManagementBackend_update(t *testing.T) {
 	resourceName := "azurerm_api_management_backend.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -162,11 +164,11 @@ func TestAccAzureRMApiManagementBackend_update(t *testing.T) {
 func TestAccAzureRMApiManagementBackend_serviceFabric(t *testing.T) {
 	resourceName := "azurerm_api_management_backend.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -194,11 +196,11 @@ func TestAccAzureRMApiManagementBackend_serviceFabric(t *testing.T) {
 func TestAccAzureRMApiManagementBackend_disappears(t *testing.T) {
 	resourceName := "azurerm_api_management_backend.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -221,11 +223,11 @@ func TestAccAzureRMApiManagementBackend_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_backend.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -236,14 +238,14 @@ func TestAccAzureRMApiManagementBackend_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApiManagementBackend_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_backend"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_backend"),
 			},
 		},
 	})
 }
 
 func testCheckAzureRMApiManagementBackendDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.BackendClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_backend" {
@@ -253,7 +255,7 @@ func testCheckAzureRMApiManagementBackendDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
@@ -282,8 +284,8 @@ func testCheckAzureRMApiManagementBackendExists(name string) resource.TestCheckF
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.BackendClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
@@ -313,8 +315,8 @@ func testCheckAzureRMApiManagementBackendDisappears(resourceName string) resourc
 			return fmt.Errorf("Bad: no resource group found in state for backend: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.BackendClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.BackendClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Delete(ctx, resourceGroup, serviceName, name, "")
 		if err != nil {

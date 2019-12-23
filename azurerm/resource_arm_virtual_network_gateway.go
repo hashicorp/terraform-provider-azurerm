@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -97,9 +98,22 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 				// and validateArmVirtualNetworkGatewayExpressRouteSku.
 				ValidateFunc: validation.Any(
 					validateArmVirtualNetworkGatewayPolicyBasedVpnSku(),
-					validateArmVirtualNetworkGatewayRouteBasedVpnSku(),
+					validateArmVirtualNetworkGatewayRouteBasedVpnSkuGeneration1(),
+					validateArmVirtualNetworkGatewayRouteBasedVpnSkuGeneration2(),
 					validateArmVirtualNetworkGatewayExpressRouteSku(),
 				),
+			},
+
+			"generation": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.VpnGatewayGenerationGeneration1),
+					string(network.VpnGatewayGenerationGeneration2),
+					string(network.VpnGatewayGenerationNone),
+				}, false),
 			},
 
 			"ip_configuration": {
@@ -276,8 +290,8 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 }
 
 func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VnetGatewayClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.VnetGatewayClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway creation.")
@@ -336,8 +350,8 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VnetGatewayClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.VnetGatewayClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayFromId(d.Id())
@@ -364,6 +378,7 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 		d.Set("type", string(gw.GatewayType))
 		d.Set("enable_bgp", gw.EnableBgp)
 		d.Set("active_active", gw.ActiveActive)
+		d.Set("generation", string(gw.VpnGatewayGeneration))
 
 		if string(gw.VpnType) != "" {
 			d.Set("vpn_type", string(gw.VpnType))
@@ -394,8 +409,8 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmVirtualNetworkGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VnetGatewayClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.VnetGatewayClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayFromId(d.Id())
@@ -420,14 +435,16 @@ func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Vir
 	vpnType := network.VpnType(d.Get("vpn_type").(string))
 	enableBgp := d.Get("enable_bgp").(bool)
 	activeActive := d.Get("active_active").(bool)
+	generation := network.VpnGatewayGeneration(d.Get("generation").(string))
 
 	props := &network.VirtualNetworkGatewayPropertiesFormat{
-		GatewayType:      gatewayType,
-		VpnType:          vpnType,
-		EnableBgp:        &enableBgp,
-		ActiveActive:     &activeActive,
-		Sku:              expandArmVirtualNetworkGatewaySku(d),
-		IPConfigurations: expandArmVirtualNetworkGatewayIPConfigurations(d),
+		GatewayType:          gatewayType,
+		VpnType:              vpnType,
+		EnableBgp:            &enableBgp,
+		ActiveActive:         &activeActive,
+		VpnGatewayGeneration: generation,
+		Sku:                  expandArmVirtualNetworkGatewaySku(d),
+		IPConfigurations:     expandArmVirtualNetworkGatewayIPConfigurations(d),
 	}
 
 	if gatewayDefaultSiteID := d.Get("default_local_network_gateway_id").(string); gatewayDefaultSiteID != "" {
@@ -451,9 +468,16 @@ func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Vir
 		}
 	}
 
-	// Sku validation for route-based VPN gateways
-	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.RouteBased {
-		if ok, err := evaluateSchemaValidateFunc(string(props.Sku.Name), "sku", validateArmVirtualNetworkGatewayRouteBasedVpnSku()); !ok {
+	// Sku validation for route-based VPN gateways of first geneneration
+	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.RouteBased && props.VpnGatewayGeneration == network.VpnGatewayGenerationGeneration1 {
+		if ok, err := evaluateSchemaValidateFunc(string(props.Sku.Name), "sku", validateArmVirtualNetworkGatewayRouteBasedVpnSkuGeneration1()); !ok {
+			return nil, err
+		}
+	}
+
+	// Sku validation for route-based VPN gateways of second geneneration
+	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.RouteBased && props.VpnGatewayGeneration == network.VpnGatewayGenerationGeneration2 {
+		if ok, err := evaluateSchemaValidateFunc(string(props.Sku.Name), "sku", validateArmVirtualNetworkGatewayRouteBasedVpnSkuGeneration2()); !ok {
 			return nil, err
 		}
 	}
@@ -764,7 +788,7 @@ func validateArmVirtualNetworkGatewayPolicyBasedVpnSku() schema.SchemaValidateFu
 	}, true)
 }
 
-func validateArmVirtualNetworkGatewayRouteBasedVpnSku() schema.SchemaValidateFunc {
+func validateArmVirtualNetworkGatewayRouteBasedVpnSkuGeneration1() schema.SchemaValidateFunc {
 	return validation.StringInSlice([]string{
 		string(network.VirtualNetworkGatewaySkuTierBasic),
 		string(network.VirtualNetworkGatewaySkuTierStandard),
@@ -775,6 +799,19 @@ func validateArmVirtualNetworkGatewayRouteBasedVpnSku() schema.SchemaValidateFun
 		string(network.VirtualNetworkGatewaySkuNameVpnGw1AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw2AZ),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
+	}, true)
+}
+
+func validateArmVirtualNetworkGatewayRouteBasedVpnSkuGeneration2() schema.SchemaValidateFunc {
+	return validation.StringInSlice([]string{
+		string(network.VirtualNetworkGatewaySkuNameVpnGw2),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw3),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw4),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw5),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw2AZ),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw3AZ),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw4AZ),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw5AZ),
 	}, true)
 }
 

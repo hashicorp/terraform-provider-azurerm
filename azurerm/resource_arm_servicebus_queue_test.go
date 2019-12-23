@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,12 +19,12 @@ func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusQueue_basic(ri, testLocation()),
+				Config: testAccAzureRMServiceBusQueue_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enable_express", "false"),
@@ -46,12 +48,12 @@ func TestAccAzureRMServiceBusQueue_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusQueue_basic(ri, testLocation()),
+				Config: testAccAzureRMServiceBusQueue_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enable_express", "false"),
@@ -59,8 +61,8 @@ func TestAccAzureRMServiceBusQueue_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMServiceBusQueue_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_service_fabric_cluster"),
+				Config:      testAccAzureRMServiceBusQueue_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_service_fabric_cluster"),
 			},
 		},
 	})
@@ -69,13 +71,13 @@ func TestAccAzureRMServiceBusQueue_requiresImport(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMServiceBusQueue_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusQueue_update(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -104,13 +106,13 @@ func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMServiceBusQueue_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusQueue_enablePartitioningStandard(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -135,11 +137,11 @@ func TestAccAzureRMServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusQueue_Premium(ri, testLocation())
+	config := testAccAzureRMServiceBusQueue_Premium(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -162,13 +164,13 @@ func TestAccAzureRMServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T
 func TestAccAzureRMServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMServiceBusQueue_basic(ri, location)
 	postConfig := testAccAzureRMServiceBusQueue_enableDuplicateDetection(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -195,12 +197,12 @@ func TestAccAzureRMServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 
 func TestAccAzureRMServiceBusQueue_enableRequiresSession(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
-	location := testLocation()
+	location := acceptance.Location()
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -227,12 +229,12 @@ func TestAccAzureRMServiceBusQueue_enableRequiresSession(t *testing.T) {
 
 func TestAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
-	location := testLocation()
+	location := acceptance.Location()
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -260,14 +262,14 @@ func TestAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *tes
 func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	config := testAccAzureRMServiceBusQueue_lockDuration(ri, location)
 	updatedConfig := testAccAzureRMServiceBusQueue_lockDurationUpdated(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -296,11 +298,11 @@ func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMServiceBusQueue_isoTimeSpanAttributes(ri, testLocation())
+	config := testAccAzureRMServiceBusQueue_isoTimeSpanAttributes(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -324,12 +326,12 @@ func TestAccAzureRMServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 
 func TestAccAzureRMServiceBusQueue_maxDeliveryCount(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
-	location := testLocation()
+	location := acceptance.Location()
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -355,8 +357,8 @@ func TestAccAzureRMServiceBusQueue_maxDeliveryCount(t *testing.T) {
 }
 
 func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).ServiceBus.QueuesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_queue" {
@@ -398,8 +400,8 @@ func testCheckAzureRMServiceBusQueueExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for queue: %s", queueName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).ServiceBus.QueuesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, queueName)
 		if err != nil {

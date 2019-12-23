@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -71,11 +73,11 @@ func TestAccAzureRMAppConfigurationName_validation(t *testing.T) {
 func TestAccAzureAppConfiguration_free(t *testing.T) {
 	rn := "azurerm_app_configuration.test"
 	ri := tf.AccRandTimeInt()
-	l := testLocation()
+	l := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -96,11 +98,11 @@ func TestAccAzureAppConfiguration_free(t *testing.T) {
 func TestAccAzureAppConfiguration_standard(t *testing.T) {
 	rn := "azurerm_app_configuration.test"
 	ri := tf.AccRandTimeInt()
-	l := testLocation()
+	l := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -126,11 +128,11 @@ func TestAccAzureAppConfiguration_requiresImport(t *testing.T) {
 
 	rn := "azurerm_app_configuration.test"
 	ri := tf.AccRandTimeInt()
-	l := testLocation()
+	l := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -141,7 +143,7 @@ func TestAccAzureAppConfiguration_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureAppConfiguration_requiresImport(ri, l),
-				ExpectError: testRequiresImportError("azurerm_app_configuration"),
+				ExpectError: acceptance.RequiresImportError("azurerm_app_configuration"),
 			},
 		},
 	})
@@ -152,12 +154,12 @@ func TestAccAzureAppConfiguration_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureAppConfiguration_complete(ri, testLocation()),
+				Config: testAccAzureAppConfiguration_complete(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureAppConfigurationExists(rn),
 				),
@@ -174,11 +176,11 @@ func TestAccAzureAppConfiguration_complete(t *testing.T) {
 func TestAccAzureAppConfiguration_update(t *testing.T) {
 	rn := "azurerm_app_configuration.test"
 	ri := tf.AccRandTimeInt()
-	l := testLocation()
+	l := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -198,8 +200,8 @@ func TestAccAzureAppConfiguration_update(t *testing.T) {
 }
 
 func testCheckAzureAppConfigurationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).AppConfiguration.AppConfigurationsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppConfiguration.AppConfigurationsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_configuration" {
@@ -236,8 +238,8 @@ func testCheckAzureAppConfigurationExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for App Configuration: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).AppConfiguration.AppConfigurationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppConfiguration.AppConfigurationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {

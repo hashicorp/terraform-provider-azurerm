@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -15,11 +17,11 @@ import (
 func TestAccProximityPlacementGroup_basic(t *testing.T) {
 	resourceName := "azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccProximityPlacementGroup_basic(ri, testLocation())
+	config := testAccProximityPlacementGroup_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,11 +47,11 @@ func TestAccProximityPlacementGroup_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -60,7 +62,7 @@ func TestAccProximityPlacementGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccProximityPlacementGroup_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_proximity_placement_group"),
+				ExpectError: acceptance.RequiresImportError("azurerm_proximity_placement_group"),
 			},
 		},
 	})
@@ -69,11 +71,11 @@ func TestAccProximityPlacementGroup_requiresImport(t *testing.T) {
 func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 	resourceName := "azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccProximityPlacementGroup_basic(ri, testLocation())
+	config := testAccProximityPlacementGroup_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -91,13 +93,13 @@ func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 	resourceName := "azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccProximityPlacementGroup_withTags(ri, location)
 	postConfig := testAccProximityPlacementGroup_withUpdatedTags(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -140,8 +142,8 @@ func testCheckAzureRMProximityPlacementGroupExists(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for proximity placement group: %s", ppgName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.ProximityPlacementGroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ProximityPlacementGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, ppgName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -169,8 +171,8 @@ func testCheckAzureRMProximityPlacementGroupDisappears(resourceName string) reso
 			return fmt.Errorf("Bad: no resource group found in state for proximity placement group: %s", ppgName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.ProximityPlacementGroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ProximityPlacementGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Delete(ctx, resourceGroup, ppgName)
 		if err != nil {
 			if !response.WasNotFound(resp.Response) {
@@ -191,8 +193,8 @@ func testCheckAzureRMProximityPlacementGroupDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Compute.ProximityPlacementGroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ProximityPlacementGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {

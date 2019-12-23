@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,12 +17,12 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLConfigurationValue(resourceName, "on"),
 				),
@@ -31,7 +33,7 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMPostgreSQLConfiguration_empty(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLConfiguration_empty(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMPostgreSQLConfigurationValueReset(ri, "backslash_quote"),
@@ -44,13 +46,13 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 	resourceName := "azurerm_postgresql_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMPostgreSQLConfiguration_clientMinMessages(ri, location)
 	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -78,13 +80,13 @@ func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 	resourceName := "azurerm_postgresql_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(ri, location)
 	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -124,8 +126,8 @@ func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value str
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Configuration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Postgres.ConfigurationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -149,8 +151,8 @@ func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationNa
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestpsqlsvr-%d", rInt)
 
-		client := testAccProvider.Meta().(*ArmClient).Postgres.ConfigurationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
 		if err != nil {
@@ -172,8 +174,8 @@ func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationNa
 }
 
 func testCheckAzureRMPostgreSQLConfigurationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Postgres.ConfigurationsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_postgresql_configuration" {

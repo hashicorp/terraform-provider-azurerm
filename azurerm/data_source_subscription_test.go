@@ -7,14 +7,16 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
 	resourceName := "data.azurerm_subscription.current"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMSubscription_currentConfig,
@@ -34,8 +36,8 @@ func TestAccDataSourceAzureRMSubscription_specific(t *testing.T) {
 	resourceName := "data.azurerm_subscription.specific"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMSubscription_specificConfig(os.Getenv("ARM_SUBSCRIPTION_ID")),
@@ -63,7 +65,7 @@ func testCheckAzureRMSubscriptionId(resourceName string) resource.TestCheckFunc 
 
 		attributeName := "subscription_id"
 		subscriptionId := rs.Primary.Attributes[attributeName]
-		client := testAccProvider.Meta().(*ArmClient)
+		client := acceptance.AzureProvider.Meta().(*clients.Client)
 		if subscriptionId != client.Account.SubscriptionId {
 			return fmt.Errorf("%s: Attribute '%s' expected \"%s\", got \"%s\"", resourceName, attributeName, client.Account.SubscriptionId, subscriptionId)
 		}

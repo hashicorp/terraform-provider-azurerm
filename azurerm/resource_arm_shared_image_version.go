@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -82,6 +83,13 @@ func resourceArmSharedImageVersion() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
+
+						"storage_account_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
 					},
 				},
 			},
@@ -98,8 +106,8 @@ func resourceArmSharedImageVersion() *schema.Resource {
 }
 
 func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.GalleryImageVersionsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	imageVersion := d.Get("name").(string)
@@ -162,8 +170,8 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.GalleryImageVersionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -216,8 +224,8 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmSharedImageVersionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.GalleryImageVersionsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -256,10 +264,12 @@ func expandSharedImageVersionTargetRegions(d *schema.ResourceData) *[]compute.Ta
 
 		name := input["name"].(string)
 		regionalReplicaCount := input["regional_replica_count"].(int)
+		storageAccountType := input["storage_account_type"].(string)
 
 		output := compute.TargetRegion{
 			Name:                 utils.String(name),
 			RegionalReplicaCount: utils.Int32(int32(regionalReplicaCount)),
+			StorageAccountType:   compute.StorageAccountType(storageAccountType),
 		}
 		results = append(results, output)
 	}
@@ -281,6 +291,8 @@ func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []int
 			if v.RegionalReplicaCount != nil {
 				output["regional_replica_count"] = int(*v.RegionalReplicaCount)
 			}
+
+			output["storage_account_type"] = string(v.StorageAccountType)
 
 			results = append(results, output)
 		}

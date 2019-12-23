@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
 )
@@ -17,12 +19,12 @@ import (
 func TestAccAzureRMTableEntity_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_table_entity.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -48,12 +50,12 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_table_entity.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -64,7 +66,7 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMTableEntity_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_storage_table_entity"),
+				ExpectError: acceptance.RequiresImportError("azurerm_storage_table_entity"),
 			},
 		},
 	})
@@ -73,12 +75,12 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 func TestAccAzureRMTableEntity_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_table_entity.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -120,8 +122,8 @@ func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFu
 		partitionKey := rs.Primary.Attributes["partition_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -165,8 +167,8 @@ func testCheckAzureRMTableEntityDestroy(s *terraform.State) error {
 		partitionKey := rs.Primary.Attributes["parititon_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

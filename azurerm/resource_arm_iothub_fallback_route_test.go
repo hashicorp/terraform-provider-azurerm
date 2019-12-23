@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -19,12 +21,12 @@ func TestAccAzureRMIotHubFallbackRoute_basic(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubFallbackRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(rInt, rs, testLocation()),
+				Config: testAccAzureRMIotHubFallbackRoute_basic(rInt, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubFallbackRouteExists(resourceName),
 				),
@@ -46,12 +48,12 @@ func TestAccAzureRMIotHubFallbackRoute_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_iothub_fallback_route.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -62,7 +64,7 @@ func TestAccAzureRMIotHubFallbackRoute_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubFallbackRoute_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_iothub_fallback_route"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_fallback_route"),
 			},
 		},
 	})
@@ -74,12 +76,12 @@ func TestAccAzureRMIotHubFallbackRoute_update(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMIotHubFallbackRouteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubFallbackRoute_basic(rInt, rs, testLocation()),
+				Config: testAccAzureRMIotHubFallbackRoute_basic(rInt, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubFallbackRouteExists(resourceName),
 				),
@@ -90,7 +92,7 @@ func TestAccAzureRMIotHubFallbackRoute_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMIotHubFallbackRoute_update(rInt, rs, testLocation()),
+				Config: testAccAzureRMIotHubFallbackRoute_update(rInt, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubFallbackRouteExists(resourceName),
 				),
@@ -105,8 +107,8 @@ func TestAccAzureRMIotHubFallbackRoute_update(t *testing.T) {
 }
 
 func testCheckAzureRMIotHubFallbackRouteDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothub_fallback_route" {
@@ -136,7 +138,7 @@ func testCheckAzureRMIotHubFallbackRouteDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -149,7 +151,7 @@ func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.Tes
 		iothubName := parsedIothubId.Path["IotHubs"]
 		resourceGroup := parsedIothubId.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {

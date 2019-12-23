@@ -18,6 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/client"
@@ -623,8 +624,8 @@ func resourceArmVirtualMachine() *schema.Resource {
 }
 
 func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.VMClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.VMClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine creation.")
@@ -788,8 +789,8 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
-	vmclient := meta.(*ArmClient).Compute.VMClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	vmclient := meta.(*clients.Client).Compute.VMClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -918,8 +919,8 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.VMClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.VMClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -951,7 +952,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	deleteDataDisks := d.Get("delete_data_disks_on_termination").(bool)
 
 	if deleteOsDisk || deleteDataDisks {
-		storageClient := meta.(*ArmClient).Storage
+		storageClient := meta.(*clients.Client).Storage
 
 		props := virtualMachine.VirtualMachineProperties
 		if props == nil {
@@ -1063,8 +1064,8 @@ func resourceArmVirtualMachineDeleteManagedDisk(d *schema.ResourceData, disk *co
 	}
 	managedDiskID := *disk.ID
 
-	client := meta.(*ArmClient).Compute.DisksClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.DisksClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(managedDiskID)
@@ -1941,8 +1942,8 @@ func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
 }
 
 func resourceArmVirtualMachineGetManagedDiskInfo(d *schema.ResourceData, disk *compute.ManagedDiskParameters, meta interface{}) (*compute.Disk, error) {
-	client := meta.(*ArmClient).Compute.DisksClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.DisksClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if disk == nil || disk.ID == nil {
@@ -1965,8 +1966,8 @@ func resourceArmVirtualMachineGetManagedDiskInfo(d *schema.ResourceData, disk *c
 	return &diskResp, nil
 }
 func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, props *compute.VirtualMachineProperties) (string, error) {
-	nicClient := meta.(*ArmClient).Network.InterfacesClient
-	pipClient := meta.(*ArmClient).Network.PublicIPsClient
+	nicClient := meta.(*clients.Client).Network.InterfacesClient
+	pipClient := meta.(*clients.Client).Network.PublicIPsClient
 
 	if props == nil {
 		return "", nil

@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
@@ -26,8 +27,8 @@ func resourceArmStorageDataLakeGen2FileSystem() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-				storageClients := meta.(*ArmClient).Storage
-				ctx, cancel := context.WithTimeout(meta.(*ArmClient).StopContext, 5*time.Minute)
+				storageClients := meta.(*clients.Client).Storage
+				ctx, cancel := context.WithTimeout(meta.(*clients.Client).StopContext, 5*time.Minute)
 				defer cancel()
 
 				id, err := filesystems.ParseResourceID(d.Id())
@@ -73,9 +74,9 @@ func resourceArmStorageDataLakeGen2FileSystem() *schema.Resource {
 }
 
 func resourceArmStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta interface{}) error {
-	accountsClient := meta.(*ArmClient).Storage.AccountsClient
-	client := meta.(*ArmClient).Storage.FileSystemsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	accountsClient := meta.(*clients.Client).Storage.AccountsClient
+	client := meta.(*clients.Client).Storage.FileSystemsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	storageID, err := parsers.ParseAccountID(d.Get("storage_account_id").(string))
@@ -125,9 +126,9 @@ func resourceArmStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta
 }
 
 func resourceArmStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta interface{}) error {
-	accountsClient := meta.(*ArmClient).Storage.AccountsClient
-	client := meta.(*ArmClient).Storage.FileSystemsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	accountsClient := meta.(*clients.Client).Storage.AccountsClient
+	client := meta.(*clients.Client).Storage.FileSystemsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := filesystems.ParseResourceID(d.Id())
@@ -165,8 +166,8 @@ func resourceArmStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Storage.FileSystemsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Storage.FileSystemsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := filesystems.ParseResourceID(d.Id())
@@ -196,8 +197,8 @@ func resourceArmStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta i
 }
 
 func resourceArmStorageDataLakeGen2FileSystemDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Storage.FileSystemsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Storage.FileSystemsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := filesystems.ParseResourceID(d.Id())

@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -69,10 +70,10 @@ func resourceArmIotHubEndpointServiceBusTopic() *schema.Resource {
 }
 
 func resourceArmIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).IoTHub.ResourceClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	subscriptionID := meta.(*ArmClient).Account.SubscriptionId
+	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 
 	iothubName := d.Get("iothub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -151,8 +152,8 @@ func resourceArmIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData
 }
 
 func resourceArmIotHubEndpointServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).IoTHub.ResourceClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
@@ -192,8 +193,8 @@ func resourceArmIotHubEndpointServiceBusTopicRead(d *schema.ResourceData, meta i
 }
 
 func resourceArmIotHubEndpointServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).IoTHub.ResourceClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())

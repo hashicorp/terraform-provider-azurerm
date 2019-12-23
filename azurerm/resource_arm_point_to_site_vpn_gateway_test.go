@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMPointToSiteVPNGateway_basic(t *testing.T) {
 	resourceName := "azurerm_point_to_site_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,11 +46,11 @@ func TestAccAzureRMPointToSiteVPNGateway_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_point_to_site_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +61,7 @@ func TestAccAzureRMPointToSiteVPNGateway_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAzureRMPointToSiteVPNGateway_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_point_to_site_vpn_gateway"),
+				ExpectError: acceptance.RequiresImportError("azurerm_point_to_site_vpn_gateway"),
 			},
 		},
 	})
@@ -68,11 +70,11 @@ func TestAccAzureRMPointToSiteVPNGateway_requiresImport(t *testing.T) {
 func TestAccAzureRMPointToSiteVPNGateway_update(t *testing.T) {
 	resourceName := "azurerm_point_to_site_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -104,11 +106,11 @@ func TestAccAzureRMPointToSiteVPNGateway_update(t *testing.T) {
 func TestAccAzureRMPointToSiteVPNGateway_tags(t *testing.T) {
 	resourceName := "azurerm_point_to_site_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -136,8 +138,8 @@ func testCheckAzureRMPointToSiteVPNGatewayExists(resourceName string) resource.T
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.PointToSiteVpnGatewaysClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PointToSiteVpnGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -157,8 +159,8 @@ func testCheckAzureRMPointToSiteVPNGatewayDestroy(s *terraform.State) error {
 			continue
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.PointToSiteVpnGatewaysClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PointToSiteVpnGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 

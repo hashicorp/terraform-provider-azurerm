@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMFrontDoorFirewallPolicy_basic(t *testing.T) {
 	resourceName := "azurerm_frontdoor_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMFrontDoorFirewallPolicy_basic(ri, testLocation())
+	config := testAccAzureRMFrontDoorFirewallPolicy_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,11 +48,11 @@ func TestAccAzureRMFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_frontdoor_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +63,7 @@ func TestAccAzureRMFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMFrontDoorFirewallPolicy_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_frontdoor_firewall_policy"),
+				ExpectError: acceptance.RequiresImportError("azurerm_frontdoor_firewall_policy"),
 			},
 		},
 	})
@@ -70,12 +72,12 @@ func TestAccAzureRMFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 func TestAccAzureRMFrontDoorFirewallPolicy_update(t *testing.T) {
 	resourceName := "azurerm_frontdoor_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMFrontDoorFirewallPolicy_update(ri, "", testLocation())
-	configUpdate := testAccAzureRMFrontDoorFirewallPolicy_update(ri, testAccAzureRMFrontDoorFirewallPolicy_updateTemplate(), testLocation())
+	config := testAccAzureRMFrontDoorFirewallPolicy_update(ri, "", acceptance.Location())
+	configUpdate := testAccAzureRMFrontDoorFirewallPolicy_update(ri, testAccAzureRMFrontDoorFirewallPolicy_updateTemplate(), acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -116,11 +118,11 @@ func TestAccAzureRMFrontDoorFirewallPolicy_update(t *testing.T) {
 func TestAccAzureRMFrontDoorFirewallPolicy_complete(t *testing.T) {
 	resourceName := "azurerm_frontdoor_firewall_policy.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMFrontDoorFirewallPolicy_update(ri, testAccAzureRMFrontDoorFirewallPolicy_updateTemplate(), testLocation())
+	config := testAccAzureRMFrontDoorFirewallPolicy_update(ri, testAccAzureRMFrontDoorFirewallPolicy_updateTemplate(), acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -156,8 +158,8 @@ func testCheckAzureRMFrontDoorFirewallPolicyExists(resourceName string) resource
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Frontdoor.FrontDoorsPolicyClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Frontdoor.FrontDoorsPolicyClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -171,8 +173,8 @@ func testCheckAzureRMFrontDoorFirewallPolicyExists(resourceName string) resource
 }
 
 func testCheckAzureRMFrontDoorFirewallPolicyDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Frontdoor.FrontDoorsPolicyClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Frontdoor.FrontDoorsPolicyClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_frontdoor_firewall_policy" {

@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -73,12 +75,12 @@ func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDatabricksWorkspace_basic(ri, testLocation()),
+				Config: testAccAzureRMDatabricksWorkspace_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDatabricksWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_resource_group_id"),
@@ -101,11 +103,11 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_databricks_workspace.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -116,7 +118,7 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDatabricksWorkspace_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_databricks_workspace"),
+				ExpectError: acceptance.RequiresImportError("azurerm_databricks_workspace"),
 			},
 		},
 	})
@@ -125,11 +127,11 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 	resourceName := "azurerm_databricks_workspace.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -175,8 +177,8 @@ func testCheckAzureRMDatabricksWorkspaceExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: No resource group found in state for Databricks Workspace: %s", workspaceName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).DataBricks.WorkspacesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).DataBricks.WorkspacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, workspaceName)
 		if err != nil {
 			return fmt.Errorf("Bad: Getting Workspace: %+v", err)
@@ -191,8 +193,8 @@ func testCheckAzureRMDatabricksWorkspaceExists(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).DataBricks.WorkspacesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).DataBricks.WorkspacesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_databricks_workspace" {

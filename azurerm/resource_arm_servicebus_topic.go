@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -130,8 +131,8 @@ func resourceArmServiceBusTopic() *schema.Resource {
 }
 
 func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ServiceBus.TopicsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ServiceBus.TopicsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ServiceBus Topic creation.")
 
@@ -203,8 +204,8 @@ func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ServiceBus.TopicsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ServiceBus.TopicsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -249,7 +250,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 			// if the topic is in a premium namespace and partitioning is enabled then the
 			// max size returned by the API will be 16 times greater than the value set
 			if partitioning := props.EnablePartitioning; partitioning != nil && *partitioning {
-				namespacesClient := meta.(*ArmClient).ServiceBus.NamespacesClient
+				namespacesClient := meta.(*clients.Client).ServiceBus.NamespacesClient
 				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 				if err != nil {
 					return err
@@ -269,8 +270,8 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ServiceBus.TopicsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).ServiceBus.TopicsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

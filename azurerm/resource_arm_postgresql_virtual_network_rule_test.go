@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -18,12 +20,12 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_basic(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLVirtualNetworkRuleExists(resourceName),
 				),
@@ -47,19 +49,19 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_basic(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLVirtualNetworkRuleExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMPostgreSQLVirtualNetworkRule_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_postgresql_virtual_network_rule"),
+				Config:      testAccAzureRMPostgreSQLVirtualNetworkRule_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_postgresql_virtual_network_rule"),
 			},
 		},
 	})
@@ -69,16 +71,16 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 	resourceName := "azurerm_postgresql_virtual_network_rule.test"
 	ri := tf.AccRandTimeInt()
 
-	preConfig := testAccAzureRMPostgreSQLVirtualNetworkRule_subnetSwitchPre(ri, testLocation())
-	postConfig := testAccAzureRMPostgreSQLVirtualNetworkRule_subnetSwitchPost(ri, testLocation())
+	preConfig := testAccAzureRMPostgreSQLVirtualNetworkRule_subnetSwitchPre(ri, acceptance.Location())
+	postConfig := testAccAzureRMPostgreSQLVirtualNetworkRule_subnetSwitchPost(ri, acceptance.Location())
 
 	// Create regex strings that will ensure that one subnet name exists, but not the other
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", ri, ri))  //subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", ri, ri)) //subnet 2 but not 1
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -102,11 +104,11 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 func TestAccAzureRMPostgreSQLVirtualNetworkRule_disappears(t *testing.T) {
 	resourceName := "azurerm_postgresql_virtual_network_rule.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPostgreSQLVirtualNetworkRule_basic(ri, testLocation())
+	config := testAccAzureRMPostgreSQLVirtualNetworkRule_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -126,11 +128,11 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	resourceName2 := "azurerm_postgresql_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_postgresql_virtual_network_rule.rule3"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPostgreSQLVirtualNetworkRule_multipleSubnets(ri, testLocation())
+	config := testAccAzureRMPostgreSQLVirtualNetworkRule_multipleSubnets(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -148,11 +150,11 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 func TestAccAzureRMPostgreSQLVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	resourceName := "azurerm_postgresql_virtual_network_rule.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPostgreSQLVirtualNetworkRule_ignoreEndpointValid(ri, testLocation())
+	config := testAccAzureRMPostgreSQLVirtualNetworkRule_ignoreEndpointValid(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -177,8 +179,8 @@ func testCheckAzureRMPostgreSQLVirtualNetworkRuleExists(resourceName string) res
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Postgres.VirtualNetworkRulesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -203,8 +205,8 @@ func testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy(s *terraform.State) err
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Postgres.VirtualNetworkRulesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -233,8 +235,8 @@ func testCheckAzureRMPostgreSQLVirtualNetworkRuleDisappears(resourceName string)
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Postgres.VirtualNetworkRulesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {

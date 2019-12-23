@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -18,12 +20,12 @@ func TestAccAzureRMIotHubEndpointStorageContainer_basic(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testAccAzureRMIotHubEndpointStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubEndpointStorageContainer_basic(rInt, testLocation()),
+				Config: testAccAzureRMIotHubEndpointStorageContainer_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testAccAzureRMIotHubEndpointStorageContainerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "file_name_format", "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"),
@@ -48,11 +50,11 @@ func TestAccAzureRMIotHubEndpointStorageContainer_requiresImport(t *testing.T) {
 	}
 	resourceName := "azurerm_iothub_endpoint_storage_container.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testAccAzureRMIotHubEndpointStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -63,7 +65,7 @@ func TestAccAzureRMIotHubEndpointStorageContainer_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMIotHubEndpointStorageContainer_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_iothub_endpoint_storage_container"),
+				ExpectError: acceptance.RequiresImportError("azurerm_iothub_endpoint_storage_container"),
 			},
 		},
 	})
@@ -146,7 +148,7 @@ resource "azurerm_iothub_endpoint_storage_container" "import" {
 
 func testAccAzureRMIotHubEndpointStorageContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -161,7 +163,7 @@ func testAccAzureRMIotHubEndpointStorageContainerExists(resourceName string) res
 		iothubName := parsedIothubId.Path["IotHubs"]
 		endpointName := parsedIothubId.Path["Endpoints"]
 		resourceGroup := parsedIothubId.ResourceGroup
-		client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if utils.ResponseWasNotFound(iothub.Response) {
@@ -193,8 +195,8 @@ func testAccAzureRMIotHubEndpointStorageContainerExists(resourceName string) res
 }
 
 func testAccAzureRMIotHubEndpointStorageContainerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothub_endpoint_storage_container" {

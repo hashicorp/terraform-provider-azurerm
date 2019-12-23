@@ -12,10 +12,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	computeSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +28,13 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 		Read:   resourceArmLinuxVirtualMachineScaleSetRead,
 		Update: resourceArmLinuxVirtualMachineScaleSetUpdate,
 		Delete: resourceArmLinuxVirtualMachineScaleSetDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := computeSvc.ParseVirtualMachineScaleSetID(id)
+			// TODO: (prior to Beta) look up the VM & confirm this is a Linux VMSS
+			return err
+		}),
+
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(time.Minute * 30),
 			Update: schema.DefaultTimeout(time.Minute * 60),
@@ -267,8 +273,8 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 }
 
 func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.VMScaleSetClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -502,27 +508,24 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 }
 
 func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.VMScaleSetClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := computeSvc.ParseVirtualMachineScaleSetResourceID(d.Id())
+	id, err := computeSvc.ParseVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.Name
-	resourceGroup := id.Base.ResourceGroup
-
 	updateInstances := false
 
 	// retrieve
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if existing.VirtualMachineScaleSetProperties == nil {
-		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", name, resourceGroup)
+		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
 
 	updateProps := compute.VirtualMachineScaleSetUpdateProperties{
@@ -699,26 +702,26 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 
 	update.VirtualMachineScaleSetUpdateProperties = &updateProps
 
-	log.Printf("[DEBUG] Updating Linux Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-	future, err := client.Update(ctx, resourceGroup, name, update)
+	log.Printf("[DEBUG] Updating Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
 	if err != nil {
-		return fmt.Errorf("Error updating Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error updating Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for update of Linux Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for update of Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for update of Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	log.Printf("[DEBUG] Updated Linux Virtual Machine Scale Set %q (Resource Group %q).", name, resourceGroup)
+	log.Printf("[DEBUG] Updated Linux Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	// if we update the SKU, we also need to subsequently roll the instances using the `UpdateInstances` API
 	if updateInstances {
 		if userWantsToRollInstances := d.Get("terraform_should_roll_instances_when_required").(bool); userWantsToRollInstances {
-			log.Printf("[DEBUG] Rolling the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-			instancesClient := meta.(*ArmClient).Compute.VMScaleSetVMsClient
-			instances, err := instancesClient.ListComplete(ctx, resourceGroup, name, "", "", "")
+			log.Printf("[DEBUG] Rolling the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+			instancesClient := meta.(*clients.Client).Compute.VMScaleSetVMsClient
+			instances, err := instancesClient.ListComplete(ctx, id.ResourceGroup, id.Name, "", "", "")
 			if err != nil {
-				return fmt.Errorf("Error listing VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("Error listing VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			log.Printf("[DEBUG] Determining instances to roll..")
@@ -746,13 +749,13 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 				ids := compute.VirtualMachineScaleSetVMInstanceRequiredIDs{
 					InstanceIds: &instanceIds,
 				}
-				future, err := client.UpdateInstances(ctx, resourceGroup, name, ids)
+				future, err := client.UpdateInstances(ctx, id.ResourceGroup, id.Name, ids)
 				if err != nil {
-					return fmt.Errorf("Error updating Instance %q (Linux VM Scale Set %q / Resource Group %q) to the Latest Configuration: %+v", instanceId, name, resourceGroup, err)
+					return fmt.Errorf("Error updating Instance %q (Linux VM Scale Set %q / Resource Group %q) to the Latest Configuration: %+v", instanceId, id.Name, id.ResourceGroup, err)
 				}
 
 				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("Error waiting for update of Instance %q (Linux VM Scale Set %q / Resource Group %q) to the Latest Configuration: %+v", instanceId, name, resourceGroup, err)
+					return fmt.Errorf("Error waiting for update of Instance %q (Linux VM Scale Set %q / Resource Group %q) to the Latest Configuration: %+v", instanceId, id.Name, id.ResourceGroup, err)
 				}
 				log.Printf("[DEBUG] Updated Instance %q to the Latest Configuration.", instanceId)
 
@@ -761,20 +764,20 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 				reimageInput := &compute.VirtualMachineScaleSetReimageParameters{
 					InstanceIds: &instanceIds,
 				}
-				reimageFuture, err := client.Reimage(ctx, resourceGroup, name, reimageInput)
+				reimageFuture, err := client.Reimage(ctx, id.ResourceGroup, id.Name, reimageInput)
 				if err != nil {
-					return fmt.Errorf("Error reimaging Instance %q (Linux VM Scale Set %q / Resource Group %q): %+v", instanceId, name, resourceGroup, err)
+					return fmt.Errorf("Error reimaging Instance %q (Linux VM Scale Set %q / Resource Group %q): %+v", instanceId, id.Name, id.ResourceGroup, err)
 				}
 
 				if err = reimageFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("Error waiting for reimage of Instance %q (Linux VM Scale Set %q / Resource Group %q): %+v", instanceId, name, resourceGroup, err)
+					return fmt.Errorf("Error waiting for reimage of Instance %q (Linux VM Scale Set %q / Resource Group %q): %+v", instanceId, id.Name, id.ResourceGroup, err)
 				}
 				log.Printf("[DEBUG] Reimaged Instance %q..", instanceId)
 			}
 
-			log.Printf("[DEBUG] Rolled the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q).", name, resourceGroup)
+			log.Printf("[DEBUG] Rolled the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
 		} else {
-			log.Printf("[DEBUG] Terraform wants to roll the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q) - but user has opted out - skipping..", name, resourceGroup)
+			log.Printf("[DEBUG] Terraform wants to roll the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q) - but user has opted out - skipping..", id.Name, id.ResourceGroup)
 		}
 	}
 
@@ -782,31 +785,28 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.VMScaleSetClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := computeSvc.ParseVirtualMachineScaleSetResourceID(d.Id())
+	id, err := computeSvc.ParseVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.Name
-	resourceGroup := id.Base.ResourceGroup
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Linux Virtual Machine Scale Set %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] Linux Virtual Machine Scale Set %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -831,7 +831,7 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 	}
 
 	if resp.VirtualMachineScaleSetProperties == nil {
-		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", name, resourceGroup)
+		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
 	props := *resp.VirtualMachineScaleSetProperties
 
@@ -944,25 +944,22 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 }
 
 func resourceArmLinuxVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.VMScaleSetClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.VMScaleSetClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := computeSvc.ParseVirtualMachineScaleSetResourceID(d.Id())
+	id, err := computeSvc.ParseVirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.Name
-	resourceGroup := id.Base.ResourceGroup
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	// Sometimes VMSS's aren't fully deleted when the `Delete` call returns - as such we'll try to scale the cluster
@@ -978,32 +975,32 @@ func resourceArmLinuxVirtualMachineScaleSetDelete(d *schema.ResourceData, meta i
 		update := compute.VirtualMachineScaleSetUpdate{
 			Sku: resp.Sku,
 		}
-		future, err := client.Update(ctx, resourceGroup, name, update)
+		future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
 		if err != nil {
-			return fmt.Errorf("Error updating number of instances in Linux Virtual Machine Scale Set %q (Resource Group %q) to scale to 0: %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error updating number of instances in Linux Virtual Machine Scale Set %q (Resource Group %q) to scale to 0: %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Waiting for scaling of instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 		err = future.WaitForCompletionRef(ctx, client.Client)
 		if err != nil {
-			return fmt.Errorf("Error waiting for number of instances in Linux Virtual Machine Scale Set %q (Resource Group %q) to scale to 0: %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for number of instances in Linux Virtual Machine Scale Set %q (Resource Group %q) to scale to 0: %+v", id.Name, id.ResourceGroup, err)
 		}
 		log.Printf("[DEBUG] Scaled instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 	} else {
 		log.Printf("[DEBUG] Unable to scale instances to `0` since the `sku` block is nil - trying to delete anyway")
 	}
 
-	log.Printf("[DEBUG] Deleting Linux Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-	future, err := client.Delete(ctx, resourceGroup, name)
+	log.Printf("[DEBUG] Deleting Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for deletion of Linux Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for deletion of Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	log.Printf("[DEBUG] Deleted Linux Virtual Machine Scale Set %q (Resource Group %q).", name, resourceGroup)
+	log.Printf("[DEBUG] Deleted Linux Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	return nil
 }

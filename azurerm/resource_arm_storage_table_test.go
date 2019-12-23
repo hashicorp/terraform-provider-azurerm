@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -18,11 +20,11 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
+	config := testAccAzureRMStorageTable_basic(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -50,11 +52,11 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -65,7 +67,7 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMStorageTable_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_storage_table"),
+				ExpectError: acceptance.RequiresImportError("azurerm_storage_table"),
 			},
 		},
 	})
@@ -74,11 +76,11 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
+	config := testAccAzureRMStorageTable_basic(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -96,12 +98,12 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 func TestAccAzureRMStorageTable_acl(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 	resourceName := "azurerm_storage_table.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -140,8 +142,8 @@ func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckF
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -179,8 +181,8 @@ func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFun
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -221,8 +223,8 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).Storage
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

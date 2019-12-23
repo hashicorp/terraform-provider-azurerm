@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -15,11 +17,11 @@ import (
 func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 	resourceName := "azurerm_cognitive_account.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCognitiveAccount_basic(ri, testLocation())
+	config := testAccAzureRMCognitiveAccount_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,11 +46,11 @@ func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
 	resourceName := "azurerm_cognitive_account.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCognitiveAccount_speechServices(ri, testLocation())
+	config := testAccAzureRMCognitiveAccount_speechServices(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -78,11 +80,11 @@ func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_cognitive_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -93,7 +95,7 @@ func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMCognitiveAccount_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_cognitive_account"),
+				ExpectError: acceptance.RequiresImportError("azurerm_cognitive_account"),
 			},
 		},
 	})
@@ -102,11 +104,11 @@ func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
 func TestAccAzureRMCognitiveAccount_complete(t *testing.T) {
 	resourceName := "azurerm_cognitive_account.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMCognitiveAccount_complete(ri, testLocation())
+	config := testAccAzureRMCognitiveAccount_complete(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -132,11 +134,11 @@ func TestAccAzureRMCognitiveAccount_complete(t *testing.T) {
 func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 	resourceName := "azurerm_cognitive_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -165,8 +167,8 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 }
 
 func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Cognitive.AccountsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Cognitive.AccountsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cognitive_account" {
@@ -200,8 +202,8 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).Cognitive.AccountsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cognitive.AccountsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.GetProperties(ctx, resourceGroup, name)
 		if err != nil {

@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -123,6 +124,17 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
+			},
+
+			"connection_protocol": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.IKEv1),
+					string(network.IKEv2),
+				}, false),
 			},
 
 			"ipsec_policy": {
@@ -243,8 +255,8 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 }
 
 func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VnetGatewayConnectionsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway Connection creation.")
@@ -303,8 +315,8 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 }
 
 func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VnetGatewayConnectionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayConnectionFromId(d.Id())
@@ -369,6 +381,8 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		d.Set("shared_key", conn.SharedKey)
 	}
 
+	d.Set("connection_protocol", string(conn.ConnectionProtocol))
+
 	if conn.ExpressRouteGatewayBypass != nil {
 		d.Set("express_route_gateway_bypass", conn.ExpressRouteGatewayBypass)
 	}
@@ -385,8 +399,8 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 }
 
 func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VnetGatewayConnectionsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.VnetGatewayConnectionsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayConnectionFromId(d.Id())
@@ -484,6 +498,11 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 
 	if v, ok := d.GetOk("shared_key"); ok {
 		props.SharedKey = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("connection_protocol"); ok {
+		connectionProtocol := v.(string)
+		props.ConnectionProtocol = network.VirtualNetworkGatewayConnectionProtocol(connectionProtocol)
 	}
 
 	if v, ok := d.GetOk("ipsec_policy"); ok {

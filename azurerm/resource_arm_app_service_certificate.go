@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -118,9 +119,9 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 }
 
 func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
-	client := meta.(*ArmClient).Web.CertificatesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	client := meta.(*clients.Client).Web.CertificatesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
@@ -204,8 +205,8 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.CertificatesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.CertificatesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := webSvc.ParseAppServiceCertificateID(d.Id())
@@ -213,7 +214,7 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, name)
@@ -247,8 +248,8 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.CertificatesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.CertificatesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := webSvc.ParseAppServiceCertificateID(d.Id())
@@ -256,7 +257,7 @@ func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Name
 
 	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", name, resourceGroup)

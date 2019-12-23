@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -79,11 +81,11 @@ func TestAccAzureRMContainerService_agentProfilePoolCountValidation(t *testing.T
 
 func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMContainerService_dcosBasic(ri, testLocation())
+	config := testAccAzureRMContainerService_dcosBasic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -103,11 +105,11 @@ func TestAccAzureRMContainerService_requiresImport(t *testing.T) {
 	}
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -118,7 +120,7 @@ func TestAccAzureRMContainerService_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMContainerService_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_container_service"),
+				ExpectError: acceptance.RequiresImportError("azurerm_container_service"),
 			},
 		},
 	})
@@ -128,11 +130,11 @@ func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMContainerService_kubernetesBasic(ri, clientId, clientSecret, testLocation())
+	config := testAccAzureRMContainerService_kubernetesBasic(ri, clientId, clientSecret, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -149,11 +151,11 @@ func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMContainerService_kubernetesComplete(ri, clientId, clientSecret, testLocation())
+	config := testAccAzureRMContainerService_kubernetesComplete(ri, clientId, clientSecret, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -168,11 +170,11 @@ func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 
 func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMContainerService_swarmBasic(ri, testLocation())
+	config := testAccAzureRMContainerService_swarmBasic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -411,8 +413,8 @@ func testCheckAzureRMContainerServiceExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Container Service Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).Containers.ServicesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.ServicesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -428,7 +430,7 @@ func testCheckAzureRMContainerServiceExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMContainerServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).Containers.ServicesClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.ServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_service" {
@@ -437,7 +439,7 @@ func testCheckAzureRMContainerServiceDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 

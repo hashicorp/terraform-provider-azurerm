@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -15,11 +16,11 @@ func TestAccAzureRMHDInsightHadoopCluster_basic(t *testing.T) {
 	resourceName := "azurerm_hdinsight_hadoop_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -57,11 +58,11 @@ func TestAccAzureRMHDInsightHadoopCluster_requiresImport(t *testing.T) {
 	resourceName := "azurerm_hdinsight_hadoop_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -74,7 +75,7 @@ func TestAccAzureRMHDInsightHadoopCluster_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMHDInsightHadoopCluster_requiresImport(ri, rs, location),
-				ExpectError: testRequiresImportError("azurerm_hdinsight_hadoop_cluster"),
+				ExpectError: acceptance.RequiresImportError("azurerm_hdinsight_hadoop_cluster"),
 			},
 		},
 	})
@@ -84,11 +85,11 @@ func TestAccAzureRMHDInsightHadoopCluster_update(t *testing.T) {
 	resourceName := "azurerm_hdinsight_hadoop_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -143,11 +144,11 @@ func TestAccAzureRMHDInsightHadoopCluster_sshKeys(t *testing.T) {
 	resourceName := "azurerm_hdinsight_hadoop_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -180,11 +181,11 @@ func TestAccAzureRMHDInsightHadoopCluster_virtualNetwork(t *testing.T) {
 	resourceName := "azurerm_hdinsight_hadoop_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -217,11 +218,11 @@ func TestAccAzureRMHDInsightHadoopCluster_complete(t *testing.T) {
 	resourceName := "azurerm_hdinsight_hadoop_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -254,11 +255,11 @@ func TestAccAzureRMHDInsightHadoopCluster_edgeNodeBasic(t *testing.T) {
 	resourceName := "azurerm_hdinsight_hadoop_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -293,11 +294,11 @@ func TestAccAzureRMHDInsightHadoopCluster_addEdgeNodeBasic(t *testing.T) {
 	resourceName := "azurerm_hdinsight_hadoop_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -378,11 +379,11 @@ func TestAccAzureRMHDInsightHadoopCluster_gen2storage(t *testing.T) {
 	resourceName := "azurerm_hdinsight_hadoop_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{
@@ -415,11 +416,11 @@ func TestAccAzureRMHDInsightHadoopCluster_gen2AndBlobStorage(t *testing.T) {
 	resourceName := "azurerm_hdinsight_hadoop_cluster.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
 		Steps: []resource.TestStep{
 			{

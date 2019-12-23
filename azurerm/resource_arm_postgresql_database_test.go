@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -16,12 +18,12 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
@@ -42,12 +44,12 @@ func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
@@ -55,8 +57,8 @@ func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMPostgreSQLDatabase_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_postgresql_database"),
+				Config:      testAccAzureRMPostgreSQLDatabase_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_postgresql_database"),
 			},
 		},
 	})
@@ -67,12 +69,12 @@ func TestAccAzureRMPostgreSQLDatabase_collationWithHyphen(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLDatabase_collationWithHyphen(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLDatabase_collationWithHyphen(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
@@ -88,12 +90,12 @@ func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLDatabase_charsetLowercase(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLDatabase_charsetLowercase(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
@@ -109,12 +111,12 @@ func TestAccAzureRMPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPostgreSQLDatabase_charsetMixedcase(ri, testLocation()),
+				Config: testAccAzureRMPostgreSQLDatabase_charsetMixedcase(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
@@ -140,8 +142,8 @@ func testCheckAzureRMPostgreSQLDatabaseExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Database: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Postgres.DatabasesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.DatabasesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -156,8 +158,8 @@ func testCheckAzureRMPostgreSQLDatabaseExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMPostgreSQLDatabaseDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Postgres.DatabasesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.DatabasesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_postgresql_database" {

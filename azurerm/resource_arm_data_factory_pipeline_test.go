@@ -7,18 +7,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 	resourceName := "azurerm_data_factory_pipeline.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMDataFactoryPipeline_basic(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryPipelineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -39,13 +41,13 @@ func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 	resourceName := "azurerm_data_factory_pipeline.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMDataFactoryPipeline_update1(ri, location)
 	config2 := testAccAzureRMDataFactoryPipeline_update2(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDataFactoryPipelineDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -78,7 +80,7 @@ func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 }
 
 func testCheckAzureRMDataFactoryPipelineDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).DataFactory.PipelinesClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.PipelinesClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_factory_pipeline" {
 			continue
@@ -88,7 +90,7 @@ func testCheckAzureRMDataFactoryPipelineDestroy(s *terraform.State) error {
 		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 
 		if err != nil {
@@ -113,8 +115,8 @@ func testCheckAzureRMDataFactoryPipelineExists(resourceName string) resource.Tes
 		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).DataFactory.PipelinesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.PipelinesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

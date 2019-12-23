@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,11 +19,11 @@ func TestAccAzureRMBastionHost_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
-	config := testAccAzureRMBastionHost_basic(ri, rs, testLocation())
+	config := testAccAzureRMBastionHost_basic(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBastionHostDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -39,11 +41,11 @@ func TestAccAzureRMBastionHost_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
-	config := testAccAzureRMBastionHost_complete(ri, rs, testLocation())
+	config := testAccAzureRMBastionHost_complete(ri, rs, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBastionHostDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -74,19 +76,19 @@ func TestAccAzureRMBastionHost_requiresImport(t *testing.T) {
 	rs := acctest.RandString(4)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBastionHostDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBastionHost_basic(ri, rs, testLocation()),
+				Config: testAccAzureRMBastionHost_basic(ri, rs, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBastionHostExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMBastionHost_requiresImport(ri, rs, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_bastion_host"),
+				Config:      testAccAzureRMBastionHost_requiresImport(ri, rs, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_bastion_host"),
 			},
 		},
 	})
@@ -202,8 +204,8 @@ resource "azurerm_bastion_host" "import" {
 
 func testCheckAzureRMBastionHostExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Network.BastionHostsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.BastionHostsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -226,8 +228,8 @@ func testCheckAzureRMBastionHostExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMBastionHostDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.BastionHostsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.BastionHostsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_bastion_host" {

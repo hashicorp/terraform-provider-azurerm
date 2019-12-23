@@ -1,13 +1,13 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -15,6 +15,13 @@ import (
 
 func dataSourceArmPrivateLinkEndpointConnection() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `The 'azurerm_private_link_endpoint_connection' resource is being deprecated in favour of the renamed version 'azurerm_private_endpoint_connection'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+
+As such the existing 'azurerm_private_link_endpoint_connection' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
+
 		Read: dataSourceArmPrivateLinkEndpointConnectionRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -61,9 +68,9 @@ func dataSourceArmPrivateLinkEndpointConnection() *schema.Resource {
 }
 
 func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.PrivateEndpointClient
-	nicsClient := meta.(*ArmClient).Network.InterfacesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.PrivateEndpointClient
+	nicsClient := meta.(*clients.Client).Network.InterfacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -104,35 +111,6 @@ func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta
 	}
 
 	return nil
-}
-
-func getPrivateIpAddress(ctx context.Context, client *network.InterfacesClient, networkInterfaceId string) string {
-	privateIpAddress := ""
-	id, err := azure.ParseAzureResourceID(networkInterfaceId)
-	if err != nil {
-		return privateIpAddress
-	}
-	name := id.Path["networkInterfaces"]
-
-	resp, err := client.Get(ctx, id.ResourceGroup, name, "")
-	if err != nil {
-		return privateIpAddress
-	}
-
-	if props := resp.InterfacePropertiesFormat; props != nil {
-		if configs := props.IPConfigurations; configs != nil {
-			for i, config := range *configs {
-				if propFmt := config.InterfaceIPConfigurationPropertiesFormat; propFmt != nil {
-					if propFmt.PrivateIPAddress != nil && *propFmt.PrivateIPAddress != "" && i == 0 {
-						privateIpAddress = *propFmt.PrivateIPAddress
-					}
-					break
-				}
-			}
-		}
-	}
-
-	return privateIpAddress
 }
 
 func dataSourceFlattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {

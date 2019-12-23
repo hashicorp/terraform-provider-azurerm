@@ -9,17 +9,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMPrivateDnsARecord_basic(t *testing.T) {
 	resourceName := "azurerm_private_dns_a_record.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMPrivateDnsARecord_basic(ri, testLocation())
+	config := testAccAzureRMPrivateDnsARecord_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -45,11 +47,11 @@ func TestAccAzureRMPrivateDnsARecord_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_private_dns_a_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -60,7 +62,7 @@ func TestAccAzureRMPrivateDnsARecord_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMPrivateDnsARecord_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_private_dns_a_record"),
+				ExpectError: acceptance.RequiresImportError("azurerm_private_dns_a_record"),
 			},
 		},
 	})
@@ -69,13 +71,13 @@ func TestAccAzureRMPrivateDnsARecord_requiresImport(t *testing.T) {
 func TestAccAzureRMPrivateDnsARecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_private_dns_a_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMPrivateDnsARecord_basic(ri, location)
 	postConfig := testAccAzureRMPrivateDnsARecord_updateRecords(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -99,13 +101,13 @@ func TestAccAzureRMPrivateDnsARecord_updateRecords(t *testing.T) {
 func TestAccAzureRMPrivateDnsARecord_withTags(t *testing.T) {
 	resourceName := "azurerm_private_dns_a_record.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMPrivateDnsARecord_withTags(ri, location)
 	postConfig := testAccAzureRMPrivateDnsARecord_withTagsUpdate(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -146,8 +148,8 @@ func testCheckAzureRMPrivateDnsARecordExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS A record: %s", aName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).PrivateDns.RecordSetsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.A, aName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get A RecordSet: %+v", err)
@@ -162,8 +164,8 @@ func testCheckAzureRMPrivateDnsARecordExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMPrivateDnsARecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).PrivateDns.RecordSetsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_private_dns_a_record" {

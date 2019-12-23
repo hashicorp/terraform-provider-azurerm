@@ -7,20 +7,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
 	dataSourceName := "data.azurerm_public_ips.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resourceConfig := testAccDataSourceAzureRMPublicIPs_prefix(ri, rs, location)
 	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_prefixDataSource(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -43,14 +44,14 @@ func TestAccDataSourceAzureRMPublicIPs_assigned(t *testing.T) {
 	unattachedDataSourceName := "data.azurerm_public_ips.unattached"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resourceConfig := testAccDataSourceAzureRMPublicIPs_attached(ri, rs, location)
 	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_attachedDataSource(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -75,14 +76,14 @@ func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 	dynamicDataSourceName := "data.azurerm_public_ips.dynamic"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(5)
-	location := testLocation()
+	location := acceptance.Location()
 
 	resourceConfig := testAccDataSourceAzureRMPublicIPs_allocationType(ri, rs, location)
 	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_allocationTypeDataSources(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{

@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -51,6 +52,17 @@ func resourceArmImage() *schema.Resource {
 				Optional: true,
 				Default:  false,
 				ForceNew: true,
+			},
+
+			"hyper_v_generation": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(compute.HyperVGenerationTypesV1),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.HyperVGenerationTypesV1),
+					string(compute.HyperVGenerationTypesV2),
+				}, false),
 			},
 
 			"source_virtual_machine_id": {
@@ -177,8 +189,8 @@ func resourceArmImage() *schema.Resource {
 }
 
 func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.ImagesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.ImagesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Image creation.")
@@ -186,6 +198,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneResilient := d.Get("zone_resilient").(bool)
+	hyperVGeneration := d.Get("hyper_v_generation").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
@@ -203,7 +216,9 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	expandedTags := tags.Expand(d.Get("tags").(map[string]interface{}))
 
-	properties := compute.ImageProperties{}
+	properties := compute.ImageProperties{
+		HyperVGeneration: compute.HyperVGenerationTypes(hyperVGeneration),
+	}
 
 	osDisk, err := expandAzureRmImageOsDisk(d)
 	if err != nil {
@@ -236,14 +251,10 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("[ERROR] Cannot create image when both source VM and storage profile are empty")
 		}
 
-		properties = compute.ImageProperties{
-			StorageProfile: &storageProfile,
-		}
+		properties.StorageProfile = &storageProfile
 	} else {
 		//creating an image from source VM
-		properties = compute.ImageProperties{
-			SourceVirtualMachine: &sourceVM,
-		}
+		properties.SourceVirtualMachine = &sourceVM
 	}
 
 	createImage := compute.Image{
@@ -276,8 +287,8 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.ImagesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.ImagesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -319,13 +330,14 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		d.Set("zone_resilient", resp.StorageProfile.ZoneResilient)
 	}
+	d.Set("hyper_v_generation", string(resp.HyperVGeneration))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Compute.ImagesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Compute.ImagesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

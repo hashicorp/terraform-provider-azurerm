@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	networkSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -91,8 +92,8 @@ func resourceArmVirtualWan() *schema.Resource {
 }
 
 func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VirtualWanClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.VirtualWanClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Virtual WAN creation.")
@@ -154,8 +155,8 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VirtualWanClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.VirtualWanClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := networkSvc.ParseVirtualWanID(d.Id())
@@ -163,22 +164,19 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
-	name := id.Name
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Virtual WAN %q (Resource Group %q) was not found - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] Virtual WAN %q (Resource Group %q) was not found - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -194,8 +192,8 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmVirtualWanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VirtualWanClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.VirtualWanClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := networkSvc.ParseVirtualWanID(d.Id())
@@ -203,22 +201,19 @@ func resourceArmVirtualWanDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
-	name := id.Name
-
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		// deleted outside of Terraform
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for the deletion of Virtual WAN %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for the deletion of Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

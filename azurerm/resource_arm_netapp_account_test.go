@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -41,11 +43,11 @@ func TestAccAzureRMNetAppAccount(t *testing.T) {
 func testAccAzureRMNetAppAccount_basic(t *testing.T) {
 	resourceName := "azurerm_netapp_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -73,19 +75,19 @@ func testAccAzureRMNetAppAccount_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppAccount_basicConfig(ri, testLocation()),
+				Config: testAccAzureRMNetAppAccount_basicConfig(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppAccountExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMNetAppAccount_requiresImportConfig(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_netapp_account"),
+				Config:      testAccAzureRMNetAppAccount_requiresImportConfig(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_netapp_account"),
 			},
 		},
 	})
@@ -94,11 +96,11 @@ func testAccAzureRMNetAppAccount_requiresImport(t *testing.T) {
 func testAccAzureRMNetAppAccount_complete(t *testing.T) {
 	resourceName := "azurerm_netapp_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -123,11 +125,11 @@ func testAccAzureRMNetAppAccount_complete(t *testing.T) {
 func testAccAzureRMNetAppAccount_update(t *testing.T) {
 	resourceName := "azurerm_netapp_account.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -166,8 +168,8 @@ func testCheckAzureRMNetAppAccountExists(resourceName string) resource.TestCheck
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).NetApp.AccountClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.AccountClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -181,8 +183,8 @@ func testCheckAzureRMNetAppAccountExists(resourceName string) resource.TestCheck
 }
 
 func testCheckAzureRMNetAppAccountDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).NetApp.AccountClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.AccountClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_netapp_account" {
@@ -226,7 +228,6 @@ resource "azurerm_netapp_account" "import" {
   name                = "${azurerm_netapp_account.test.name}"
   location            = "${azurerm_netapp_account.test.location}"
   resource_group_name = "${azurerm_netapp_account.test.name}"
-}
 }
 `, testAccAzureRMNetAppAccount_basicConfig(rInt, location))
 }

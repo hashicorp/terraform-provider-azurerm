@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,12 +18,12 @@ func TestAccAzureRMCosmosDbMongoCollection_basic(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_mongo_collection.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),
@@ -41,12 +43,12 @@ func TestAccAzureRMCosmosDbMongoCollection_complete(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_mongo_collection.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_complete(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbMongoCollection_complete(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "shard_key", "seven"),
@@ -67,18 +69,18 @@ func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_mongo_collection.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 				),
 			},
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_complete(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbMongoCollection_complete(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "shard_key", "seven"),
@@ -91,7 +93,7 @@ func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_updated(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbMongoCollection_updated(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "70707"),
@@ -111,12 +113,12 @@ func TestAccAzureRMCosmosDbMongoCollection_throughput(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_mongo_collection.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_throughput(ri, testLocation(), 700),
+				Config: testAccAzureRMCosmosDbMongoCollection_throughput(ri, acceptance.Location(), 700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 				),
@@ -127,7 +129,7 @@ func TestAccAzureRMCosmosDbMongoCollection_throughput(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_throughput(ri, testLocation(), 1400),
+				Config: testAccAzureRMCosmosDbMongoCollection_throughput(ri, acceptance.Location(), 1400),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 				),
@@ -138,7 +140,7 @@ func TestAccAzureRMCosmosDbMongoCollection_throughput(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbMongoCollection_basic(ri, acceptance.Location()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 				),
@@ -153,8 +155,8 @@ func TestAccAzureRMCosmosDbMongoCollection_throughput(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDbMongoCollectionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cosmosdb_mongo_collection" {
@@ -183,8 +185,8 @@ func testCheckAzureRMCosmosDbMongoCollectionDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDbMongoCollectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

@@ -8,17 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDevTestLab_basic(t *testing.T) {
 	resourceName := "azurerm_dev_test_lab.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,11 +48,11 @@ func TestAccAzureRMDevTestLab_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_dev_test_lab.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -61,7 +63,7 @@ func TestAccAzureRMDevTestLab_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMDevTestLab_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_dev_test_lab"),
+				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_lab"),
 			},
 		},
 	})
@@ -70,11 +72,11 @@ func TestAccAzureRMDevTestLab_requiresImport(t *testing.T) {
 func TestAccAzureRMDevTestLab_complete(t *testing.T) {
 	resourceName := "azurerm_dev_test_lab.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -109,8 +111,8 @@ func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for DevTest Lab: %s", labName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).DevTestLabs.LabsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, labName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get devTestLabsClient: %+v", err)
@@ -125,8 +127,8 @@ func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMDevTestLabDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).DevTestLabs.LabsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dev_test_lab" {

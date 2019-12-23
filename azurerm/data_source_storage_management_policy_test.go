@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMStorageManagementPolicy_basic(t *testing.T) {
@@ -14,12 +15,12 @@ func TestAccDataSourceAzureRMStorageManagementPolicy_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	rs := acctest.RandString(4)
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccDataSourceAzureRMStorageManagementPolicy_basic(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

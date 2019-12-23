@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -66,8 +67,8 @@ func resourceArmCdnProfile() *schema.Resource {
 }
 
 func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Cdn.ProfilesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Cdn.ProfilesClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN Profile creation.")
@@ -123,8 +124,8 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Cdn.ProfilesClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Cdn.ProfilesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if !d.HasChange("tags") {
@@ -152,8 +153,8 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Cdn.ProfilesClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Cdn.ProfilesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -186,8 +187,8 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Cdn.ProfilesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Cdn.ProfilesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

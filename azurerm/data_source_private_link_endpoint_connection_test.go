@@ -6,16 +6,17 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMPrivateLinkEndpointConnection_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_private_link_endpoint_connection.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourcePrivateLinkEndpointConnection_complete(ri, location),
@@ -35,5 +36,5 @@ data "azurerm_private_link_endpoint_connection" "test" {
   name                = azurerm_private_link_endpoint.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, testAccAzureRMPrivateEndpoint_basic(rInt, location))
+`, testAccAzureRMPrivateLinkEndpoint_basic(rInt, location))
 }

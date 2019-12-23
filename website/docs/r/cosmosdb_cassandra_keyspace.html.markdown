@@ -42,6 +42,7 @@ resource "azurerm_cosmosdb_cassandra_keyspace" "example" {
   name                = "tfex-cosmos-cassandra-keyspace"
   resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
   account_name        = azurerm_cosmosdb_account.example.name
+  throughput          = 400
 }
 ```
 
@@ -54,6 +55,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which the Cosmos DB Cassandra KeySpace is created. Changing this forces a new resource to be created.
 
 * `account_name` - (Required) The name of the Cosmos DB Cassandra KeySpace to create the table within. Changing this forces a new resource to be created.
+
+* `throughput` - (Optional) The throughput of Cassandra keyspace (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
 
 ## Attributes Reference

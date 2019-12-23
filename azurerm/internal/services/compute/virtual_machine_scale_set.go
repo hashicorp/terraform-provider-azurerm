@@ -12,24 +12,26 @@ import (
 )
 
 type VirtualMachineScaleSetResourceID struct {
-	Base azure.ResourceID
-
-	Name string
+	ResourceGroup string
+	Name          string
 }
 
-func ParseVirtualMachineScaleSetResourceID(input string) (*VirtualMachineScaleSetResourceID, error) {
+func ParseVirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetResourceID, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Machine Scale Set ID %q: %+v", input, err)
 	}
 
 	vmScaleSet := VirtualMachineScaleSetResourceID{
-		Base: *id,
-		Name: id.Path["virtualMachineScaleSets"],
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if vmScaleSet.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `virtualMachineScaleSets` element")
+	if vmScaleSet.Name, err = id.PopSegment("virtualMachineScaleSets"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
 	return &vmScaleSet, nil

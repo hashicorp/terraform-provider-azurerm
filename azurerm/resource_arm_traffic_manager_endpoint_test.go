@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -18,12 +20,12 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation()),
+				Config: testAccAzureRMTrafficManagerEndpoint_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTrafficManagerEndpointExists(azureResourceName),
 					testCheckAzureRMTrafficManagerEndpointExists(externalResourceName),
@@ -50,12 +52,12 @@ func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation()),
+				Config: testAccAzureRMTrafficManagerEndpoint_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTrafficManagerEndpointExists(azureResourceName),
 					testCheckAzureRMTrafficManagerEndpointExists(externalResourceName),
@@ -64,8 +66,8 @@ func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMTrafficManagerEndpoint_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_traffic_manager_endpoint"),
+				Config:      testAccAzureRMTrafficManagerEndpoint_requiresImport(ri, acceptance.Location()),
+				ExpectError: acceptance.RequiresImportError("azurerm_traffic_manager_endpoint"),
 			},
 		},
 	})
@@ -77,12 +79,12 @@ func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation()),
+				Config: testAccAzureRMTrafficManagerEndpoint_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMTrafficManagerEndpointExists(azureResourceName),
 					testCheckAzureRMTrafficManagerEndpointExists(externalResourceName),
@@ -100,12 +102,12 @@ func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
 	azureResourceName := "azurerm_traffic_manager_endpoint.testAzure"
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMTrafficManagerEndpoint_basic(ri, testLocation())
-	postConfig := testAccAzureRMTrafficManagerEndpoint_basicDisableExternal(ri, testLocation())
+	preConfig := testAccAzureRMTrafficManagerEndpoint_basic(ri, acceptance.Location())
+	postConfig := testAccAzureRMTrafficManagerEndpoint_basicDisableExternal(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -136,13 +138,13 @@ func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMTrafficManagerEndpoint_weight(ri, location)
 	postConfig := testAccAzureRMTrafficManagerEndpoint_updateWeight(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -172,13 +174,13 @@ func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMTrafficManagerEndpoint_subnets(ri, location)
 	postConfig := testAccAzureRMTrafficManagerEndpoint_updateSubnets(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -216,13 +218,13 @@ func TestAccAzureRMTrafficManagerEndpoint_updateCustomeHeaders(t *testing.T) {
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMTrafficManagerEndpoint_headers(ri, location)
 	postConfig := testAccAzureRMTrafficManagerEndpoint_updateHeaders(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -257,13 +259,13 @@ func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	preConfig := testAccAzureRMTrafficManagerEndpoint_priority(ri, location)
 	postConfig := testAccAzureRMTrafficManagerEndpoint_updatePriority(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -290,11 +292,11 @@ func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 
 func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMTrafficManagerEndpoint_nestedEndpoints(ri, testLocation())
+	config := testAccAzureRMTrafficManagerEndpoint_nestedEndpoints(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -311,13 +313,13 @@ func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
 func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_endpoint.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	first := testAccAzureRMTrafficManagerEndpoint_location(ri, location)
 	second := testAccAzureRMTrafficManagerEndpoint_locationUpdated(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -339,13 +341,13 @@ func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_endpoint.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	first := testAccAzureRMTrafficManagerEndpoint_geoMappings(ri, location)
 	second := testAccAzureRMTrafficManagerEndpoint_geoMappingsUpdated(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -387,8 +389,8 @@ func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerEndpointsClient: %+v", err)
@@ -419,8 +421,8 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
 			return fmt.Errorf("Bad: Delete on trafficManagerEndpointsClient: %+v", err)
@@ -431,7 +433,7 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 }
 
 func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_endpoint" {
@@ -442,7 +444,7 @@ func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
 		endpointType := rs.Primary.Attributes["type"]
 		profileName := rs.Primary.Attributes["profile_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
 			return nil

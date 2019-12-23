@@ -8,17 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMVPNGateway_basic(t *testing.T) {
 	resourceName := "azurerm_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,11 +46,11 @@ func TestAccAzureRMVPNGateway_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +61,7 @@ func TestAccAzureRMVPNGateway_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMVPNGateway_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_vpn_gateway"),
+				ExpectError: acceptance.RequiresImportError("azurerm_vpn_gateway"),
 			},
 		},
 	})
@@ -68,11 +70,11 @@ func TestAccAzureRMVPNGateway_requiresImport(t *testing.T) {
 func TestAccAzureRMVPNGateway_bgpSettings(t *testing.T) {
 	resourceName := "azurerm_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -93,11 +95,11 @@ func TestAccAzureRMVPNGateway_bgpSettings(t *testing.T) {
 func TestAccAzureRMVPNGateway_scaleUnit(t *testing.T) {
 	resourceName := "azurerm_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -129,11 +131,11 @@ func TestAccAzureRMVPNGateway_scaleUnit(t *testing.T) {
 func TestAccAzureRMVPNGateway_tags(t *testing.T) {
 	resourceName := "azurerm_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -184,8 +186,8 @@ func testCheckAzureRMVPNGatewayExists(resourceName string) resource.TestCheckFun
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		name := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.VpnGatewaysClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on VpnGatewaysClient: %+v", err)
@@ -208,8 +210,8 @@ func testCheckAzureRMVPNGatewayDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		name := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.VpnGatewaysClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return nil

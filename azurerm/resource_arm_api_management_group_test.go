@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAPIManagementGroup_basic(ri, testLocation())
+	config := testAccAzureRMAPIManagementGroup_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -46,11 +48,11 @@ func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_api_management_group.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -63,7 +65,7 @@ func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAPIManagementGroup_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_api_management_group"),
+				ExpectError: acceptance.RequiresImportError("azurerm_api_management_group"),
 			},
 		},
 	})
@@ -72,11 +74,11 @@ func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
 func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 	resourceName := "azurerm_api_management_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAPIManagementGroup_complete(ri, testLocation(), "Test Group", "A test description.")
+	config := testAccAzureRMAPIManagementGroup_complete(ri, acceptance.Location(), "Test Group", "A test description.")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -100,12 +102,12 @@ func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T) {
 	resourceName := "azurerm_api_management_group.test"
 	ri := tf.AccRandTimeInt()
-	preConfig := testAccAzureRMAPIManagementGroup_complete(ri, testLocation(), "Original Group", "The original description.")
-	postConfig := testAccAzureRMAPIManagementGroup_complete(ri, testLocation(), "Modified Group", "A modified description.")
+	preConfig := testAccAzureRMAPIManagementGroup_complete(ri, acceptance.Location(), "Original Group", "The original description.")
+	postConfig := testAccAzureRMAPIManagementGroup_complete(ri, acceptance.Location(), "Modified Group", "A modified description.")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -140,7 +142,7 @@ func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T)
 }
 
 func testCheckAzureRMAPIManagementGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).ApiManagement.GroupClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_group" {
 			continue
@@ -150,7 +152,7 @@ func testCheckAzureRMAPIManagementGroupDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 
 		if err != nil {
@@ -175,8 +177,8 @@ func testCheckAzureRMAPIManagementGroupExists(resourceName string) resource.Test
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).ApiManagement.GroupClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

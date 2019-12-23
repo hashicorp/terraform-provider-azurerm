@@ -6,15 +6,16 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccAzureRMDataSourceVirtualNetworkGateway_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMDataSourceVirtualNetworkGateway_basic(ri, testLocation())
+	config := testAccAzureRMDataSourceVirtualNetworkGateway_basic(ri, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{

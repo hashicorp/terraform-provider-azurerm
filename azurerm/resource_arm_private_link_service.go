@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -59,6 +60,11 @@ func resourceArmPrivateLinkService() *schema.Resource {
 					ValidateFunc: validate.GUID,
 				},
 				Set: schema.HashString,
+			},
+
+			"enable_proxy_protocol": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 
 			"visibility_subscription_ids": {
@@ -156,8 +162,8 @@ func resourceArmPrivateLinkService() *schema.Resource {
 }
 
 func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.PrivateLinkServiceClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -177,6 +183,7 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	autoApproval := d.Get("auto_approval_subscription_ids").(*schema.Set).List()
+	enableProxyProtocol := d.Get("enable_proxy_protocol").(bool)
 	primaryIpConfiguration := d.Get("nat_ip_configuration").([]interface{})
 	loadBalancerFrontendIpConfigurations := d.Get("load_balancer_frontend_ip_configuration_ids").(*schema.Set).List()
 	visibility := d.Get("visibility_subscription_ids").(*schema.Set).List()
@@ -188,6 +195,7 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 			AutoApproval: &network.PrivateLinkServicePropertiesAutoApproval{
 				Subscriptions: utils.ExpandStringSlice(autoApproval),
 			},
+			EnableProxyProtocol: utils.Bool(enableProxyProtocol),
 			Visibility: &network.PrivateLinkServicePropertiesVisibility{
 				Subscriptions: utils.ExpandStringSlice(visibility),
 			},
@@ -243,8 +251,8 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.PrivateLinkServiceClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -270,6 +278,8 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		d.Set("alias", props.Alias)
+		d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+
 		if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(props.AutoApproval.Subscriptions)); err != nil {
 			return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
 		}
@@ -294,8 +304,8 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmPrivateLinkServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.PrivateLinkServiceClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

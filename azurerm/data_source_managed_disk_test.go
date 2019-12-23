@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMManagedDisk_basic(t *testing.T) {
@@ -15,11 +16,11 @@ func TestAccDataSourceAzureRMManagedDisk_basic(t *testing.T) {
 	name := fmt.Sprintf("acctestmanageddisk-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
 
-	config := testAccDataSourceAzureRMManagedDiskBasic(name, resourceGroupName, testLocation())
+	config := testAccDataSourceAzureRMManagedDiskBasic(name, resourceGroupName, acceptance.Location())
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -49,8 +50,8 @@ func TestAccDataSourceAzureRMManagedDisk_basic_withUltraSSD(t *testing.T) {
 	config := testAccDataSourceAzureRMManagedDisk_basic_withUltraSSD(name, resourceGroupName, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

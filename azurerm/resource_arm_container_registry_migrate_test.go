@@ -12,35 +12,37 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
-	config := testGetAzureConfig(t)
+	config := acceptance.GetAuthConfig(t)
 	if config == nil {
 		t.SkipNow()
 		return
 	}
 
-	builder := armClientBuilder{
-		authConfig:                  config,
-		terraformVersion:            "0.0.0",
-		partnerId:                   "",
-		disableCorrelationRequestID: true,
-		disableTerraformPartnerID:   false,
-		skipProviderRegistration:    false,
+	builder := clients.ClientBuilder{
+		AuthConfig:                  config,
+		TerraformVersion:            "0.0.0",
+		PartnerId:                   "",
+		DisableCorrelationRequestID: true,
+		DisableTerraformPartnerID:   false,
+		SkipProviderRegistration:    false,
 	}
-	client, err := getArmClient(context.Background(), builder)
+	client, err := clients.Build(context.Background(), builder)
 	if err != nil {
 		t.Fatal(fmt.Errorf("Error building ARM Client: %+v", err))
 		return
 	}
 
-	client.StopContext = testAccProvider.StopContext()
+	client.StopContext = acceptance.AzureProvider.StopContext()
 
 	rs := acctest.RandString(4)
 	resourceGroupName := fmt.Sprintf("acctestRG%s", rs)
 	storageAccountName := fmt.Sprintf("acctestsa%s", rs)
-	location := azure.NormalizeLocation(testLocation())
+	location := azure.NormalizeLocation(acceptance.Location())
 	ctx := client.StopContext
 
 	err = createResourceGroup(ctx, client, resourceGroupName, location)
@@ -108,7 +110,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 	}
 }
 
-func createResourceGroup(ctx context.Context, client *ArmClient, resourceGroupName string, location string) error {
+func createResourceGroup(ctx context.Context, client *clients.Client, resourceGroupName string, location string) error {
 	group := resources.Group{
 		Location: &location,
 	}
@@ -119,7 +121,7 @@ func createResourceGroup(ctx context.Context, client *ArmClient, resourceGroupNa
 	return nil
 }
 
-func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountName, location string) (*storage.Account, error) {
+func createStorageAccount(client *clients.Client, resourceGroupName, storageAccountName, location string) (*storage.Account, error) {
 	storageClient := client.Storage.AccountsClient
 	createParams := storage.AccountCreateParameters{
 		Location: &location,
@@ -147,7 +149,7 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 	return &account, nil
 }
 
-func destroyStorageAccountAndResourceGroup(client *ArmClient, resourceGroupName, storageAccountName string) {
+func destroyStorageAccountAndResourceGroup(client *clients.Client, resourceGroupName, storageAccountName string) {
 	ctx := client.StopContext
 	if _, err := client.Storage.AccountsClient.Delete(ctx, resourceGroupName, storageAccountName); err != nil {
 		log.Printf("[DEBUG] Error deleting Storage Account %q (Resource Group %q): %v", storageAccountName, resourceGroupName, err)

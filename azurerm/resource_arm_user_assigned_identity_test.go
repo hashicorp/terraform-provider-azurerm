@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -20,12 +22,12 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 	rs := acctest.RandString(14)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs),
+				Config: testAccAzureRMUserAssignedIdentity_basic(ri, acceptance.Location(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMUserAssignedIdentityExists(resourceName),
 					resource.TestMatchResourceAttr(resourceName, "principal_id", validate.UUIDRegExp),
@@ -51,12 +53,12 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 	rs := acctest.RandString(14)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMUserAssignedIdentity_basic(ri, testLocation(), rs),
+				Config: testAccAzureRMUserAssignedIdentity_basic(ri, acceptance.Location(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMUserAssignedIdentityExists(resourceName),
 					resource.TestMatchResourceAttr(resourceName, "principal_id", validate.UUIDRegExp),
@@ -64,8 +66,8 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMUserAssignedIdentity_requiresImport(ri, testLocation(), rs),
-				ExpectError: testRequiresImportError("azurerm_user_assigned_identity"),
+				Config:      testAccAzureRMUserAssignedIdentity_requiresImport(ri, acceptance.Location(), rs),
+				ExpectError: acceptance.RequiresImportError("azurerm_user_assigned_identity"),
 			},
 		},
 	})
@@ -85,8 +87,8 @@ func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).MSI.UserAssignedIdentitiesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MSI.UserAssignedIdentitiesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -102,8 +104,8 @@ func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMUserAssignedIdentityDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).MSI.UserAssignedIdentitiesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MSI.UserAssignedIdentitiesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_machine" {

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -137,8 +138,8 @@ func expandHDInsightsMLServicesConfigurations(gateway []interface{}, rStudio boo
 }
 
 func resourceArmHDInsightMLServicesClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).HDInsight.ClustersClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).HDInsight.ClustersClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -227,9 +228,9 @@ func resourceArmHDInsightMLServicesClusterCreate(d *schema.ResourceData, meta in
 }
 
 func resourceArmHDInsightMLServicesClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).HDInsight.ClustersClient
-	configurationsClient := meta.(*ArmClient).HDInsight.ConfigurationsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
+	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -18,6 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -260,8 +261,8 @@ func resourceArmRedisCache() *schema.Resource {
 }
 
 func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Redis.Client
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Redis.Client
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache creation.")
 
@@ -384,7 +385,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	d.SetId(*read.ID)
 
 	if schedule := patchSchedule; schedule != nil {
-		patchClient := meta.(*ArmClient).Redis.PatchSchedulesClient
+		patchClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 		_, err = patchClient.CreateOrUpdate(ctx, resGroup, name, *schedule)
 		if err != nil {
 			return fmt.Errorf("Error setting Redis Patch Schedule: %+v", err)
@@ -395,8 +396,8 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Redis.Client
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Redis.Client
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
 
@@ -477,7 +478,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
 	}
 
-	patchClient := meta.(*ArmClient).Redis.PatchSchedulesClient
+	patchClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	if patchSchedule == nil || len(*patchSchedule.ScheduleEntries.ScheduleEntries) == 0 {
 		_, err = patchClient.Delete(ctx, resGroup, name)
 		if err != nil {
@@ -494,8 +495,8 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Redis.Client
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Redis.Client
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -522,7 +523,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making ListKeys request on Azure Redis Cache %s: %s", name, err)
 	}
 
-	patchSchedulesClient := meta.(*ArmClient).Redis.PatchSchedulesClient
+	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 
 	schedule, err := patchSchedulesClient.Get(ctx, resGroup, name)
 	if err == nil {
@@ -575,8 +576,8 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Redis.Client
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Redis.Client
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

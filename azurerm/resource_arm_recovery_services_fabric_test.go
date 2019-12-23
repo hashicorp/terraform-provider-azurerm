@@ -8,23 +8,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMRecoveryFabric_basic(t *testing.T) {
-	resourceGroupName := "azurerm_resource_group.test"
-	vaultName := "azurerm_recovery_services_vault.test"
 	resourceName := "azurerm_recovery_services_fabric.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMRecoveryFabricDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRecoveryFabric_basic(ri, testLocation()),
+				Config: testAccAzureRMRecoveryFabric_basic(ri, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryFabricExists(resourceGroupName, vaultName, resourceName),
+					testCheckAzureRMRecoveryFabricExists(resourceName),
 				),
 			},
 			{
@@ -59,29 +59,21 @@ resource "azurerm_recovery_services_fabric" "test" {
 `, rInt, location, rInt, rInt)
 }
 
-func testCheckAzureRMRecoveryFabricExists(resourceGroupStateName, vaultStateName string, resourceStateName string) resource.TestCheckFunc {
+func testCheckAzureRMRecoveryFabricExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		resourceGroupState, ok := s.RootModule().Resources[resourceGroupStateName]
+		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", resourceGroupStateName)
-		}
-		vaultState, ok := s.RootModule().Resources[vaultStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", vaultStateName)
-		}
-		fabricState, ok := s.RootModule().Resources[resourceStateName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceStateName)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroupName := resourceGroupState.Primary.Attributes["name"]
-		vaultName := vaultState.Primary.Attributes["name"]
-		fabricName := fabricState.Primary.Attributes["name"]
+		resourceGroupName := state.Primary.Attributes["resource_group_name"]
+		vaultName := state.Primary.Attributes["recovery_vault_name"]
+		fabricName := state.Primary.Attributes["name"]
 
 		// Ensure fabric exists in API
-		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.FabricClient(resourceGroupName, vaultName)
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.FabricClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName)
 		if err != nil {
@@ -94,4 +86,30 @@ func testCheckAzureRMRecoveryFabricExists(resourceGroupStateName, vaultStateName
 
 		return nil
 	}
+}
+
+func testCheckAzureRMRecoveryFabricDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_recovery_services_fabric" {
+			continue
+		}
+
+		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
+		vaultName := rs.Primary.Attributes["recovery_vault_name"]
+		resourceGroup := rs.Primary.Attributes["name"]
+
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.FabricClient(resourceGroupName, vaultName)
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		resp, err := client.Get(ctx, resourceGroup)
+		if err != nil {
+			return nil
+		}
+
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Recovery Services Fabric still exists:\n%#v", resp.Properties)
+		}
+	}
+
+	return nil
 }

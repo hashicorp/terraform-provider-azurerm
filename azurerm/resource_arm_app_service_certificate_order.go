@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -172,8 +173,8 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 }
 
 func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.CertificatesOrderClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.CertificatesOrderClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
@@ -249,8 +250,8 @@ func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.CertificatesOrderClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.CertificatesOrderClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := webSvc.ParseAppServiceCertificateOrderID(d.Id())
@@ -258,7 +259,7 @@ func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, name)
@@ -318,8 +319,8 @@ func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmAppServiceCertificateOrderDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Web.CertificatesOrderClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Web.CertificatesOrderClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := webSvc.ParseAppServiceCertificateOrderID(d.Id())
@@ -327,7 +328,7 @@ func resourceArmAppServiceCertificateOrderDelete(d *schema.ResourceData, meta in
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Name
 
 	log.Printf("[DEBUG] Deleting App Service Certificate Order %q (Resource Group %q)", name, resourceGroup)

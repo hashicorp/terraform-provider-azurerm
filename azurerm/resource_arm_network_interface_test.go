@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -15,12 +17,12 @@ func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_basic(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					testCheckAzureRMNetworkInterfaceDisappears(resourceName),
@@ -39,10 +41,10 @@ func TestAccAzureRMNetworkInterface_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -53,7 +55,7 @@ func TestAccAzureRMNetworkInterface_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMNetworkInterface_requiresImport(rInt, location),
-				ExpectError: testRequiresImportError("azurerm_network_interface"),
+				ExpectError: acceptance.RequiresImportError("azurerm_network_interface"),
 			},
 		},
 	})
@@ -63,12 +65,12 @@ func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_basic(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_basic(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 				),
@@ -85,13 +87,13 @@ func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMNetworkInterface_basic(rInt, location)
 	updatedConfig := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -114,13 +116,13 @@ func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
 func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt, location)
 	updatedConfig := testAccAzureRMNetworkInterface_basic(rInt, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -143,12 +145,12 @@ func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
 func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMNetworkInterface_multipleSubnets(rInt, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -165,13 +167,13 @@ func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
 func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	config := testAccAzureRMNetworkInterface_multipleSubnets(rInt, location)
 	updatedConfig := testAccAzureRMNetworkInterface_multipleSubnetsUpdatedPrimary(rInt, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -202,12 +204,12 @@ func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_ipForwarding(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_ipForwarding(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enable_ip_forwarding", "true"),
@@ -221,12 +223,12 @@ func TestAccAzureRMNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_acceleratedNetworking(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_acceleratedNetworking(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enable_accelerated_networking", "true"),
@@ -239,12 +241,12 @@ func TestAccAzureRMNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 func TestAccAzureRMNetworkInterface_multipleLoadBalancers(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_multipleLoadBalancers(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_multipleLoadBalancers(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test1"),
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test2"),
@@ -258,12 +260,12 @@ func TestAccAzureRMNetworkInterface_applicationGateway(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_applicationGatewayBackendPool(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_applicationGatewayBackendPool(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
 					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.application_gateway_backend_address_pools_ids.#", "1"),
@@ -277,12 +279,12 @@ func TestAccAzureRMNetworkInterface_withTags(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_withTags(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_withTags(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
@@ -291,7 +293,7 @@ func TestAccAzureRMNetworkInterface_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMNetworkInterface_withTagsUpdate(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_withTagsUpdate(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -306,12 +308,12 @@ func TestAccAzureRMNetworkInterface_IPAddressesBug1286(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_withIPAddresses(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_withIPAddresses(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_configuration.0.private_ip_address"),
@@ -319,7 +321,7 @@ func TestAccAzureRMNetworkInterface_IPAddressesBug1286(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMNetworkInterface_withIPAddressesUpdate(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_withIPAddressesUpdate(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_configuration.0.private_ip_address"),
@@ -335,12 +337,12 @@ func TestAccAzureRMNetworkInterface_IPAddressesFeature2543(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_withIPv6Addresses(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_withIPv6Addresses(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.private_ip_address_version", "IPv4"),
@@ -355,12 +357,12 @@ func TestAccAzureRMNetworkInterface_IPAddressesFeature2543(t *testing.T) {
 func TestAccAzureRMNetworkInterface_bug7986(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_bug7986(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_bug7986(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test1"),
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test2"),
@@ -374,12 +376,12 @@ func TestAccAzureRMNetworkInterface_applicationSecurityGroups(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := tf.AccRandTimeInt()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_applicationSecurityGroup(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_applicationSecurityGroup(rInt, acceptance.Location()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.application_security_group_ids.#", "1"),
@@ -394,12 +396,12 @@ func TestAccAzureRMNetworkInterface_importPublicIP(t *testing.T) {
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_publicIP(rInt, testLocation()),
+				Config: testAccAzureRMNetworkInterface_publicIP(rInt, acceptance.Location()),
 			},
 			{
 				ResourceName:      resourceName,
@@ -424,8 +426,8 @@ func testCheckAzureRMNetworkInterfaceExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
@@ -454,8 +456,8 @@ func testCheckAzureRMNetworkInterfaceDisappears(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -471,8 +473,8 @@ func testCheckAzureRMNetworkInterfaceDisappears(resourceName string) resource.Te
 }
 
 func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_network_interface" {

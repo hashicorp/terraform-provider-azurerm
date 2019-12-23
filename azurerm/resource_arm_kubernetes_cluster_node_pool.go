@@ -5,14 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +25,11 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 		Read:   resourceArmKubernetesClusterNodePoolRead,
 		Update: resourceArmKubernetesClusterNodePoolUpdate,
 		Delete: resourceArmKubernetesClusterNodePoolDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := containers.ParseKubernetesNodePoolID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -132,9 +136,9 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 }
 
 func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).Containers.KubernetesClustersClient
-	poolsClient := meta.(*ArmClient).Containers.AgentPoolsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
+	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	kubernetesClusterId, err := containers.ParseKubernetesClusterID(d.Get("kubernetes_cluster_id").(string))
@@ -280,8 +284,8 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 }
 
 func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Containers.AgentPoolsClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Containers.AgentPoolsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := containers.ParseKubernetesNodePoolID(d.Id())
@@ -392,9 +396,9 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).Containers.KubernetesClustersClient
-	poolsClient := meta.(*ArmClient).Containers.AgentPoolsClient
-	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
+	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := containers.ParseKubernetesNodePoolID(d.Id())
@@ -481,8 +485,8 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Containers.AgentPoolsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	client := meta.(*clients.Client).Containers.AgentPoolsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := containers.ParseKubernetesNodePoolID(d.Id())

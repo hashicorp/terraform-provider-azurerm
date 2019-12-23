@@ -6,16 +6,17 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 	resourceName := "azurerm_logic_app_action_http.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogicAppActionHttp_basic(ri, testLocation())
+	config := testAccAzureRMLogicAppActionHttp_basic(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -41,10 +42,10 @@ func TestAccAzureRMLogicAppActionHttp_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_logic_app_action_http.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -55,7 +56,7 @@ func TestAccAzureRMLogicAppActionHttp_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLogicAppActionHttp_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_logic_app_action_http"),
+				ExpectError: acceptance.RequiresImportError("azurerm_logic_app_action_http"),
 			},
 		},
 	})
@@ -64,10 +65,10 @@ func TestAccAzureRMLogicAppActionHttp_requiresImport(t *testing.T) {
 func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 	resourceName := "azurerm_logic_app_action_http.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMLogicAppActionHttp_headers(ri, testLocation())
+	config := testAccAzureRMLogicAppActionHttp_headers(ri, acceptance.Location())
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -87,10 +88,10 @@ func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 
 func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{

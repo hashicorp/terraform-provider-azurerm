@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,11 +16,11 @@ import (
 func TestAccAzureRMVPNServerConfiguration_azureAD(t *testing.T) {
 	resourceName := "azurerm_vpn_server_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNServerConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -39,11 +41,11 @@ func TestAccAzureRMVPNServerConfiguration_azureAD(t *testing.T) {
 func TestAccAzureRMVPNServerConfiguration_certificate(t *testing.T) {
 	resourceName := "azurerm_vpn_server_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNServerConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -80,11 +82,11 @@ func TestAccAzureRMVPNServerConfiguration_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_vpn_server_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNServerConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -100,7 +102,7 @@ func TestAccAzureRMVPNServerConfiguration_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMAzureRMVPNServerConfiguration_requiresImport(ri, location),
-				ExpectError: testRequiresImportError("azurerm_vpn_server_configuration"),
+				ExpectError: acceptance.RequiresImportError("azurerm_vpn_server_configuration"),
 			},
 		},
 	})
@@ -109,11 +111,11 @@ func TestAccAzureRMVPNServerConfiguration_requiresImport(t *testing.T) {
 func TestAccAzureRMVPNServerConfiguration_radius(t *testing.T) {
 	resourceName := "azurerm_vpn_server_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNServerConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -134,11 +136,11 @@ func TestAccAzureRMVPNServerConfiguration_radius(t *testing.T) {
 func TestAccAzureRMVPNServerConfiguration_multipleAuth(t *testing.T) {
 	resourceName := "azurerm_vpn_server_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNServerConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -181,11 +183,11 @@ func TestAccAzureRMVPNServerConfiguration_multipleAuth(t *testing.T) {
 func TestAccAzureRMVPNServerConfiguration_tags(t *testing.T) {
 	resourceName := "azurerm_vpn_server_configuration.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	location := acceptance.Location()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVPNServerConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -213,8 +215,8 @@ func testCheckAzureRMVPNServerConfigurationExists(resourceName string) resource.
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.VpnServerConfigurationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnServerConfigurationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -234,8 +236,8 @@ func testCheckAzureRMVPNServerConfigurationDestroy(s *terraform.State) error {
 			continue
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.VpnServerConfigurationsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnServerConfigurationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
