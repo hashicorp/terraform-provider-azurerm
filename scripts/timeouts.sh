@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-files=$(ls ./azurerm/*.go)
+files=$(find ./azurerm -type f -name "*.go")
 error=false
 
 echo "==> Checking that Custom Timeouts are used..."
