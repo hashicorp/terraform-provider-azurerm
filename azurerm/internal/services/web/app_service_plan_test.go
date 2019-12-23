@@ -2,8 +2,6 @@ package web
 
 import (
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestParseAppServicePlan(t *testing.T) {
@@ -41,10 +39,8 @@ func TestParseAppServicePlan(t *testing.T) {
 			Name:  "App Service Plan Resource ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/serverfarms/farm1",
 			Expected: &AppServicePlanResourceID{
-				Name: "farm1",
-				Base: azure.ResourceID{
-					ResourceGroup: "mygroup1",
-				},
+				Name:          "farm1",
+				ResourceGroup: "mygroup1",
 			},
 		},
 	}
@@ -65,8 +61,8 @@ func TestParseAppServicePlan(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
-		if actual.Base.ResourceGroup != v.Expected.Base.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.Base.ResourceGroup, actual.Base.ResourceGroup)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
 }

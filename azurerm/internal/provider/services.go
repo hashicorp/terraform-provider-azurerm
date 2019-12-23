@@ -3,6 +3,7 @@ package provider
 import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
@@ -39,6 +40,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
@@ -66,6 +68,7 @@ func SupportedServices() []common.ServiceRegistration {
 	return []common.ServiceRegistration{
 		analysisservices.Registration{},
 		apimanagement.Registration{},
+		appconfiguration.Registration{},
 		applicationinsights.Registration{},
 		authorization.Registration{},
 		automation.Registration{},
@@ -101,6 +104,7 @@ func SupportedServices() []common.ServiceRegistration {
 		msi.Registration{},
 		mssql.Registration{},
 		mysql.Registration{},
+		netapp.Registration{},
 		network.Registration{},
 		notificationhub.Registration{},
 		policy.Registration{},

@@ -35,18 +35,6 @@ func PreCheck(t *testing.T) {
 	}
 }
 
-func Location() string {
-	return os.Getenv("ARM_TEST_LOCATION")
-}
-
-func AltLocation() string {
-	return os.Getenv("ARM_TEST_LOCATION_ALT")
-}
-
-func AltLocation2() string {
-	return os.Getenv("ARM_TEST_LOCATION_ALT2")
-}
-
 func EnvironmentName() string {
 	envName, exists := os.LookupEnv("ARM_ENVIRONMENT")
 	if !exists {

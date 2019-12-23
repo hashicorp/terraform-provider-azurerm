@@ -18,5 +18,9 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{}
+	return map[string]*schema.Resource{
+		"azurerm_kusto_cluster":                  resourceArmKustoCluster(),
+		"azurerm_kusto_database":                 resourceArmKustoDatabase(),
+		"azurerm_kusto_eventhub_data_connection": resourceArmKustoEventHubDataConnection(),
+	}
 }
