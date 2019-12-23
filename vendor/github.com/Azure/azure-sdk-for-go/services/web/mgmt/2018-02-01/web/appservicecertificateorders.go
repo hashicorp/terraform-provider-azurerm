@@ -66,7 +66,7 @@ func (client AppServiceCertificateOrdersClient) CreateOrUpdate(ctx context.Conte
 			Constraints: []validation.Constraint{{Target: "certificateDistinguishedName.AppServiceCertificateOrderProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "certificateDistinguishedName.AppServiceCertificateOrderProperties.ValidityInYears", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "certificateDistinguishedName.AppServiceCertificateOrderProperties.ValidityInYears", Name: validation.InclusiveMaximum, Rule: int64(3), Chain: nil},
-						{Target: "certificateDistinguishedName.AppServiceCertificateOrderProperties.ValidityInYears", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+						{Target: "certificateDistinguishedName.AppServiceCertificateOrderProperties.ValidityInYears", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 					}},
 				}}}}}); err != nil {
 		return result, validation.NewError("web.AppServiceCertificateOrdersClient", "CreateOrUpdate", err.Error())
@@ -1722,7 +1722,7 @@ func (client AppServiceCertificateOrdersClient) ValidatePurchaseInformation(ctx 
 			Constraints: []validation.Constraint{{Target: "appServiceCertificateOrder.AppServiceCertificateOrderProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "appServiceCertificateOrder.AppServiceCertificateOrderProperties.ValidityInYears", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "appServiceCertificateOrder.AppServiceCertificateOrderProperties.ValidityInYears", Name: validation.InclusiveMaximum, Rule: int64(3), Chain: nil},
-						{Target: "appServiceCertificateOrder.AppServiceCertificateOrderProperties.ValidityInYears", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+						{Target: "appServiceCertificateOrder.AppServiceCertificateOrderProperties.ValidityInYears", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 					}},
 				}}}}}); err != nil {
 		return result, validation.NewError("web.AppServiceCertificateOrdersClient", "ValidatePurchaseInformation", err.Error())

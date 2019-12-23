@@ -65,9 +65,9 @@ func (client ComputePoliciesClient) CreateOrUpdate(ctx context.Context, resource
 			Constraints: []validation.Constraint{{Target: "parameters.CreateOrUpdateComputePolicyProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.CreateOrUpdateComputePolicyProperties.ObjectID", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "parameters.CreateOrUpdateComputePolicyProperties.MaxDegreeOfParallelismPerJob", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.CreateOrUpdateComputePolicyProperties.MaxDegreeOfParallelismPerJob", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+						Chain: []validation.Constraint{{Target: "parameters.CreateOrUpdateComputePolicyProperties.MaxDegreeOfParallelismPerJob", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 					{Target: "parameters.CreateOrUpdateComputePolicyProperties.MinPriorityPerJob", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.CreateOrUpdateComputePolicyProperties.MinPriorityPerJob", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+						Chain: []validation.Constraint{{Target: "parameters.CreateOrUpdateComputePolicyProperties.MinPriorityPerJob", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 				}}}}}); err != nil {
 		return result, validation.NewError("account.ComputePoliciesClient", "CreateOrUpdate", err.Error())
 	}

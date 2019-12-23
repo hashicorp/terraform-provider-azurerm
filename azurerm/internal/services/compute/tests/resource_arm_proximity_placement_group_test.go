@@ -129,7 +129,7 @@ func testCheckAzureRMProximityPlacementGroupExists(resourceName string) resource
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ProximityPlacementGroupsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, ppgName)
+		resp, err := client.Get(ctx, resourceGroup, ppgName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", ppgName, resourceGroup)
@@ -180,7 +180,7 @@ func testCheckAzureRMProximityPlacementGroupDestroy(s *terraform.State) error {
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ProximityPlacementGroupsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

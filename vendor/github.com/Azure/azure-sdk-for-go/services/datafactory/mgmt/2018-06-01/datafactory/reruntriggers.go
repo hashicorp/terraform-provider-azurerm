@@ -182,7 +182,7 @@ func (client RerunTriggersClient) Create(ctx context.Context, resourceGroupName 
 				{Target: "rerunTumblingWindowTriggerActionParameters.EndTime", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "rerunTumblingWindowTriggerActionParameters.MaxConcurrency", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "rerunTumblingWindowTriggerActionParameters.MaxConcurrency", Name: validation.InclusiveMaximum, Rule: int64(50), Chain: nil},
-						{Target: "rerunTumblingWindowTriggerActionParameters.MaxConcurrency", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+						{Target: "rerunTumblingWindowTriggerActionParameters.MaxConcurrency", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 					}}}}}); err != nil {
 		return result, validation.NewError("datafactory.RerunTriggersClient", "Create", err.Error())
 	}
