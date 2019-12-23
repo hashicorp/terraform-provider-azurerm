@@ -2,9 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"log"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2017-04-19/advisor"
 
