@@ -2,12 +2,12 @@ package tests
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -98,7 +98,7 @@ func testCheckAzureRMKustoDatabasePrincipalExists(resourceName string) resource.
 
 		databaseName, hasDatabaseName := rs.Primary.Attributes["database_name"]
 		if !hasDatabaseName {
-			return fmt.Errorf("Bad: no datbase name found in state for Kusto Database Principal: %s", fqn)
+			return fmt.Errorf("Bad: no database name found in state for Kusto Database Principal: %s", fqn)
 		}
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
