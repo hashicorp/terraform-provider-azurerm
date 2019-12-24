@@ -248,7 +248,6 @@ resource "azurerm_netapp_snapshot" "test" {
   account_name        = "${azurerm_netapp_account.test.name}"
   pool_name           = "${azurerm_netapp_pool.test.name}"
   volume_name         = "${azurerm_netapp_volume.update.name}"
-  file_system_id      = "${azurerm_netapp_volume.update.file_system_id}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }

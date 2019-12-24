@@ -20,7 +20,7 @@ func resourceArmNetAppSnapshot() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmNetAppSnapshotCreate,
 		Read:   resourceArmNetAppSnapshotRead,
-		Update: resourceArmNetAppSnapshotUpdate,
+		Update: nil,
 		Delete: resourceArmNetAppSnapshotDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -115,26 +115,6 @@ func resourceArmNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Cannot read NetApp Snapshot %q (Resource Group %q) ID", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
-
-	return resourceArmNetAppSnapshotRead(d, meta)
-}
-
-func resourceArmNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).NetApp.SnapshotClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
-	poolName := d.Get("pool_name").(string)
-	volumeName := d.Get("volume_name").(string)
-
-	parameters := netapp.SnapshotPatch{}
-
-	if _, err := client.Update(ctx, parameters, resourceGroup, accountName, poolName, volumeName, name); err != nil {
-		return fmt.Errorf("Error updating NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
 
 	return resourceArmNetAppSnapshotRead(d, meta)
 }
