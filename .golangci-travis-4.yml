@@ -9,14 +9,8 @@ issues:
 linters:
   disable-all: true
   enable:
-    - deadcode
-    - errcheck
-    - gofmt
-    - goimports
-    - gosimple
-    - govet
-    - ineffassign
-    - interfacer
+    - vetshadow
+    - whitespace
 
 linters-settings:
   errcheck:

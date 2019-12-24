@@ -9,8 +9,9 @@ issues:
 linters:
   disable-all: true
   enable:
-    - vetshadow
-    - whitespace
+    - unconvert
+    - varcheck
+    - vet
 
 linters-settings:
   errcheck:
