@@ -21,6 +21,10 @@ for doc in $docs; do
       if ! grep "^subcategory: " "$doc" > /dev/null; then
         echo "Website documentation file is missing a 'subcategory' line at the top: $doc"
         error=true
+      # cannot be empty
+      elif grep "^subcategory: \"\"" "$doc" > /dev/null; then
+        echo "Website documentation file cannot have an empty 'subcategory' line at the top: $doc"
+        error=true
       fi
       ;;
 

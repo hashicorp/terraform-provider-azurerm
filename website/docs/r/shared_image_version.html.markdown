@@ -37,6 +37,7 @@ resource "azurerm_shared_image_version" "example" {
   target_region {
     name                   = "${data.azurerm_shared_image.existing.location}"
     regional_replica_count = "5"
+    storage_account_type   = "Standard_LRS"
   }
 }
 ```
@@ -72,6 +73,8 @@ The `target_region` block exports the following:
 * `name` - (Required) The Azure Region in which this Image Version should exist.
 
 * `regional_replica_count` - (Required) The number of replicas of the Image Version to be created per region.
+
+* `storage_account_type` - (Optional) The storage account type for the image version, which defaults to `Standard_LRS`. You can store all of your image version replicas in Zone Redundant Storage by specifying `Standard_ZRS`.
 
 ## Attributes Reference
 

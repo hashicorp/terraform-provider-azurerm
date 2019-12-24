@@ -39,3 +39,5 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `location` - The Azure Region where the NetApp Account exists.
+
+* `tags` - A mapping of tags to assign to the resource.

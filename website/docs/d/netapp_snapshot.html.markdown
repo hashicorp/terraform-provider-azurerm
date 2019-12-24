@@ -47,4 +47,4 @@ The following attributes are exported:
 
 * `location` - The Azure Region where the NetApp Snapshot exists.
 
-* `file_system_id` - UUID v4 used to identify the FileSystem.
+* `tags` - A mapping of tags to assign to the resource.
