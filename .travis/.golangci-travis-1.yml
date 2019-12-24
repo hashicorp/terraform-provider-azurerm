@@ -9,8 +9,18 @@ issues:
 linters:
   disable-all: true
   enable:
-    - vetshadow
-    - whitespace
+    - deadcode
+    - errcheck
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - nakedret
+    - misspell
+    - structcheck
+    - typecheck
 
 linters-settings:
   errcheck:

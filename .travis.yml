@@ -35,8 +35,6 @@ matrix:
       script: GOGC=5 make linttravis2
     - name: "make linttravis3"
       script: GOGC=5 make linttravis3
-    - name: "make linttravis4"
-      script: GOGC=5 make linttravis4
     - name: "make tflint"
       script: make tflint
     - name: "make test"

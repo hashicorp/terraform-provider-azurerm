@@ -9,11 +9,9 @@ issues:
 linters:
   disable-all: true
   enable:
-    - nakedret
-    - misspell
-    - structcheck
-    - typecheck
-    - unused
+    - vet
+    - vetshadow
+    - whitespace
 
 linters-settings:
   errcheck:
