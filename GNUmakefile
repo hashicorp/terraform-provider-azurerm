@@ -50,17 +50,18 @@ lintstatic:
 linttravis1:
 	@echo "==> Checking source code against linters..."
 	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
-	golangci-lint run ./... -v --concurrency 1 --deadline=30m10s --config .golangci-travis-1.yml ; ES=$$?; kill -9 $$PID; exit $$ES
+	golangci-lint run ./... -v --concurrency 1 --deadline=30m10s --config .travis/.golangci-travis-1.yml ; ES=$$?; kill -9 $$PID; exit $$ES
 
 linttravis2:
 	@echo "==> Checking source code against linters..."
 	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
-	golangci-lint run ./... -v --concurrency 1 --deadline=30m10s --config .golangci-travis-2.yml ; ES=$$?; kill -9 $$PID; exit $$ES
+	golangci-lint run ./... -v --concurrency 1 --deadline=30m10s --config .travis/.golangci-travis-2.yml ; ES=$$?; kill -9 $$PID; exit $$ES
 
 linttravis3:
 	@echo "==> Checking source code against linters..."
 	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
-	golangci-lint run ./... -v --concurrency 1 --deadline=30m10s --config .golangci-travis-2.yml ; ES=$$?; kill -9 $$PID; exit $$ES
+	golangci-lint run ./... -v --concurrency 1 --deadline=30m10s --config .travis/.golangci-travis-3.yml ; ES=$$?; kill -9 $$PID; exit $$ES
+
 
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."

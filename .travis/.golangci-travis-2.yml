@@ -9,14 +9,9 @@ issues:
 linters:
   disable-all: true
   enable:
-    - deadcode
-    - errcheck
-    - gofmt
-    - goimports
-    - gosimple
-    - govet
-    - ineffassign
-    - interfacer
+    - unused
+    - unconvert
+    - varcheck
 
 linters-settings:
   errcheck:
