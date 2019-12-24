@@ -30,11 +30,13 @@ matrix:
     - name: "make lintstatic"
       script: GOGC=15 make lintstatic
     - name: "make linttravis1"
-      script: GOGC=5 make lintrest1
+      script: GOGC=5 make linttravis1
     - name: "make linttravis2"
-      script: GOGC=5 make lintrest2
+      script: GOGC=5 make linttravis2
     - name: "make linttravis3"
-      script: GOGC=5 make lintrest3
+      script: GOGC=5 make linttravis3
+    - name: "make linttravis4"
+      script: GOGC=5 make linttravis4
     - name: "make tflint"
       script: make tflint
     - name: "make test"
