@@ -21,6 +21,7 @@ linters:
     - misspell
     - structcheck
     - typecheck
+    - unused
 
 linters-settings:
   errcheck:
