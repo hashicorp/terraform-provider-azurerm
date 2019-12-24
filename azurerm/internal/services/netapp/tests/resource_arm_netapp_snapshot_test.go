@@ -79,6 +79,8 @@ func TestAccAzureRMNetAppSnapshot_complete(t *testing.T) {
 
 func TestAccAzureRMNetAppSnapshot_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot", "test")
+	oldVolumeName := fmt.Sprintf("acctest-NetAppVolume-%d", data.RandomInteger)
+	newVolumeName := fmt.Sprintf("acctest-updated-NetAppVolume-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -89,16 +91,15 @@ func TestAccAzureRMNetAppSnapshot_update(t *testing.T) {
 				Config: testAccAzureRMNetAppSnapshot_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", oldVolumeName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMNetAppSnapshot_complete(data),
+				Config: testAccAzureRMNetAppSnapshot_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppSnapshotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Prod"),
+					resource.TestCheckResourceAttr(data.ResourceName, "volume_name", newVolumeName),
 				),
 			},
 			data.ImportStep(),
@@ -200,12 +201,58 @@ resource "azurerm_netapp_snapshot" "test" {
   volume_name         = "${azurerm_netapp_volume.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-
-  tags = {
-    ENV = "Prod"
-  }
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMNetAppSnapshot_update(data acceptance.TestData) string {
+	template := testAccAzureRMNetAppSnapshot_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "update" {
+  name                = "acctest-updated-VirtualNetwork-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "update" {
+  name                 = "acctest-updated-Subnet-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.update.name}"
+  address_prefix       = "10.0.2.0/24"
+  delegation {
+    name = "netapp"
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_volume" "update" {
+  name                = "acctest-updated-NetAppVolume-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_netapp_account.test.name}"
+  pool_name           = "${azurerm_netapp_pool.test.name}"
+  volume_path         = "my-updated-unique-file-path-%d"
+  service_level       = "Premium"
+  subnet_id           = "${azurerm_subnet.update.id}"
+  storage_quota_in_gb = 100
+}
+
+resource "azurerm_netapp_snapshot" "test" {
+  name                = "acctest-NetAppSnapshot-%d"
+  account_name        = "${azurerm_netapp_account.test.name}"
+  pool_name           = "${azurerm_netapp_pool.test.name}"
+  volume_name         = "${azurerm_netapp_volume.update.name}"
+  file_system_id      = "${azurerm_netapp_volume.update.file_system_id}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMNetAppSnapshot_template(data acceptance.TestData) string {

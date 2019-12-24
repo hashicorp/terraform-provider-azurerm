@@ -65,8 +65,6 @@ The `active_directory` block supports the following:
 
 * `organizational_unit` - (Optional) The Organizational Unit (OU) within the Active Directory Domain.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
 ---
 
 ## Attributes Reference

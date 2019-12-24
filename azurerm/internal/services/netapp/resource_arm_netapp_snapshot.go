@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-08-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-06-01/netapp"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -67,8 +66,6 @@ func resourceArmNetAppSnapshot() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: ValidateNetAppVolumeName,
 			},
-
-			"tags": tags.Schema(),
 		},
 	}
 }
@@ -83,7 +80,6 @@ func resourceArmNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) e
 	accountName := d.Get("account_name").(string)
 	poolName := d.Get("pool_name").(string)
 	volumeName := d.Get("volume_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name)
@@ -101,7 +97,6 @@ func resourceArmNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) e
 
 	parameters := netapp.Snapshot{
 		Location: utils.String(location),
-		Tags:     tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, parameters, resourceGroup, accountName, poolName, volumeName, name)
@@ -134,11 +129,8 @@ func resourceArmNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) e
 	accountName := d.Get("account_name").(string)
 	poolName := d.Get("pool_name").(string)
 	volumeName := d.Get("volume_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
-	parameters := netapp.SnapshotPatch{
-		Tags: tags.Expand(t),
-	}
+	parameters := netapp.SnapshotPatch{}
 
 	if _, err := client.Update(ctx, parameters, resourceGroup, accountName, poolName, volumeName, name); err != nil {
 		return fmt.Errorf("Error updating NetApp Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -181,7 +173,7 @@ func resourceArmNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmNetAppSnapshotDelete(d *schema.ResourceData, meta interface{}) error {

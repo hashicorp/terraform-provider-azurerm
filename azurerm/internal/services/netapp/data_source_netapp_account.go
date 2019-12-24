@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,7 +30,7 @@ func dataSourceArmNetAppAccount() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"tags": tags.SchemaDataSource(),
+			// Handles tags being interface{} until https://github.com/Azure/azure-rest-api-specs/issues/7447 is fixed
 		},
 	}
 }
@@ -60,5 +59,5 @@ func dataSourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

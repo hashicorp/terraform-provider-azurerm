@@ -94,8 +94,6 @@ The following arguments are supported:
 
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
 ---
 
 An `export_policy_rule` block supports the following:
@@ -108,7 +106,7 @@ An `export_policy_rule` block supports the following:
 
 * `nfsv3_enabled` - (Required) Is the NFSv3 protocol allowed?
 
-* `nfsv41_enabled` - (Required) Is the NFSv41 protocol allowed?
+* `nfsv4_enabled` - (Required) Is the NFSv4 protocol allowed?
 
 * `unix_read_only` - (Optional) Is the file system on unix read only?
 

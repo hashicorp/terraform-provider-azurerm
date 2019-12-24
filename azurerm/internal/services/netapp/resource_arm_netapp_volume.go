@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-08-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-06-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -17,7 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -123,7 +122,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
-						"nfsv41_enabled": {
+						"nfsv4_enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
@@ -138,8 +137,6 @@ func resourceArmNetAppVolume() *schema.Resource {
 					},
 				},
 			},
-
-			"tags": tags.Schema(),
 		},
 	}
 }
@@ -172,7 +169,6 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	subnetId := d.Get("subnet_id").(string)
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
 	exportPolicyRule := d.Get("export_policy_rule").(*schema.Set).List()
-	t := d.Get("tags").(map[string]interface{})
 
 	parameters := netapp.Volume{
 		Location: utils.String(location),
@@ -183,7 +179,6 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 			UsageThreshold: utils.Int64(storageQuotaInGB),
 			ExportPolicy:   expandArmNetAppVolumeExportPolicyRule(exportPolicyRule),
 		},
-		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, parameters, resourceGroup, accountName, poolName, name)
@@ -250,7 +245,7 @@ func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error {
@@ -321,7 +316,7 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*schema.Set).List()), ",")
 			cifsEnabled := v["cifs_enabled"].(bool)
 			nfsv3Enabled := v["nfsv3_enabled"].(bool)
-			nfsv41Enabled := v["nfsv41_enabled"].(bool)
+			nfsv4Enabled := v["nfsv4_enabled"].(bool)
 			unixReadOnly := v["unix_read_only"].(bool)
 			unixReadWrite := v["unix_read_write"].(bool)
 
@@ -329,7 +324,7 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 				AllowedClients: utils.String(allowedClients),
 				Cifs:           utils.Bool(cifsEnabled),
 				Nfsv3:          utils.Bool(nfsv3Enabled),
-				Nfsv41:         utils.Bool(nfsv41Enabled),
+				Nfsv4:          utils.Bool(nfsv4Enabled),
 				RuleIndex:      utils.Int32(ruleIndex),
 				UnixReadOnly:   utils.Bool(unixReadOnly),
 				UnixReadWrite:  utils.Bool(unixReadWrite),
@@ -367,9 +362,9 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 		if v := item.Nfsv3; v != nil {
 			nfsv3Enabled = *v
 		}
-		nfsv41Enabled := false
-		if v := item.Nfsv41; v != nil {
-			nfsv41Enabled = *v
+		nfsv4Enabled := false
+		if v := item.Nfsv4; v != nil {
+			nfsv4Enabled = *v
 		}
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
@@ -385,7 +380,7 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 			"allowed_clients": utils.FlattenStringSlice(&allowedClients),
 			"cifs_enabled":    cifsEnabled,
 			"nfsv3_enabled":   nfsv3Enabled,
-			"nfsv41_enabled":  nfsv41Enabled,
+			"nfsv4_enabled":   nfsv4Enabled,
 			"unix_read_only":  unixReadOnly,
 			"unix_read_write": unixReadWrite,
 		})

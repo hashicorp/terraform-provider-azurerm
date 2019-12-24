@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-08-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-06-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -72,8 +71,6 @@ func resourceArmNetAppPool() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.IntBetween(4, 500),
 			},
-
-			"tags": tags.Schema(),
 		},
 	}
 }
@@ -86,7 +83,6 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, name)
@@ -112,7 +108,6 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 			ServiceLevel: netapp.ServiceLevel(serviceLevel),
 			Size:         utils.Int64(sizeInBytes),
 		},
-		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, capacityPoolParameters, resourceGroup, accountName, name)
@@ -176,7 +171,7 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("size_in_tb", int(sizeInTB))
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {

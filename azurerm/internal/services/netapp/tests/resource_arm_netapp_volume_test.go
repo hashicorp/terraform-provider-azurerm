@@ -290,7 +290,7 @@ resource "azurerm_netapp_volume" "test" {
     allowed_clients = ["1.2.3.0/24"]
     cifs_enabled    = false
     nfsv3_enabled   = true
-    nfsv41_enabled   = false
+    nfsv4_enabled   = false
     unix_read_only  = false
     unix_read_write = true
   }
@@ -300,7 +300,7 @@ resource "azurerm_netapp_volume" "test" {
     allowed_clients = ["1.2.5.0"]
     cifs_enabled    = false
     nfsv3_enabled   = true
-    nfsv41_enabled   = false
+    nfsv4_enabled   = false
     unix_read_only  = true
     unix_read_write = false
   }
@@ -371,7 +371,7 @@ resource "azurerm_netapp_volume" "test" {
     allowed_clients = ["1.2.4.0/24", "1.3.4.0"]
     cifs_enabled    = false
     nfsv3_enabled   = true
-    nfsv41_enabled   = false
+    nfsv4_enabled   = false
     unix_read_only  = false
     unix_read_write = true
   }

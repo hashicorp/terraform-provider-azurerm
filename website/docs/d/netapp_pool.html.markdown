@@ -48,4 +48,4 @@ The following attributes are exported:
 
 * `size_in_tb` - Provisioned size of the pool in TB.
 
-* `tags` - A mapping of tags to assign to the resource.
+---

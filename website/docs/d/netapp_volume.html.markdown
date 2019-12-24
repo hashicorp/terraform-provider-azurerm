@@ -51,5 +51,3 @@ The following attributes are exported:
 * `subnet_id` - The ID of a Subnet in which the NetApp Volume resides.
 
 * `storage_quota_in_gb` - The maximum Storage Quota in Gigabytes allowed for a file system.
-
-* `tags` - A mapping of tags to assign to the resource.

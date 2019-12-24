@@ -26,32 +26,29 @@ import (
 	"net/http"
 )
 
-// SnapshotsClient is the microsoft NetApp Azure Resource Provider specification
-type SnapshotsClient struct {
+// AccountsClient is the microsoft NetApp Azure Resource Provider specification
+type AccountsClient struct {
 	BaseClient
 }
 
-// NewSnapshotsClient creates an instance of the SnapshotsClient client.
-func NewSnapshotsClient(subscriptionID string) SnapshotsClient {
-	return NewSnapshotsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewAccountsClient creates an instance of the AccountsClient client.
+func NewAccountsClient(subscriptionID string) AccountsClient {
+	return NewAccountsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSnapshotsClientWithBaseURI creates an instance of the SnapshotsClient client.
-func NewSnapshotsClientWithBaseURI(baseURI string, subscriptionID string) SnapshotsClient {
-	return SnapshotsClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewAccountsClientWithBaseURI creates an instance of the AccountsClient client.
+func NewAccountsClientWithBaseURI(baseURI string, subscriptionID string) AccountsClient {
+	return AccountsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Create create the specified snapshot within the given volume
+// CreateOrUpdate create or update the specified NetApp account within the resource group
 // Parameters:
-// body - snapshot object supplied in the body of the operation.
+// body - netApp Account object supplied in the body of the operation.
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
-// poolName - the name of the capacity pool
-// volumeName - the name of the volume
-// snapshotName - the name of the mount target
-func (client SnapshotsClient) Create(ctx context.Context, body Snapshot, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (result SnapshotsCreateFuture, err error) {
+func (client AccountsClient) CreateOrUpdate(ctx context.Context, body Account, resourceGroupName string, accountName string) (result AccountsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.Create")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountsClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
 			if result.Response() != nil {
@@ -62,53 +59,38 @@ func (client SnapshotsClient) Create(ctx context.Context, body Snapshot, resourc
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: body,
-			Constraints: []validation.Constraint{{Target: "body.Location", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "body.SnapshotProperties", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "body.SnapshotProperties.SnapshotID", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "body.SnapshotProperties.SnapshotID", Name: validation.MaxLength, Rule: 36, Chain: nil},
-							{Target: "body.SnapshotProperties.SnapshotID", Name: validation.MinLength, Rule: 36, Chain: nil},
-							{Target: "body.SnapshotProperties.SnapshotID", Name: validation.Pattern, Rule: `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`, Chain: nil},
-						}},
-						{Target: "body.SnapshotProperties.FileSystemID", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "body.SnapshotProperties.FileSystemID", Name: validation.MaxLength, Rule: 36, Chain: nil},
-								{Target: "body.SnapshotProperties.FileSystemID", Name: validation.MinLength, Rule: 36, Chain: nil},
-								{Target: "body.SnapshotProperties.FileSystemID", Name: validation.Pattern, Rule: `^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$`, Chain: nil},
-							}},
-					}}}},
+			Constraints: []validation.Constraint{{Target: "body.Location", Name: validation.Null, Rule: true, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("netapp.SnapshotsClient", "Create", err.Error())
+		return result, validation.NewError("netapp.AccountsClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreatePreparer(ctx, body, resourceGroupName, accountName, poolName, volumeName, snapshotName)
+	req, err := client.CreateOrUpdatePreparer(ctx, body, resourceGroupName, accountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Create", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
-	result, err = client.CreateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Create", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
 	return
 }
 
-// CreatePreparer prepares the Create request.
-func (client SnapshotsClient) CreatePreparer(ctx context.Context, body Snapshot, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (*http.Request, error) {
+// CreateOrUpdatePreparer prepares the CreateOrUpdate request.
+func (client AccountsClient) CreateOrUpdatePreparer(ctx context.Context, body Account, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"poolName":          autorest.Encode("path", poolName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"snapshotName":      autorest.Encode("path", snapshotName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2019-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -120,15 +102,15 @@ func (client SnapshotsClient) CreatePreparer(ctx context.Context, body Snapshot,
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}/capacityPools/{poolName}/volumes/{volumeName}/snapshots/{snapshotName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}", pathParameters),
 		autorest.WithJSON(body),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// CreateSender sends the Create request. The method will close the
+// CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client SnapshotsClient) CreateSender(req *http.Request) (future SnapshotsCreateFuture, err error) {
+func (client AccountsClient) CreateOrUpdateSender(req *http.Request) (future AccountsCreateOrUpdateFuture, err error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
 	resp, err = autorest.SendWithSender(client, req, sd...)
@@ -139,9 +121,9 @@ func (client SnapshotsClient) CreateSender(req *http.Request) (future SnapshotsC
 	return
 }
 
-// CreateResponder handles the response to the Create request. The method always
+// CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client SnapshotsClient) CreateResponder(resp *http.Response) (result Snapshot, err error) {
+func (client AccountsClient) CreateOrUpdateResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -152,16 +134,13 @@ func (client SnapshotsClient) CreateResponder(resp *http.Response) (result Snaps
 	return
 }
 
-// Delete delete snapshot
+// Delete delete the specified NetApp account
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
-// poolName - the name of the capacity pool
-// volumeName - the name of the volume
-// snapshotName - the name of the mount target
-func (client SnapshotsClient) Delete(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (result SnapshotsDeleteFuture, err error) {
+func (client AccountsClient) Delete(ctx context.Context, resourceGroupName string, accountName string) (result AccountsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountsClient.Delete")
 		defer func() {
 			sc := -1
 			if result.Response() != nil {
@@ -175,18 +154,18 @@ func (client SnapshotsClient) Delete(ctx context.Context, resourceGroupName stri
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("netapp.SnapshotsClient", "Delete", err.Error())
+		return result, validation.NewError("netapp.AccountsClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName, poolName, volumeName, snapshotName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -194,17 +173,14 @@ func (client SnapshotsClient) Delete(ctx context.Context, resourceGroupName stri
 }
 
 // DeletePreparer prepares the Delete request.
-func (client SnapshotsClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (*http.Request, error) {
+func (client AccountsClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"poolName":          autorest.Encode("path", poolName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"snapshotName":      autorest.Encode("path", snapshotName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2019-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -212,14 +188,14 @@ func (client SnapshotsClient) DeletePreparer(ctx context.Context, resourceGroupN
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}/capacityPools/{poolName}/volumes/{volumeName}/snapshots/{snapshotName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client SnapshotsClient) DeleteSender(req *http.Request) (future SnapshotsDeleteFuture, err error) {
+func (client AccountsClient) DeleteSender(req *http.Request) (future AccountsDeleteFuture, err error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
 	resp, err = autorest.SendWithSender(client, req, sd...)
@@ -232,7 +208,7 @@ func (client SnapshotsClient) DeleteSender(req *http.Request) (future SnapshotsD
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client SnapshotsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client AccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -242,16 +218,13 @@ func (client SnapshotsClient) DeleteResponder(resp *http.Response) (result autor
 	return
 }
 
-// Get get details of the specified snapshot
+// Get get the NetApp account
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
-// poolName - the name of the capacity pool
-// volumeName - the name of the volume
-// snapshotName - the name of the mount target
-func (client SnapshotsClient) Get(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (result Snapshot, err error) {
+func (client AccountsClient) Get(ctx context.Context, resourceGroupName string, accountName string) (result Account, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountsClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -265,42 +238,39 @@ func (client SnapshotsClient) Get(ctx context.Context, resourceGroupName string,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("netapp.SnapshotsClient", "Get", err.Error())
+		return result, validation.NewError("netapp.AccountsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, accountName, poolName, volumeName, snapshotName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Get", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // GetPreparer prepares the Get request.
-func (client SnapshotsClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (*http.Request, error) {
+func (client AccountsClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"poolName":          autorest.Encode("path", poolName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"snapshotName":      autorest.Encode("path", snapshotName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2019-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -308,21 +278,21 @@ func (client SnapshotsClient) GetPreparer(ctx context.Context, resourceGroupName
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}/capacityPools/{poolName}/volumes/{volumeName}/snapshots/{snapshotName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client SnapshotsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client AccountsClient) GetSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client SnapshotsClient) GetResponder(resp *http.Response) (result Snapshot, err error) {
+func (client AccountsClient) GetResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -333,15 +303,12 @@ func (client SnapshotsClient) GetResponder(resp *http.Response) (result Snapshot
 	return
 }
 
-// List list all snapshots associated with the volume
+// List list and describe all NetApp accounts in the resource group
 // Parameters:
 // resourceGroupName - the name of the resource group.
-// accountName - the name of the NetApp account
-// poolName - the name of the capacity pool
-// volumeName - the name of the volume
-func (client SnapshotsClient) List(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string) (result SnapshotsList, err error) {
+func (client AccountsClient) List(ctx context.Context, resourceGroupName string) (result AccountList, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -355,41 +322,38 @@ func (client SnapshotsClient) List(ctx context.Context, resourceGroupName string
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("netapp.SnapshotsClient", "List", err.Error())
+		return result, validation.NewError("netapp.AccountsClient", "List", err.Error())
 	}
 
-	req, err := client.ListPreparer(ctx, resourceGroupName, accountName, poolName, volumeName)
+	req, err := client.ListPreparer(ctx, resourceGroupName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListPreparer prepares the List request.
-func (client SnapshotsClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string, poolName string, volumeName string) (*http.Request, error) {
+func (client AccountsClient) ListPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"accountName":       autorest.Encode("path", accountName),
-		"poolName":          autorest.Encode("path", poolName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2019-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -397,21 +361,21 @@ func (client SnapshotsClient) ListPreparer(ctx context.Context, resourceGroupNam
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}/capacityPools/{poolName}/volumes/{volumeName}/snapshots", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client SnapshotsClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client AccountsClient) ListSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client SnapshotsClient) ListResponder(resp *http.Response) (result SnapshotsList, err error) {
+func (client AccountsClient) ListResponder(resp *http.Response) (result AccountList, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -422,17 +386,14 @@ func (client SnapshotsClient) ListResponder(resp *http.Response) (result Snapsho
 	return
 }
 
-// Update patch a snapshot
+// Update patch the specified NetApp account
 // Parameters:
-// body - snapshot object supplied in the body of the operation.
+// body - netApp Account object supplied in the body of the operation.
 // resourceGroupName - the name of the resource group.
 // accountName - the name of the NetApp account
-// poolName - the name of the capacity pool
-// volumeName - the name of the volume
-// snapshotName - the name of the mount target
-func (client SnapshotsClient) Update(ctx context.Context, body SnapshotPatch, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (result Snapshot, err error) {
+func (client AccountsClient) Update(ctx context.Context, body AccountPatch, resourceGroupName string, accountName string) (result Account, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/SnapshotsClient.Update")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountsClient.Update")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -446,51 +407,51 @@ func (client SnapshotsClient) Update(ctx context.Context, body SnapshotPatch, re
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("netapp.SnapshotsClient", "Update", err.Error())
+		return result, validation.NewError("netapp.AccountsClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, body, resourceGroupName, accountName, poolName, volumeName, snapshotName)
+	req, err := client.UpdatePreparer(ctx, body, resourceGroupName, accountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Update", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.UpdateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Update", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Update", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "netapp.SnapshotsClient", "Update", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "netapp.AccountsClient", "Update", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // UpdatePreparer prepares the Update request.
-func (client SnapshotsClient) UpdatePreparer(ctx context.Context, body SnapshotPatch, resourceGroupName string, accountName string, poolName string, volumeName string, snapshotName string) (*http.Request, error) {
+func (client AccountsClient) UpdatePreparer(ctx context.Context, body AccountPatch, resourceGroupName string, accountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"poolName":          autorest.Encode("path", poolName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"snapshotName":      autorest.Encode("path", snapshotName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"volumeName":        autorest.Encode("path", volumeName),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2019-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	body.ID = nil
+	body.Name = nil
+	body.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}/capacityPools/{poolName}/volumes/{volumeName}/snapshots/{snapshotName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.NetApp/netAppAccounts/{accountName}", pathParameters),
 		autorest.WithJSON(body),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -498,14 +459,14 @@ func (client SnapshotsClient) UpdatePreparer(ctx context.Context, body SnapshotP
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client SnapshotsClient) UpdateSender(req *http.Request) (*http.Response, error) {
+func (client AccountsClient) UpdateSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client SnapshotsClient) UpdateResponder(resp *http.Response) (result Snapshot, err error) {
+func (client AccountsClient) UpdateResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-08-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-06-01/netapp"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -100,7 +99,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			// Handles tags being interface{} until https://github.com/Azure/azure-rest-api-specs/issues/7447 is fixed
 		},
 	}
 }
@@ -112,7 +111,6 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -134,7 +132,6 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 		AccountProperties: &netapp.AccountProperties{
 			ActiveDirectories: expandArmNetAppActiveDirectories(activeDirectories),
 		},
-		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, accountParameters, resourceGroup, name)
@@ -185,7 +182,7 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) error {
