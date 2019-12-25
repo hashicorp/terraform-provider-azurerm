@@ -9,6 +9,7 @@ issues:
 linters:
   disable-all: true
   enable:
+    - unconvert
     - varcheck
     - vet
     - vetshadow

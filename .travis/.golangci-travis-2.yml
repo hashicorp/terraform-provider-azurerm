@@ -10,7 +10,6 @@ linters:
   disable-all: true
   enable:
     - unused
-    - unconvert
 
 linters-settings:
   errcheck:
