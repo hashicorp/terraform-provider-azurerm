@@ -17,12 +17,12 @@ import (
 	"log"
 )
 
-func resourceArmSqlVirtualMachine() *schema.Resource {
+func resourceArmMsSqlVirtualMachine() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlVirtualMachineCreateUpdate,
-		Read:   resourceArmSqlVirtualMachineRead,
-		Update: resourceArmSqlVirtualMachineCreateUpdate,
-		Delete: resourceArmSqlVirtualMachineDelete,
+		Create: resourceArmMsSqlVirtualMachineCreateUpdate,
+		Read:   resourceArmMsSqlVirtualMachineRead,
+		Update: resourceArmMsSqlVirtualMachineCreateUpdate,
+		Delete: resourceArmMsSqlVirtualMachineDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -58,24 +58,10 @@ func resourceArmSqlVirtualMachine() *schema.Resource {
 				}, false),
 			},
 
-			"sql_image_offer": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"sql_management": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sqlvirtualmachine.Full),
-					string(sqlvirtualmachine.LightWeight),
-					string(sqlvirtualmachine.NoAgent),
-				}, false),
-			},
-
 			"sql_image_sku": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sqlvirtualmachine.Developer),
 					string(sqlvirtualmachine.Express),
@@ -88,31 +74,6 @@ func resourceArmSqlVirtualMachine() *schema.Resource {
 			"sql_virtual_machine_group_resource_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-			},
-
-			"wsfc_domain_credentials": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"cluster_bootstrap_account_password": {
-							Type:      schema.TypeString,
-							Optional:  true,
-							Sensitive: true,
-						},
-						"cluster_operator_account_password": {
-							Type:      schema.TypeString,
-							Optional:  true,
-							Sensitive: true,
-						},
-						"sql_service_account_password": {
-							Type:      schema.TypeString,
-							Optional:  true,
-							Sensitive: true,
-						},
-					},
-				},
 			},
 
 			"auto_patching_settings": {
@@ -144,74 +105,6 @@ func resourceArmSqlVirtualMachine() *schema.Resource {
 						},
 						"maintenance_window_starting_hour": {
 							Type:     schema.TypeInt,
-							Optional: true,
-						},
-					},
-				},
-			},
-
-			"auto_backup_settings": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"backup_schedule_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachine.Manual),
-								string(sqlvirtualmachine.Automated),
-							}, false),
-						},
-						"backup_system_dbs": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"enable": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"enable_encryption": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"full_backup_frequency": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachine.Daily),
-								string(sqlvirtualmachine.Weekly),
-							}, false),
-						},
-						"full_backup_start_time": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"full_backup_window_hours": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"log_backup_frequency": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"password": {
-							Type:      schema.TypeString,
-							Optional:  true,
-							Sensitive: true,
-						},
-						"retention_period": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"storage_access_key": {
-							Type:      schema.TypeString,
-							Optional:  true,
-							Sensitive: true,
-						},
-						"storage_account_url": {
-							Type:     schema.TypeString,
 							Optional: true,
 						},
 					},
@@ -281,33 +174,7 @@ func resourceArmSqlVirtualMachine() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"sql_storage_disk_configuration_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachine.NEW),
-								string(sqlvirtualmachine.EXTEND),
-								string(sqlvirtualmachine.ADD),
-							}, false),
-						},
-						"sql_storage_disk_count": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"sql_storage_starting_device_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
 
-						"sql_workload_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachine.GENERAL),
-								string(sqlvirtualmachine.OLTP),
-								string(sqlvirtualmachine.DW),
-							}, false),
-						},
 					},
 				},
 			},
@@ -318,15 +185,7 @@ func resourceArmSqlVirtualMachine() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"disk_configuration_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(sqlvirtualmachine.NEW),
-								string(sqlvirtualmachine.EXTEND),
-								string(sqlvirtualmachine.ADD),
-							}, false),
-						},
+
 						"sql_data_default_file_path": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -378,7 +237,7 @@ func resourceArmSqlVirtualMachine() *schema.Resource {
 	}
 }
 
-func resourceArmSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).MSSQLVM.SQLVirtualMachinesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -414,36 +273,14 @@ func resourceArmSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta inter
 		properties.SQLVirtualMachineGroupResourceID = &SQLVirtualMachineGroupResourceID
 	}
 
-	if sqlImageOffer, ok := d.GetOk("sql_image_offer"); ok {
-		SQLImageOffer := sqlImageOffer.(string)
-		properties.SQLImageOffer = &SQLImageOffer
-	}
-
-	if sqlManagement, ok := d.GetOk("sql_management"); ok {
-		SQLManagement := sqlvirtualmachine.SQLManagementMode(sqlManagement.(string))
-		properties.SQLManagement = SQLManagement
-	}
 
 	if sqlImageSku, ok := d.GetOk("sql_image_sku"); ok {
 		SQLImageSku := sqlvirtualmachine.SQLImageSku(sqlImageSku.(string))
 		properties.SQLImageSku = SQLImageSku
-	}
-
-	if sqlImageSku, ok := d.GetOk("sql_image_sku"); ok {
-		SQLImageSku := sqlvirtualmachine.SQLImageSku(sqlImageSku.(string))
-		properties.SQLImageSku = SQLImageSku
-	}
-
-	if _, ok := d.GetOk("wsfc_domain_credentials"); ok {
-		properties.WsfcDomainCredentials = expandArmSqlVirtualMachineWsfcDomainCredentials(d)
 	}
 
 	if _, ok := d.GetOk("auto_patching_settings"); ok {
 		properties.AutoPatchingSettings = expandArmSqlVirtualMachineAutoPatchingSettings(d)
-	}
-
-	if _, ok := d.GetOk("auto_backup_settings"); ok {
-		properties.AutoBackupSettings = expandArmSqlVirtualMachineAutoBackupSettings(d)
 	}
 
 	if _, ok := d.GetOk("key_vault_credential_settings"); ok {
@@ -484,10 +321,10 @@ func resourceArmSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta inter
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmSqlVirtualMachineRead(d, meta)
+	return resourceArmMsSqlVirtualMachineRead(d, meta)
 }
 
-func resourceArmSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).MSSQLVM.SQLVirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -514,9 +351,6 @@ func resourceArmSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if properties := resp.Properties; properties != nil {
-		if err := d.Set("auto_backup_settings", flattenArmSqlVirtualMachineAutoBackupSettings(properties.AutoBackupSettings)); err != nil {
-			return fmt.Errorf("Error setting `auto_backup_settings`: %+v", err)
-		}
 		if err := d.Set("auto_patching_settings", flattenArmSqlVirtualMachineAutoPatchingSettings(properties.AutoPatchingSettings)); err != nil {
 			return fmt.Errorf("Error setting `auto_patching_settings`: %+v", err)
 		}
@@ -524,9 +358,6 @@ func resourceArmSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `key_vault_credential_settings`: %+v", err)
 		}
 		d.Set("provisioning_state", properties.ProvisioningState)
-		d.Set("sql_image_offer", properties.SQLImageOffer)
-		d.Set("sql_image_sku", string(properties.SQLImageSku))
-		d.Set("sql_management", string(properties.SQLManagement))
 		d.Set("sql_server_license_type", string(properties.SQLServerLicenseType))
 		d.Set("sql_virtual_machine_group_resource_id", properties.SQLVirtualMachineGroupResourceID)
 		d.Set("virtual_machine_resource_id", properties.VirtualMachineResourceID)
@@ -536,16 +367,14 @@ func resourceArmSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) 
 		if err := d.Set("storage_configuration_settings", flattenArmSqlVirtualMachineStorageConfigurationSettings(properties.StorageConfigurationSettings)); err != nil {
 			return fmt.Errorf("Error setting `storage_configuration_settings`: %+v", err)
 		}
-		if err := d.Set("wsfc_domain_credentials", flattenArmSqlVirtualMachineWsfcDomainCredentials(properties.WsfcDomainCredentials)); err != nil {
-			return fmt.Errorf("Error setting `wsfc_domain_credentials`: %+v", err)
-		}
 	}
 	d.Set("name", name)
+	d.Set("id", resp.ID)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSqlVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).MSSQLVM.SQLVirtualMachinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -687,7 +516,6 @@ func expandArmSqlVirtualMachineServerConfigurationsManagementSettings(d *schema.
 
 	result := sqlvirtualmachine.ServerConfigurationsManagementSettings{}
 	sqlConnectivityUpdateSettings := sqlvirtualmachine.SQLConnectivityUpdateSettings{}
-	sqlStorageUpdateSettings := sqlvirtualmachine.SQLStorageUpdateSettings{}
 	//additional feature
 	if isRServicesEnabled, ok := serverConfigMM["is_r_services_enabled"]; ok {
 		IsRServicesEnabled := isRServicesEnabled.(bool)
@@ -710,23 +538,6 @@ func expandArmSqlVirtualMachineServerConfigurationsManagementSettings(d *schema.
 		sqlConnectivityUpdateSettings.SQLAuthUpdateUserName = &SQLAuthUpdateUserName
 	}
 	result.SQLConnectivityUpdateSettings = &sqlConnectivityUpdateSettings
-	// storage
-	if DiskConfigurationType, ok := serverConfigMM["sql_storage_disk_configuration_type"]; ok {
-		sqlStorageUpdateSettings.DiskConfigurationType = sqlvirtualmachine.DiskConfigurationType(DiskConfigurationType.(string))
-	}
-	if DiskCount, ok := serverConfigMM["sql_storage_disk_count"]; ok {
-		DiskCount := int32(DiskCount.(int))
-		sqlStorageUpdateSettings.DiskCount = &DiskCount
-	}
-	if startingDeviceID, ok := serverConfigMM["sql_storage_starting_device_id"]; ok {
-		StartingDeviceID := int32(startingDeviceID.(int))
-		sqlStorageUpdateSettings.StartingDeviceID = &StartingDeviceID
-	}
-	result.SQLStorageUpdateSettings = &sqlStorageUpdateSettings
-	//work load type
-	if sqlWorkloadType, ok := serverConfigMM["sql_workload_type"]; ok {
-		result.SQLWorkloadTypeUpdateSettings = &sqlvirtualmachine.SQLWorkloadTypeUpdateSettings{SQLWorkloadType: sqlvirtualmachine.SQLWorkloadType(sqlWorkloadType.(string))}
-	}
 
 	return &result
 }
@@ -739,9 +550,6 @@ func expandArmSqlVirtualMachineStorageConfigurationSettings(d *schema.ResourceDa
 	sqlLogSetting := sqlvirtualmachine.SQLStorageSettings{}
 	sqlTempDbSetting := sqlvirtualmachine.SQLStorageSettings{}
 
-	if diskConfigurationType, ok := storageConfig["disk_configuration_type"]; ok {
-		result.DiskConfigurationType = sqlvirtualmachine.DiskConfigurationType(diskConfigurationType.(string))
-	}
 	if storageWorkloadType, ok := storageConfig["storage_workload_type"]; ok {
 		result.StorageWorkloadType = sqlvirtualmachine.StorageWorkloadType(storageWorkloadType.(string))
 	}
@@ -791,72 +599,6 @@ func expandArmSqlVirtualMachineStorageConfigurationSettings(d *schema.ResourceDa
 	return &result
 }
 
-func expandArmSqlVirtualMachineWsfcDomainCredentials(d *schema.ResourceData) *sqlvirtualmachine.WsfcDomainCredentials {
-	wsfcDomainCredentials := d.Get("wsfc_domain_credentials").([]interface{})
-	wsfcDomainCredential := wsfcDomainCredentials[0].(map[string]interface{})
-	result := sqlvirtualmachine.WsfcDomainCredentials{}
-
-	if clusterBootstrapAccountPassword, ok := wsfcDomainCredential["cluster_bootstrap_account_password"]; ok {
-		ClusterBootstrapAccountPassword := clusterBootstrapAccountPassword.(string)
-		result.ClusterBootstrapAccountPassword = &ClusterBootstrapAccountPassword
-	}
-	if clusterOperatorAccountPassword, ok := wsfcDomainCredential["cluster_operator_account_password"]; ok {
-		ClusterOperatorAccountPassword := clusterOperatorAccountPassword.(string)
-		result.ClusterOperatorAccountPassword = &ClusterOperatorAccountPassword
-	}
-	if clusterOperatorAccountPassword, ok := wsfcDomainCredential["cluster_operator_account_password"]; ok {
-		ClusterOperatorAccountPassword := clusterOperatorAccountPassword.(string)
-		result.ClusterOperatorAccountPassword = &ClusterOperatorAccountPassword
-	}
-	if sqlServiceAccountPassword, ok := wsfcDomainCredential["sql_service_account_password"]; ok {
-		SQLServiceAccountPassword := sqlServiceAccountPassword.(string)
-		result.SQLServiceAccountPassword = &SQLServiceAccountPassword
-	}
-	return &result
-}
-
-func flattenArmSqlVirtualMachineAutoBackupSettings(autoBackupSettings *sqlvirtualmachine.AutoBackupSettings) []interface{} {
-	if autoBackupSettings == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-
-	result["backup_schedule_type"] = string(autoBackupSettings.BackupScheduleType)
-	if backupSystemDbs := autoBackupSettings.BackupSystemDbs; backupSystemDbs != nil {
-		result["backup_system_dbs"] = *backupSystemDbs
-	}
-	if enable := autoBackupSettings.Enable; enable != nil {
-		result["enable"] = *enable
-	}
-	if enableEncryption := autoBackupSettings.EnableEncryption; enableEncryption != nil {
-		result["enable_encryption"] = *enableEncryption
-	}
-	result["full_backup_frequency"] = string(autoBackupSettings.FullBackupFrequency)
-	if fullBackupStartTime := autoBackupSettings.FullBackupStartTime; fullBackupStartTime != nil {
-		result["full_backup_start_time"] = int(*fullBackupStartTime)
-	}
-	if fullBackupWindowHours := autoBackupSettings.FullBackupWindowHours; fullBackupWindowHours != nil {
-		result["full_backup_window_hours"] = int(*fullBackupWindowHours)
-	}
-	if logBackupFrequency := autoBackupSettings.LogBackupFrequency; logBackupFrequency != nil {
-		result["log_backup_frequency"] = int(*logBackupFrequency)
-	}
-	if password := autoBackupSettings.Password; password != nil {
-		result["password"] = *password
-	}
-	if retentionPeriod := autoBackupSettings.RetentionPeriod; retentionPeriod != nil {
-		result["retention_period"] = int(*retentionPeriod)
-	}
-	if storageAccessKey := autoBackupSettings.StorageAccessKey; storageAccessKey != nil {
-		result["storage_access_key"] = *storageAccessKey
-	}
-	if storageAccountUrl := autoBackupSettings.StorageAccountURL; storageAccountUrl != nil {
-		result["storage_account_url"] = *storageAccountUrl
-	}
-
-	return []interface{}{result}
-}
 
 func flattenArmSqlVirtualMachineAutoPatchingSettings(autoPatchingSettings *sqlvirtualmachine.AutoPatchingSettings) []interface{} {
 	if autoPatchingSettings == nil {
@@ -930,20 +672,6 @@ func flattenArmSqlVirtualMachineServerConfigurationsManagementSettings(serverCon
 		}
 	}
 
-	if sqlStorageUpdateSettings := serverConfigurationsManagementSettings.SQLStorageUpdateSettings; sqlStorageUpdateSettings != nil {
-		result["sql_storage_disk_configuration_type"] = string(sqlStorageUpdateSettings.DiskConfigurationType)
-		if DiskCount := sqlStorageUpdateSettings.DiskCount; DiskCount != nil {
-			result["sql_storage_disk_count"] = *DiskCount
-		}
-		if StartingDeviceID := sqlStorageUpdateSettings.StartingDeviceID; StartingDeviceID != nil {
-			result["sql_storage_starting_device_id"] = *StartingDeviceID
-		}
-	}
-
-	if sqlWorkloadTypeUpdateSettings := serverConfigurationsManagementSettings.SQLWorkloadTypeUpdateSettings; sqlWorkloadTypeUpdateSettings != nil {
-		result["sql_workload_type"] = string(sqlWorkloadTypeUpdateSettings.SQLWorkloadType)
-	}
-
 	return []interface{}{result}
 }
 
@@ -954,7 +682,6 @@ func flattenArmSqlVirtualMachineStorageConfigurationSettings(storageConfiguratio
 
 	result := make(map[string]interface{})
 
-	result["disk_configuration_type"] = string(storageConfigurationSettings.DiskConfigurationType)
 	result["storage_workload_type"] = string(storageConfigurationSettings.StorageWorkloadType)
 	if sqlDataSettings := storageConfigurationSettings.SQLDataSettings; sqlDataSettings != nil {
 		if DefaultFilePath := sqlDataSettings.DefaultFilePath; DefaultFilePath != nil {
@@ -979,26 +706,6 @@ func flattenArmSqlVirtualMachineStorageConfigurationSettings(storageConfiguratio
 		if Luns := sqlTempDbSettings.Luns; Luns != nil {
 			result["sql_temp_db_luns"] = set.FromInt32Slice(*Luns)
 		}
-	}
-
-	return []interface{}{result}
-}
-
-func flattenArmSqlVirtualMachineWsfcDomainCredentials(wsfcDomainCredentials *sqlvirtualmachine.WsfcDomainCredentials) []interface{} {
-	if wsfcDomainCredentials == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-
-	if clusterBootstrapAccountPassword := wsfcDomainCredentials.ClusterBootstrapAccountPassword; clusterBootstrapAccountPassword != nil {
-		result["cluster_bootstrap_account_password"] = *clusterBootstrapAccountPassword
-	}
-	if clusterOperatorAccountPassword := wsfcDomainCredentials.ClusterOperatorAccountPassword; clusterOperatorAccountPassword != nil {
-		result["cluster_operator_account_password"] = *clusterOperatorAccountPassword
-	}
-	if sqlServiceAccountPassword := wsfcDomainCredentials.SQLServiceAccountPassword; sqlServiceAccountPassword != nil {
-		result["sql_service_account_password"] = *sqlServiceAccountPassword
 	}
 
 	return []interface{}{result}
