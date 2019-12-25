@@ -30,6 +30,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.Databricks":           {},
 		"Microsoft.DataLakeAnalytics":    {},
 		"Microsoft.DataLakeStore":        {},
+		"Microsoft.DataMigration":        {},
 		"Microsoft.DBforMySQL":           {},
 		"Microsoft.DBforPostgreSQL":      {},
 		"Microsoft.Devices":              {},

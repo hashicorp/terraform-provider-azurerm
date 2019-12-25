@@ -20,6 +20,7 @@ import (
 	databricks "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/client"
 	datafactory "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/client"
 	datalake "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/client"
+	datamigration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datamigration/client"
 	devspace "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/client"
 	devtestlabs "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/client"
 	dns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/client"
@@ -89,6 +90,7 @@ type Client struct {
 	DataBricks       *databricks.Client
 	DataFactory      *datafactory.Client
 	Datalake         *datalake.Client
+	DataMigration    *datamigration.Client
 	DevSpace         *devspace.Client
 	DevTestLabs      *devtestlabs.Client
 	Dns              *dns.Client
@@ -157,6 +159,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DataBricks = databricks.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
 	client.Datalake = datalake.NewClient(o)
+	client.DataMigration = datamigration.NewClient(o)
 	client.DevSpace = devspace.NewClient(o)
 	client.DevTestLabs = devtestlabs.NewClient(o)
 	client.Dns = dns.NewClient(o)
