@@ -21,6 +21,11 @@ linters:
     - misspell
     - structcheck
     - typecheck
+    - unconvert
+    - varcheck
+    - vet
+    - vetshadow
+    - whitespace
 
 linters-settings:
   errcheck:
