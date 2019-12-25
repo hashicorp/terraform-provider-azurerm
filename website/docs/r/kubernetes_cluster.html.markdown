@@ -79,6 +79,42 @@ The following arguments are supported:
 
 ~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0
 
+* `addon_profile` - (Optional) A `addon_profile` block as defined below.
+
+* `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
+
+-> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
+
+* `enable_pod_security_policy` - (Optional) Whether Pod Security Policies are enabled. Note that this also requires role based access control to be enabled.
+
+-> **NOTE:** Support for `enable_pod_security_policy` is currently in Preview on an opt-in basis. To use it, enable feature `PodSecurityPolicyPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
+
+* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
+
+-> **NOTE:** Upgrading your cluster may take up to 10 minutes per node.
+
+* `linux_profile` - (Optional) A `linux_profile` block as defined below.
+
+* `managed_cluster_identity` - (Optional) A `managed_cluster_identity` block as defined below. Changing this forces a new resource to be created.
+
+* `network_profile` - (Optional) A `network_profile` block as defined below.
+
+-> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
+
+* `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
+
+-> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
+
+* `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `windows_profile` - (Optional) A `windows_profile` block as defined below.
+
+* `private_link_enabled` Should this Kubernetes Cluster have Private Link Enabled? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
+
+-> **NOTE:**  At this time Private Link is in Public Preview. For an example of how to enable a Preview feature, please visit [Private Azure Kubernetes Service cluster](https://docs.microsoft.com/en-gb/azure/aks/private-clusters)
+
 ---
 
 A `aci_connector_linux` block supports the following:
@@ -103,38 +139,6 @@ resource "azurerm_subnet" "virtual" {
   }
 }
 ```
-
----
-
-* `addon_profile` - (Optional) A `addon_profile` block as defined below.
-
-* `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
-
--> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
-
-* `enable_pod_security_policy` - (Optional) Whether Pod Security Policies are enabled. Note that this also requires role based access control to be enabled.
-
--> **NOTE:** Support for `enable_pod_security_policy` is currently in Preview on an opt-in basis. To use it, enable feature `PodSecurityPolicyPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
-
-* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
-
--> **NOTE:** Upgrading your cluster may take up to 10 minutes per node.
-
-* `linux_profile` - (Optional) A `linux_profile` block as defined below.
-
-* `network_profile` - (Optional) A `network_profile` block as defined below.
-
--> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
-
-* `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
-
--> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
-
-* `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
-
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
-* `windows_profile` - (Optional) A `windows_profile` block as defined below.
 
 ---
 
@@ -167,6 +171,8 @@ A `agent_pool_profile` block supports the following:
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
 
 * `availability_zones` - (Optional) Availability zones for nodes. The property `type` of the `agent_pool_profile` must be set to `VirtualMachineScaleSets` in order to use availability zones.
+
+-> **NOTE:** To configure Availability Zones the `load_balancer_sku` must be set to `Standard`
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Note that auto scaling feature requires the that the `type` is set to `VirtualMachineScaleSets`
 
@@ -221,7 +227,7 @@ A `default_node_pool` block supports the following:
 
 * `availability_zones` - (Optional) A list of Availability Zones across which the Node Pool should be spread.
 
--> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets`.
+-> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets` and that `load_balancer_sku` is set to `Standard`.
 
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
 
@@ -278,6 +284,12 @@ A `linux_profile` block supports the following:
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
 * `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed. Changing this forces a new resource to be created.
+
+---
+
+A `managed_cluster_identity` block supports the following:
+
+* `type` - The type of identity used for the managed cluster. Valid values are `SystemAssigned` or `None`. 
 
 ---
 
@@ -350,6 +362,10 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
+* `private_fqdn` - The FQDN for the Kubernetes Cluster when private link has been enabled, which is is only resolvable inside the Virtual Network used by the Kubernetes Cluster.
+
+-> **NOTE:**  At this time Private Link is in Public Preview.
+
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 
 * `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled.
@@ -370,7 +386,7 @@ A `http_application_routing` block exports the following:
 
 ---
 
-The `kube_admin_config` and `kube_config` blocks export the following::
+The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
 
@@ -396,6 +412,14 @@ provider "kubernetes" {
   cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
 }
 ```
+
+---
+
+The `managed_cluster_identity` block exports the following: 
+
+* `principal_id` - The principal id of the system assigned identity which is used by master components.
+
+* `tenant_id` - The tenant id of the system assigned identity which is used by master components.
 
 ## Import
 

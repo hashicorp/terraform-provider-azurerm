@@ -3,6 +3,7 @@ package provider
 import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
@@ -39,22 +40,36 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/powerbidedicated"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
 
 func SupportedServices() []common.ServiceRegistration {
 	return []common.ServiceRegistration{
 		analysisservices.Registration{},
 		apimanagement.Registration{},
+		appconfiguration.Registration{},
 		applicationinsights.Registration{},
 		authorization.Registration{},
 		automation.Registration{},
@@ -90,16 +105,28 @@ func SupportedServices() []common.ServiceRegistration {
 		msi.Registration{},
 		mssql.Registration{},
 		mysql.Registration{},
-
+		netapp.Registration{},
 		network.Registration{},
 		notificationhub.Registration{},
 		policy.Registration{},
 		portal.Registration{},
 		postgres.Registration{},
+		powerbidedicated.Registration{},
 		privatedns.Registration{},
 		recoveryservices.Registration{},
 		redis.Registration{},
 		relay.Registration{},
 		resource.Registration{},
+		search.Registration{},
+		securitycenter.Registration{},
+		servicebus.Registration{},
+		servicefabric.Registration{},
+		signalr.Registration{},
+		sql.Registration{},
+		storage.Registration{},
+		streamanalytics.Registration{},
+		subscription.Registration{},
+		trafficmanager.Registration{},
+		web.Registration{},
 	}
 }

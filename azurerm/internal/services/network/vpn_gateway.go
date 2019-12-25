@@ -7,9 +7,8 @@ import (
 )
 
 type VPNGatewayResourceID struct {
-	Base azure.ResourceID
-
-	Name string
+	ResourceGroup string
+	Name          string
 }
 
 func ParseVPNGatewayID(input string) (*VPNGatewayResourceID, error) {
@@ -19,12 +18,15 @@ func ParseVPNGatewayID(input string) (*VPNGatewayResourceID, error) {
 	}
 
 	gateway := VPNGatewayResourceID{
-		Base: *id,
-		Name: id.Path["vpnGateways"],
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if gateway.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `vpnGateways` element")
+	if gateway.Name, err = id.PopSegment("vpnGateways"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
 	return &gateway, nil

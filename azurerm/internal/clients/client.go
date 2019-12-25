@@ -54,18 +54,18 @@ import (
 	redis "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/client"
 	relay "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/client"
 	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
+	scheduler "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler/client"
+	search "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/client"
+	securityCenter "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/client"
+	serviceBus "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/client"
+	serviceFabric "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/client"
+	signalr "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/client"
+	sql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/client"
+	storage "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/client"
+	streamAnalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/client"
+	subscription "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/client"
+	trafficManager "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/client"
+	web "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/client"
 )
 
 type Client struct {
@@ -87,22 +87,18 @@ type Client struct {
 	Compute          *compute.Client
 	Containers       *containerServices.Client
 	Cosmos           *cosmosdb.Client
-
-	// Phase 2
-	DataBricks  *databricks.Client
-	DataFactory *datafactory.Client
-	Datalake    *datalake.Client
-	DevSpace    *devspace.Client
-	DevTestLabs *devtestlabs.Client
-	Dns         *dns.Client
-	EventGrid   *eventgrid.Client
-	Eventhub    *eventhub.Client
-	Frontdoor   *frontdoor.Client
-	Graph       *graph.Client
-	HDInsight   *hdinsight.Client
-	HealthCare  *healthcare.Client
-
-	// Phrase 3
+	DataBricks       *databricks.Client
+	DataFactory      *datafactory.Client
+	Datalake         *datalake.Client
+	DevSpace         *devspace.Client
+	DevTestLabs      *devtestlabs.Client
+	Dns              *dns.Client
+	EventGrid        *eventgrid.Client
+	Eventhub         *eventhub.Client
+	Frontdoor        *frontdoor.Client
+	Graph            *graph.Client
+	HDInsight        *hdinsight.Client
+	HealthCare       *healthcare.Client
 	IoTHub           *iothub.Client
 	KeyVault         *keyvault.Client
 	Kusto            *kusto.Client
@@ -116,8 +112,6 @@ type Client struct {
 	MSI              *msi.Client
 	MSSQL            *mssql.Client
 	MySQL            *mysql.Client
-
-	// Phase 4
 	NetApp           *netapp.Client
 	Network          *network.Client
 	NotificationHubs *notificationhub.Client
@@ -130,23 +124,25 @@ type Client struct {
 	Redis            *redis.Client
 	Relay            *relay.Client
 	Resource         *resource.Client
-
-	// TODO: Phase 5
-	Scheduler       *scheduler.Client
-	Search          *search.Client
-	SecurityCenter  *securitycenter.Client
-	ServiceBus      *servicebus.Client
-	ServiceFabric   *servicefabric.Client
-	SignalR         *signalr.Client
-	Storage         *storage.Client
-	StreamAnalytics *streamanalytics.Client
-	Subscription    *subscription.Client
-	Sql             *sql.Client
-	TrafficManager  *trafficmanager.Client
-	Web             *web.Client
+	Scheduler        *scheduler.Client
+	Search           *search.Client
+	SecurityCenter   *securityCenter.Client
+	ServiceBus       *serviceBus.Client
+	ServiceFabric    *serviceFabric.Client
+	SignalR          *signalr.Client
+	Storage          *storage.Client
+	StreamAnalytics  *streamAnalytics.Client
+	Subscription     *subscription.Client
+	Sql              *sql.Client
+	TrafficManager   *trafficManager.Client
+	Web              *web.Client
 }
 
-func (client *Client) Build(o *common.ClientOptions) error {
+// NOTE: it should be possible for this method to become Private once the top level Client's removed
+
+func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error {
+	client.StopContext = ctx
+
 	client.AnalysisServices = analysisServices.NewClient(o)
 	client.ApiManagement = apiManagement.NewClient(o)
 	client.AppConfiguration = appConfiguration.NewClient(o)
@@ -185,7 +181,6 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.MSI = msi.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
-
 	client.NetApp = netapp.NewClient(o)
 	client.Network = network.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
@@ -198,6 +193,18 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Redis = redis.NewClient(o)
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
+	client.Scheduler = scheduler.NewClient(o)
+	client.Search = search.NewClient(o)
+	client.SecurityCenter = securityCenter.NewClient(o)
+	client.ServiceBus = serviceBus.NewClient(o)
+	client.ServiceFabric = serviceFabric.NewClient(o)
+	client.SignalR = signalr.NewClient(o)
+	client.Sql = sql.NewClient(o)
+	client.Storage = storage.NewClient(o)
+	client.StreamAnalytics = streamAnalytics.NewClient(o)
+	client.Subscription = subscription.NewClient(o)
+	client.TrafficManager = trafficManager.NewClient(o)
+	client.Web = web.NewClient(o)
 
 	return nil
 }

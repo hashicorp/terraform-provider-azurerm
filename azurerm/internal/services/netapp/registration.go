@@ -13,10 +13,16 @@ func (r Registration) Name() string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{}
+	return map[string]*schema.Resource{
+		"azurerm_netapp_account": dataSourceArmNetAppAccount(),
+		"azurerm_netapp_pool":    dataSourceArmNetAppPool(),
+		"azurerm_netapp_volume":  dataSourceArmNetAppVolume()}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{}
+	return map[string]*schema.Resource{
+		"azurerm_netapp_account": resourceArmNetAppAccount(),
+		"azurerm_netapp_pool":    resourceArmNetAppPool(),
+		"azurerm_netapp_volume":  resourceArmNetAppVolume()}
 }

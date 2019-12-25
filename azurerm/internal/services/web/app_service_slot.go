@@ -7,8 +7,7 @@ import (
 )
 
 type AppServiceSlotResourceID struct {
-	Base azure.ResourceID
-
+	ResourceGroup  string
 	AppServiceName string
 	Name           string
 }
@@ -19,26 +18,23 @@ func ParseAppServiceSlotID(input string) (*AppServiceSlotResourceID, error) {
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Slot ID %q: %+v", input, err)
 	}
 
-	group := AppServiceSlotResourceID{
-		Base:           *id,
+	slot := AppServiceSlotResourceID{
+		ResourceGroup:  id.ResourceGroup,
 		AppServiceName: id.Path["sites"],
 		Name:           id.Path["slots"],
 	}
 
-	if group.AppServiceName == "" {
-		return nil, fmt.Errorf("ID was missing the `sites` element")
+	if slot.AppServiceName, err = id.PopSegment("sites"); err != nil {
+		return nil, err
 	}
 
-	if group.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `slots` element")
+	if slot.Name, err = id.PopSegment("slots"); err != nil {
+		return nil, err
 	}
 
-	pathWithoutElements := group.Base.Path
-	delete(pathWithoutElements, "sites")
-	delete(pathWithoutElements, "slots")
-	if len(pathWithoutElements) != 0 {
-		return nil, fmt.Errorf("ID contained more segments than a Resource ID requires: %q", input)
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
-	return &group, nil
+	return &slot, nil
 }

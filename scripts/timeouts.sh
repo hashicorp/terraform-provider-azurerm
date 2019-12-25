@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-files=$(ls ./azurerm/*.go)
+files=$(find ./azurerm -type f -name "*.go")
 error=false
 
 echo "==> Checking that Custom Timeouts are used..."
@@ -19,11 +19,11 @@ if $error; then
   echo "The files listed above must use a Wrapped StopContext to enable Custom Timeouts."
   echo "You can do this by changing:"
   echo ""
-  echo "> ctx := meta.(*ArmClient).StopContext"
+  echo "> ctx := meta.(*clients.Client).StopContext"
   echo ""
   echo "to"
   echo ""
-  echo "> ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)"
+  echo "> ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)"
   echo "> defer cancel()"
   echo ""
   echo "where 'ForCreate', 'ForCreateUpdate', 'ForDelete', 'ForRead' and 'ForUpdate' are available"

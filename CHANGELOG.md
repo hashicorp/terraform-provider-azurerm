@@ -1,33 +1,100 @@
-## 1.39.0 (Unreleased)
+## 1.40.0 (Unreleased)
 
-FEATURESE: 
-
-* **New Resource:** `azurerm_app_configuration` [GH-4859]
+* **New Data Source:** `azurerm_netapp_volume` [GH-4933]
+* **New Resource:** `azurerm_advanced_threat_protection` [GH-4848]
+* **New Resource:** `azurerm_api_management_diagnostic ` [GH-4836]
+* **New Resource:** `azurerm_automation_certificate` [GH-4785]
+* **New Resource:** `azurerm_backup_container_storage_account` [GH-5213]
+* **New Resource:** `azurerm_backup_policy_file_share` [GH-5213]
+* **New Resource:** `azurerm_backup_protected_file_share` [GH-5213]
+* **New Resource:** `azurerm_iothub_dps_shared_access_policy` [GH-5171]
+* **New Resource:** `azurerm_network_watcher_flow_log` [GH-5059]
+* **New Resource:** `azurerm_netapp_volume` [GH-4933]
+* **New Resource:** `azurerm_stream_analytics_reference_input_blob` [GH-3633]
+* **New Resource:** `azurerm_app_service_virtual_network_swift_connection` [GH-5214]
 
 IMPROVEMENTS:
 
-* storage: switching to use the Authorizers from Azure/go-autorest [GH-5109]
-* `azurerm_app_service` - adding validation to import [GH-5107]
-* `azurerm_app_service_certificate` - adding validation to import [GH-5107]
-* `azurerm_app_service_custom_hostname_binding` - adding validation to import [GH-5107]
-* `azurerm_app_service_plan` - adding validation to import [GH-5107]
-* `azurerm_app_service_slot` - adding validation to import [GH-5107]
-* `azurerm_app_service_source_control_token` - adding validation to import [GH-5107]
-* `azurerm_cosmos_mongo_collection`: deprecate the `indexes` property [GH-5116]
-* `azurerm_cosmos_mongo_collection`: make throughput computed and remove the default to let the API handel it [GH-5116]
-* `azurerm_cosmos_mongo_database`: support for the `throughput` property [GH-5116]
+* Data Source: `azurerm_private_link_service` - exposing the `enable_proxy_protocol` property  [GH-5178]
+* Data Source: `azurerm_virtual_network_gateway` - exposing the `generation` property [GH-5198]
+* `azurerm_application_gateway` - support for the `trusted_root_certificate_names` property [GH-5204]
+* `azurerm_cosmosdb_cassandra_keyspace` - support for the `throughput` property [GH-5203]
+* `azurerm_cosmosdb_sql_container` - support for the `throughput` property [GH-5203]
+* `azurerm_cosmosdb_sql_database` - support for the `throughput` property [GH-5203]
+* `azurerm_cosmosdb_table` - support for the `throughput` property [GH-5203]
+* `azurerm_dns_a_record` - support for configuring `target_resource_id` [GH-5218]
+* `azurerm_dns_aaaa_record` - support for configuring `target_resource_id` [GH-5218]
+* `azurerm_dns_cname_record` - support for configuring `target_resource_id` [GH-5218]
+* `azurerm_dns_mx_record` - the `name` property is now optional [GH-5205]
+* `azurerm_function_app` - support for the `ftps_state` property [GH-5169]
+* `azurerm_image` - support for configuring `hyper_v_generation` [GH-4453]
+* `azurerm_key_vault`: the `network_acls` property is now computed [GH-5207]
+* `azurerm_kubernetes_cluster` - support for the `managed_cluster_identity` property [GH-5168]
+* `azurerm_kubernetes_cluster` - support for private link [GH-5161]
+* `azurerm_private_link_service` - support for the `enable_proxy_protocol` property  [GH-5178]
+* `azurerm_recovery_services_fabric` - has been deprecated and renamed to `	azurerm_site_recovery_fabric` [GH-5170]
+* `azurerm_recovery_network_mapping` - has been deprecated and renamed to `	azurerm_site_recovery_network_mapping` [GH-5170]
+* `azurerm_recovery_services_protection_container` - has been deprecated and renamed to `	azurerm_site_recovery_protection_container` [GH-5170]
+* `azurerm_recovery_services_protection_container_mapping` - has been deprecated and renamed to `azurerm_site_recovery_protection_container_mapping` [GH-5170]
+* `azurerm_recovery_services_replication_policy` - has been deprecated and renamed to `azurerm_site_recovery_protection_policy` [GH-5170]
+* `azurerm_recovery_replicated_vm` - has been deprecated and renamed to `azurerm_site_recovery_replicated_vm` [GH-5170]
+* `azurerm_recovery_services_protection_policy_vm` - has been deprecated and renamed to `	zurerm_backup_policy_vm` [GH-5170]
+* `azurerm_recovery_services_protected_vm` - has been deprecated and renamed to `azurerm_backup_protected_vm` [GH-5170]
+* `azurerm_search_service` - exposing the `query_keys` [GH-5029]
+* `azurerm_storage_account`  - exposing the `blob_properties` block [GH-3807]
+* `aaurerm_storage_account` - correctly handle an empty network rules API response [GH-5210]
+* `azurerm_shared_image_version` - support for the `storage_account_type` property [GH-5212]
+* `azurerm_virtual_network_gateway` - support for configuring `generation` [GH-5198]
+* `azurerm_virtual_network_gateway_connection` - support for the `connection_protocol` property [GH-5145]
 
 BUG FIXES:
 
-* Data Source: `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
-* `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
-* `azurerm_private_link_endpoint` - fixing the validation for the `subresource_names` field [GH-5118]
-* `azurerm_storage_account` - querying all pages when listing storage accounts [GH-5075]
-* `azurerm_storage_blob` - querying all pages when listing storage accounts [GH-5075]
-* `azurerm_storage_container` - querying all pages when listing storage accounts [GH-5075]
-* `azurerm_storage_file` - querying all pages when listing storage accounts [GH-5075]
-* `azurerm_storage_queue` - querying all pages when listing storage accounts [GH-5075]
-* `azurerm_storage_table` - querying all pages when listing storage accounts [GH-5075]
+* Data Source: `azurerm_shared_image_version` - change the `storage_account_type` property from a set to a list [GH-5212]
+* `azurerm_api_management_api` - working around a behavioural change in the API detecting deleted resources [GH-5054]
+* `azurerm_api_management_api` - correctly setting the soap API type when `soap_pass_through` is true [GH-5081]
+* `azurerm_healthcare_service` - making rhe `cors_configuration` block computed [GH-5046]
+* `azurerm_monitor_log_profile` - polling until the log profile is repeatedly available [GH-5194]
+* `azurerm_storage_account_network_rules` - matching the validation used for `ip_rules ` with the validation used by `ip_rules ` in the `network_rules` block of `azurerm_storage_account` [GH-5201]
+* `azurerm_subnet` - allowing both `enforce_private_link_endpoint_network_policies` and `enforce_private_link_service_network_policies` to be set together [GH-5200]
+
+## 1.39.0 (December 16, 2019)
+
+FEATURES: 
+
+* **New Resource:** `azurerm_app_configuration` ([#4859](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4859))
+* **New Resource:** `azurerm_bot_channel_ms_teams` ([#4984](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4984))
+* **New Resource:** `azurerm_mssql_database_vulnerability_assessment_rule_baseline` ([#3806](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3806))
+* **New Resource:** `azurerm_mssql_server_vulnerability_assessment` ([#3806](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3806))
+* **New Resource:** `azurerm_mssql_server_security_alert_policy` ([#3806](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3806))
+
+IMPROVEMENTS:
+
+* dependencies: upgrading to `v0.7.1` of github.com/tombuildsstuff/giovanni ([#5143](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5143))
+* storage: switching to use the Authorizers from Azure/go-autorest ([#5109](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5109))
+* `azurerm_app_service` - adding validation to import ([#5107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5107))
+* `azurerm_app_service_certificate` - adding validation to import ([#5107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5107))
+* `azurerm_app_service_custom_hostname_binding` - adding validation to import ([#5107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5107))
+* `azurerm_app_service_plan` - adding validation to import ([#5107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5107))
+* `azurerm_app_service_slot` - adding validation to import ([#5107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5107))
+* `azurerm_app_service_source_control_token` - adding validation to import ([#5107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5107))
+* `azurerm_cosmos_mongo_collection` - deprecate the `indexes` property ([#5116](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5116))
+* `azurerm_cosmos_mongo_collection` - make throughput computed and remove the default to let the API handel it ([#5116](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5116))
+* `azurerm_cosmos_mongo_database` - support for the `throughput` property ([#5116](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5116))
+* `azurerm_function_app` - support for `min_tls_version` ([#5074](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5074))
+* `azurerm_private_link_endpoint` - has been deprecated and renamed to `azurerm_private_endpoint` ([#5150](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5150))
+
+BUG FIXES:
+
+* Data Source: `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed ([#5104](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5104))
+* `azurerm_api_management_api` - ensuring `version_set_id` is specified when `version` is ([#4993](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4993))
+* `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed ([#5104](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5104))
+* `azurerm_private_link_endpoint` - fixing the validation for the `subresource_names` field ([#5118](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5118))
+* `azurerm_storage_account` - querying all pages when listing storage accounts ([#5075](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5075))
+* `azurerm_storage_blob` - querying all pages when listing storage accounts ([#5075](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5075))
+* `azurerm_storage_container` - querying all pages when listing storage accounts ([#5075](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5075))
+* `azurerm_storage_file` - querying all pages when listing storage accounts ([#5075](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5075))
+* `azurerm_storage_queue` - querying all pages when listing storage accounts ([#5075](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5075))
+* `azurerm_storage_table` - querying all pages when listing storage accounts ([#5075](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5075))
 
 ## 1.38.0 (December 06, 2019)
 
@@ -1544,9 +1611,9 @@ FEATURES:
 BUG FIXES:
 
 * across data-sources and resources: making Connection Strings, Keys and Passwords sensitive fields ([#1242](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1242))
-* `azurerm_virtual_machine_scale_set` - an empty `os_profile_windows_config` block no longer causes a panic ([#12* `azurerm_app_service` - adding validation to import [GH-5107]
-* `azurerm_app_service_certificate` - adding validation to import [GH-5107]
-* `azurerm_app_service_custom_hostname_binding` - adding validation to import [GH-5107]
-* `azurerm_app_service_plan` - adding validation to import [GH-5107]
-* `azurerm_app_service_slot` - adding validation to import [GH-5107]
-* `azurerm_app_service_source_control_token` - adding validation to import [GH-5107]
+* `azurerm_virtual_machine_scale_set` - an empty `os_profile_windows_config` block no longer causes a panic ([#12* `azurerm_app_service` - adding validation to import ([#5107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5107))
+* `azurerm_app_service_certificate` - adding validation to import ([#5107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5107))
+* `azurerm_app_service_custom_hostname_binding` - adding validation to import ([#5107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5107))
+* `azurerm_app_service_plan` - adding validation to import ([#5107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5107))
+* `azurerm_app_service_slot` - adding validation to import ([#5107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5107))
+* `azurerm_app_service_source_control_token` - adding validation to import ([#5107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5107))

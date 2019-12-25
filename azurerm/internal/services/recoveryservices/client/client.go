@@ -8,15 +8,17 @@ import (
 )
 
 type Client struct {
-	ProtectedItemsClient            *backup.ProtectedItemsClient
-	ProtectionPoliciesClient        *backup.ProtectionPoliciesClient
-	VaultsClient                    *recoveryservices.VaultsClient
-	FabricClient                    func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
-	ProtectionContainerClient       func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient
-	ReplicationPoliciesClient       func(resourceGroupName string, vaultName string) siterecovery.ReplicationPoliciesClient
-	ContainerMappingClient          func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainerMappingsClient
-	NetworkMappingClient            func(resourceGroupName string, vaultName string) siterecovery.ReplicationNetworkMappingsClient
-	ReplicationMigrationItemsClient func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectedItemsClient
+	ProtectedItemsClient             *backup.ProtectedItemsClient
+	ProtectionPoliciesClient         *backup.ProtectionPoliciesClient
+	BackupProtectionContainersClient *backup.ProtectionContainersClient
+	BackupOperationStatusesClient    *backup.OperationStatusesClient
+	VaultsClient                     *recoveryservices.VaultsClient
+	FabricClient                     func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
+	ProtectionContainerClient        func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient
+	ReplicationPoliciesClient        func(resourceGroupName string, vaultName string) siterecovery.ReplicationPoliciesClient
+	ContainerMappingClient           func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainerMappingsClient
+	NetworkMappingClient             func(resourceGroupName string, vaultName string) siterecovery.ReplicationNetworkMappingsClient
+	ReplicationMigrationItemsClient  func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectedItemsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -28,6 +30,12 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	protectionPoliciesClient := backup.NewProtectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&protectionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	backupProtectionContainersClient := backup.NewProtectionContainersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&backupProtectionContainersClient.Client, o.ResourceManagerAuthorizer)
+
+	backupOperationStatusesClient := backup.NewOperationStatusesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&backupOperationStatusesClient.Client, o.ResourceManagerAuthorizer)
 
 	fabricClient := func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient {
 		client := siterecovery.NewReplicationFabricsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, resourceGroupName, vaultName)
@@ -66,14 +74,16 @@ func NewClient(o *common.ClientOptions) *Client {
 	}
 
 	return &Client{
-		ProtectedItemsClient:            &protectedItemsClient,
-		ProtectionPoliciesClient:        &protectionPoliciesClient,
-		VaultsClient:                    &vaultsClient,
-		FabricClient:                    fabricClient,
-		ProtectionContainerClient:       protectionContainerClient,
-		ReplicationPoliciesClient:       replicationPoliciesClient,
-		ContainerMappingClient:          containerMappingClient,
-		NetworkMappingClient:            networkMappingClient,
-		ReplicationMigrationItemsClient: replicationMigrationItemsClient,
+		ProtectedItemsClient:             &protectedItemsClient,
+		ProtectionPoliciesClient:         &protectionPoliciesClient,
+		BackupProtectionContainersClient: &backupProtectionContainersClient,
+		BackupOperationStatusesClient:    &backupOperationStatusesClient,
+		VaultsClient:                     &vaultsClient,
+		FabricClient:                     fabricClient,
+		ProtectionContainerClient:        protectionContainerClient,
+		ReplicationPoliciesClient:        replicationPoliciesClient,
+		ContainerMappingClient:           containerMappingClient,
+		NetworkMappingClient:             networkMappingClient,
+		ReplicationMigrationItemsClient:  replicationMigrationItemsClient,
 	}
 }
