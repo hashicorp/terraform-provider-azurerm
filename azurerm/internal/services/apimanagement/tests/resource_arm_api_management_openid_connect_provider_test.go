@@ -26,11 +26,7 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_basic(t *testing.T) {
 					testCheckAzureRMApiManagementOpenIDConnectProviderExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -78,11 +74,7 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_update(t *testing.T) {
 					testCheckAzureRMApiManagementOpenIDConnectProviderExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

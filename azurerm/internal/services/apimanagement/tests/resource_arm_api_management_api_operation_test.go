@@ -26,11 +26,7 @@ func TestAccAzureRMApiManagementApiOperation_basic(t *testing.T) {
 					testCheckAzureRMApiManagementApiOperationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -73,11 +69,7 @@ func TestAccAzureRMApiManagementApiOperation_customMethod(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "method", "HAMMERTIME"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -96,11 +88,7 @@ func TestAccAzureRMApiManagementApiOperation_headers(t *testing.T) {
 					testCheckAzureRMApiManagementApiOperationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -119,22 +107,14 @@ func TestAccAzureRMApiManagementApiOperation_requestRepresentations(t *testing.T
 					testCheckAzureRMApiManagementApiOperationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagementApiOperation_requestRepresentationUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementApiOperationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -154,22 +134,14 @@ func TestAccAzureRMApiManagementApiOperation_representations(t *testing.T) {
 					testCheckAzureRMApiManagementApiOperationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagementApiOperation_representationUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementApiOperationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

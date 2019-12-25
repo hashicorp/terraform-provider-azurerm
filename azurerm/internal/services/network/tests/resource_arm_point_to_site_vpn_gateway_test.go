@@ -250,7 +250,7 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
 func testAccAzureRMAzureRMPointToSiteVPNGateway_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

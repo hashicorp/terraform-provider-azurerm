@@ -162,7 +162,7 @@ func testCheckAzureRMDevTestLabScheduleDestroy(s *terraform.State) error {
 func testAccAzureRMDevTestLabSchedule_autoShutdownBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -197,7 +197,7 @@ resource "azurerm_dev_test_schedule" "test" {
 func testAccAzureRMDevTestLabSchedule_autoShutdownBasicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -235,7 +235,7 @@ resource "azurerm_dev_test_schedule" "test" {
 func testAccAzureRMDevTestLabSchedule_autoStartupBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -273,7 +273,7 @@ resource "azurerm_dev_test_schedule" "test" {
 func testAccAzureRMDevTestLabSchedule_autoStartupBasicUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -314,7 +314,7 @@ resource "azurerm_dev_test_schedule" "test" {
 func testAccAzureRMDevTestLabSchedule_concurrent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
