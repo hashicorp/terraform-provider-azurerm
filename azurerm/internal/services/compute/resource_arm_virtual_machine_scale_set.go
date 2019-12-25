@@ -595,6 +595,12 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+
+						"managed_disk_encryption_set_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
 					},
 				},
 				Set: resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash,
@@ -637,6 +643,12 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
+						},
+
+						"managed_disk_encryption_set_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -982,6 +994,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	}
 
 	if properties := resp.VirtualMachineScaleSetProperties; properties != nil {
+
 		if upgradePolicy := properties.UpgradePolicy; upgradePolicy != nil {
 			d.Set("upgrade_policy_mode", upgradePolicy.Mode)
 			if policy := upgradePolicy.AutomaticOSUpgradePolicy; policy != nil {
@@ -1444,6 +1457,9 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(profile *compute.V
 
 	if profile.ManagedDisk != nil {
 		result["managed_disk_type"] = string(profile.ManagedDisk.StorageAccountType)
+		if profile.ManagedDisk.DiskEncryptionSet != nil && profile.ManagedDisk.DiskEncryptionSet.ID != nil {
+			result["managed_disk_encryption_set_id"] = *profile.ManagedDisk.DiskEncryptionSet.ID
+		}
 	}
 
 	result["caching"] = profile.Caching
@@ -1459,6 +1475,9 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(disks *[]compute
 		l := make(map[string]interface{})
 		if disk.ManagedDisk != nil {
 			l["managed_disk_type"] = string(disk.ManagedDisk.StorageAccountType)
+			if disk.ManagedDisk.DiskEncryptionSet != nil && disk.ManagedDisk.DiskEncryptionSet.ID != nil {
+				l["managed_disk_encryption_set_id"] = *disk.ManagedDisk.DiskEncryptionSet.ID
+			}
 		}
 
 		l["create_option"] = disk.CreateOption
@@ -1870,6 +1889,7 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 						Name: &publicIPConfigName,
 						VirtualMachineScaleSetPublicIPAddressConfigurationProperties: &prop,
 					}
+
 					ipConfiguration.PublicIPAddressConfiguration = &config
 				}
 			}
@@ -2006,6 +2026,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.Resource
 	osType := osDiskConfig["os_type"].(string)
 	createOption := osDiskConfig["create_option"].(string)
 	managedDiskType := osDiskConfig["managed_disk_type"].(string)
+	managedDiskEncryptionSetId := osDiskConfig["managed_disk_encryption_set_id"].(string)
 
 	if managedDiskType == "" && name == "" {
 		return nil, fmt.Errorf("[ERROR] `name` must be set in `storage_profile_os_disk` for unmanaged disk")
@@ -2045,6 +2066,12 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.Resource
 		osDisk.ManagedDisk = managedDisk
 	}
 
+	if managedDiskEncryptionSetId != "" {
+		managedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+			ID: utils.String(managedDiskEncryptionSetId),
+		}
+	}
+
 	//BEGIN: code to be removed after GH-13016 is merged
 	if image != "" && managedDiskType != "" {
 		return nil, fmt.Errorf("[ERROR] Conflict between `image` and `managed_disk_type` on `storage_profile_os_disk` (only one or the other can be used)")
@@ -2066,6 +2093,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *schema.Resour
 
 		createOption := config["create_option"].(string)
 		managedDiskType := config["managed_disk_type"].(string)
+		managedDiskEncryptionSetId := config["managed_disk_encryption_set_id"].(string)
 		lun := int32(config["lun"].(int))
 
 		dataDisk := compute.VirtualMachineScaleSetDataDisk{
@@ -2079,6 +2107,12 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *schema.Resour
 			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(managedDiskType)
 		} else {
 			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(compute.StandardLRS)
+		}
+
+		if managedDiskEncryptionSetId != "" {
+			managedDiskVMSS.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+				ID: utils.String(managedDiskEncryptionSetId),
+			}
 		}
 
 		// assume that data disks in VMSS can only be Managed Disks

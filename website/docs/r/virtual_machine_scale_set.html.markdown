@@ -470,6 +470,10 @@ output "principal_id" {
                        When setting this field `os_type` needs to be specified. Cannot be used when `vhd_containers`, `managed_disk_type` or `storage_profile_image_reference` are specified.
 * `os_type` - (Optional) Specifies the operating system Type, valid values are windows, linux.
 
+* `managed_disk_encryption_set_id` - (Optional) ID of the disk encryption set to use for enabling encryption at rest.
+
+-> **NOTE** To associate a custom Disk Encryption Set to a OS disk in VMSS, you must grant access of the KeyVault for the Disk Encryption Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption).
+
 `storage_profile_data_disk` supports the following:
 
 * `lun` - (Required) Specifies the Logical Unit Number of the disk in each virtual machine in the scale set.
@@ -477,6 +481,9 @@ output "principal_id" {
 * `caching` - (Optional) Specifies the caching requirements. Possible values include: `None` (default), `ReadOnly`, `ReadWrite`.
 * `disk_size_gb` - (Optional) Specifies the size of the disk in GB. This element is required when creating an empty disk.
 * `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value must be either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
+* `managed_disk_encryption_set_id` - (Optional) ID of the disk encryption set to use for enabling encryption at rest.
+
+-> **NOTE** To associate a custom Disk Encryption Set to a data disk in VMSS, you must grant access of the KeyVault for the Disk Encryption Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption).
 
 `storage_profile_image_reference` supports the following:
 
