@@ -837,6 +837,12 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
+				"managed_disk_encryption_set_id": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
 			},
 		},
 	}
@@ -859,6 +865,12 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}) *[]compute.Virtua
 
 			// AFAIK this is required to be Empty
 			CreateOption: compute.DiskCreateOptionTypesEmpty,
+		}
+
+		if id := raw["managed_disk_encryption_set_id"].(string); id != "" {
+			disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+				ID: utils.String(id),
+			}
 		}
 
 		disks = append(disks, disk)
@@ -895,13 +907,23 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			writeAcceleratorEnabled = *v.WriteAcceleratorEnabled
 		}
 
-		output = append(output, map[string]interface{}{
+		item := map[string]interface{}{
 			"caching":                   string(v.Caching),
 			"lun":                       lun,
 			"disk_size_gb":              diskSizeGb,
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
-		})
+		}
+
+		if disk := v.ManagedDisk; disk != nil {
+			if set := disk.DiskEncryptionSet; set != nil {
+				if id := set.ID; id != nil {
+					item["managed_disk_encryption_set_id"] = *id
+				}
+			}
+		}
+
+		output = append(output, item)
 	}
 
 	return output
@@ -967,6 +989,12 @@ func VirtualMachineScaleSetOSDiskSchema() *schema.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
+				"managed_disk_encryption_set_id": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
 			},
 		},
 	}
@@ -984,6 +1012,12 @@ func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.Oper
 		// these have to be hard-coded so there's no point exposing them
 		CreateOption: compute.DiskCreateOptionTypesFromImage,
 		OsType:       osType,
+	}
+
+	if diskEncryptionSetId := raw["managed_disk_encryption_set_id"].(string); diskEncryptionSetId != "" {
+		disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+			ID: utils.String(diskEncryptionSetId),
+		}
 	}
 
 	if osDiskSize := raw["disk_size_gb"].(int); osDiskSize > 0 {
@@ -1008,6 +1042,12 @@ func ExpandVirtualMachineScaleSetOSDiskUpdate(input []interface{}) *compute.Virt
 			StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
 		},
 		WriteAcceleratorEnabled: utils.Bool(raw["write_accelerator_enabled"].(bool)),
+	}
+
+	if diskEncryptionSetId := raw["managed_disk_encryption_set_id"].(string); diskEncryptionSetId != "" {
+		disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+			ID: utils.String(diskEncryptionSetId),
+		}
 	}
 
 	if osDiskSize := raw["disk_size_gb"].(int); osDiskSize > 0 {
@@ -1043,15 +1083,22 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 	if input.WriteAcceleratorEnabled != nil {
 		writeAcceleratorEnabled = *input.WriteAcceleratorEnabled
 	}
-	return []interface{}{
-		map[string]interface{}{
-			"caching":                   string(input.Caching),
-			"disk_size_gb":              diskSizeGb,
-			"diff_disk_settings":        diffDiskSettings,
-			"storage_account_type":      storageAccountType,
-			"write_accelerator_enabled": writeAcceleratorEnabled,
-		},
+
+	result := map[string]interface{}{
+		"caching":                   string(input.Caching),
+		"disk_size_gb":              diskSizeGb,
+		"diff_disk_settings":        diffDiskSettings,
+		"storage_account_type":      storageAccountType,
+		"write_accelerator_enabled": writeAcceleratorEnabled,
 	}
+	if disk := input.ManagedDisk; disk != nil {
+		if set := disk.DiskEncryptionSet; set != nil {
+			if id := set.ID; id != nil {
+				result["managed_disk_encryption_set_id"] = *id
+			}
+		}
+	}
+	return []interface{}{result}
 }
 
 func VirtualMachineScaleSetSourceImageReferenceSchema() *schema.Schema {

@@ -234,6 +234,10 @@ A `data_disk` block supports the following:
 
 -> **NOTE:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
 
+* `managed_disk_encryption_set_id` - (Optional) ID of the disk encryption set to use for enabling encryption at rest.
+
+-> **NOTE** To associate a custom Disk Encryption Set to a data disk in VMSS, you must grant access of the KeyVault for the Disk Encryption Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption).
+
 ---
 
 A `diff_disk_settings` block supports the following:
@@ -325,6 +329,10 @@ A `os_disk` block supports the following:
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 
 -> **NOTE:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
+
+* `managed_disk_encryption_set_id` - (Optional) ID of the disk encryption set to use for enabling encryption at rest.
+
+-> **NOTE** To associate a custom Disk Encryption Set to a OS disk in VMSS, you must grant access of the KeyVault for the Disk Encryption Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption).
 
 ---
 
