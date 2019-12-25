@@ -27,5 +27,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_cosmosdb_mongo_database":     resourceArmCosmosDbMongoDatabase(),
 		"azurerm_cosmosdb_sql_container":      resourceArmCosmosDbSQLContainer(),
 		"azurerm_cosmosdb_sql_database":       resourceArmCosmosDbSQLDatabase(),
-		"azurerm_cosmosdb_table":              resourceArmCosmosDbTable()}
+		"azurerm_cosmosdb_table":              resourceArmCosmosDbTable(),
+		"azurerm_cosmosdb_gremlin_database":   resourceArmCosmosGremlinDatabase()}
 }

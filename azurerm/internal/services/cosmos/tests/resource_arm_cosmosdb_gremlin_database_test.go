@@ -1,4 +1,4 @@
-package azurerm
+package tests
 
 import (
 	"fmt"
@@ -7,15 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMCosmosGremlinDatabase_basic(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_gremlin_database.test"
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,23 +21,18 @@ func TestAccAzureRMCosmosGremlinDatabase_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosGremlinDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosGremlinDatabase_basic(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosGremlinDatabase_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosGremlinDatabaseExists(resourceName),
+					testCheckAzureRMCosmosGremlinDatabaseExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMCosmosGremlinDatabase_complete(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	resourceName := "azurerm_cosmosdb_gremlin_database.test"
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -47,16 +40,12 @@ func TestAccAzureRMCosmosGremlinDatabase_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosGremlinDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosGremlinDatabase_complete(ri, acceptance.Location()),
+				Config: testAccAzureRMCosmosGremlinDatabase_complete(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosGremlinDatabaseExists(resourceName),
+					testCheckAzureRMCosmosGremlinDatabaseExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -77,7 +66,7 @@ func testCheckAzureRMCosmosGremlinDatabaseDestroy(s *terraform.State) error {
 		resp, err := client.GetGremlinDatabase(ctx, resourceGroup, account, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Error chacking destroy for Cosmos Gremlin Database %s (Account %s) still exists:\n%v", name, account, err)
+				return fmt.Errorf("Bad: Error checking destroy for Cosmos Gremlin Database %s (Account %s) still exists:\n%v", name, account, err)
 			}
 		}
 
@@ -117,7 +106,7 @@ func testCheckAzureRMCosmosGremlinDatabaseExists(resourceName string) resource.T
 	}
 }
 
-func testAccAzureRMCosmosGremlinDatabase_basic(rInt int, location string) string {
+func testAccAzureRMCosmosGremlinDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%[1]s
 	
@@ -126,10 +115,10 @@ func testAccAzureRMCosmosGremlinDatabase_basic(rInt int, location string) string
 		resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
 		account_name        = "${azurerm_cosmosdb_account.test.name}"
 	  }
-	`, testAccAzureRMCosmosDBAccount_capabilityGremlin(rInt, location), rInt)
+	`, testAccAzureRMCosmosDBAccount_capabilityGremlin(data), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosGremlinDatabase_complete(rInt int, location string) string {
+func testAccAzureRMCosmosGremlinDatabase_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 	%[1]s
 
@@ -139,5 +128,5 @@ func testAccAzureRMCosmosGremlinDatabase_complete(rInt int, location string) str
 		account_name        = "${azurerm_cosmosdb_account.test.name}"
 		throughput          = 700
 	  }
-	`, testAccAzureRMCosmosDBAccount_capabilityGremlin(rInt, location), rInt)
+	`, testAccAzureRMCosmosDBAccount_capabilityGremlin(data), data.RandomInteger)
 }
