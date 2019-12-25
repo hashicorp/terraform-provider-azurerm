@@ -53,10 +53,7 @@ func testAccAzureRMExpressRouteCircuitPeering_requiresImport(t *testing.T) {
 					testCheckAzureRMExpressRouteCircuitPeeringExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMExpressRouteCircuitPeering_requiresImportConfig(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_express_route_circuit_peering"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMExpressRouteCircuitPeering_requiresImportConfig),
 		},
 	})
 }

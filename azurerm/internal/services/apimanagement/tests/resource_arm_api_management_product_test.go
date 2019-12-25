@@ -34,11 +34,7 @@ func TestAccAzureRMApiManagementProduct_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "terms", ""),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -114,11 +110,7 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "terms", ""),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagementProduct_updated(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -132,11 +124,7 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "terms", ""),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagementProduct_basic(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -170,11 +158,7 @@ func TestAccAzureRMApiManagementProduct_subscriptionsLimit(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "subscriptions_limit", "2"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -201,11 +185,7 @@ func TestAccAzureRMApiManagementProduct_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "terms", "These are some example terms and conditions"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

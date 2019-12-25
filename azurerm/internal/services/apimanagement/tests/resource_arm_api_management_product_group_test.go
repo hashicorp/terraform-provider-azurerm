@@ -26,11 +26,7 @@ func TestAccAzureRMAPIManagementProductGroup_basic(t *testing.T) {
 					testCheckAzureRMAPIManagementProductGroupExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

@@ -28,11 +28,7 @@ func TestAccAzureRMApiManagementUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "last_name", "Test"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
