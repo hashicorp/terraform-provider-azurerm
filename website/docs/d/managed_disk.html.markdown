@@ -112,5 +112,7 @@ resource "azurerm_virtual_machine" "example" {
 * `disk_size_gb` - The size of the managed disk in gigabytes.
 * `disk_iops_read_write` - The number of IOPS allowed for this disk. One operation can transfer between 4k and 256k bytes.
 * `disk_mbps_read_write` - The bandwidth allowed for this disk. 
+* `encryption_type` - The type of key used to encrypt the data of the disk.
+* `managed_disk_encryption_set_id` - ID of an existing disk encryption set that the current resource is using for data encryption. 
 * `tags` - A mapping of tags assigned to the resource.
 * `zones` - A collection containing the availability zone the managed disk is allocated in.

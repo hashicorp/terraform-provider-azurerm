@@ -125,6 +125,22 @@ func resourceArmManagedDisk() *schema.Resource {
 
 			"encryption_settings": encryptionSettingsSchema(),
 
+			"encryption_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.EncryptionAtRestWithPlatformKey),
+					string(compute.EncryptionAtRestWithCustomerKey),
+				}, false),
+				Default: string(compute.EncryptionAtRestWithPlatformKey),
+			},
+
+			"managed_disk_encryption_set_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -169,17 +185,6 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 	expandedTags := tags.Expand(t)
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
-	var skuName compute.DiskStorageAccountTypes
-	if strings.EqualFold(storageAccountType, string(compute.PremiumLRS)) {
-		skuName = compute.PremiumLRS
-	} else if strings.EqualFold(storageAccountType, string(compute.StandardLRS)) {
-		skuName = compute.StandardLRS
-	} else if strings.EqualFold(storageAccountType, string(compute.StandardSSDLRS)) {
-		skuName = compute.StandardSSDLRS
-	} else if strings.EqualFold(storageAccountType, string(compute.UltraSSDLRS)) {
-		skuName = compute.UltraSSDLRS
-	}
-
 	createDisk := compute.Disk{
 		Name:     &name,
 		Location: &location,
@@ -187,7 +192,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 			OsType: compute.OperatingSystemTypes(osType),
 		},
 		Sku: &compute.DiskSku{
-			Name: skuName,
+			Name: compute.DiskStorageAccountTypes(storageAccountType),
 		},
 		Tags:  expandedTags,
 		Zones: zones,
@@ -249,6 +254,25 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 		createDisk.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
 	}
 
+	encryption := compute.Encryption{}
+
+	if v, ok := d.GetOk("encryption_type"); ok {
+		encryption.Type = compute.EncryptionType(v.(string))
+		if strings.EqualFold(v.(string), string(compute.EncryptionAtRestWithPlatformKey)) {
+			if _, ok := d.GetOk("managed_disk_encryption_set_id"); ok {
+				return fmt.Errorf("[Error] `managed_disk_encryption_set_id` should not be set when `encryption_type` is `%s`", compute.EncryptionAtRestWithPlatformKey)
+			}
+		} else if strings.EqualFold(v.(string), string(compute.EncryptionAtRestWithCustomerKey)) {
+			if v, ok := d.GetOk("managed_disk_encryption_set_id"); ok {
+				encryption.DiskEncryptionSetID = utils.String(v.(string))
+			} else {
+				return fmt.Errorf("[Error] `managed_disk_encryption_set_id` must be set when `encryption_type` is `%s`", compute.EncryptionAtRestWithCustomerKey)
+			}
+		}
+	}
+
+	createDisk.Encryption = &encryption
+
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, createDisk)
 	if err != nil {
 		return err
@@ -286,6 +310,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Disk %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -294,7 +319,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("zones", resp.Zones)
+	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -305,19 +330,22 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if props := resp.DiskProperties; props != nil {
+		if creationData := props.CreationData; creationData != nil {
+			flattenAzureRmManagedDiskCreationData(d, creationData)
+		}
 		d.Set("disk_size_gb", props.DiskSizeGB)
 		d.Set("os_type", props.OsType)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
-	}
 
-	if resp.CreationData != nil {
-		flattenAzureRmManagedDiskCreationData(d, resp.CreationData)
-	}
+		if encryption := props.Encryption; encryption != nil {
+			d.Set("encryption_type", string(encryption.Type))
+			d.Set("managed_disk_encryption_set_id", encryption.DiskEncryptionSetID)
+		}
 
-	flattened := flattenManagedDiskEncryptionSettings(resp.EncryptionSettingsCollection)
-	if err := d.Set("encryption_settings", flattened); err != nil {
-		return fmt.Errorf("Error setting encryption settings: %+v", err)
+		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+			return fmt.Errorf("Error setting `encryption_settings`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
