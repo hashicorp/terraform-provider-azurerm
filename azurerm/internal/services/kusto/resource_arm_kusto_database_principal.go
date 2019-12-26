@@ -184,8 +184,7 @@ func resourceArmKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interf
 		Value: &principals,
 	}
 
-	_, err = client.AddPrincipals(ctx, resourceGroup, clusterName, databaseName, request)
-	if err != nil {
+	if _, err = client.AddPrincipals(ctx, resourceGroup, clusterName, databaseName, request); err != nil {
 		return fmt.Errorf("Error creating Kusto Database Principal (Resource Group %q, Cluster %q): %+v", resourceGroup, clusterName, err)
 	}
 
@@ -317,8 +316,7 @@ func resourceArmKustoDatabasePrincipalDelete(d *schema.ResourceData, meta interf
 		Value: &principals,
 	}
 
-	_, err = client.RemovePrincipals(ctx, resGroup, clusterName, databaseName, request)
-	if err != nil {
+	if _, err = client.RemovePrincipals(ctx, resGroup, clusterName, databaseName, request); err != nil {
 		return fmt.Errorf("Error deleting Kusto Database Principal %q (Resource Group %q, Cluster %q, Database %q): %+v", id, resGroup, clusterName, databaseName, err)
 	}
 
