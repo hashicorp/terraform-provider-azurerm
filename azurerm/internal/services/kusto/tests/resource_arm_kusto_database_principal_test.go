@@ -25,11 +25,7 @@ func TestAccAzureRMKustoDatabasePrincipal_basic(t *testing.T) {
 					testCheckAzureRMKustoDatabasePrincipalExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
