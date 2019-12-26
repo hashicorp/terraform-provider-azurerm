@@ -47,6 +47,8 @@ The following arguments are supported:
 
 * `interval` - (Required) Specifies interval used for the Frequency, for example a value of `4` for `interval` and `hour` for `frequency` would run the Trigger every 4 hours.
 
+* `start_time` - (Optional) Specifies the start date and time for this trigger in RFC3339 format: `2000-01-02T03:04:05Z`.
+
 ## Attributes Reference
 
 The following attributes are exported:
