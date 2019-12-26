@@ -1699,7 +1699,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func testAccAzureRMWindowsVirtualMachineScaleSet_updateLoadBalancerHealthProbeSKUBasic(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1811,7 +1811,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 }
 
 func testAccAzureRMWindowsVirtualMachineScaleSet_updateLoadBalancerHealthProbeSKUStandard(data acceptance.TestData) string {
-	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %[1]s
 
