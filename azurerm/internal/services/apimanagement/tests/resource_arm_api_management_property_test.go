@@ -30,11 +30,7 @@ func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag2"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -70,11 +66,7 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag4"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

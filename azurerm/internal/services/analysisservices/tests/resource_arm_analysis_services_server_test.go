@@ -27,11 +27,7 @@ func TestAccAzureRMAnalysisServicesServer_basic(t *testing.T) {
 					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -170,19 +166,11 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 			{
 				Config: preConfig,
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: postConfig,
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -202,11 +190,7 @@ func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "server_full_name"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

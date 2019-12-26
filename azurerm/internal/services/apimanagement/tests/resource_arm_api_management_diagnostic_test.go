@@ -27,11 +27,7 @@ func TestAccAzureRMApiManagementDiagnostic_basic(t *testing.T) {
 					testCheckAzureRMApiManagementDiagnosticExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

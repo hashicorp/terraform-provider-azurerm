@@ -28,11 +28,7 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -53,11 +49,7 @@ func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -119,11 +111,7 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -177,11 +165,7 @@ func TestAccAzureRMApiManagement_signInSignUpSettings(t *testing.T) {
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -200,11 +184,7 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagement_policyXmlLink(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -225,11 +205,7 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

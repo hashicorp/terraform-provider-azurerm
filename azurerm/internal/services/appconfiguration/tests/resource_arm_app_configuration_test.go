@@ -85,11 +85,7 @@ func TestAccAzureAppConfiguration_free(t *testing.T) {
 					testCheckAzureAppConfigurationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -108,11 +104,7 @@ func TestAccAzureAppConfiguration_standard(t *testing.T) {
 					testCheckAzureAppConfigurationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -154,11 +146,7 @@ func TestAccAzureAppConfiguration_complete(t *testing.T) {
 					testCheckAzureAppConfigurationExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -245,12 +233,12 @@ func testCheckAzureAppConfigurationExists(resourceName string) resource.TestChec
 func testAccAzureAppConfiguration_free(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_app_configuration" "test" {
-  name                = "testaccappconf%d"
+  name                = "testacc-appconf%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "free"
@@ -261,7 +249,7 @@ resource "azurerm_app_configuration" "test" {
 func testAccAzureAppConfiguration_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -292,7 +280,7 @@ resource "azurerm_app_configuration" "import" {
 func testAccAzureAppConfiguration_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -312,7 +300,7 @@ resource "azurerm_app_configuration" "test" {
 func testAccAzureAppConfiguration_completeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
