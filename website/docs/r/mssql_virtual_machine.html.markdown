@@ -16,7 +16,7 @@ Manage Azure MsSqlVirtualMachine instance.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-group"
-  location = var.location
+  location = "example-location"
 }
 
 resource "azurerm_storage_account" "example" {
@@ -35,11 +35,12 @@ resource "azurerm_virtual_network" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_subnet" "example" {
-  name                 = "example-sub"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.0.0/24"
+resource "azurerm_subnet" "test" {
+  name                      = "example-sub"
+  resource_group_name       = azurerm_resource_group.test.name
+  virtual_network_name      = azurerm_virtual_network.test.name
+  address_prefix            = "10.0.0.0/24"
+  network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
 resource "azurerm_public_ip" "vm" {
@@ -143,7 +144,7 @@ resource "azurerm_mssql_virtual_machine" "example" {
 
 The following arguments are supported:
 
-* `resource_group` - (Required) Name of the resource group that contains the resource. You can obtain this value from the Azure Resource Manager API or the portal. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Name of the resource group that contains the resource. You can obtain this value from the Azure Resource Manager API or the portal. Changing this forces a new resource to be created.
 
 * `location` - (Required) Resource location. Changing this forces a new resource to be created.
 
