@@ -22,6 +22,10 @@ func AzureProvider() terraform.ResourceProvider {
 			return
 		}
 
+		if os.Getenv("TF_ACC") != "" {
+			return
+		}
+
 		log.Printf(f, v...)
 	}
 
