@@ -1,6 +1,7 @@
 ## 1.40.0 (Unreleased)
 
 * **New Data Source:** `azurerm_netapp_volume` [GH-4933]
+* **New Data Source:** `azurerm_netapp_snapshot` [GH-5215]
 * **New Resource:** `azurerm_advanced_threat_protection` [GH-4848]
 * **New Resource:** `azurerm_api_management_diagnostic ` [GH-4836]
 * **New Resource:** `azurerm_automation_certificate` [GH-4785]
@@ -10,6 +11,7 @@
 * **New Resource:** `azurerm_iothub_dps_shared_access_policy` [GH-5171]
 * **New Resource:** `azurerm_network_watcher_flow_log` [GH-5059]
 * **New Resource:** `azurerm_netapp_volume` [GH-4933]
+* **New Resource:** `azurerm_netapp_snapshot` [GH-5215]
 * **New Resource:** `azurerm_stream_analytics_reference_input_blob` [GH-3633]
 * **New Resource:** `azurerm_app_service_virtual_network_swift_connection` [GH-5214]
 
