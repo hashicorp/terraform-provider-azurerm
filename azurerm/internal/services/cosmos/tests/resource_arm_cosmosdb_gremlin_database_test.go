@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,6 +32,33 @@ func TestAccAzureRMCosmosGremlinDatabase_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosGremlinDatabase_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosGremlinDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosGremlinDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCosmosGremlinDatabaseExists(data.ResourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMCosmosDatabase_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_cosmosdb_gremlin_database"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMCosmosGremlinDatabase_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_database", "test")
 
@@ -40,9 +68,18 @@ func TestAccAzureRMCosmosGremlinDatabase_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosGremlinDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosGremlinDatabase_complete(data),
+				Config: testAccAzureRMCosmosGremlinDatabase_complete(data, 700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosGremlinDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "700"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCosmosGremlinDatabase_complete(data, 1700),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosGremlinDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "1700"),
 				),
 			},
 			data.ImportStep(),
@@ -118,7 +155,19 @@ func testAccAzureRMCosmosGremlinDatabase_basic(data acceptance.TestData) string 
 	`, testAccAzureRMCosmosDBAccount_capabilityGremlin(data), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosGremlinDatabase_complete(data acceptance.TestData) string {
+func testAccAzureRMCosmosDatabase_requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+	%s
+
+	resource "azurerm_cosmosdb_gremlin_database" "import" {
+		name                = "${azurerm_cosmosdb_database.test.name}"
+		resource_group_name = "${azurerm_cosmosdb_database.test.name"
+		account_name        = "${azurerm_cosmosdb_database.test.name}"
+	}
+	`, testAccAzureRMCosmosGremlinDatabase_basic(data))
+}
+
+func testAccAzureRMCosmosGremlinDatabase_complete(data acceptance.TestData, throughput int) string {
 	return fmt.Sprintf(`
 	%[1]s
 
@@ -126,7 +175,7 @@ func testAccAzureRMCosmosGremlinDatabase_complete(data acceptance.TestData) stri
 		name                = "acctest-%[2]d"
 		resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
 		account_name        = "${azurerm_cosmosdb_account.test.name}"
-		throughput          = 700
+		throughput          = %[3]d
 	  }
-	`, testAccAzureRMCosmosDBAccount_capabilityGremlin(data), data.RandomInteger)
+	`, testAccAzureRMCosmosDBAccount_capabilityGremlin(data), data.RandomInteger, throughput)
 }

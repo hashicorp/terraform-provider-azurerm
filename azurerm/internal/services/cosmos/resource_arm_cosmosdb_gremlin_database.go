@@ -176,8 +176,7 @@ func resourceArmCosmosGremlinDatabaseUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	_, err = client.GetGremlinDatabase(ctx, id.ResourceGroup, id.Account, id.Database)
-	if err != nil {
+	if _, err = client.GetGremlinDatabase(ctx, id.ResourceGroup, id.Account, id.Database); err != nil {
 		return fmt.Errorf("Error making get request for Cosmos Gremlin Database %s (Account %s): %+v", id.Database, id.Account, err)
 	}
 
@@ -242,8 +241,7 @@ func resourceArmCosmosGremlinDatabaseDelete(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting on delete future for Cosmos Gremlin Database %s (Account %s): %+v", id.Database, id.Account, err)
 	}
 
