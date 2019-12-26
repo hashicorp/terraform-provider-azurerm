@@ -9,6 +9,7 @@
 * **New Resource:** `azurerm_backup_policy_file_share` [GH-5213]
 * **New Resource:** `azurerm_backup_protected_file_share` [GH-5213]
 * **New Resource:** `azurerm_iothub_dps_shared_access_policy` [GH-5171]
+* **New Resource:** `azurerm_kusto_database_principal` [GH-5242]
 * **New Resource:** `azurerm_network_watcher_flow_log` [GH-5059]
 * **New Resource:** `azurerm_netapp_volume` [GH-4933]
 * **New Resource:** `azurerm_netapp_snapshot` [GH-5215]
