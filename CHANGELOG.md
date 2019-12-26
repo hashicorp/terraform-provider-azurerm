@@ -8,6 +8,7 @@
 * **New Resource:** `azurerm_backup_container_storage_account` [GH-5213]
 * **New Resource:** `azurerm_backup_policy_file_share` [GH-5213]
 * **New Resource:** `azurerm_backup_protected_file_share` [GH-5213]
+* **New Resource:** `azurerm_cosmosdb_gremlin_database` [GH-5248]
 * **New Resource:** `azurerm_iothub_dps_shared_access_policy` [GH-5171]
 * **New Resource:** `azurerm_kusto_database_principal` [GH-5242]
 * **New Resource:** `azurerm_network_watcher_flow_log` [GH-5059]
