@@ -535,12 +535,12 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherWinRMHTTPS(t *testing.T) {
 }
 
 func TestAccAzureRMWindowsVirtualMachineScaleSet_updateHealthProbe(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_updateLoadBalancerHealthProbeSKUBasic(data),
@@ -1761,8 +1761,8 @@ resource "azurerm_lb_rule" "test" {
   backend_port                   = 22
 }
 
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%[2]d"
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard_F2"
@@ -1773,12 +1773,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   depends_on = ["azurerm_lb_rule.test"]
 
-  disable_password_authentication = false
-
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
     version   = "latest"
   }
 
