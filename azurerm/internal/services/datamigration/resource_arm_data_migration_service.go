@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -31,16 +30,16 @@ func resourceArmDataMigrationService() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"location": azure.SchemaLocation(),
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validateName,
 			},
+
+			"location": azure.SchemaLocation(),
+
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"virtual_subnet_id": {
 				Type:         schema.TypeString,
@@ -50,10 +49,17 @@ func resourceArmDataMigrationService() *schema.Resource {
 			},
 
 			"sku_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					// No const defined in go sdk, the literal listed below is derived from the response of listskus endpoint.
+					// See: https://docs.microsoft.com/en-us/rest/api/datamigration/resourceskus/listskus
+					"Premium_4vCores",
+					"Standard_1vCores",
+					"Standard_2vCores",
+					"Standard_4vCores",
+				}, false),
 			},
 
 			"kind": {
@@ -64,22 +70,12 @@ func resourceArmDataMigrationService() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"Cloud"}, false),
 			},
 
-			"delete_running_tasks": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
-			"tags": tags.Schema(),
-
 			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"provisioning_state": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -171,11 +167,10 @@ func resourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interface{
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("name", name)
 	if serviceProperties := resp.ServiceProperties; serviceProperties != nil {
-		d.Set("provisioning_state", string(serviceProperties.ProvisioningState))
 		d.Set("virtual_subnet_id", serviceProperties.VirtualSubnetID)
 	}
-	if err := d.Set("sku_name", resp.Sku.Name); err != nil {
-		return fmt.Errorf("Error setting `sku_name`: %+v", err)
+	if resp.Sku != nil && resp.Sku.Name != nil {
+		d.Set("sku_name", resp.Sku.Name)
 	}
 	d.Set("type", resp.Type)
 	d.Set("kind", resp.Kind)
@@ -224,22 +219,21 @@ func resourceArmDataMigrationServiceDelete(d *schema.ResourceData, meta interfac
 	resourceGroup := id.ResourceGroup
 	name := id.Path["services"]
 
-	var deleteRunningTasks *bool
-	if toDelete, ok := d.GetOk("delete_running_tasks"); ok {
-		deleteRunningTasks = utils.Bool(toDelete.(bool))
-	}
-
-	future, err := client.Delete(ctx, resourceGroup, name, deleteRunningTasks)
+	// For dms tasks created via terraform, the deletion order has already handled the dependency between dms task and dms service. In which case, dms service will not start to delete until
+	// dms tasks have been deleted.
+	// For dms tasks created out of terraform, it is user's responsibility to ensure the deletion order. And for dms service, it makes sense to just force delete outstanding tasks.
+	toDeleteRunningTasks := true
+	future, err := client.Delete(ctx, resourceGroup, name, &toDeleteRunningTasks)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Data Migration Service (Delete Running Tasks %v / Service Name %q / Group Name %q): %+v", deleteRunningTasks, name, resourceGroup, err)
+		return fmt.Errorf("Error deleting Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Data Migration Service (Delete Running Tasks %v / Service Name %q / Group Name %q): %+v", deleteRunningTasks, name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for deleting Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
 		}
 	}
 

@@ -29,7 +29,28 @@ func TestAccAzureRMDataMigrationService_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_subnet_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard_1vCores"),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Cloud"),
-					resource.TestCheckResourceAttr(data.ResourceName, "provisioning_state", "Succeeded"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMDataMigrationService_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_migration_service", "test")
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDataMigrationServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataMigrationService_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataMigrationServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_subnet_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard_1vCores"),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Cloud"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.name", "test"),
 				),
 			},
 			data.ImportStep(),
@@ -64,7 +85,7 @@ func TestAccAzureRMDataMigrationService_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataMigrationService_complete(t *testing.T) {
+func TestAccAzureRMDataMigrationService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_migration_service", "test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -139,19 +160,19 @@ func testCheckAzureRMDataMigrationServiceDestroy(s *terraform.State) error {
 func testAccAzureRMDataMigrationService_base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-dms-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestVnet-%d"
+  name                = "acctestVnet-dms-%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name 				   = "acctestSubnet-%d"
+  name 				   = "acctestSubnet-dms-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"

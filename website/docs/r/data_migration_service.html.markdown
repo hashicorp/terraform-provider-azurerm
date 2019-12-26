@@ -11,7 +11,6 @@ description: |-
 
 Manage Azure Data Migration Service instance.
 
-
 ## Example Usage
 
 ```hcl
@@ -47,21 +46,19 @@ resource "azurerm_data_migration_service" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure region of the operation. Changing this forces a new resource to be created.
+* `name` - (Required) Specify the name of the data migration service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Name of the resource group. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `name` - (Required) Name of the service. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Name of the resource group in which to create the data migration service. Changing this forces a new resource to be created.
 
-* `virtual_subnet_id` - (Required) The ID of the virtual subnet resource to which the service should be joined. Changing this forces a new resource to be created.
+* `virtual_subnet_id` - (Required) The ID of the virtual subnet resource to which the data migration service should be joined. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The sku name of the service. Changing this forces a new resource to be created.
+* `sku_name` - (Required) The sku name of the data migration service. Currently only one of "Premium_4vCores", "Standard_1vCores", "Standard_2vCores", "Standard_4vCores" is allowed. Changing this forces a new resource to be created.
 
 * `kind` - (Optional) The resource kind. Only 'Cloud' (the default) is supported. Changing this forces a new resource to be created.
 
-* `delete_running_tasks` - (Optional) When destroy the resource, delete it even if it contains running tasks.
-
-* `tags` - (Optional) Resource tags.
+* `tags` - (Optional) A mapping of tags to assigned to the resource.
 
 ## Attributes Reference
 
@@ -69,9 +66,7 @@ The following attributes are exported:
 
 * `type` - (Optional) The resource type chain (e.g. virtualMachines/extensions)
 
-* `provisioning_state` - The resource's provisioning state
-
-* `id` - Resource ID.
+* `id` - Resource ID of data migration service.
 
 ## Import
 

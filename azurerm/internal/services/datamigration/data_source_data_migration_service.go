@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -18,17 +17,12 @@ func dataSourceArmDataMigrationService() *schema.Resource {
 		Read: dataSourceArmDataMigrationServiceRead,
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validateName,
 			},
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
 
@@ -48,11 +42,6 @@ func dataSourceArmDataMigrationService() *schema.Resource {
 			},
 
 			"kind": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"provisioning_state": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -87,11 +76,10 @@ func dataSourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interfac
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("name", resp.Name)
 	if serviceProperties := resp.ServiceProperties; serviceProperties != nil {
-		d.Set("provisioning_state", string(serviceProperties.ProvisioningState))
 		d.Set("virtual_subnet_id", serviceProperties.VirtualSubnetID)
 	}
-	if err := d.Set("sku_name", resp.Sku.Name); err != nil {
-		return fmt.Errorf("Error setting `sku_name`: %+v", err)
+	if resp.Sku != nil && resp.Sku.Name != nil {
+		d.Set("sku_name", resp.Sku.Name)
 	}
 	d.Set("type", resp.Type)
 	d.Set("kind", resp.Kind)

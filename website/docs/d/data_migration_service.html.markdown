@@ -30,27 +30,24 @@ output "azurerm_dms_id" {
 
 The following arguments are supported:
 
-* `resource_group_name` - (Required) Name of the resource group
+* `name` - (Required) Specify the name of the data migration service.
 
-* `name` - (Required) Name of the service
-
+* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the data migration service exists
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - Resource ID.
+* `id` - Resource ID of data migration service.
 
-* `location` - Resource location.
+* `location` - Azure location where the resource exists.
 
-* `virtual_subnet_id` - The ID of the virtual subnet resource to which the service should be joined
+* `virtual_subnet_id` - The ID of the virtual subnet resource to which the data migration service exists.
 
-* `sku_name` - The resource's sku name
+* `sku_name` - The sku name of data migration service.
 
 * `type` - The resource type chain (e.g. virtualMachines/extensions)
 
 * `kind` - The resource kind.
 
-* `provisioning_state` - The resource's provisioning state
-
-* `tags` - Resource tags.
+* `tags` - A mapping of tags to assigned to the resource.
