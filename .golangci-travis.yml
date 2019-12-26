@@ -1,5 +1,5 @@
 run:
-  deadline: 30m10s
+  deadline: 60m10s
   modules-download-mode: vendor
 
 issues:
