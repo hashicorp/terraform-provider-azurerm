@@ -14,6 +14,7 @@ import (
 
 func TestAccAzureRMHealthCareService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -37,6 +38,7 @@ func TestAccAzureRMHealthCareService_requiresImport(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -55,6 +57,7 @@ func TestAccAzureRMHealthCareService_requiresImport(t *testing.T) {
 
 func TestAccAzureRMHealthCareService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -146,7 +149,7 @@ resource "azurerm_healthcare_service" "test" {
     "${data.azurerm_client_config.current.service_principal_object_id}",
   ]
 }
-`, data.RandomInteger, location, data.RandomInteger)
+`, data.RandomInteger, location, data.RandomInteger/10) //name can only be 24 chars long
 }
 
 func testAccAzureRMHealthCareService_requiresImport(data acceptance.TestData) string {
@@ -206,5 +209,5 @@ resource "azurerm_healthcare_service" "test" {
     allow_credentials  = true
   }
 }
-`, data.RandomInteger, location, data.RandomInteger)
+`, data.RandomInteger, location, data.RandomInteger/10) //name can only be 24 chars long
 }
