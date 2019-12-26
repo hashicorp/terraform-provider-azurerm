@@ -31,6 +31,7 @@ IMPROVEMENTS:
 * `azurerm_key_vault`: the `network_acls` property is now computed [GH-5207]
 * `azurerm_kubernetes_cluster` - support for the `managed_cluster_identity` property [GH-5168]
 * `azurerm_kubernetes_cluster` - support for private link [GH-5161]
+* `azurerm_logic_app_trigger_recurrence` - support for the `start_time` property [GH-5244]
 * `azurerm_private_link_service` - support for the `enable_proxy_protocol` property  [GH-5178]
 * `azurerm_recovery_services_fabric` - has been deprecated and renamed to `	azurerm_site_recovery_fabric` [GH-5170]
 * `azurerm_recovery_network_mapping` - has been deprecated and renamed to `	azurerm_site_recovery_network_mapping` [GH-5170]
