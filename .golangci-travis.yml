@@ -19,6 +19,7 @@ linters:
     - interfacer
     - nakedret
     - misspell
+    - staticcheck
     - structcheck
     - typecheck
     - unconvert
