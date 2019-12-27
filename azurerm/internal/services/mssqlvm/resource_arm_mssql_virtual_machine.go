@@ -3,6 +3,8 @@ package mssqlvm
 import (
 	"fmt"
 
+	"log"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -15,7 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
 )
 
 func resourceArmMsSqlVirtualMachine() *schema.Resource {
@@ -128,29 +129,29 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"azure_key_vault_url": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc:validate.NoEmptyStrings,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"credential_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc:validate.NoEmptyStrings,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"enable": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
 						"service_principal_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc:validate.NoEmptyStrings,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"service_principal_secret": {
-							Type:      schema.TypeString,
-							Optional:  true,
-							Sensitive: true,
-							ValidateFunc:validate.NoEmptyStrings,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -181,15 +182,15 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Optional: true,
 						},
 						"sql_connectivity_auth_update_password": {
-							Type:      schema.TypeString,
-							Optional:  true,
-							Sensitive: true,
-							ValidateFunc:validate.NoEmptyStrings,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"sql_connectivity_auth_update_user_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc:validate.NoEmptyStrings,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -204,9 +205,9 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 
 						"sql_data_default_file_path": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc:validate.NoEmptyStrings,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"sql_data_luns": {
 							Type:     schema.TypeSet,
@@ -216,9 +217,9 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							},
 						},
 						"sql_log_default_file_path": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc:validate.NoEmptyStrings,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"sql_log_luns": {
 							Type:     schema.TypeSet,
@@ -228,9 +229,9 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							},
 						},
 						"sql_temp_db_default_file_path": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc:validate.NoEmptyStrings,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"sql_temp_db_luns": {
 							Type:     schema.TypeSet,

@@ -204,7 +204,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Subscription = subscription.NewClient(o)
 	client.TrafficManager = trafficManager.NewClient(o)
 	client.Web = web.NewClient(o)
-	client.MSSQL = mssql.NewClient(o)
 	client.MSSQLVM = mssqlvm.NewClient(o)
+
 	return nil
 }
