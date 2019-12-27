@@ -6,6 +6,9 @@ sidebar_current: "docs-azurerm-datasource-private-endpoint-connection"
 description: |-
   Gets the connecton status information about an existing Private Link Endpoint
 ---
+-> **NOTE:** The 'azurerm_private_link_endpoint_connection' resource is being deprecated in favour of the renamed version 'azurerm_private_endpoint_connection'.
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+As such the existing 'azurerm_private_link_endpoint_connection' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
 
 # Data Source: azurerm_private_link_endpoint_connection
 

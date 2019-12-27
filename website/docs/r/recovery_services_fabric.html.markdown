@@ -9,6 +9,8 @@ description: |-
 
 # azurerm_recovery_services_fabric
 
+~> **NOTE:** This resource has been deprecated in favour of the `azurerm_site_recovery_fabric` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
+
 Manages a Azure recovery vault fabric.
 
 ## Example Usage

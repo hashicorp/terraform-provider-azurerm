@@ -9,6 +9,8 @@ description: |-
 
 # azurerm_recovery_services_replication_policy
 
+~> **NOTE:** This resource has been deprecated in favour of the `azurerm_site_recovery_replication_policy` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
+
 Manages a Azure recovery vault replication policy.
 
 ## Example Usage
