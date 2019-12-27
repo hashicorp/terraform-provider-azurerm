@@ -23,6 +23,7 @@ resource "azurerm_cosmosdb_table" "example" {
   name                = "tfex-cosmos-table"
   resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
   account_name        = "${data.azurerm_cosmosdb_account.example.name}"
+  throughput          = 400
 }
 ```
 
@@ -35,6 +36,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which the Cosmos DB Table is created. Changing this forces a new resource to be created.
 
 * `account_name` - (Required) The name of the Cosmos DB Table to create the table within. Changing this forces a new resource to be created.
+
+* `throughput` - (Optional) The throughput of Table (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
 
 ## Attributes Reference

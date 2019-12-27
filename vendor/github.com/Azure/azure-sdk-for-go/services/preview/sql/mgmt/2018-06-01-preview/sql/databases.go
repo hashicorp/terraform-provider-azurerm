@@ -48,7 +48,8 @@ func NewDatabasesClientWithBaseURI(baseURI string, subscriptionID string) Databa
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
 // databaseName - the name of the database to failover.
-func (client DatabasesClient) Failover(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result DatabasesFailoverFuture, err error) {
+// replicaType - the type of replica to be failed over.
+func (client DatabasesClient) Failover(ctx context.Context, resourceGroupName string, serverName string, databaseName string, replicaType ReplicaType) (result DatabasesFailoverFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasesClient.Failover")
 		defer func() {
@@ -59,7 +60,7 @@ func (client DatabasesClient) Failover(ctx context.Context, resourceGroupName st
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.FailoverPreparer(ctx, resourceGroupName, serverName, databaseName)
+	req, err := client.FailoverPreparer(ctx, resourceGroupName, serverName, databaseName, replicaType)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabasesClient", "Failover", nil, "Failure preparing request")
 		return
@@ -75,7 +76,7 @@ func (client DatabasesClient) Failover(ctx context.Context, resourceGroupName st
 }
 
 // FailoverPreparer prepares the Failover request.
-func (client DatabasesClient) FailoverPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (*http.Request, error) {
+func (client DatabasesClient) FailoverPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, replicaType ReplicaType) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"databaseName":      autorest.Encode("path", databaseName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -86,6 +87,9 @@ func (client DatabasesClient) FailoverPreparer(ctx context.Context, resourceGrou
 	const APIVersion = "2018-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(string(replicaType)) > 0 {
+		queryParameters["replicaType"] = autorest.Encode("query", replicaType)
 	}
 
 	preparer := autorest.CreatePreparer(
