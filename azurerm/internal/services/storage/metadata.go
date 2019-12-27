@@ -12,7 +12,7 @@ func MetaDataSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeMap,
 		Optional:     true,
-		ValidateFunc: validateMetaDataKeys,
+		ValidateFunc: ValidateMetaDataKeys,
 	}
 }
 
@@ -21,7 +21,7 @@ func MetaDataComputedSchema() *schema.Schema {
 		Type:         schema.TypeMap,
 		Optional:     true,
 		Computed:     true,
-		ValidateFunc: validateMetaDataKeys,
+		ValidateFunc: ValidateMetaDataKeys,
 	}
 }
 
@@ -45,7 +45,7 @@ func FlattenMetaData(input map[string]string) map[string]interface{} {
 	return output
 }
 
-func validateMetaDataKeys(value interface{}, _ string) (warnings []string, errors []error) {
+func ValidateMetaDataKeys(value interface{}, _ string) (warnings []string, errors []error) {
 	v, ok := value.(map[string]interface{})
 	if !ok {
 		return

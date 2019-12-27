@@ -21,7 +21,7 @@ func ValidateScaleSetResourceID(i interface{}, k string) (s []string, es []error
 		return
 	}
 
-	id, err := ParseVirtualMachineScaleSetResourceID(v)
+	id, err := ParseVirtualMachineScaleSetID(v)
 	if err != nil {
 		es = append(es, fmt.Errorf("Error parsing %q as a VM Scale Set Resource ID: %s", v, err))
 		return

@@ -7,9 +7,8 @@ import (
 )
 
 type AppServiceCertificateResourceID struct {
-	Base azure.ResourceID
-
-	Name string
+	ResourceGroup string
+	Name          string
 }
 
 func ParseAppServiceCertificateID(input string) (*AppServiceCertificateResourceID, error) {
@@ -18,22 +17,19 @@ func ParseAppServiceCertificateID(input string) (*AppServiceCertificateResourceI
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Certificate ID %q: %+v", input, err)
 	}
 
-	group := AppServiceCertificateResourceID{
-		Base: *id,
-		Name: id.Path["certificates"],
+	certificate := AppServiceCertificateResourceID{
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if group.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `certificates` element")
+	if certificate.Name, err = id.PopSegment("certificates"); err != nil {
+		return nil, err
 	}
 
-	pathWithoutElements := group.Base.Path
-	delete(pathWithoutElements, "certificates")
-	if len(pathWithoutElements) != 0 {
-		return nil, fmt.Errorf("ID contained more segments than a Resource ID requires: %q", input)
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
-	return &group, nil
+	return &certificate, nil
 }
 
 // ValidateAppServiceCertificateID validates that the specified ID is a valid App Service Certificate ID

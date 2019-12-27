@@ -7,9 +7,8 @@ import (
 )
 
 type AppServiceCertificateOrderResourceID struct {
-	Base azure.ResourceID
-
-	Name string
+	ResourceGroup string
+	Name          string
 }
 
 func ParseAppServiceCertificateOrderID(input string) (*AppServiceCertificateOrderResourceID, error) {
@@ -18,20 +17,17 @@ func ParseAppServiceCertificateOrderID(input string) (*AppServiceCertificateOrde
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Certificate Order ID %q: %+v", input, err)
 	}
 
-	group := AppServiceCertificateOrderResourceID{
-		Base: *id,
-		Name: id.Path["certificateOrders"],
+	order := AppServiceCertificateOrderResourceID{
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if group.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `certificateOrders` element")
+	if order.Name, err = id.PopSegment("certificateOrders"); err != nil {
+		return nil, err
 	}
 
-	pathWithoutElements := group.Base.Path
-	delete(pathWithoutElements, "certificateOrders")
-	if len(pathWithoutElements) != 0 {
-		return nil, fmt.Errorf("ID contained more segments than a Resource ID requires: %q", input)
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
-	return &group, nil
+	return &order, nil
 }

@@ -59,6 +59,18 @@ The following attributes are exported:
 
 * `secondary_key` - The Search Service Administration secondary key.
 
+* `query_keys` - A `query_keys` block as defined below.
+
+---
+
+A `query_keys` block exports the following:
+
+* `name` - The name of the query key.
+
+* `key` - The value of the query key.
+
+---
+
 ## Import
 
 Search Services can be imported using the `resource id`, e.g.
