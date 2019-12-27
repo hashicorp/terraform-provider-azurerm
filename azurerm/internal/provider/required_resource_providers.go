@@ -16,6 +16,7 @@ import (
 func RequiredResourceProviders() map[string]struct{} {
 	// NOTE: Resource Providers in this list are case sensitive
 	return map[string]struct{}{
+		"Microsoft.Advisor":              {},
 		"Microsoft.ApiManagement":        {},
 		"Microsoft.Authorization":        {},
 		"Microsoft.Automation":           {},

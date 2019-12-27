@@ -1,6 +1,8 @@
 package acceptance
 
-import "os"
+import (
+	"os"
+)
 
 type ClientData struct {
 	// ClientID is the UUID of the Service Principal being used to connect to Azure

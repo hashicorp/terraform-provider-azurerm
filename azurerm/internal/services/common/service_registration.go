@@ -2,9 +2,6 @@ package common
 
 import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
-// NOTE: unfortunately this has to live in it's own package to avoid a circular reference
-// since the Services will need to access ArmClient which is moving to `internal/common`
-
 type ServiceRegistration interface {
 	// Name is the name of this Service
 	Name() string
