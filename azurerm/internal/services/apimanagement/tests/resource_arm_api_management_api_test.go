@@ -29,11 +29,7 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -56,11 +52,7 @@ func TestAccAzureRMApiManagementApi_basicClassic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -80,11 +72,7 @@ func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "revision", "one-point-oh"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -104,11 +92,7 @@ func TestAccAzureRMApiManagementApi_version(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "version", "v1"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -150,11 +134,7 @@ func TestAccAzureRMApiManagementApi_soapPassthrough(t *testing.T) {
 					testCheckAzureRMApiManagementApiExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -269,11 +249,7 @@ func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
 					testCheckAzureRMApiManagementApiExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -548,7 +524,7 @@ resource "azurerm_api_management" "test" {
 func testAccAzureRMApiManagementApi_templateClassic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

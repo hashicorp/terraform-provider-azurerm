@@ -52,10 +52,7 @@ func TestAccAzureRMDataLakeAnalyticsAccount_requiresImport(t *testing.T) {
 					testCheckAzureRMDataLakeAnalyticsAccountExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMDataLakeAnalyticsAccount_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_data_lake_analytics_account"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMDataLakeAnalyticsAccount_requiresImport),
 		},
 	})
 }
