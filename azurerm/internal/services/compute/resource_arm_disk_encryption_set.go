@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -50,26 +49,11 @@ func resourceArmDiskEncryptionSet() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"active_key": {
-				Type:     schema.TypeList,
-				Required: true,
-				// the forceNew is enabled because currently key rotation is not supported, you cannot change the key vault and key associated with disk encryption set.
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"key_url": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
-						},
-						"source_vault_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
+			"key_vault_key_uri": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"identity": {
@@ -94,25 +78,6 @@ func resourceArmDiskEncryptionSet() *schema.Resource {
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Computed: true,
-						},
-					},
-				},
-			},
-
-			"previous_keys": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"key_url": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
-						},
-						"source_vault_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -144,28 +109,40 @@ func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta inter
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	activeKey := d.Get("active_key").([]interface{})
+	//activeKey := d.Get("active_key").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
+
+	keyURL := d.Get("key_vault_key_uri").(string)
+	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	keyID, err := azure.ParseKeyVaultChildID(keyURL)
+	if err != nil {
+		return fmt.Errorf("Error creating Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	keyVaultID, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyID.KeyVaultBaseUrl)
+	if err != nil {
+		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", keyID.KeyVaultBaseUrl, err)
+	}
+	if keyVaultID == nil {
+		return fmt.Errorf("Error creating Disk Encryption Set %q (Resource Group %q): Unable to determine the Resource ID for the Key Vault at URL %q", name, resourceGroup, keyID.KeyVaultBaseUrl)
+	}
 
 	diskEncryptionSet := compute.DiskEncryptionSet{
 		Location: utils.String(location),
 		EncryptionSetProperties: &compute.EncryptionSetProperties{
-			ActiveKey: expandArmDiskEncryptionSetKeyVaultAndKeyReference(activeKey),
+			ActiveKey: &compute.KeyVaultAndKeyReference{
+				KeyURL: &keyURL,
+				SourceVault: &compute.SourceVault{
+					ID: keyVaultID,
+				},
+			},
 		},
 		Tags: tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("identity"); ok {
-		diskEncryptionSet.Identity = expandArmDiskEncryptionSetIdentity(v.([]interface{}))
-	} else {
-		diskEncryptionSet.Identity = &compute.EncryptionSetIdentity{
-			Type: compute.SystemAssigned,
-		}
-	}
+	diskEncryptionSet.Identity = expandArmDiskEncryptionSetIdentity(d)
 
 	// validate whether the keyvault has soft-delete and purge-protection enabled
-	err := validateKeyVaultAndKey(ctx, meta, resourceGroup, diskEncryptionSet.ActiveKey)
-	if err != nil {
+	if err := validateKeyVault(ctx, meta.(*clients.Client), resourceGroup, *keyVaultID); err != nil {
 		return fmt.Errorf("Error creating Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -189,35 +166,27 @@ func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta inter
 	return resourceArmDiskEncryptionSetRead(d, meta)
 }
 
-func validateKeyVaultAndKey(ctx context.Context, meta interface{}, resourceGroup string, keyVaultAndKey *compute.KeyVaultAndKeyReference) error {
-	armClient := meta.(*clients.Client)
-	if keyVaultAndKey == nil {
-		return nil
+func validateKeyVault(ctx context.Context, armClient *clients.Client, resourceGroup string, keyVaultID string) error {
+	client := armClient.KeyVault.VaultsClient
+	parsedId, err := azure.ParseAzureResourceID(keyVaultID)
+	if err != nil {
+		return fmt.Errorf("Error parsing ID for keyvault in Disk Encryption Set: %+v", err)
 	}
-	if keyVault := keyVaultAndKey.SourceVault; keyVault != nil {
-		if keyVaultId := keyVault.ID; keyVaultId != nil {
-			client := armClient.KeyVault.VaultsClient
-			parsedId, err := azure.ParseAzureResourceID(*keyVaultId)
-			if err != nil {
-				return fmt.Errorf("Error parsing ID for keyvault in Disk Encryption Set: %+v", err)
+	keyVaultName := parsedId.Path["vaults"]
+	log.Printf("[INFO] Keyvault name input in Disk Encryption Set: %s", keyVaultName)
+	resp, err := client.Get(ctx, resourceGroup, keyVaultName)
+	if err != nil {
+		return fmt.Errorf("Error reading keyvault %q (Resource Group %q): %+v", keyVaultName, resourceGroup, err)
+	}
+	if props := resp.Properties; props != nil {
+		if softDelete := props.EnableSoftDelete; softDelete != nil {
+			if !*softDelete {
+				return fmt.Errorf("the keyvault in Disk Encryption Set must enable soft delete")
 			}
-			keyVaultName := parsedId.Path["name"]
-			log.Printf("[INFO] Keyvault name input in Disk Encryption Set: %s", keyVaultName)
-			resp, err := client.Get(ctx, resourceGroup, keyVaultName)
-			if err != nil {
-				return fmt.Errorf("Error reading keyvault %q (Resource Group %q): %+v", keyVaultName, resourceGroup, err)
-			}
-			if props := resp.Properties; props != nil {
-				if softDelete := props.EnableSoftDelete; softDelete != nil {
-					if !*softDelete {
-						return fmt.Errorf("the keyvault in Disk Encryption Set must enable soft delete")
-					}
-				}
-				if purgeProtection := props.EnablePurgeProtection; purgeProtection != nil {
-					if !*purgeProtection {
-						return fmt.Errorf("the keyvault in Disk Encryption Set must enable purge protection")
-					}
-				}
+		}
+		if purgeProtection := props.EnablePurgeProtection; purgeProtection != nil {
+			if !*purgeProtection {
+				return fmt.Errorf("the keyvault in Disk Encryption Set must enable purge protection")
 			}
 		}
 	}
@@ -252,11 +221,8 @@ func resourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if encryptionSetProperties := resp.EncryptionSetProperties; encryptionSetProperties != nil {
-		if err := d.Set("active_key", flattenArmDiskEncryptionSetKeyVaultAndKeyReference(encryptionSetProperties.ActiveKey)); err != nil {
+		if err := d.Set("key_vault_key_uri", encryptionSetProperties.ActiveKey.KeyURL); err != nil {
 			return fmt.Errorf("Error setting `active_key`: %+v", err)
-		}
-		if err := d.Set("previous_keys", flattenArmDiskEncryptionSetKeyVaultAndKeyReferenceArray(encryptionSetProperties.PreviousKeys)); err != nil {
-			return fmt.Errorf("Error setting `previous_keys`: %+v", err)
 		}
 	}
 	if identity := resp.Identity; identity != nil {
@@ -282,91 +248,27 @@ func resourceArmDiskEncryptionSetDelete(d *schema.ResourceData, meta interface{}
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 		return fmt.Errorf("Error deleting Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
+		return fmt.Errorf("Error waiting for deleting Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandArmDiskEncryptionSetKeyVaultAndKeyReference(input []interface{}) *compute.KeyVaultAndKeyReference {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-
-	sourceVaultId := v["source_vault_id"].(string)
-	keyUrl := v["key_url"].(string)
-
-	result := compute.KeyVaultAndKeyReference{
-		KeyURL: utils.String(keyUrl),
-		SourceVault: &compute.SourceVault{
-			ID: utils.String(sourceVaultId),
-		},
-	}
-	return &result
-}
-
-func expandArmDiskEncryptionSetIdentity(input []interface{}) *compute.EncryptionSetIdentity {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-
-	t := v["type"].(string)
-	result := compute.EncryptionSetIdentity{
-		Type: compute.DiskEncryptionSetIdentityType(t),
-	}
-
-	return &result
-}
-
-func flattenArmDiskEncryptionSetKeyVaultAndKeyReference(input *compute.KeyVaultAndKeyReference) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-
-	if keyUrl := input.KeyURL; keyUrl != nil {
-		result["key_url"] = *keyUrl
-	}
-	if sourceVault := input.SourceVault; sourceVault != nil {
-		if sourceVaultId := sourceVault.ID; sourceVaultId != nil {
-			result["source_vault_id"] = *sourceVaultId
+func expandArmDiskEncryptionSetIdentity(d *schema.ResourceData) *compute.EncryptionSetIdentity {
+	if v, ok := d.GetOk("identity"); ok {
+		input := v.([]interface{})[0].(map[string]interface{})
+		t := input["type"].(string)
+		return &compute.EncryptionSetIdentity{
+			Type: compute.DiskEncryptionSetIdentityType(t),
 		}
 	}
-
-	return []interface{}{result}
-}
-
-func flattenArmDiskEncryptionSetKeyVaultAndKeyReferenceArray(input *[]compute.KeyVaultAndKeyReference) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
+	return &compute.EncryptionSetIdentity{
+		Type: compute.SystemAssigned,
 	}
-
-	for _, item := range *input {
-		v := make(map[string]interface{})
-
-		if sourceVault := item.SourceVault; sourceVault != nil {
-			if sourceVaultId := sourceVault.ID; sourceVaultId != nil {
-				v["source_vault_id"] = *sourceVaultId
-			}
-		}
-
-		results = append(results, v)
-	}
-
-	return results
 }
 
 func flattenArmDiskEncryptionSetIdentity(input *compute.EncryptionSetIdentity) []interface{} {

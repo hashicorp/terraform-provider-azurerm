@@ -26,41 +26,8 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - Resource Id
+* `id` - The ID of the Disk Encryption Set.
 
-* `location` - Resource location
+* `location` - The location where the Disk Encryption Set exists.
 
-* `active_key` - One `active_key` block defined below.
-
-* `identity` - A `identity` block defined below.
-
-* `previous_keys` - One or more `previous_key` block defined below.
-
-* `tags` - Resource tags
-
-
----
-
-The `active_key` block contains the following:
-
-* `source_vault_id` - The resource id of the KeyVault containing the key or secret which the Disk Encryption Set is using.
-
-* `key_url` - The URL pointing to a key or secret in KeyVault.
-
----
-
-The `identity` block contains the following:
-
-* `type` - The type of Managed Service Identity used by this Disk Encryption Set. Only SystemAssigned is supported.
-
-* `principal_id` - The object ID of the Managed Service Identity created by Azure.
-
-* `tenant_id` - The tenant ID of the Managed Service Identity created by Azure.
-
----
-
-The `previous_key` block contains the following:
-
-* `source_vault_id` - The resource id of the KeyVault containing the key or secret which the Disk Encryption Set is using.
-
-* `key_url` - The URL pointing to a key or secret in KeyVault.
+* `tags` - A mapping of tags assigned to the Disk Encryption Set.

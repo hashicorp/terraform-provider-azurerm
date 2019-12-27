@@ -32,62 +32,6 @@ func dataSourceArmDiskEncryptionSet() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"active_key": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"key_url": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"source_vault_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"identity": {
-				Type:     schema.TypeList,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"principal_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"previous_keys": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"key_url": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"source_vault_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -115,19 +59,6 @@ func dataSourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	if encryptionSetProperties := resp.EncryptionSetProperties; encryptionSetProperties != nil {
-		if err := d.Set("active_key", flattenArmDiskEncryptionSetKeyVaultAndKeyReference(encryptionSetProperties.ActiveKey)); err != nil {
-			return fmt.Errorf("Error setting `active_key`: %+v", err)
-		}
-		if err := d.Set("previous_keys", flattenArmDiskEncryptionSetKeyVaultAndKeyReferenceArray(encryptionSetProperties.PreviousKeys)); err != nil {
-			return fmt.Errorf("Error setting `previous_keys`: %+v", err)
-		}
-	}
-	if identity := resp.Identity; identity != nil {
-		if err := d.Set("identity", flattenArmDiskEncryptionSetIdentity(identity)); err != nil {
-			return fmt.Errorf("Error setting `identity`: %+v", err)
-		}
 	}
 
 	return nil

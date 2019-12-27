@@ -26,10 +26,12 @@ func TestAccDataSourceAzureRMDiskEncryptionSet_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
 			// These two steps are used for setting up a valid keyVault, which enables soft-delete and purge protection.
+			// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
 			{
-				Config:  testAccPrepareKeyvaultAndKey(resourceGroup, location, vaultName, keyName),
-				Destroy: false,
-				Check:   resource.ComposeTestCheckFunc(),
+				Config: testAccPrepareKeyvaultAndKey(resourceGroup, location, vaultName, keyName),
+				Check: resource.ComposeTestCheckFunc(
+					enableSoftDeleteAndPurgeProtectionForKeyvault(resourceGroup, vaultName),
+				),
 			},
 			// This step is not negligible, without this step, the final step will fail on refresh complaining `Disk Encryption Set does not exist`
 			{

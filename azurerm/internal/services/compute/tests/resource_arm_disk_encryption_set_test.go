@@ -31,11 +31,10 @@ func TestAccAzureRMDiskEncryptionSet_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
 			// This test step is temporary due to freezing of functions in keyVault.
-			// After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
+			// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
 			{
-				Config:  testAccPrepareKeyvaultAndKey(resourceGroup, location, vaultName, keyName),
-				Destroy: false,
-				Check:   resource.ComposeTestCheckFunc(),
+				Config: testAccPrepareKeyvaultAndKey(resourceGroup, location, vaultName, keyName),
+				Check:  resource.ComposeTestCheckFunc(),
 			},
 			{
 				PreConfig: func() { enableSoftDeleteAndPurgeProtectionForKeyvault(resourceGroup, vaultName) },
@@ -114,7 +113,7 @@ func enableSoftDeleteAndPurgeProtectionForKeyvault(resourceGroup, vaultName stri
 				EnablePurgeProtection: utils.Bool(true),
 			},
 		}
-		log.Printf("[LOG] Updating")
+		log.Printf("[DEBUG] Enabling Soft Delete & Purge Protection on Key Vault %q (Resource Group %q)..", vaultName, resourceGroup)
 		_, err := client.Update(ctx, resourceGroup, vaultName, vaultPatch)
 		if err != nil {
 			return fmt.Errorf("Bad: error when updating Keyvault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
@@ -234,9 +233,7 @@ resource "azurerm_disk_encryption_set" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  active_key {
-    source_vault_id = azurerm_key_vault.test.id
-    key_url         = azurerm_key_vault_key.test.id
+  key_vault_key_uri = azurerm_key_vault_key.test.id
   }
 }
 `, resourceGroup, location, vaultName, keyName, desName)
