@@ -38,6 +38,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_api_management_diagnostic":              resourceArmApiManagementDiagnostic(),
 		"azurerm_api_management_group":                   resourceArmApiManagementGroup(),
 		"azurerm_api_management_group_user":              resourceArmApiManagementGroupUser(),
+		"azurerm_api_management_identity_provider_aad":   resourceArmApiManagementIdentityProviderAAD(),
 		"azurerm_api_management_logger":                  resourceArmApiManagementLogger(),
 		"azurerm_api_management_openid_connect_provider": resourceArmApiManagementOpenIDConnectProvider(),
 		"azurerm_api_management_product":                 resourceArmApiManagementProduct(),
