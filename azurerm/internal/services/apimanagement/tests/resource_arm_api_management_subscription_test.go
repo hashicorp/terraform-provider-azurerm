@@ -29,11 +29,7 @@ func TestAccAzureRMAPIManagementSubscription_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -125,11 +121,7 @@ func TestAccAzureRMAPIManagementSubscription_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

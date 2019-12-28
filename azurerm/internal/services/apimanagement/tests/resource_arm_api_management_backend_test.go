@@ -28,11 +28,7 @@ func TestAccAzureRMApiManagementBackend_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "url", "https://acctest"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -71,11 +67,7 @@ func TestAccAzureRMApiManagementBackend_allProperties(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tls.0.validate_certificate_name", "true"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -94,11 +86,7 @@ func TestAccAzureRMApiManagementBackend_credentialsNoCertificate(t *testing.T) {
 					testCheckAzureRMApiManagementBackendExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -173,11 +161,7 @@ func TestAccAzureRMApiManagementBackend_serviceFabric(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "service_fabric_cluster.0.server_certificate_thumbprints.#", "2"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }

@@ -1,5 +1,5 @@
 run:
-  deadline: 30m10s
+  deadline: 60m10s
   modules-download-mode: vendor
 
 issues:
@@ -9,6 +9,20 @@ issues:
 linters:
   disable-all: true
   enable:
+    - deadcode
+    - errcheck
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - nakedret
+    - misspell
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unconvert
     - varcheck
     - vet
     - vetshadow

@@ -42,25 +42,15 @@ lint:
 	golangci-lint run ./...
 
 # we have split off static check because it causes travis to fail with an OOM error
-lintstatic:
+lintunused:
 	@echo "==> Checking source code against static check linters..."
 	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
-	golangci-lint run ./... -v --no-config --concurrency 1 --deadline=30m10s --disable-all --enable=staticcheck; ES=$$?; kill -9 $$PID; exit $$ES
+	golangci-lint run ./... -v --no-config --concurrency 1 --deadline=30m10s --disable-all --enable=unused; ES=$$?; kill -9 $$PID; exit $$ES
 
-lintrest1:
+lintrest:
 	@echo "==> Checking source code against linters..."
 	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
-	golangci-lint run ./... -v --concurrency 1 --deadline=30m10s --config .golangci-travis-1.yml ; ES=$$?; kill -9 $$PID; exit $$ES
-
-lintrest2:
-	@echo "==> Checking source code against linters..."
-	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
-	golangci-lint run ./... -v --concurrency 1 --deadline=30m10s --config .golangci-travis-2.yml ; ES=$$?; kill -9 $$PID; exit $$ES
-
-lintrest3:
-	@echo "==> Checking source code against linters..."
-	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
-	golangci-lint run ./... -v --concurrency 1 --deadline=30m10s --config .golangci-travis-2.yml ; ES=$$?; kill -9 $$PID; exit $$ES
+	golangci-lint run ./... -v --concurrency 1 --config .golangci-travis.yml ; ES=$$?; kill -9 $$PID; exit $$ES
 
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."

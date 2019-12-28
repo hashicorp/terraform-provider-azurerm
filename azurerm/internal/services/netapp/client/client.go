@@ -6,9 +6,10 @@ import (
 )
 
 type Client struct {
-	AccountClient *netapp.AccountsClient
-	PoolClient    *netapp.PoolsClient
-	VolumeClient  *netapp.VolumesClient
+	AccountClient  *netapp.AccountsClient
+	PoolClient     *netapp.PoolsClient
+	VolumeClient   *netapp.VolumesClient
+	SnapshotClient *netapp.SnapshotsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -21,9 +22,13 @@ func NewClient(o *common.ClientOptions) *Client {
 	volumeClient := netapp.NewVolumesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&volumeClient.Client, o.ResourceManagerAuthorizer)
 
+	snapshotClient := netapp.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&snapshotClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		AccountClient: &accountClient,
-		PoolClient:    &poolClient,
-		VolumeClient:  &volumeClient,
+		AccountClient:  &accountClient,
+		PoolClient:     &poolClient,
+		VolumeClient:   &volumeClient,
+		SnapshotClient: &snapshotClient,
 	}
 }

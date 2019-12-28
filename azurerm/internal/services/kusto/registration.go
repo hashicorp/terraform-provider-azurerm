@@ -21,6 +21,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_kusto_cluster":                  resourceArmKustoCluster(),
 		"azurerm_kusto_database":                 resourceArmKustoDatabase(),
+		"azurerm_kusto_database_principal":       resourceArmKustoDatabasePrincipal(),
 		"azurerm_kusto_eventhub_data_connection": resourceArmKustoEventHubDataConnection(),
 	}
 }
