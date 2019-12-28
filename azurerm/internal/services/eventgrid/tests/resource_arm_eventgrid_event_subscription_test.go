@@ -25,13 +25,6 @@ func TestAccAzureRMEventGridEventSubscription_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "EventGridSchema"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_queue_endpoint.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_blob_dead_letter_destination.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "All"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.max_delivery_attempts", "11"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retry_policy.0.event_time_to_live", "11"),
-					resource.TestCheckResourceAttr(data.ResourceName, "labels.0", "test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "labels.2", "test2"),
 				),
 			},
 			data.ImportStep(),
