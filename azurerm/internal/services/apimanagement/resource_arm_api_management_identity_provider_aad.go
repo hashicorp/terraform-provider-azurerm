@@ -41,7 +41,7 @@ func resourceArmApiManagementIdentityProviderAAD() *schema.Resource {
 			"client_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validate.GUID,
 			},
 
 			"client_secret": {
@@ -55,7 +55,8 @@ func resourceArmApiManagementIdentityProviderAAD() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.GUID,
 				},
 			},
 		},

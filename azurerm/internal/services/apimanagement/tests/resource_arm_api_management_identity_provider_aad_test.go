@@ -33,6 +33,42 @@ func TestAccAzureRMApiManagementIdentityProviderAAD_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagementIdentityProviderAAD_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aad", "test")
+	config := testAccAzureRMApiManagementIdentityProviderAAD_basic(data)
+	updateConfig := testAccAzureRMApiManagementIdentityProviderAAD_update(data)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderAADDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementIdentityProviderAADExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "00000000-0000-0000-0000-000000000000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_secret", "00000000000000000000000000000000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.0", data.Client().TenantID),
+				),
+			},
+			{
+				Config: updateConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementIdentityProviderAADExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "11111111-1111-1111-1111-111111111111"),
+					resource.TestCheckResourceAttr(data.ResourceName, "client_secret", "11111111111111111111111111111111"),
+					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.0", data.Client().TenantID),
+					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.1", data.Client().TenantID),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMApiManagementIdentityProviderAAD_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -123,11 +159,37 @@ resource "azurerm_api_management" "test" {
 resource "azurerm_api_management_identity_provider_aad" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   api_management_name = "${azurerm_api_management.test.name}"
-  client_id           = "aadclientid"
-  client_secret       = "aadsecret"
+  client_id           = "00000000-0000-0000-0000-000000000000"
+  client_secret       = "00000000000000000000000000000000"
   allowed_tenants     = ["%s"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID)
+}
+
+func testAccAzureRMApiManagementIdentityProviderAAD_update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-api-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Developer_1"
+}
+
+resource "azurerm_api_management_identity_provider_aad" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  client_id           = "11111111-1111-1111-1111-111111111111"
+  client_secret       = "11111111111111111111111111111111"
+  allowed_tenants     = ["%s", "%s"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID, data.Client().TenantID)
 }
 
 func testAccAzureRMApiManagementIdentityProviderAAD_requiresImport(data acceptance.TestData) string {
