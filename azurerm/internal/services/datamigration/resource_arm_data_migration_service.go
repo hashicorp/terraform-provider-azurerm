@@ -3,6 +3,7 @@ package datamigration
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -29,6 +30,13 @@ func resourceArmDataMigrationService() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -41,7 +49,7 @@ func resourceArmDataMigrationService() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"virtual_subnet_id": {
+			"subnet_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -70,11 +78,6 @@ func resourceArmDataMigrationService() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"Cloud"}, false),
 			},
 
-			"type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"tags": tags.Schema(),
 		},
 	}
@@ -101,13 +104,13 @@ func resourceArmDataMigrationServiceCreate(d *schema.ResourceData, meta interfac
 	}
 
 	skuName := d.Get("sku_name").(string)
-	virtualSubnetID := d.Get("virtual_subnet_id").(string)
+	subnetID := d.Get("subnet_id").(string)
 	location := d.Get("location").(string)
 
 	parameters := datamigration.Service{
 		Location: utils.String(location),
 		ServiceProperties: &datamigration.ServiceProperties{
-			VirtualSubnetID: utils.String(virtualSubnetID),
+			VirtualSubnetID: utils.String(subnetID),
 		},
 		Sku: &datamigration.ServiceSku{Name: utils.String(skuName)},
 	}
@@ -167,12 +170,11 @@ func resourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interface{
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("name", name)
 	if serviceProperties := resp.ServiceProperties; serviceProperties != nil {
-		d.Set("virtual_subnet_id", serviceProperties.VirtualSubnetID)
+		d.Set("subnet_id", serviceProperties.VirtualSubnetID)
 	}
 	if resp.Sku != nil && resp.Sku.Name != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}
-	d.Set("type", resp.Type)
 	d.Set("kind", resp.Kind)
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -190,10 +192,8 @@ func resourceArmDataMigrationServiceUpdate(d *schema.ResourceData, meta interfac
 	resourceGroup := id.ResourceGroup
 	name := id.Path["services"]
 
-	parameters := datamigration.Service{}
-
-	if t, ok := d.GetOk("tags"); ok {
-		parameters.Tags = tags.Expand(t.(map[string]interface{}))
+	parameters := datamigration.Service{
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Update(ctx, parameters, resourceGroup, name)

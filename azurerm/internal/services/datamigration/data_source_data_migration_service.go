@@ -2,6 +2,7 @@ package datamigration
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
@@ -16,27 +17,27 @@ func dataSourceArmDataMigrationService() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmDataMigrationServiceRead,
 
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validateName,
 			},
+
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"virtual_subnet_id": {
+			"subnet_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"sku_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -76,12 +77,11 @@ func dataSourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interfac
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("name", resp.Name)
 	if serviceProperties := resp.ServiceProperties; serviceProperties != nil {
-		d.Set("virtual_subnet_id", serviceProperties.VirtualSubnetID)
+		d.Set("subnet_id", serviceProperties.VirtualSubnetID)
 	}
 	if resp.Sku != nil && resp.Sku.Name != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}
-	d.Set("type", resp.Type)
 	d.Set("kind", resp.Kind)
 
 	return tags.FlattenAndSet(d, resp.Tags)

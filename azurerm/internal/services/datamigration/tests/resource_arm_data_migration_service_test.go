@@ -26,7 +26,7 @@ func TestAccAzureRMDataMigrationService_basic(t *testing.T) {
 				Config: testAccAzureRMDataMigrationService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataMigrationServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_subnet_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard_1vCores"),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Cloud"),
 				),
@@ -47,7 +47,7 @@ func TestAccAzureRMDataMigrationService_complete(t *testing.T) {
 				Config: testAccAzureRMDataMigrationService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataMigrationServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_subnet_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard_1vCores"),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Cloud"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.name", "test"),
@@ -77,10 +77,7 @@ func TestAccAzureRMDataMigrationService_requiresImport(t *testing.T) {
 					testCheckAzureRMDataMigrationServiceExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMDataMigrationService_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_data_migration_service"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMDataMigrationService_requiresImport),
 		},
 	})
 }
@@ -190,7 +187,7 @@ resource "azurerm_data_migration_service" "test" {
 	name                = "acctestDms-%d"
 	location            = azurerm_resource_group.test.location
 	resource_group_name = azurerm_resource_group.test.name
-	virtual_subnet_id   = azurerm_subnet.test.id
+	subnet_id   		= azurerm_subnet.test.id
 	sku_name            = "Standard_1vCores"
 }
 `, template, data.RandomInteger)
@@ -206,7 +203,7 @@ resource "azurerm_data_migration_service" "test" {
 	name                = "acctestDms-%d"
 	location            = azurerm_resource_group.test.location
 	resource_group_name = azurerm_resource_group.test.name
-	virtual_subnet_id   = azurerm_subnet.test.id
+	subnet_id   		= azurerm_subnet.test.id
 	sku_name            = "Standard_1vCores"
 	tags 				= {
 		name			= "test"
@@ -224,7 +221,7 @@ resource "azurerm_data_migration_service" "import" {
   name                = azurerm_data_migration_service.test.name
   location            = azurerm_data_migration_service.test.location
   resource_group_name = azurerm_data_migration_service.test.resource_group_name
-  virtual_subnet_id   = azurerm_data_migration_service.test.virtual_subnet_id
+  subnet_id   		  = azurerm_data_migration_service.test.subnet_id
   sku_name            = azurerm_data_migration_service.test.sku_name
 }
 `, template)
