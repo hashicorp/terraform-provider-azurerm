@@ -14,12 +14,12 @@ Manages an API Management AAD Identity Provider.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_api_management" "test" {
+resource "azurerm_api_management" "example" {
   name                = "example-apim"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -64,5 +64,5 @@ In addition to all arguments above, the following attributes are exported:
 API Management AAD Identity Provider can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_identity_provider_aad.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/identityProviders/aad
+terraform import azurerm_api_management_identity_provider_aad.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/identityProviders/aad
 ```

@@ -107,7 +107,7 @@ func testCheckAzureRMApiManagementIdentityProviderAADExists(resourceName string)
 func testAccAzureRMApiManagementIdentityProviderAAD_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-api-%d"
   location = "%s"
 }
 
