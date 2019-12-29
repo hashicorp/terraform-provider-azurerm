@@ -42,23 +42,23 @@ func TestAccDataSourceAzureRMStorageManagementPolicy_basic(t *testing.T) {
 
 func testAccDataSourceAzureRMStorageManagementPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "testrg" {
+resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
-resource "azurerm_storage_account" "testsa" {
+resource "azurerm_storage_account" "test" {
   name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.testrg.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-  location                 = "${azurerm_resource_group.testrg.location}"
+  location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "BlobStorage"
 }
 
-resource "azurerm_storage_management_policy" "testpolicy" {
-  storage_account_id = "${azurerm_storage_account.testsa.id}"
+resource "azurerm_storage_management_policy" "test" {
+  storage_account_id = "${azurerm_storage_account.test.id}"
 
   rule {
     name    = "rule1"
@@ -80,8 +80,8 @@ resource "azurerm_storage_management_policy" "testpolicy" {
   }
 }
 
-data "azurerm_storage_management_policy" "testpolicy" {
-  storage_account_id = "${azurerm_storage_management_policy.testpolicy.storage_account_id}"
+data "azurerm_storage_management_policy" "test" {
+  storage_account_id = "${azurerm_storage_management_policy.test.storage_account_id}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
