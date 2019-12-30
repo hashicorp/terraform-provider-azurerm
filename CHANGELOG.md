@@ -23,6 +23,7 @@ IMPROVEMENTS:
 * Data Source: `azurerm_private_link_service` - exposing the `enable_proxy_protocol` property  [GH-5178]
 * Data Source: `azurerm_virtual_network_gateway` - exposing the `generation` property [GH-5198]
 * `azurerm_application_gateway` - support for the `trusted_root_certificate_names` property [GH-5204]
+* `azurerm_api_management_operation` - will no longer panic when `response` is missing values [GH-5273]
 * `azurerm_cosmosdb_cassandra_keyspace` - support for the `throughput` property [GH-5203]
 * `azurerm_cosmosdb_sql_container` - support for the `throughput` property [GH-5203]
 * `azurerm_cosmosdb_sql_database` - support for the `throughput` property [GH-5203]
