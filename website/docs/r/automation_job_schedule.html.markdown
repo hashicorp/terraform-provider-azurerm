@@ -23,8 +23,8 @@ resource "azurerm_automation_job_schedule" "example" {
   runbook_name            = "Get-VirtualMachine"
 
   parameters = {
-    resourcegroup      = "tf-rgr-vm"
-    vmname             = "TF-VM-01"
+    resourcegroup = "tf-rgr-vm"
+    vmname        = "TF-VM-01"
   }
 }
 ```

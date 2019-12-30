@@ -22,13 +22,13 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-	name                     = "example"
-	resource_group_name      = "${azurerm_resource_group.example.name}"
-	location                 = "${azurerm_resource_group.example.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
-  }
-  
+  name                     = "example"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
 resource "azurerm_storage_container" "example" {
   name                  = "acctestcont"
   resource_group_name   = "${azurerm_resource_group.example.name}"
@@ -52,8 +52,8 @@ resource "azurerm_iothub_endpoint_storage_container" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   iothub_name         = "${azurerm_iothub.example.name}"
   name                = "acctest"
-  
-  container_name    = "acctestcont"  
+
+  container_name    = "acctestcont"
   connection_string = "${azurerm_storage_account.example.primary_blob_connection_string}"
 
   file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"

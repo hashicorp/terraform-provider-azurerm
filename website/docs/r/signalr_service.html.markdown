@@ -34,7 +34,7 @@ resource "azurerm_signalr_service" "example" {
   }
 
   features {
-    flag = "ServiceMode"
+    flag  = "ServiceMode"
     value = "Default"
   }
 }
