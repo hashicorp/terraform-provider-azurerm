@@ -18,6 +18,7 @@ type Client struct {
 	DiagnosticClient           *apimanagement.DiagnosticClient
 	GroupClient                *apimanagement.GroupClient
 	GroupUsersClient           *apimanagement.GroupUserClient
+	IdentityProviderClient     *apimanagement.IdentityProviderClient
 	LoggerClient               *apimanagement.LoggerClient
 	OpenIdConnectClient        *apimanagement.OpenIDConnectProviderClient
 	PolicyClient               *apimanagement.PolicyClient
@@ -69,6 +70,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	groupUsersClient := apimanagement.NewGroupUserClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupUsersClient.Client, o.ResourceManagerAuthorizer)
+
+	identityProviderClient := apimanagement.NewIdentityProviderClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&identityProviderClient.Client, o.ResourceManagerAuthorizer)
 
 	loggerClient := apimanagement.NewLoggerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&loggerClient.Client, o.ResourceManagerAuthorizer)
@@ -122,6 +126,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DiagnosticClient:           &diagnosticClient,
 		GroupClient:                &groupClient,
 		GroupUsersClient:           &groupUsersClient,
+		IdentityProviderClient:     &identityProviderClient,
 		LoggerClient:               &loggerClient,
 		OpenIdConnectClient:        &openIdConnectClient,
 		PolicyClient:               &policyClient,
