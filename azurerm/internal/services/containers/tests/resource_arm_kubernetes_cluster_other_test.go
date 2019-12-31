@@ -743,7 +743,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 
-  managed_cluster_identity {
+  identity {
     type = "SystemAssigned"
   }
 }

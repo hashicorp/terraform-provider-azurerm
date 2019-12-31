@@ -575,11 +575,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"managed_cluster_identity": {
+			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MaxItems: 1,
 				ForceNew: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
@@ -689,7 +689,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
 
-	managedClusterIdentityRaw := d.Get("managed_cluster_identity").([]interface{})
+	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	managedClusterIdentity := expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
 
 	parameters := containerservice.ManagedCluster{
@@ -849,9 +849,9 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.WindowsProfile = windowsProfile
 	}
 
-	if d.HasChange("managed_cluster_identity") {
+	if d.HasChange("identity") {
 		updateCluster = true
-		managedClusterIdentityRaw := d.Get("managed_cluster_identity").([]interface{})
+		managedClusterIdentityRaw := d.Get("identity").([]interface{})
 		existing.Identity = expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
 	}
 
@@ -1043,8 +1043,8 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if err := d.Set("managed_cluster_identity", flattenKubernetesClusterManagedClusterIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `managed_cluster_identity`: %+v", err)
+	if err := d.Set("identity", flattenKubernetesClusterManagedClusterIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	kubeConfigRaw, kubeConfig := flattenKubernetesClusterAccessProfile(profile)

@@ -89,13 +89,13 @@ The following arguments are supported:
 
 -> **NOTE:** Support for `enable_pod_security_policy` is currently in Preview on an opt-in basis. To use it, enable feature `PodSecurityPolicyPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
 
+* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new resource to be created.
+
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
 -> **NOTE:** Upgrading your cluster may take up to 10 minutes per node.
 
 * `linux_profile` - (Optional) A `linux_profile` block as defined below.
-
-* `managed_cluster_identity` - (Optional) A `managed_cluster_identity` block as defined below. Changing this forces a new resource to be created.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
@@ -273,6 +273,12 @@ A `http_application_routing` block supports the following:
 
 ---
 
+A `identity` block supports the following:
+
+* `type` - The type of identity used for the managed cluster. Valid values are `SystemAssigned` or `None`. 
+
+---
+
 A `kube_dashboard` block supports the following:
 
 * `enabled` - (Required) Is the Kubernetes Dashboard enabled?
@@ -284,12 +290,6 @@ A `linux_profile` block supports the following:
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
 * `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed. Changing this forces a new resource to be created.
-
----
-
-A `managed_cluster_identity` block supports the following:
-
-* `type` - The type of identity used for the managed cluster. Valid values are `SystemAssigned` or `None`. 
 
 ---
 
@@ -386,6 +386,14 @@ A `http_application_routing` block exports the following:
 
 ---
 
+The `identity` block exports the following: 
+
+* `principal_id` - The principal id of the system assigned identity which is used by master components.
+
+* `tenant_id` - The tenant id of the system assigned identity which is used by master components.
+
+---
+
 The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
@@ -412,14 +420,6 @@ provider "kubernetes" {
   cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
 }
 ```
-
----
-
-The `managed_cluster_identity` block exports the following: 
-
-* `principal_id` - The principal id of the system assigned identity which is used by master components.
-
-* `tenant_id` - The tenant id of the system assigned identity which is used by master components.
 
 ## Import
 
