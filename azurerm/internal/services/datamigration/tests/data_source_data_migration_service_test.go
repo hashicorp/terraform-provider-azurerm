@@ -20,7 +20,6 @@ func TestAccDataSourceAzureRMDataMigrationService_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard_1vCores"),
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Cloud"),
 				),
 			},
 		},

@@ -28,7 +28,6 @@ func TestAccAzureRMDataMigrationService_basic(t *testing.T) {
 					testCheckAzureRMDataMigrationServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard_1vCores"),
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Cloud"),
 				),
 			},
 			data.ImportStep(),
@@ -49,7 +48,6 @@ func TestAccAzureRMDataMigrationService_complete(t *testing.T) {
 					testCheckAzureRMDataMigrationServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Standard_1vCores"),
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Cloud"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.name", "test"),
 				),
 			},
@@ -95,6 +93,7 @@ func TestAccAzureRMDataMigrationService_update(t *testing.T) {
 					testCheckAzureRMDataMigrationServiceExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMDataMigrationService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -102,6 +101,7 @@ func TestAccAzureRMDataMigrationService_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.name", "test"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }

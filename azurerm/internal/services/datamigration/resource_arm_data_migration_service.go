@@ -47,7 +47,7 @@ func resourceArmDataMigrationService() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"subnet_id": {
 				Type:         schema.TypeString,
@@ -68,14 +68,6 @@ func resourceArmDataMigrationService() *schema.Resource {
 					"Standard_2vCores",
 					"Standard_4vCores",
 				}, false),
-			},
-
-			"kind": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      "Cloud",
-				ValidateFunc: validation.StringInSlice([]string{"Cloud"}, false),
 			},
 
 			"tags": tags.Schema(),
@@ -112,10 +104,10 @@ func resourceArmDataMigrationServiceCreate(d *schema.ResourceData, meta interfac
 		ServiceProperties: &datamigration.ServiceProperties{
 			VirtualSubnetID: utils.String(subnetID),
 		},
-		Sku: &datamigration.ServiceSku{Name: utils.String(skuName)},
-	}
-	if kind, ok := d.GetOk("kind"); ok {
-		parameters.Kind = utils.String(kind.(string))
+		Sku: &datamigration.ServiceSku{
+			Name: utils.String(skuName),
+		},
+		Kind: utils.String("Cloud"), // currently only "Cloud" is supported, hence hardcode here
 	}
 	if t, ok := d.GetOk("tags"); ok {
 		parameters.Tags = tags.Expand(t.(map[string]interface{}))
@@ -175,7 +167,6 @@ func resourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interface{
 	if resp.Sku != nil && resp.Sku.Name != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}
-	d.Set("kind", resp.Kind)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

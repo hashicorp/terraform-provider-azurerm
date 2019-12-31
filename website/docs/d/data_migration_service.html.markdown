@@ -38,15 +38,13 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - Resource ID of data migration service.
+* `id` - The ID of Data Migration Service.
 
 * `location` - Azure location where the resource exists.
 
-* `virtual_subnet_id` - The ID of the virtual subnet resource to which the data migration service exists.
+* `subnet_id` - The ID of the virtual subnet resource to which the data migration service exists.
 
 * `sku_name` - The sku name of data migration service.
-
-* `type` - The resource type chain (e.g. virtualMachines/extensions)
 
 * `kind` - The resource kind.
 

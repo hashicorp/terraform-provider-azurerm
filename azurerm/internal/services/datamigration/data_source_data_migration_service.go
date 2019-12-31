@@ -42,11 +42,6 @@ func dataSourceArmDataMigrationService() *schema.Resource {
 				Computed: true,
 			},
 
-			"kind": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -82,7 +77,6 @@ func dataSourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interfac
 	if resp.Sku != nil && resp.Sku.Name != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}
-	d.Set("kind", resp.Kind)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
