@@ -94,9 +94,7 @@ func dataSourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] SignalR %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("SignalR %q was not found in Resource Group %q", name, resourceGroup)
 		}
 		return fmt.Errorf("Error getting SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
