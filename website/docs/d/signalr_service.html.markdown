@@ -4,7 +4,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_signalr_service"
 sidebar_current: "docs-azurerm-datasource-signalr-service"
 description: |-
-  Gets informatino about an existing Azure SignalR service.
+  Gets information about an existing Azure SignalR service.
 ---
 
 # Data Source: azurerm_signalr_service
