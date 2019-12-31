@@ -11,20 +11,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmAutomationAccount() *schema.Resource {
+func dataSourceArmAutomationAccountRegistrationInfo() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAutomationAccountRead,
+		Read: DataSourceAutomationAccountRegistrationInfoRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
-
-		DeprecationMessage: `The 'azurerm_automation_account' data source is deprecated in favour of the correctly named version 'azurerm_automation_account_registration_info'.
-
-Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
-
-As such the existing 'azurerm_automation_account' data source is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
-`,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -50,7 +43,7 @@ As such the existing 'azurerm_automation_account' data source is deprecated and 
 	}
 }
 
-func dataSourceAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
+func DataSourceAutomationAccountRegistrationInfoRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

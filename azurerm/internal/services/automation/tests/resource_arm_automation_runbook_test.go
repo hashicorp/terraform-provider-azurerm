@@ -165,7 +165,7 @@ func testCheckAzureRMAutomationRunbookExists(resourceName string) resource.TestC
 func testAccAzureRMAutomationRunbook_PSWorkflow(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-automation-%d"
   location = "%s"
 }
 
@@ -223,7 +223,7 @@ resource "azurerm_automation_runbook" "import" {
 func testAccAzureRMAutomationRunbook_PSWorkflowWithHash(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-automation-%d"
   location = "%s"
 }
 
@@ -264,7 +264,7 @@ resource "azurerm_automation_runbook" "test" {
 func testAccAzureRMAutomationRunbook_PSWithContent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-automation-%d"
   location = "%s"
 }
 

@@ -14,11 +14,12 @@ func (r Registration) Name() string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_automation_account":           dataSourceArmAutomationAccount(),
-		"azurerm_automation_variable_bool":     dataSourceArmAutomationVariableBool(),
-		"azurerm_automation_variable_datetime": dataSourceArmAutomationVariableDateTime(),
-		"azurerm_automation_variable_int":      dataSourceArmAutomationVariableInt(),
-		"azurerm_automation_variable_string":   dataSourceArmAutomationVariableString(),
+		"azurerm_automation_account":                   dataSourceArmAutomationAccount(),
+		"azurerm_automation_account_registration_info": dataSourceArmAutomationAccountRegistrationInfo(),
+		"azurerm_automation_variable_bool":             dataSourceArmAutomationVariableBool(),
+		"azurerm_automation_variable_datetime":         dataSourceArmAutomationVariableDateTime(),
+		"azurerm_automation_variable_int":              dataSourceArmAutomationVariableInt(),
+		"azurerm_automation_variable_string":           dataSourceArmAutomationVariableString(),
 	}
 }
 

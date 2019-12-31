@@ -148,6 +148,10 @@ A guide on how to migrate to using the new Provider [can be found here](https://
 
 The deprecated field `sku` will be removed in favour of the `sku_name` property.
 
+### Data Soure: `azurerm_automation_account`
+
+The data source has been deprecated in favour of the correctly named version `azurerm_automation_account_registration_info`.
+
 ### Data Source: `azurerm_client_config`
 
 The deprecated fields `service_principal_object_id` and `service_principal_application_id` will be removed. They have been replaced with the `object_id` and `client_id` respectively.

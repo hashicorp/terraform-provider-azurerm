@@ -186,7 +186,7 @@ func testCheckAzureRMAutomationAccountExists(resourceName string) resource.TestC
 func testAccAzureRMAutomationAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-automation-%d"
   location = "%s"
 }
 
@@ -204,7 +204,7 @@ resource "azurerm_automation_account" "test" {
 func testAccAzureRMAutomationAccount_basicClassic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-automation-%d"
   location = "%s"
 }
 
@@ -224,7 +224,7 @@ resource "azurerm_automation_account" "test" {
 func testAccAzureRMAutomationAccount_basicNotDefined(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-automation-%d"
   location = "%s"
 }
 
@@ -254,7 +254,7 @@ resource "azurerm_automation_account" "import" {
 func testAccAzureRMAutomationAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-automation-%d"
   location = "%s"
 }
 

@@ -174,7 +174,7 @@ func testCheckAzureRMAutomationCertificateExists(resourceName string) resource.T
 func testAccAzureRMAutomationCertificate_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-automation-%d"
   location = "%s"
 }
 
@@ -212,7 +212,7 @@ resource "azurerm_automation_certificate" "import" {
 func testAccAzureRMAutomationCertificate_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-automation-%d"
   location = "%s"
 }
 
@@ -236,7 +236,7 @@ resource "azurerm_automation_certificate" "test" {
 func testAccAzureRMAutomationCertificate_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-automation-%d"
   location = "%s"
 }
 

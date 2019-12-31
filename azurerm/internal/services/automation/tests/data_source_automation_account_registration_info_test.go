@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAutomationAccount(t *testing.T) {
+func TestAccDataSourceAutomationAccountRegistrationInfo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_automation_account", "test")
 	resourceGroupName := fmt.Sprintf("acctestRG-automation-%d", data.RandomInteger)
 
@@ -17,7 +17,7 @@ func TestAccDataSourceAutomationAccount(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAutomationAccount_complete(resourceGroupName, data),
+				Config: testAccDataSourceAutomationAccountRegistrationInfo_complete(resourceGroupName, data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
 				),
@@ -26,7 +26,7 @@ func TestAccDataSourceAutomationAccount(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAutomationAccount_complete(resourceGroupName string, data acceptance.TestData) string {
+func testAccDataSourceAutomationAccountRegistrationInfo_complete(resourceGroupName string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "%s"
@@ -38,7 +38,7 @@ resource "azurerm_automation_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku_name = "Basic"
 }
-data "azurerm_automation_account" "test" {
+data "azurerm_automation_account_registration_info" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "${azurerm_automation_account.test.name}"
 }

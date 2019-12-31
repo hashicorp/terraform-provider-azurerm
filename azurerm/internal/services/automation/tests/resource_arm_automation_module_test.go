@@ -142,7 +142,7 @@ func testCheckAzureRMAutomationModuleExists(resourceName string) resource.TestCh
 func testAccAzureRMAutomationModule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-automation-%d"
   location = "%s"
 }
 
@@ -171,7 +171,7 @@ resource "azurerm_automation_module" "test" {
 func testAccAzureRMAutomationModule_multipleModules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-automation-%d"
   location = "%s"
 }
 
