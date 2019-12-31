@@ -68,12 +68,13 @@ The following arguments are supported:
 
 -> **NOTE:** The `default_node_pool` block will become required in 2.0
 
-
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
 
 -> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
 
-* `service_principal` - (Required) A `service_principal` block as documented below.
+* `service_principal` - (Optional) A `service_principal` block as documented below.
+
+-> **NOTE:** One of either the `identity` or `service_principal` blocks must be specified.
 
 * `agent_pool_profile` - (Optional) One or more `agent_pool_profile` blocks as defined below.
 
@@ -90,6 +91,8 @@ The following arguments are supported:
 -> **NOTE:** Support for `enable_pod_security_policy` is currently in Preview on an opt-in basis. To use it, enable feature `PodSecurityPolicyPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
 
 * `identity` - (Optional) A `identity` block as defined below. Changing this forces a new resource to be created.
+
+-> **NOTE:** One of either the `identity` or `service_principal` blocks must be specified.
 
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 

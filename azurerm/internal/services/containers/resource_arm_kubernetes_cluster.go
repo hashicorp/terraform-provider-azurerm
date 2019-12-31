@@ -237,28 +237,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			"service_principal": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"client_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
-						},
-
-						"client_secret": {
-							Type:         schema.TypeString,
-							Required:     true,
-							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
-						},
-					},
-				},
-			},
-
 			// Optional
 			"addon_profile": SchemaKubernetesAddOnProfiles(),
 
@@ -271,12 +249,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			"private_link_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-
 			"private_fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -287,6 +259,34 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
+			},
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.None),
+								string(containerservice.SystemAssigned),
+							}, false),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"linux_profile": {
@@ -405,6 +405,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"private_link_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"role_based_access_control": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -457,6 +463,28 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+
+			"service_principal": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"client_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
+						"client_secret": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -574,34 +602,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
-
-			"identity": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.None),
-								string(containerservice.SystemAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -662,14 +662,6 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	rbacRaw := d.Get("role_based_access_control").([]interface{})
 	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
 
-	// since the Create and Update use separate methods, there's no point extracting this out
-	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
-	servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
-	servicePrincipalProfile := &containerservice.ManagedClusterServicePrincipalProfile{
-		ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
-		Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
-	}
-
 	t := d.Get("tags").(map[string]interface{})
 
 	windowsProfileRaw := d.Get("windows_profile").([]interface{})
@@ -680,7 +672,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	enablePrivateLink := d.Get("private_link_enabled").(bool)
 
-	apiAccesProfile := containerservice.ManagedClusterAPIServerAccessProfile{
+	apiAccessProfile := containerservice.ManagedClusterAPIServerAccessProfile{
 		EnablePrivateCluster: &enablePrivateLink,
 		AuthorizedIPRanges:   apiServerAuthorizedIPRanges,
 	}
@@ -696,7 +688,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		Name:     &name,
 		Location: &location,
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
-			APIServerAccessProfile:  &apiAccesProfile,
+			APIServerAccessProfile:  &apiAccessProfile,
 			AadProfile:              azureADProfile,
 			AddonProfiles:           addonProfiles,
 			AgentPoolProfiles:       agentProfiles,
@@ -706,12 +698,25 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			LinuxProfile:            linuxProfile,
 			WindowsProfile:          windowsProfile,
 			NetworkProfile:          networkProfile,
-			ServicePrincipalProfile: servicePrincipalProfile,
 			NodeResourceGroup:       utils.String(nodeResourceGroup),
 			EnablePodSecurityPolicy: utils.Bool(enablePodSecurityPolicy),
 		},
 		Identity: managedClusterIdentity,
 		Tags:     tags.Expand(t),
+	}
+
+	// since the Create and Update use separate methods, there's no point extracting this out
+	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
+	if len(servicePrincipalProfileRaw) > 0 {
+		servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
+		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
+			ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
+			Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
+		}
+	}
+
+	if len(managedClusterIdentityRaw) == 0 && len(servicePrincipalProfileRaw) == 0 {
+		return fmt.Errorf("One of either of `identity` or `service_principal` must be configured!")
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -759,24 +764,26 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("service_principal") {
 		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", name, resourceGroup)
 		servicePrincipals := d.Get("service_principal").([]interface{})
-		servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
+		if len(servicePrincipals) > 0 {
+			servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
 
-		clientId := servicePrincipalRaw["client_id"].(string)
-		clientSecret := servicePrincipalRaw["client_secret"].(string)
+			clientId := servicePrincipalRaw["client_id"].(string)
+			clientSecret := servicePrincipalRaw["client_secret"].(string)
 
-		params := containerservice.ManagedClusterServicePrincipalProfile{
-			ClientID: utils.String(clientId),
-			Secret:   utils.String(clientSecret),
-		}
-		future, err := clusterClient.ResetServicePrincipalProfile(ctx, resourceGroup, name, params)
-		if err != nil {
-			return fmt.Errorf("Error updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
+			params := containerservice.ManagedClusterServicePrincipalProfile{
+				ClientID: utils.String(clientId),
+				Secret:   utils.String(clientSecret),
+			}
+			future, err := clusterClient.ResetServicePrincipalProfile(ctx, resourceGroup, name, params)
+			if err != nil {
+				return fmt.Errorf("Error updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
 
-		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-			return fmt.Errorf("Error waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
+				return fmt.Errorf("Error waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+			log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", name, resourceGroup)
 		}
-		log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", name, resourceGroup)
 	}
 
 	// we need to conditionally update the cluster
@@ -1478,8 +1485,11 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 
 func expandKubernetesClusterManagedClusterIdentity(input []interface{}) *containerservice.ManagedClusterIdentity {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return &containerservice.ManagedClusterIdentity{
+			Type: containerservice.None,
+		}
 	}
+
 	values := input[0].(map[string]interface{})
 
 	return &containerservice.ManagedClusterIdentity{

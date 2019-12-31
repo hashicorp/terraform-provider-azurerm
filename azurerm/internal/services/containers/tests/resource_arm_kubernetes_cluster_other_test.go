@@ -334,27 +334,6 @@ func testAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 	})
 }
 
-func testAccAzureRMKubernetesCluster_managedClusterIdentiy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_managedClusterIdentityConfig(data, clientId, clientSecret),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("service_principal.0.client_secret"),
-		},
-	})
-}
-
 func testAccAzureRMKubernetesCluster_basicAvailabilitySetConfig(data acceptance.TestData, clientId string, clientSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -716,36 +695,4 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
-}
-
-func testAccAzureRMKubernetesCluster_managedClusterIdentityConfig(data acceptance.TestData, clientId string, clientSecret string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-  	type       = "AvailabilitySet"
-    vm_size    = "Standard_DS2_v2"
-  }
-
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
