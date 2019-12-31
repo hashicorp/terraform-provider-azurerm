@@ -44,6 +44,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policyinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
@@ -109,6 +110,7 @@ func SupportedServices() []common.ServiceRegistration {
 		network.Registration{},
 		notificationhub.Registration{},
 		policy.Registration{},
+		policyinsights.Registration{},
 		portal.Registration{},
 		postgres.Registration{},
 		privatedns.Registration{},
