@@ -34,6 +34,7 @@ IMPROVEMENTS:
 * `azurerm_dns_mx_record` - the `name` property is now optional [GH-5205]
 * `azurerm_function_app` - support for the `ftps_state` property [GH-5169]
 * `azurerm_image` - support for configuring `hyper_v_generation` [GH-4453]
+* `azurerm_iothub_dps_shared_access_policy` - support for the `primary_connection_string` & `secondary_connection_string` properties [GH-5231]
 * `azurerm_key_vault`: the `network_acls` property is now computed [GH-5207]
 * `azurerm_kubernetes_cluster` - support for the `managed_cluster_identity` property [GH-5168]
 * `azurerm_kubernetes_cluster` - support for private link [GH-5161]
