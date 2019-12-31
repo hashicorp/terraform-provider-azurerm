@@ -2,7 +2,6 @@ package signalr
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
