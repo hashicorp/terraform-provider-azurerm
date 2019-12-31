@@ -2,6 +2,7 @@
 
 * **New Data Source:** `azurerm_netapp_volume` [GH-4933]
 * **New Data Source:** `azurerm_netapp_snapshot` [GH-5215]
+* **New data source:** `azurerm_signalr_service` [GH-5276]
 * **New Resource:** `azurerm_advanced_threat_protection` [GH-4848]
 * **New Resource:** `azurerm_api_management_diagnostic ` [GH-4836]
 * **New Resource:** `azurerm_api_management_identity_provider_aad` [GH-5268]
