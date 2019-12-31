@@ -4,21 +4,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 func TestAccDataSourceAzureRMDiskEncryptionSet_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_disk_encryption_set.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
-	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
-	vaultName := fmt.Sprintf("vault%d", ri)
-	keyName := fmt.Sprintf("key-%s", rs)
-	desName := fmt.Sprintf("acctestdes-%d", ri)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "data.azurerm_disk_encryption_set", "test")
+	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+	vaultName := fmt.Sprintf("vault%d", data.RandomInteger)
+	keyName := fmt.Sprintf("key-%s", data.RandomString)
+	desName := fmt.Sprintf("acctestdes-%d", data.RandomInteger)
+	location := data.Locations.Primary
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -35,19 +31,18 @@ func TestAccDataSourceAzureRMDiskEncryptionSet_basic(t *testing.T) {
 			},
 			// This step is not negligible, without this step, the final step will fail on refresh complaining `Disk Encryption Set does not exist`
 			{
-				PreConfig: func() { enableSoftDeleteAndPurgeProtectionForKeyvault(resourceGroup, vaultName) },
-				Config:    testAccAzureRMDiskEncryptionSet_basic(resourceGroup, location, vaultName, keyName, desName),
+				Config: testAccAzureRMDiskEncryptionSet_basic(resourceGroup, location, vaultName, keyName, desName),
 			},
 			{
 				Config: testAccDataSourceDiskEncryptionSet_basic(resourceGroup, location, vaultName, keyName, desName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "identity.0.principal_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "identity.0.tenant_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "active_key.#", "1"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "active_key.0.source_vault_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "active_key.0.key_url"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "active_key.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "active_key.0.source_vault_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "active_key.0.key_url"),
 				),
 			},
 		},

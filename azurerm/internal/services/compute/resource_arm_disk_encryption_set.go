@@ -42,7 +42,7 @@ func resourceArmDiskEncryptionSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateDiskEncryptionSetName,
+				ValidateFunc: validateDiskEncryptionSetName,
 			},
 
 			"location": azure.SchemaLocation(),

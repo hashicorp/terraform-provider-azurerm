@@ -6,24 +6,20 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMDiskEncryptionSet_basic(t *testing.T) {
-	resourceName := "azurerm_disk_encryption_set.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(6)
-	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
-	vaultName := fmt.Sprintf("vault%d", ri)
-	keyName := fmt.Sprintf("key-%s", rs)
-	desName := fmt.Sprintf("acctestdes-%d", ri)
-	location := acceptance.Location()
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+	vaultName := fmt.Sprintf("vault%d", data.RandomInteger)
+	keyName := fmt.Sprintf("key-%s", data.RandomString)
+	desName := fmt.Sprintf("acctestdes-%d", data.RandomInteger)
+	location := data.Locations.Primary
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -34,22 +30,19 @@ func TestAccAzureRMDiskEncryptionSet_basic(t *testing.T) {
 			// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
 			{
 				Config: testAccPrepareKeyvaultAndKey(resourceGroup, location, vaultName, keyName),
-				Check:  resource.ComposeTestCheckFunc(),
-			},
-			{
-				PreConfig: func() { enableSoftDeleteAndPurgeProtectionForKeyvault(resourceGroup, vaultName) },
-				Config:    testAccAzureRMDiskEncryptionSet_basic(resourceGroup, location, vaultName, keyName, desName),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDiskEncryptionSetExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "active_key.0.source_vault_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "active_key.0.key_url"),
+					enableSoftDeleteAndPurgeProtectionForKeyvault(resourceGroup, vaultName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config: testAccAzureRMDiskEncryptionSet_basic(resourceGroup, location, vaultName, keyName, desName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "active_key.0.source_vault_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "active_key.0.key_url"),
+				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
