@@ -314,12 +314,13 @@ func remediationCreateUpdateAtManagementGroup(client *policyinsights.Remediation
 
 func remediationCreateUpdateAtResource(client *policyinsights.RemediationsClient, ctx context.Context, scope *RemediationScope, d *schema.ResourceData) error {
 	name := d.Get("name").(string)
+	resourceId := scope.Scope
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.GetAtResource(ctx, scope.Scope, name)
+		existing, err := client.GetAtResource(ctx, resourceId, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Policy Remediation %q (Resource %q): %+v", name, scope, err)
+				return fmt.Errorf("Error checking for present of existing Policy Remediation %q (Resource %q): %+v", name, resourceId, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -340,15 +341,15 @@ func remediationCreateUpdateAtResource(client *policyinsights.RemediationsClient
 	}
 
 	if _, err := client.CreateOrUpdateAtResource(ctx, scope.Scope, name, parameters); err != nil {
-		return fmt.Errorf("Error creating Policy Remediation %q (Resource %q): %+v", name, scope, err)
+		return fmt.Errorf("Error creating Policy Remediation %q (Resource %q): %+v", name, resourceId, err)
 	}
 
 	resp, err := client.GetAtResource(ctx, scope.Scope, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Policy Remediation %q (Resource %q): %+v", name, scope, err)
+		return fmt.Errorf("Error retrieving Policy Remediation %q (Resource %q): %+v", name, resourceId, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Policy Remediation %q (Resource %q) ID", name, scope)
+		return fmt.Errorf("Cannot read Policy Remediation %q (Resource %q) ID", name, resourceId)
 	}
 	d.SetId(*resp.ID)
 
