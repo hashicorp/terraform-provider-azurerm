@@ -103,7 +103,7 @@ func resourceArmIotHubDPSSharedAccessPolicy() *schema.Resource {
 				Sensitive: true,
 				Computed:  true,
 			},
-
+      
 			"secondary_connection_string": {
 				Type:      schema.TypeString,
 				Sensitive: true,
