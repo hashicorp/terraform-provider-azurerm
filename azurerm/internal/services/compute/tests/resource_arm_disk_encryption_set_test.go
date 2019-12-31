@@ -38,8 +38,7 @@ func TestAccAzureRMDiskEncryptionSet_basic(t *testing.T) {
 				Config: testAccAzureRMDiskEncryptionSet_basic(resourceGroup, location, vaultName, keyName, desName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "active_key.0.source_vault_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "active_key.0.key_url"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_vault_key_uri"),
 				),
 			},
 			data.ImportStep(),
@@ -184,7 +183,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  sku_name                = "premium"
+  sku_name            = "premium"
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -227,7 +226,6 @@ resource "azurerm_disk_encryption_set" "test" {
   location            = azurerm_resource_group.test.location
 
   key_vault_key_uri = azurerm_key_vault_key.test.id
-  }
 }
 `, resourceGroup, location, vaultName, keyName, desName)
 }

@@ -35,15 +35,7 @@ func TestAccDataSourceAzureRMDiskEncryptionSet_basic(t *testing.T) {
 			},
 			{
 				Config: testAccDataSourceDiskEncryptionSet_basic(resourceGroup, location, vaultName, keyName, desName),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "active_key.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "active_key.0.source_vault_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "active_key.0.key_url"),
-				),
+				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
