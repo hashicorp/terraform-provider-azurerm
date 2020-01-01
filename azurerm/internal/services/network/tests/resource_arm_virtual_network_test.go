@@ -434,7 +434,7 @@ variable "network_cidr" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -486,5 +486,5 @@ resource "azurerm_network_security_group" "test" {
     environment = "${var.environment}"
   }
 }
-`, data.RandomString, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary)
 }
