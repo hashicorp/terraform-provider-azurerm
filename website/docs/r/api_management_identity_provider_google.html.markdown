@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `client_id` - (Required) Client Id for Google Sign-in.
 
-* `client_secret` - (Required) API key for Google Sign-in.
+* `client_secret` - (Required) Client secret for Google Sign-in.
 
 ---
 
