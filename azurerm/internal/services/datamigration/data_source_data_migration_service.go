@@ -65,7 +65,6 @@ func dataSourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interfac
 
 	d.SetId(*resp.ID)
 
-	d.Set("id", resp.ID)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -74,7 +73,7 @@ func dataSourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interfac
 	if serviceProperties := resp.ServiceProperties; serviceProperties != nil {
 		d.Set("subnet_id", serviceProperties.VirtualSubnetID)
 	}
-	if resp.Sku != nil && resp.Sku.Name != nil {
+	if resp.Sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}
 

@@ -155,7 +155,7 @@ func resourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error reading Data Migration Service (Service Name %q / Group Name %q): %+v", name, resourceGroup, err)
 	}
 
-	d.Set("id", resp.ID)
+	d.SetId(*resp.ID)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -164,7 +164,7 @@ func resourceArmDataMigrationServiceRead(d *schema.ResourceData, meta interface{
 	if serviceProperties := resp.ServiceProperties; serviceProperties != nil {
 		d.Set("subnet_id", serviceProperties.VirtualSubnetID)
 	}
-	if resp.Sku != nil && resp.Sku.Name != nil {
+	if resp.Sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}
 
@@ -212,7 +212,7 @@ func resourceArmDataMigrationServiceDelete(d *schema.ResourceData, meta interfac
 
 	// For dms tasks created via terraform, the deletion order has already handled the dependency between dms task and dms service. In which case, dms service will not start to delete until
 	// dms tasks have been deleted.
-	// For dms tasks created out of terraform, it is user's responsibility to ensure the deletion order. And for dms service, it makes sense to just force delete outstanding tasks.
+	// For dms tasks created outside of terraform, it is user's responsibility to ensure the deletion order. And for dms service, it makes sense to just force delete outstanding tasks.
 	toDeleteRunningTasks := true
 	future, err := client.Delete(ctx, resourceGroup, name, &toDeleteRunningTasks)
 	if err != nil {

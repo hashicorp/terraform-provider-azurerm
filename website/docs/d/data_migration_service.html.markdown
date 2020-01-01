@@ -46,6 +46,4 @@ The following attributes are exported:
 
 * `sku_name` - The sku name of data migration service.
 
-* `kind` - The resource kind.
-
 * `tags` - A mapping of tags to assigned to the resource.
