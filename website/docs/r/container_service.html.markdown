@@ -20,7 +20,7 @@ Manages an Azure Container Service Instance
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG1"
+  name     = "example-resources"
   location = "West US"
 }
 
@@ -64,7 +64,7 @@ resource "azurerm_container_service" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG1"
+  name     = "example-resources"
   location = "West US"
 }
 
@@ -113,7 +113,7 @@ resource "azurerm_container_service" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG1"
+  name     = "example-resources"
   location = "West US"
 }
 

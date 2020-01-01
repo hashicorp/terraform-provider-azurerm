@@ -15,7 +15,7 @@ Manages a custom virtual machine image that can be used to create virtual machin
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctest"
+  name     = "example-resources"
   location = "West US"
 }
 
@@ -37,7 +37,7 @@ resource "azurerm_image" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctest"
+  name     = "example-resources"
   location = "West US"
 }
 

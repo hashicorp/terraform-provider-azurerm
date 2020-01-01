@@ -15,7 +15,7 @@ Create a failover group of databases on a collection of Azure SQL servers.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "uksouth"
 }
 

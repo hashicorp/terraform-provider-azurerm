@@ -16,7 +16,7 @@ Manages an App Service Virtual Network Association (this is for the [Regional VN
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "uksouth"
 }
 
