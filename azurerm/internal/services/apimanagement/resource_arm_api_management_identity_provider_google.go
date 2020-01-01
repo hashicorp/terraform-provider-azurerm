@@ -41,7 +41,7 @@ func resourceArmApiManagementIdentityProviderGoogle() *schema.Resource {
 			"client_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validate.GoogleClientID,
 			},
 
 			"client_secret": {
