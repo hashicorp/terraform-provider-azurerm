@@ -16,7 +16,6 @@ import (
 
 func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
-	config := testAccAzureRMAvailabilitySet_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,7 +23,7 @@ func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAvailabilitySet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "platform_update_domain_count", "5"),
@@ -67,7 +66,6 @@ func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
-	config := testAccAzureRMAvailabilitySet_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -75,7 +73,7 @@ func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAvailabilitySet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "platform_update_domain_count", "5"),
@@ -90,8 +88,6 @@ func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
-	preConfig := testAccAzureRMAvailabilitySet_withTags(data)
-	postConfig := testAccAzureRMAvailabilitySet_withUpdatedTags(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -99,7 +95,7 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMAvailabilitySet_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -108,7 +104,7 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMAvailabilitySet_withUpdatedTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -122,7 +118,6 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_withPPG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
-	config := testAccAzureRMAvailabilitySet_withPPG(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -130,7 +125,7 @@ func TestAccAzureRMAvailabilitySet_withPPG(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAvailabilitySet_withPPG(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "proximity_placement_group_id"),
@@ -143,7 +138,6 @@ func TestAccAzureRMAvailabilitySet_withPPG(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
-	config := testAccAzureRMAvailabilitySet_withDomainCounts(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -151,7 +145,7 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAvailabilitySet_withDomainCounts(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "platform_update_domain_count", "3"),
@@ -165,7 +159,6 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 
 func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
-	config := testAccAzureRMAvailabilitySet_managed(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -173,7 +166,7 @@ func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAvailabilitySet_managed(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAvailabilitySetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "managed", "true"),

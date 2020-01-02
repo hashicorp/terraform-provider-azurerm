@@ -127,8 +127,6 @@ func TestAccAzureRMSnapshot_encryption(t *testing.T) {
 
 func TestAccAzureRMSnapshot_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
-	config := testAccAzureRMSnapshot_fromManagedDisk(data)
-	updatedConfig := testAccAzureRMSnapshot_fromManagedDiskUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -136,13 +134,13 @@ func TestAccAzureRMSnapshot_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSnapshot_fromManagedDisk(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(data.ResourceName),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMSnapshot_fromManagedDiskUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(data.ResourceName),
 				),
@@ -153,7 +151,6 @@ func TestAccAzureRMSnapshot_update(t *testing.T) {
 
 func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
-	config := testAccAzureRMSnapshot_extendingManagedDisk(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -161,7 +158,7 @@ func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSnapshot_extendingManagedDisk(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(data.ResourceName),
 				),
@@ -172,7 +169,6 @@ func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 
 func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "second")
-	config := testAccAzureRMSnapshot_fromExistingSnapshot(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -180,7 +176,7 @@ func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSnapshot_fromExistingSnapshot(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(data.ResourceName),
 				),

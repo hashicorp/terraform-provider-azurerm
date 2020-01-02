@@ -15,7 +15,6 @@ import (
 
 func TestAccAzureRMApiManagementIdentityProviderAAD_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aad", "test")
-	config := testAccAzureRMApiManagementIdentityProviderAAD_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +22,7 @@ func TestAccAzureRMApiManagementIdentityProviderAAD_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderAADDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagementIdentityProviderAAD_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderAADExists(data.ResourceName),
 				),
@@ -35,8 +34,6 @@ func TestAccAzureRMApiManagementIdentityProviderAAD_basic(t *testing.T) {
 
 func TestAccAzureRMApiManagementIdentityProviderAAD_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aad", "test")
-	config := testAccAzureRMApiManagementIdentityProviderAAD_basic(data)
-	updateConfig := testAccAzureRMApiManagementIdentityProviderAAD_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -44,7 +41,7 @@ func TestAccAzureRMApiManagementIdentityProviderAAD_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderAADDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagementIdentityProviderAAD_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderAADExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "00000000-0000-0000-0000-000000000000"),
@@ -54,7 +51,7 @@ func TestAccAzureRMApiManagementIdentityProviderAAD_update(t *testing.T) {
 				),
 			},
 			{
-				Config: updateConfig,
+				Config: testAccAzureRMApiManagementIdentityProviderAAD_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderAADExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "11111111-1111-1111-1111-111111111111"),

@@ -18,14 +18,14 @@ func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachine_winTimeZone(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_winTimeZone(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 					resource.TestCheckResourceAttr(data.ResourceName, "os_profile_windows_config.59207889.timezone", "Pacific Standard Time"),
@@ -39,14 +39,14 @@ func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachineSystemAssignedIdentity(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachineSystemAssignedIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
@@ -62,14 +62,14 @@ func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachineUserAssignedIdentity(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachineUserAssignedIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
@@ -85,14 +85,14 @@ func TestAccAzureRMVirtualMachine_multipleAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachineMultipleAssignedIdentity(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachineMultipleAssignedIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned, UserAssigned"),

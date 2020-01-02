@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 				),
@@ -61,7 +60,6 @@ func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,7 +67,7 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					testCheckAzureRMCdnEndpointDisappears(data.ResourceName),
@@ -82,8 +80,6 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_hostHeader(data, "www.example.com")
-	updatedConfig := testAccAzureRMCdnEndpoint_hostHeader(data, "www.example2.com")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -91,14 +87,14 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_hostHeader(data, "www.example.com"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", "www.example.com"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMCdnEndpoint_hostHeader(data, "www.example2.com"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", "www.example2.com"),
@@ -110,8 +106,6 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	preConfig := testAccAzureRMCdnEndpoint_withTags(data)
-	postConfig := testAccAzureRMCdnEndpoint_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -119,7 +113,7 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMCdnEndpoint_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -129,7 +123,7 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMCdnEndpoint_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -142,7 +136,6 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_optimized(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -150,7 +143,7 @@ func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_optimized(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "optimization_type", "GeneralWebDelivery"),
@@ -162,7 +155,6 @@ func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_geoFilters(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -170,7 +162,7 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_geoFilters(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "geo_filter.#", "2"),
@@ -181,7 +173,6 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 }
 func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_fullFields(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -189,7 +180,7 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_fullFields(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "is_http_allowed", "true"),
@@ -212,8 +203,6 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	config := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data, "true", "false")
-	updatedConfig := testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data, "false", "true")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -221,7 +210,7 @@ func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data, "true", "false"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "is_http_allowed", "true"),
@@ -229,7 +218,7 @@ func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data, "false", "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "is_http_allowed", "false"),

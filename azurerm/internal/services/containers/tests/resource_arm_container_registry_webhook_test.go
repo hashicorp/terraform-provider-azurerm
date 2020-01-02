@@ -32,8 +32,6 @@ func TestAccAzureRMContainerRegistryWebhook_basic(t *testing.T) {
 
 func TestAccAzureRMContainerRegistryWebhook_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
-	preConfig := testAccAzureRMContainerRegistryWebhook_withTags(data)
-	postConfig := testAccAzureRMContainerRegistryWebhook_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -41,7 +39,7 @@ func TestAccAzureRMContainerRegistryWebhook_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMContainerRegistryWebhook_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -49,7 +47,7 @@ func TestAccAzureRMContainerRegistryWebhook_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMContainerRegistryWebhook_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -63,8 +61,6 @@ func TestAccAzureRMContainerRegistryWebhook_withTags(t *testing.T) {
 
 func TestAccAzureRMContainerRegistryWebhook_actions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
-	preConfig := testAccAzureRMContainerRegistryWebhook_actions(data)
-	postConfig := testAccAzureRMContainerRegistryWebhook_actionsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -72,11 +68,11 @@ func TestAccAzureRMContainerRegistryWebhook_actions(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMContainerRegistryWebhook_actions(data),
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMContainerRegistryWebhook_actionsUpdate(data),
 			},
 			data.ImportStep(),
 		},
@@ -85,8 +81,6 @@ func TestAccAzureRMContainerRegistryWebhook_actions(t *testing.T) {
 
 func TestAccAzureRMContainerRegistryWebhook_status(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
-	preConfig := testAccAzureRMContainerRegistryWebhook_status(data)
-	postConfig := testAccAzureRMContainerRegistryWebhook_statusUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -94,14 +88,14 @@ func TestAccAzureRMContainerRegistryWebhook_status(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMContainerRegistryWebhook_status(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "status", "enabled"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMContainerRegistryWebhook_statusUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "status", "disabled"),
@@ -113,8 +107,6 @@ func TestAccAzureRMContainerRegistryWebhook_status(t *testing.T) {
 
 func TestAccAzureRMContainerRegistryWebhook_serviceUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
-	preConfig := testAccAzureRMContainerRegistryWebhook_serviceUri(data)
-	postConfig := testAccAzureRMContainerRegistryWebhook_serviceUriUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -122,14 +114,14 @@ func TestAccAzureRMContainerRegistryWebhook_serviceUri(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMContainerRegistryWebhook_serviceUri(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_uri", "https://mywebhookreceiver.example/mytag"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMContainerRegistryWebhook_serviceUriUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_uri", "https://my.webhookreceiver.example/mytag/2"),
@@ -141,8 +133,6 @@ func TestAccAzureRMContainerRegistryWebhook_serviceUri(t *testing.T) {
 
 func TestAccAzureRMContainerRegistryWebhook_scope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
-	preConfig := testAccAzureRMContainerRegistryWebhook_scope(data)
-	postConfig := testAccAzureRMContainerRegistryWebhook_scopeUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -150,14 +140,14 @@ func TestAccAzureRMContainerRegistryWebhook_scope(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMContainerRegistryWebhook_scope(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "scope", "mytag:*"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMContainerRegistryWebhook_scopeUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "scope", "mytag:4"),
@@ -169,8 +159,6 @@ func TestAccAzureRMContainerRegistryWebhook_scope(t *testing.T) {
 
 func TestAccAzureRMContainerRegistryWebhook_customHeaders(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_webhook", "test")
-	preConfig := testAccAzureRMContainerRegistryWebhook_customHeaders(data)
-	postConfig := testAccAzureRMContainerRegistryWebhook_customHeadersUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -178,7 +166,7 @@ func TestAccAzureRMContainerRegistryWebhook_customHeaders(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryWebhookDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMContainerRegistryWebhook_customHeaders(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_headers.%", "1"),
@@ -186,7 +174,7 @@ func TestAccAzureRMContainerRegistryWebhook_customHeaders(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMContainerRegistryWebhook_customHeadersUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryWebhookExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_headers.%", "2"),

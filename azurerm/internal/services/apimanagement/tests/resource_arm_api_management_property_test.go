@@ -13,7 +13,6 @@ import (
 
 func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
-	config := testAccAzureRMAPIManagementProperty_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -21,7 +20,7 @@ func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementPropertyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAPIManagementProperty_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty%d", data.RandomInteger)),
@@ -37,8 +36,6 @@ func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 
 func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
-	config := testAccAzureRMAPIManagementProperty_basic(data)
-	config2 := testAccAzureRMAPIManagementProperty_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -46,7 +43,7 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementPropertyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAPIManagementProperty_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty%d", data.RandomInteger)),
@@ -56,7 +53,7 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 				),
 			},
 			{
-				Config: config2,
+				Config: testAccAzureRMAPIManagementProperty_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty2%d", data.RandomInteger)),

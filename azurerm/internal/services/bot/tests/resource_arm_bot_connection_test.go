@@ -14,7 +14,6 @@ import (
 
 func testAccAzureRMBotConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_connection", "test")
-	config := testAccAzureRMBotConnection_basicConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func testAccAzureRMBotConnection_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotConnection_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotConnectionExists(data.ResourceName),
 				),
@@ -34,8 +33,6 @@ func testAccAzureRMBotConnection_basic(t *testing.T) {
 
 func testAccAzureRMBotConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_connection", "test")
-	config := testAccAzureRMBotConnection_completeConfig(data)
-	config2 := testAccAzureRMBotConnection_completeUpdateConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -43,14 +40,14 @@ func testAccAzureRMBotConnection_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotConnection_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotConnectionExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("client_secret", "service_provider_name"),
 			{
-				Config: config2,
+				Config: testAccAzureRMBotConnection_completeUpdateConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotConnectionExists(data.ResourceName),
 				),

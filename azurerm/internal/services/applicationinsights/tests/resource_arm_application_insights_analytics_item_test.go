@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_analytics_item", "test")
-	config := testAccAzureRMApplicationInsightsAnalyticsItem_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsightsAnalyticsItem_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsAnalyticsItemExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "testquery"),
