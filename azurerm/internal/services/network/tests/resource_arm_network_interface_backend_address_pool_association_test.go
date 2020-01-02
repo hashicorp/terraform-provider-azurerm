@@ -187,7 +187,7 @@ func testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationDisappears(res
 func testAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

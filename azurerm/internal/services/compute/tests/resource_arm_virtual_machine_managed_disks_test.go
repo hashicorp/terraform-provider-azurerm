@@ -2420,7 +2420,7 @@ resource "azurerm_virtual_machine" "test" {
 func testAccAzureRMVirtualMachine_anWithVM(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -2494,7 +2494,7 @@ resource "azurerm_virtual_machine" "test" {
 func testAccAzureRMVirtualMachine_hasDiskInfoWhenStopped(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
