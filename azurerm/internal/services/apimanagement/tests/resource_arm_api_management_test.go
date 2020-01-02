@@ -15,7 +15,6 @@ import (
 
 func TestAccAzureRMApiManagement_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-	config := testAccAzureRMApiManagement_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +22,7 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagement_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
@@ -36,7 +35,6 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 // Remove in 2.0
 func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-	config := testAccAzureRMApiManagement_basicClassic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -44,7 +42,7 @@ func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagement_basicClassic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
@@ -57,7 +55,6 @@ func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
 // Remove in 2.0
 func TestAccAzureRMApiManagement_basicNotDefined(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-	config := testAccAzureRMApiManagement_basicNotDefined(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -65,7 +62,7 @@ func TestAccAzureRMApiManagement_basicNotDefined(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      config,
+				Config:      testAccAzureRMApiManagement_basicNotDefined(data),
 				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
 			},
 		},
@@ -98,15 +95,13 @@ func TestAccAzureRMApiManagement_requiresImport(t *testing.T) {
 func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
-	config := testAccAzureRMApiManagement_customProps(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagement_customProps(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
@@ -118,7 +113,6 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 
 func TestAccAzureRMApiManagement_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-	config := testAccAzureRMApiManagement_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -126,7 +120,7 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagement_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),

@@ -15,7 +15,6 @@ import (
 
 func TestAccAzureRMApiManagementIdentityProviderGoogle_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")
-	config := testAccAzureRMApiManagementIdentityProviderGoogle_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +22,7 @@ func TestAccAzureRMApiManagementIdentityProviderGoogle_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderGoogleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagementIdentityProviderGoogle_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderGoogleExists(data.ResourceName),
 				),
@@ -35,8 +34,6 @@ func TestAccAzureRMApiManagementIdentityProviderGoogle_basic(t *testing.T) {
 
 func TestAccAzureRMApiManagementIdentityProviderGoogle_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")
-	config := testAccAzureRMApiManagementIdentityProviderGoogle_basic(data)
-	updateConfig := testAccAzureRMApiManagementIdentityProviderGoogle_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -44,7 +41,7 @@ func TestAccAzureRMApiManagementIdentityProviderGoogle_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderGoogleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagementIdentityProviderGoogle_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderGoogleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "00000000.apps.googleusercontent.com"),
@@ -52,7 +49,7 @@ func TestAccAzureRMApiManagementIdentityProviderGoogle_update(t *testing.T) {
 				),
 			},
 			{
-				Config: updateConfig,
+				Config: testAccAzureRMApiManagementIdentityProviderGoogle_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderGoogleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "11111111.apps.googleusercontent.com"),

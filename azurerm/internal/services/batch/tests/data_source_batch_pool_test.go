@@ -11,14 +11,13 @@ import (
 
 func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
-	config := testAccDataSourceAzureRMBatchPool_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMBatchPool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testaccpool%s", data.RandomString)),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
