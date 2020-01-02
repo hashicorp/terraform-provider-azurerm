@@ -36,6 +36,8 @@ matrix:
       script: make tflint
     - name: "make test"
       script: make test
+    - name: "make depscheck"
+      script: make depscheck
     - name: "make website-lint"
       script: make website-lint
     - name: "make website-test"
