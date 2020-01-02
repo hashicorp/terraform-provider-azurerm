@@ -6,6 +6,7 @@
 * **New Resource:** `azurerm_advanced_threat_protection` [GH-4848]
 * **New Resource:** `azurerm_api_management_diagnostic ` [GH-4836]
 * **New Resource:** `azurerm_api_management_identity_provider_aad` [GH-5268]
+* **New Resource:** `azurerm_api_management_identity_provider_google` [GH-5279]
 * **New Resource:** `azurerm_automation_certificate` [GH-4785]
 * **New Resource:** `azurerm_backup_container_storage_account` [GH-5213]
 * **New Resource:** `azurerm_backup_policy_file_share` [GH-5213]
