@@ -17,7 +17,7 @@ Manages a Web App Bot.
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

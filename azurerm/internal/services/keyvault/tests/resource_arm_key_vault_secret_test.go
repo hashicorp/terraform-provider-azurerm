@@ -293,7 +293,7 @@ func testAccAzureRMKeyVaultSecret_basic(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -330,7 +330,7 @@ resource "azurerm_key_vault_secret" "test" {
   value        = "rick-and-morty"
   key_vault_id = "${azurerm_key_vault.test.id}"
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultSecret_basicClasic(data acceptance.TestData) string {
@@ -338,7 +338,7 @@ func testAccAzureRMKeyVaultSecret_basicClasic(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -375,7 +375,7 @@ resource "azurerm_key_vault_secret" "test" {
   value     = "rick-and-morty"
   vault_uri = "${azurerm_key_vault.test.vault_uri}"
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultSecret_requiresImport(data acceptance.TestData) string {
@@ -396,7 +396,7 @@ func testAccAzureRMKeyVaultSecret_complete(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -440,7 +440,7 @@ resource "azurerm_key_vault_secret" "test" {
     "hello" = "world"
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultSecret_basicUpdated(data acceptance.TestData) string {
@@ -448,7 +448,7 @@ func testAccAzureRMKeyVaultSecret_basicUpdated(data acceptance.TestData) string 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -485,5 +485,5 @@ resource "azurerm_key_vault_secret" "test" {
   value     = "szechuan"
   vault_uri = "${azurerm_key_vault.test.vault_uri}"
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

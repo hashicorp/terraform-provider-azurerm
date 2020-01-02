@@ -355,7 +355,7 @@ func testAccAzureRMKeyVaultCertificate_basicImportPFX(data acceptance.TestData) 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -413,7 +413,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(data acceptance.TestData) string {
@@ -421,7 +421,7 @@ func testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(data acceptance.Tes
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -483,7 +483,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_requiresImport(data acceptance.TestData) string {
@@ -525,7 +525,7 @@ func testAccAzureRMKeyVaultCertificate_basicGenerate(data acceptance.TestData) s
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -607,7 +607,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicGenerateSans(data acceptance.TestData) string {
@@ -615,7 +615,7 @@ func testAccAzureRMKeyVaultCertificate_basicGenerateSans(data acceptance.TestDat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -704,7 +704,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicGenerateTags(data acceptance.TestData) string {
@@ -712,7 +712,7 @@ func testAccAzureRMKeyVaultCertificate_basicGenerateTags(data acceptance.TestDat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -794,7 +794,7 @@ resource "azurerm_key_vault_certificate" "test" {
     "hello" = "world"
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data acceptance.TestData) string {
@@ -802,7 +802,7 @@ func testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data acceptance.Tes
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -890,7 +890,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data acceptance.TestData) string {
@@ -898,7 +898,7 @@ func testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data acceptance.Tes
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -982,5 +982,5 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

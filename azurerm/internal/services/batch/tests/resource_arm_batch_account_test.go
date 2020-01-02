@@ -43,9 +43,7 @@ func TestValidateBatchAccountName(t *testing.T) {
 }
 
 func TestAccAzureRMBatchAccount_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
-
-	config := testAccAzureRMBatchAccount_basic(data)
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,7 +51,7 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBatchAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "BatchService"),
@@ -68,7 +66,7 @@ func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -90,10 +88,7 @@ func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMBatchAccount_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
-
-	config := testAccAzureRMBatchAccount_complete(data)
-	configUpdate := testAccAzureRMBatchAccount_completeUpdated(data)
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -101,7 +96,7 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBatchAccount_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "BatchService"),
@@ -110,7 +105,7 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 				),
 			},
 			{
-				Config: configUpdate,
+				Config: testAccAzureRMBatchAccount_completeUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "BatchService"),
@@ -124,9 +119,8 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 }
 
 func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
+	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	config := testAccAzureRMBatchAccount_userSubscription(data, tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -134,7 +128,7 @@ func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBatchAccount_userSubscription(data, tenantID),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "UserSubscription"),

@@ -2615,7 +2615,7 @@ resource "azurerm_virtual_machine" "test" {
 func testAccAzureRMVirtualMachine_linuxMachineWithSSH(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -2697,13 +2697,13 @@ resource "azurerm_virtual_machine" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMVirtualMachine_linuxMachineWithSSHRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -2780,7 +2780,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = true
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMVirtualMachine_primaryNetworkInterfaceId(data acceptance.TestData) string {

@@ -15,7 +15,7 @@ Manages an Azure Data Factory (Version 2).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

@@ -15,7 +15,7 @@ Manages a Trigger Schedule inside a Azure Data Factory.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

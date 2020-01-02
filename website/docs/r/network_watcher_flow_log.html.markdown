@@ -16,7 +16,7 @@ Manages a Network Watcher Flow Log.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "eastus"
 }
 

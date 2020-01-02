@@ -368,7 +368,7 @@ func testAccAzureRMKeyVaultKey_basicEC(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -413,7 +413,7 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultKey_basicECClassic(data acceptance.TestData) string {
@@ -421,7 +421,7 @@ func testAccAzureRMKeyVaultKey_basicECClassic(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -466,7 +466,7 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultKey_requiresImport(data acceptance.TestData) string {
@@ -493,7 +493,7 @@ func testAccAzureRMKeyVaultKey_basicRSA(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -543,7 +543,7 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultKey_basicRSAHSM(data acceptance.TestData) string {
@@ -551,7 +551,7 @@ func testAccAzureRMKeyVaultKey_basicRSAHSM(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -600,7 +600,7 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultKey_complete(data acceptance.TestData) string {
@@ -608,7 +608,7 @@ func testAccAzureRMKeyVaultKey_complete(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -661,7 +661,7 @@ resource "azurerm_key_vault_key" "test" {
     "hello" = "world"
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultKey_basicUpdated(data acceptance.TestData) string {
@@ -669,7 +669,7 @@ func testAccAzureRMKeyVaultKey_basicUpdated(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -718,7 +718,7 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultKey_curveEC(data acceptance.TestData) string {
@@ -726,7 +726,7 @@ func testAccAzureRMKeyVaultKey_curveEC(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -773,7 +773,7 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultKey_basicECHSM(data acceptance.TestData) string {
@@ -781,7 +781,7 @@ func testAccAzureRMKeyVaultKey_basicECHSM(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -828,5 +828,5 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

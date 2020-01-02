@@ -386,7 +386,7 @@ func testAccAzureRMKeyVaultAccessPolicy_template(data acceptance.TestData) strin
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -402,7 +402,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Production"
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(data acceptance.TestData) string {
@@ -410,7 +410,7 @@ func testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(data acceptance.TestDat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -442,5 +442,5 @@ resource "azurerm_key_vault_access_policy" "test" {
     "get",
   ]
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

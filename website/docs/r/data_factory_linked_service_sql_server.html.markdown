@@ -17,7 +17,7 @@ Manages a Linked Service (connection) between a SQL Server and Azure Data Factor
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

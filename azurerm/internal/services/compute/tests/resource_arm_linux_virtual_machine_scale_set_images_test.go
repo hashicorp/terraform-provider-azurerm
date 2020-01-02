@@ -721,7 +721,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     publisher = "cloudbees"
   }
 
-  depends_on = ["azurerm_marketplace_agreement", "test"]
+  depends_on = ["azurerm_marketplace_agreement.test"]
 }
 `, template, data.RandomInteger)
 }
