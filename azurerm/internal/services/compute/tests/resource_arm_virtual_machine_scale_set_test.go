@@ -987,7 +987,7 @@ func TestAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(t *testing.T) {
 			},
 			{
 				PreConfig: func() { time.Sleep(1 * time.Minute) }, // VM Scale Set updates are not allowed while there is a Rolling Upgrade in progress.
-				Config:    automaticConfig,
+				Config:    testAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(data, "Automatic"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_policy_mode", "Automatic"),
@@ -998,7 +998,7 @@ func TestAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: manualConfig,
+				Config: testAccAzureRMVirtualMachineScaleSet_upgradeModeUpdate(data, "Manual"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineScaleSetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_policy_mode", "Manual"),
