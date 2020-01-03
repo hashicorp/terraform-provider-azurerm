@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the certificate. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.  Currently azure only supports the location of `global`.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. Currently the only valid value is `global`.
 
 * `auto_renew` - (Optional) true if the certificate should be automatically renewed when it expires; otherwise, false. Defaults to true.
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `product_type` - (Optional) Certificate product type, such as `Standard` or `WildCard`.
 
-* `validity_in_years` - (Optional) Duration in years (must be between 1 and 3).  Defaults to 1.
+* `validity_in_years` - (Optional) Duration in years (must be between `1` and `3`).  Defaults to `1`.
 
 ## Attributes Reference
 
