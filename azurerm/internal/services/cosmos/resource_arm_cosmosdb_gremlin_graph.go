@@ -427,7 +427,7 @@ func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *schema.ResourceData) *doc
 	}
 
 	if automatic, ok := input["automatic"].(bool); ok {
-		policy.Automatic = utils.Bool(bool(automatic))
+		policy.Automatic = utils.Bool(automatic)
 	}
 
 	return policy
@@ -446,11 +446,11 @@ func expandAzureRmCosmosDbGremlinGraphConflicResolutionPolicy(d *schema.Resource
 	}
 
 	if conflictResolutionPath, ok := input["conflict_resolution_path"].(string); ok {
-		conflict.ConflictResolutionPath = utils.String(string(conflictResolutionPath))
+		conflict.ConflictResolutionPath = utils.String(conflictResolutionPath)
 	}
 
 	if conflictResolutionProcedure, ok := input["conflict_resolution_procedure"].(string); ok {
-		conflict.ConflictResolutionProcedure = utils.String(string(conflictResolutionProcedure))
+		conflict.ConflictResolutionProcedure = utils.String(conflictResolutionProcedure)
 	}
 
 	return conflict
@@ -515,7 +515,7 @@ func flattenAzureRmCosmosDBGremlinGraphIndexingPolicy(input *documentdb.Indexing
 	}
 	indexPolicy := make(map[string]interface{})
 
-	indexPolicy["automatic"] = bool(*input.Automatic)
+	indexPolicy["automatic"] = input.Automatic
 	indexPolicy["indexing_mode"] = string(input.IndexingMode)
 	indexPolicy["included_paths"] = schema.NewSet(schema.HashString, flattenAzureRmCosmosDBGremlinGraphIncludedPaths(input.IncludedPaths))
 	indexPolicy["excluded_paths"] = schema.NewSet(schema.HashString, flattenAzureRmCosmosDBGremlinGraphExcludedPaths(input.ExcludedPaths))
@@ -564,8 +564,8 @@ func flattenAzureRmCosmosDbGremlinGraphConflictResolutionPolicy(input *documentd
 	conflictResolutionPolicy := make(map[string]interface{})
 
 	conflictResolutionPolicy["mode"] = string(input.Mode)
-	conflictResolutionPolicy["conflict_resolution_path"] = string(*input.ConflictResolutionPath)
-	conflictResolutionPolicy["conflict_resolution_procedure"] = string(*input.ConflictResolutionProcedure)
+	conflictResolutionPolicy["conflict_resolution_path"] = input.ConflictResolutionPath
+	conflictResolutionPolicy["conflict_resolution_procedure"] = input.ConflictResolutionProcedure
 
 	return []interface{}{conflictResolutionPolicy}
 }
