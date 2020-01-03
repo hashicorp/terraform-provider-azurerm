@@ -60,20 +60,20 @@ func testAccAzureRMBotWebApp_update(t *testing.T) {
 func testAccAzureRMBotWebApp_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
 
-		resource.Test(t, resource.TestCase{
-			PreCheck:     func() { acceptance.PreCheck(t) },
-			Providers:    acceptance.SupportedProviders,
-			CheckDestroy: testCheckAzureRMBotWebAppDestroy,
-			Steps: []resource.TestStep{
-				{
-					Config: testAccAzureRMBotWebApp_completeConfig(data),
-					Check: resource.ComposeTestCheckFunc(
-						testCheckAzureRMBotWebAppExists(data.ResourceName),
-					),
-				},
-				data.ImportStep("developer_app_insights_api_key"),
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMBotWebApp_completeConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBotWebAppExists(data.ResourceName),
+				),
 			},
-		})
+			data.ImportStep("developer_app_insights_api_key"),
+		},
+	})
 }
 
 func testCheckAzureRMBotWebAppExists(name string) resource.TestCheckFunc {
