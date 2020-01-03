@@ -25,7 +25,7 @@ resource "azurerm_app_service_certificate_order" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "global"
   distinguished_name  = "CN=example.com"
-  product_type        = "standard"
+  product_type        = "Standard"
 }
 ```
 
@@ -37,9 +37,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the certificate. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. Currently the only valid value is `global`.
 
-* `auto_renew` - (Optional) true if the certificate should be automatically renewed when it expires; otherwise, false.
+* `auto_renew` - (Optional) true if the certificate should be automatically renewed when it expires; otherwise, false. Defaults to true.
 
 * `csr` - (Optional) Last CSR that was created for this order.
 
@@ -47,11 +47,11 @@ The following arguments are supported:
 
 -> **NOTE:** Either `csr` or `distinguished_name` must be set - but not both.
 
-* `key_size` - (Optional) Certificate key size.
+* `key_size` - (Optional) Certificate key size.  Defaults to 2048.
 
 * `product_type` - (Optional) Certificate product type, such as `Standard` or `WildCard`.
 
-* `validity_in_years` - (Optional) Duration in years (must be between 1 and 3).
+* `validity_in_years` - (Optional) Duration in years (must be between `1` and `3`).  Defaults to `1`.
 
 ## Attributes Reference
 
