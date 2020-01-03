@@ -49,8 +49,6 @@ resource "azurerm_cosmosdb_gremlin_graph" "example" {
 		paths = ["/definition/id1", "/definition/id2"]
 	}
 }
-
-
 ```
 
 ## Argument Reference
