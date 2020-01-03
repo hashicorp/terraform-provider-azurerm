@@ -65,7 +65,6 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	config := testAccAzureRMMySQLServer_basicFiveSeven(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -73,7 +72,7 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_basicFiveSeven(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
@@ -104,7 +103,6 @@ func TestAccAzureRMMySQLServer_basicEightZero(t *testing.T) {
 
 func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	config := testAccAzureRMMySQLServer_generalPurpose(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -112,7 +110,7 @@ func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_generalPurpose(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
@@ -124,7 +122,6 @@ func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 
 func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	config := testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -132,7 +129,7 @@ func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
@@ -143,8 +140,6 @@ func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 
 func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	config := testAccAzureRMMySQLServer_basicFiveSeven(data)
-	updatedConfig := testAccAzureRMMySQLServer_basicFiveSevenUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -152,7 +147,7 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_basicFiveSeven(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_2"),
@@ -162,7 +157,7 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMMySQLServer_basicFiveSevenUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_4"),
@@ -178,8 +173,6 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 
 func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	config := testAccAzureRMMySQLServer_generalPurpose(data)
-	updatedConfig := testAccAzureRMMySQLServer_memoryOptimized(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -187,7 +180,7 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_generalPurpose(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_32"),
@@ -199,7 +192,7 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMMySQLServer_memoryOptimized(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "MO_Gen5_16"),
@@ -216,8 +209,6 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 
 func TestAccAzureRMMySQLServer_storageAutogrow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	config := testAccAzureRMMySQLServer_basicFiveSeven(data)
-	updatedConfig := testAccAzureRMMySQLServer_autogrow(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -225,14 +216,14 @@ func TestAccAzureRMMySQLServer_storageAutogrow(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_basicFiveSeven(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Enabled"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMMySQLServer_autogrow(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Disabled"),
