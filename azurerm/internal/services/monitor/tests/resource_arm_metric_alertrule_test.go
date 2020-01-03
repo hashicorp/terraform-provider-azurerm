@@ -69,8 +69,6 @@ func TestValidateMetricAlertRuleTags(t *testing.T) {
 
 func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_metric_alertrule", "test")
-	preConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(data, true)
-	postConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(data, false)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,7 +76,7 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMMetricAlertRule_virtualMachineCpu(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMetricAlertRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -86,7 +84,7 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMMetricAlertRule_virtualMachineCpu(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMetricAlertRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
