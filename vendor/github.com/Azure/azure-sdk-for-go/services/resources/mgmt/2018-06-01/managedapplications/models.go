@@ -585,10 +585,8 @@ type ApplicationDefinitionProperties struct {
 	LockLevel ApplicationLockLevel `json:"lockLevel,omitempty"`
 	// DisplayName - The managed application definition display name.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Here it would fail to get the resource since there is a bug of type conversion for property `IsEnabled`.
-	// See more details from github issue https://github.com/Azure/azure-sdk-for-go/issues/6589
 	// IsEnabled - A value indicating whether the package is enabled or not.
-	IsEnabled *bool `json:"isEnabled,omitempty"`
+	IsEnabled *string `json:"isEnabled,omitempty"`
 	// Authorizations - The managed application provider authorizations.
 	Authorizations *[]ApplicationProviderAuthorization `json:"authorizations,omitempty"`
 	// Artifacts - The collection of managed application artifacts. The portal will use the files specified as artifacts to construct the user experience of creating a managed application from a managed application definition.
