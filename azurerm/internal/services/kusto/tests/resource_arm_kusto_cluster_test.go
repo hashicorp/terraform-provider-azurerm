@@ -32,8 +32,6 @@ func TestAccAzureRMKustoCluster_basic(t *testing.T) {
 
 func TestAccAzureRMKustoCluster_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
-	preConfig := testAccAzureRMKustoCluster_withTags(data)
-	postConfig := testAccAzureRMKustoCluster_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -41,7 +39,7 @@ func TestAccAzureRMKustoCluster_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMKustoCluster_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -49,7 +47,7 @@ func TestAccAzureRMKustoCluster_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMKustoCluster_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -63,8 +61,6 @@ func TestAccAzureRMKustoCluster_withTags(t *testing.T) {
 
 func TestAccAzureRMKustoCluster_sku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
-	preConfig := testAccAzureRMKustoCluster_basic(data)
-	postConfig := testAccAzureRMKustoCluster_skuUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -72,7 +68,7 @@ func TestAccAzureRMKustoCluster_sku(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMKustoCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Dev(No SLA)_Standard_D11_v2"),
@@ -80,7 +76,7 @@ func TestAccAzureRMKustoCluster_sku(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMKustoCluster_skuUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_D11_v2"),

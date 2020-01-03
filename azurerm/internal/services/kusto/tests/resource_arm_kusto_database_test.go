@@ -32,8 +32,6 @@ func TestAccAzureRMKustoDatabase_basic(t *testing.T) {
 
 func TestAccAzureRMKustoDatabase_softDeletePeriod(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
-	preConfig := testAccAzureRMKustoDatabase_softDeletePeriod(data)
-	postConfig := testAccAzureRMKustoDatabase_softDeletePeriodUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -41,14 +39,14 @@ func TestAccAzureRMKustoDatabase_softDeletePeriod(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMKustoDatabase_softDeletePeriod(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_period", "P7D"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMKustoDatabase_softDeletePeriodUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_period", "P31D"),
@@ -60,8 +58,6 @@ func TestAccAzureRMKustoDatabase_softDeletePeriod(t *testing.T) {
 
 func TestAccAzureRMKustoDatabase_hotCachePeriod(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
-	preConfig := testAccAzureRMKustoDatabase_hotCachePeriod(data)
-	postConfig := testAccAzureRMKustoDatabase_hotCachePeriodUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,14 +65,14 @@ func TestAccAzureRMKustoDatabase_hotCachePeriod(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMKustoDatabase_hotCachePeriod(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "hot_cache_period", "P7D"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMKustoDatabase_hotCachePeriodUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "hot_cache_period", "P14DT12H"),
