@@ -15,7 +15,6 @@ import (
 
 func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
-	config :=
 
 		resource.Test(t, resource.TestCase{
 			PreCheck:     func() { acceptance.PreCheck(t) },

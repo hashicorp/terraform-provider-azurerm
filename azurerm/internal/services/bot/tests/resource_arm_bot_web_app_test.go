@@ -59,7 +59,6 @@ func testAccAzureRMBotWebApp_update(t *testing.T) {
 
 func testAccAzureRMBotWebApp_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
-	config :=
 
 		resource.Test(t, resource.TestCase{
 			PreCheck:     func() { acceptance.PreCheck(t) },
