@@ -16,7 +16,6 @@ import (
 //TODO: remove this once we remove the `record` attribute
 func TestAccAzureRMDnsNsRecord_deprecatedBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
-	config := testAccAzureRMDnsNsRecord_deprecatedBasic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,7 +23,7 @@ func TestAccAzureRMDnsNsRecord_deprecatedBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDnsNsRecord_deprecatedBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
 				),
@@ -35,7 +34,6 @@ func TestAccAzureRMDnsNsRecord_deprecatedBasic(t *testing.T) {
 
 func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
-	config := testAccAzureRMDnsNsRecord_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -43,7 +41,7 @@ func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDnsNsRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
@@ -84,8 +82,6 @@ func TestAccAzureRMDnsNsRecord_requiresImport(t *testing.T) {
 //TODO: remove this once we remove the `record` attribute
 func TestAccAzureRMDnsNsRecord_deprecatedUpdateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
-	preConfig := testAccAzureRMDnsNsRecord_deprecatedBasic(data)
-	postConfig := testAccAzureRMDnsNsRecord_deprecatedUpdateRecords(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -93,14 +89,14 @@ func TestAccAzureRMDnsNsRecord_deprecatedUpdateRecords(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsNsRecord_deprecatedBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsNsRecord_deprecatedUpdateRecords(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "3"),
@@ -112,8 +108,6 @@ func TestAccAzureRMDnsNsRecord_deprecatedUpdateRecords(t *testing.T) {
 
 func TestAccAzureRMDnsNsRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
-	preConfig := testAccAzureRMDnsNsRecord_basic(data)
-	postConfig := testAccAzureRMDnsNsRecord_updateRecords(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -121,14 +115,14 @@ func TestAccAzureRMDnsNsRecord_updateRecords(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsNsRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsNsRecord_updateRecords(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "3"),
@@ -141,8 +135,6 @@ func TestAccAzureRMDnsNsRecord_updateRecords(t *testing.T) {
 //TODO: remove this once we remove the `record` attribute
 func TestAccAzureRMDnsNsRecord_deprecatedChangeRecordToRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
-	preConfig := testAccAzureRMDnsNsRecord_deprecatedBasic(data)
-	postConfig := testAccAzureRMDnsNsRecord_deprecatedBasicNewRecords(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -150,14 +142,14 @@ func TestAccAzureRMDnsNsRecord_deprecatedChangeRecordToRecords(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsNsRecord_deprecatedBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsNsRecord_deprecatedBasicNewRecords(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "2"),
@@ -170,8 +162,6 @@ func TestAccAzureRMDnsNsRecord_deprecatedChangeRecordToRecords(t *testing.T) {
 //TODO: remove this once we remove the `record` attribute
 func TestAccAzureRMDnsNsRecord_deprecatedWithTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
-	preConfig := testAccAzureRMDnsNsRecord_deprecatedWithTags(data)
-	postConfig := testAccAzureRMDnsNsRecord_deprecatedWithTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -179,14 +169,14 @@ func TestAccAzureRMDnsNsRecord_deprecatedWithTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsNsRecord_deprecatedWithTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsNsRecord_deprecatedWithTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -198,8 +188,6 @@ func TestAccAzureRMDnsNsRecord_deprecatedWithTags(t *testing.T) {
 
 func TestAccAzureRMDnsNsRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
-	preConfig := testAccAzureRMDnsNsRecord_withTags(data)
-	postConfig := testAccAzureRMDnsNsRecord_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -207,14 +195,14 @@ func TestAccAzureRMDnsNsRecord_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsNsRecord_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsNsRecord_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),

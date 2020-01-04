@@ -16,14 +16,14 @@ import (
 
 func TestAccAzureRMContainerGroup_SystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	config := testAccAzureRMContainerGroup_SystemAssignedIdentity(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_SystemAssignedIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
@@ -38,14 +38,14 @@ func TestAccAzureRMContainerGroup_SystemAssignedIdentity(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_UserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	config := testAccAzureRMContainerGroup_UserAssignedIdentity(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_UserAssignedIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
@@ -60,14 +60,14 @@ func TestAccAzureRMContainerGroup_UserAssignedIdentity(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_multipleAssignedIdentities(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	config := testAccAzureRMContainerGroup_MultipleAssignedIdentities(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_MultipleAssignedIdentities(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
@@ -83,15 +83,13 @@ func TestAccAzureRMContainerGroup_multipleAssignedIdentities(t *testing.T) {
 func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_imageRegistryCredentials(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_imageRegistryCredentials(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.#", "2"),
@@ -114,16 +112,13 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_imageRegistryCredentials(data)
-	updated := testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_imageRegistryCredentials(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.#", "2"),
@@ -138,7 +133,7 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: updated,
+				Config: testAccAzureRMContainerGroup_imageRegistryCredentialsUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.#", "1"),
@@ -154,14 +149,14 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_logTypeUnset(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	config := testAccAzureRMContainerGroup_logTypeUnset(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_logTypeUnset(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "diagnostics.0.log_analytics.#", "1"),
@@ -179,15 +174,13 @@ func TestAccAzureRMContainerGroup_logTypeUnset(t *testing.T) {
 func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_linuxBasic(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_linuxBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
@@ -233,23 +226,20 @@ func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
 func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_linuxBasic(data)
-	updatedConfig := testAccAzureRMContainerGroup_linuxBasicUpdated(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_linuxBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMContainerGroup_linuxBasicUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "2"),
@@ -263,15 +253,13 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_linuxComplete(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_linuxComplete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
@@ -336,7 +324,6 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 
 func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
-	config := testAccAzureRMContainerGroup_virtualNetwork(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -344,7 +331,7 @@ func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_virtualNetwork(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckNoResourceAttr(data.ResourceName, "dns_label_name"),
@@ -363,15 +350,13 @@ func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
 func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_windowsBasic(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_windowsBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),
@@ -387,15 +372,13 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
-	config := testAccAzureRMContainerGroup_windowsComplete(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerGroup_windowsComplete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.#", "1"),

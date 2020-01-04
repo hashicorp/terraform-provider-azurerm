@@ -12,14 +12,13 @@ func TestAccDataSourceVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine", "test")
 
 	name := fmt.Sprintf("acctvm-%d", data.RandomInteger)
-	config := testAccDataSourceVirtualMachine_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceVirtualMachine_basic(data),
 				Check:  resource.TestCheckResourceAttr(data.ResourceName, "name", name),
 			},
 		},

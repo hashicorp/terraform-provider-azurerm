@@ -14,7 +14,6 @@ import (
 
 func testAccAzureRMBotWebApp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
-	config := testAccAzureRMBotWebApp_basicConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func testAccAzureRMBotWebApp_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotWebApp_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotWebAppExists(data.ResourceName),
 				),
@@ -34,8 +33,6 @@ func testAccAzureRMBotWebApp_basic(t *testing.T) {
 
 func testAccAzureRMBotWebApp_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
-	config := testAccAzureRMBotWebApp_basicConfig(data)
-	config2 := testAccAzureRMBotWebApp_updateConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -43,14 +40,14 @@ func testAccAzureRMBotWebApp_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotWebApp_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotWebAppExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("developer_app_insights_api_key"),
 			{
-				Config: config2,
+				Config: testAccAzureRMBotWebApp_updateConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotWebAppExists(data.ResourceName),
 				),
@@ -62,7 +59,6 @@ func testAccAzureRMBotWebApp_update(t *testing.T) {
 
 func testAccAzureRMBotWebApp_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
-	config := testAccAzureRMBotWebApp_completeConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -70,7 +66,7 @@ func testAccAzureRMBotWebApp_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotWebApp_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotWebAppExists(data.ResourceName),
 				),

@@ -12,14 +12,13 @@ import (
 
 func TestAccDataSourceAzureRMBatchAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
-	config := testAccDataSourceAzureRMBatchAccount_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMBatchAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
@@ -32,14 +31,13 @@ func TestAccDataSourceAzureRMBatchAccount_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMBatchAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
-	config := testAccDataSourceAzureRMBatchAccount_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMBatchAccount_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
@@ -58,14 +56,12 @@ func TestAccDataSourceAzureRMBatchAccount_userSubscription(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
-	config := testAccDataSourceAzureBatchAccount_userSubscription(data, tenantID, subscriptionID)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureBatchAccount_userSubscription(data, tenantID, subscriptionID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),

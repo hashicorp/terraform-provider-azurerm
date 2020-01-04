@@ -81,7 +81,6 @@ func TestAccAzureRMContainerService_agentProfilePoolCountValidation(t *testing.T
 
 func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_service", "test")
-	config := testAccAzureRMContainerService_dcosBasic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -89,7 +88,7 @@ func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerService_dcosBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerServiceExists("azurerm_container_service.test"),
 				),
@@ -129,7 +128,6 @@ func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_service", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMContainerService_kubernetesBasic(data, clientId, clientSecret)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -137,7 +135,7 @@ func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerService_kubernetesBasic(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerServiceExists("azurerm_container_service.test"),
 				),
@@ -150,7 +148,6 @@ func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_service", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMContainerService_kubernetesComplete(data, clientId, clientSecret)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -158,7 +155,7 @@ func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerService_kubernetesComplete(data, clientId, clientSecret),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerServiceExists("azurerm_container_service.test"),
 				),
@@ -169,7 +166,6 @@ func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 
 func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_service", "test")
-	config := testAccAzureRMContainerService_swarmBasic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -177,7 +173,7 @@ func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMContainerService_swarmBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerServiceExists("azurerm_container_service.test"),
 				),

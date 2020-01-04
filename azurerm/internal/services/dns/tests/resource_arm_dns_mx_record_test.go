@@ -15,7 +15,6 @@ import (
 
 func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_mx_record", "test")
-	config := testAccAzureRMDnsMxRecord_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +22,7 @@ func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDnsMxRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsMxRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
@@ -36,7 +35,6 @@ func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 
 func TestAccAzureRMDnsMxRecord_rootrecord(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_mx_record", "test")
-	config := testAccAzureRMDnsMxRecord_rootrecord(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -44,7 +42,7 @@ func TestAccAzureRMDnsMxRecord_rootrecord(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDnsMxRecord_rootrecord(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsMxRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
@@ -84,8 +82,6 @@ func TestAccAzureRMDnsMxRecord_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDnsMxRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_mx_record", "test")
-	preConfig := testAccAzureRMDnsMxRecord_basic(data)
-	postConfig := testAccAzureRMDnsMxRecord_updateRecords(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -93,14 +89,14 @@ func TestAccAzureRMDnsMxRecord_updateRecords(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsMxRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsMxRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsMxRecord_updateRecords(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsMxRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "3"),
@@ -112,8 +108,6 @@ func TestAccAzureRMDnsMxRecord_updateRecords(t *testing.T) {
 
 func TestAccAzureRMDnsMxRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_mx_record", "test")
-	preConfig := testAccAzureRMDnsMxRecord_withTags(data)
-	postConfig := testAccAzureRMDnsMxRecord_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -121,14 +115,14 @@ func TestAccAzureRMDnsMxRecord_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsMxRecord_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsMxRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsMxRecord_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsMxRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),

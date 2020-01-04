@@ -15,7 +15,6 @@ import (
 
 func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
-	config := testAccAzureRMBotChannelMsTeams_basicConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +22,7 @@ func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelMsTeamsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelMsTeams_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelMsTeamsExists(data.ResourceName),
 				),
@@ -35,8 +34,6 @@ func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 
 func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_ms_teams", "test")
-	config := testAccAzureRMBotChannelMsTeams_basicConfig(data)
-	config2 := testAccAzureRMBotChannelMsTeams_basicUpdate(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -44,21 +41,21 @@ func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelMsTeamsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelMsTeams_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelMsTeamsExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: config2,
+				Config: testAccAzureRMBotChannelMsTeams_basicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelMsTeamsExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelMsTeams_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelMsTeamsExists(data.ResourceName),
 				),

@@ -18,14 +18,14 @@ import (
 func TestAccAzureRMVirtualMachine_basicLinuxMachine(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	var vm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachine_basicLinuxMachine(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
@@ -42,27 +42,25 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_storageBlob_attach(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(data)
-	prepConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_destroyVM(data)
-	config := testAccAzureRMVirtualMachine_basicLinuxMachine_storageBlob_attach(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:  preConfig,
+				Config:  testAccAzureRMVirtualMachine_basicLinuxMachine(data),
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
 			},
 			{
-				Config:  prepConfig,
+				Config:  testAccAzureRMVirtualMachine_basicLinuxMachine_destroyVM(data),
 				Destroy: false,
 			},
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_storageBlob_attach(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
@@ -75,14 +73,14 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
@@ -95,14 +93,14 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachine_basicLinuxMachine(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 					testCheckAzureRMVirtualMachineDisappears(data.ResourceName),
@@ -117,14 +115,14 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm, mirrorVm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.mirror", &mirrorVm),
@@ -142,14 +140,13 @@ func TestAccAzureRMVirtualMachine_withDataDisk(t *testing.T) {
 
 	var vm compute.VirtualMachine
 
-	config := testAccAzureRMVirtualMachine_withDataDisk(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_withDataDisk(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
@@ -163,15 +160,13 @@ func TestAccAzureRMVirtualMachine_tags(t *testing.T) {
 
 	var vm compute.VirtualMachine
 
-	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(data)
-	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineUpdated(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -181,7 +176,7 @@ func TestAccAzureRMVirtualMachine_tags(t *testing.T) {
 			},
 
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachineUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -198,22 +193,21 @@ func TestAccAzureRMVirtualMachine_updateMachineSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(data)
-	postConfig := testAccAzureRMVirtualMachine_updatedLinuxMachine(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "Standard_D1_v2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualMachine_updatedLinuxMachine(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "Standard_D2_v2"),
@@ -227,14 +221,14 @@ func TestAccAzureRMVirtualMachine_basicWindowsMachine(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachine_basicWindowsMachine(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_basicWindowsMachine(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
@@ -247,14 +241,14 @@ func TestAccAzureRMVirtualMachine_windowsUnattendedConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachine_windowsUnattendedConfig(data, "Standard_D1_v2")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_windowsUnattendedConfig(data, "Standard_D1_v2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
@@ -267,21 +261,20 @@ func TestAccAzureRMVirtualMachine_windowsMachineResize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	preConfig := testAccAzureRMVirtualMachine_windowsUnattendedConfig(data, "Standard_D1_v2")
-	postConfig := testAccAzureRMVirtualMachine_windowsUnattendedConfig(data, "Standard_D2_v2")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualMachine_windowsUnattendedConfig(data, "Standard_D1_v2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualMachine_windowsUnattendedConfig(data, "Standard_D2_v2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
@@ -294,14 +287,14 @@ func TestAccAzureRMVirtualMachine_diagnosticsProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachine_diagnosticsProfile(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_diagnosticsProfile(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
@@ -314,14 +307,14 @@ func TestAccAzureRMVirtualMachine_winRMConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachine_winRMConfig(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_winRMConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
@@ -334,21 +327,20 @@ func TestAccAzureRMVirtualMachine_deleteVHDOptOut(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	preConfig := testAccAzureRMVirtualMachine_withDataDisk(data)
-	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualMachine_withDataDisk(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineVHDExistence("myosdisk1.vhd", true),
 					testCheckAzureRMVirtualMachineVHDExistence("mydatadisk1.vhd", true),
@@ -362,21 +354,20 @@ func TestAccAzureRMVirtualMachine_deleteVHDOptIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksBefore(data)
-	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksAfter(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksBefore(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksAfter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineVHDExistence("myosdisk1.vhd", false),
 					testCheckAzureRMVirtualMachineVHDExistence("mydatadisk1.vhd", false),
@@ -390,22 +381,20 @@ func TestAccAzureRMVirtualMachine_ChangeComputerName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	var afterCreate, afterUpdate compute.VirtualMachine
 
-	preConfig := testAccAzureRMVirtualMachine_machineNameBeforeUpdate(data)
-	postConfig := testAccAzureRMVirtualMachine_updateMachineName(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualMachine_machineNameBeforeUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &afterCreate),
 				),
 			},
 
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualMachine_updateMachineName(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &afterUpdate),
 					testAccCheckVirtualMachineRecreated(
@@ -420,22 +409,20 @@ func TestAccAzureRMVirtualMachine_ChangeAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	var afterCreate, afterUpdate compute.VirtualMachine
 
-	preConfig := testAccAzureRMVirtualMachine_withAvailabilitySet(data)
-	postConfig := testAccAzureRMVirtualMachine_updateAvailabilitySet(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualMachine_withAvailabilitySet(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &afterCreate),
 				),
 			},
 
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualMachine_updateAvailabilitySet(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &afterUpdate),
 					testAccCheckVirtualMachineRecreated(
@@ -450,22 +437,20 @@ func TestAccAzureRMVirtualMachine_changeStorageImageReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	var afterCreate, afterUpdate compute.VirtualMachine
 
-	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageBefore(data)
-	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageAfter(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageBefore(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &afterCreate),
 				),
 			},
 
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageAfter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &afterUpdate),
 					testAccCheckVirtualMachineRecreated(
@@ -480,22 +465,20 @@ func TestAccAzureRMVirtualMachine_changeOSDiskVhdUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	var afterCreate, afterUpdate compute.VirtualMachine
 
-	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(data)
-	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineWithOSDiskVhdUriChanged(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &afterCreate),
 				),
 			},
 
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachineWithOSDiskVhdUriChanged(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &afterUpdate),
 					testAccCheckVirtualMachineRecreated(
@@ -532,21 +515,20 @@ func TestAccAzureRMVirtualMachine_changeSSHKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	preConfig := testAccAzureRMVirtualMachine_linuxMachineWithSSH(data)
-	postConfig := testAccAzureRMVirtualMachine_linuxMachineWithSSHRemoved(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualMachine_linuxMachineWithSSH(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualMachine_linuxMachineWithSSHRemoved(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
@@ -560,9 +542,6 @@ func TestAccAzureRMVirtualMachine_optionalOSProfile(t *testing.T) {
 
 	var vm compute.VirtualMachine
 
-	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(data)
-	prepConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_destroy(data)
-	config := testAccAzureRMVirtualMachine_basicLinuxMachine_attach_without_osProfile(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -570,14 +549,14 @@ func TestAccAzureRMVirtualMachine_optionalOSProfile(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Destroy: false,
-				Config:  preConfig,
+				Config:  testAccAzureRMVirtualMachine_basicLinuxMachine(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
 			},
 			{
 				Destroy: false,
-				Config:  prepConfig,
+				Config:  testAccAzureRMVirtualMachine_basicLinuxMachine_destroy(data),
 				Check: func(s *terraform.State) error {
 					if err := testCheckAzureRMVirtualMachineDestroy(s); err != nil {
 						log.Printf("[DEBUG] WARNING testCheckAzureRMVirtualMachineDestroy error'd: %v", err)
@@ -586,7 +565,7 @@ func TestAccAzureRMVirtualMachine_optionalOSProfile(t *testing.T) {
 				},
 			},
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_attach_without_osProfile(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),
@@ -599,14 +578,14 @@ func TestAccAzureRMVirtualMachine_primaryNetworkInterfaceId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
 	var vm compute.VirtualMachine
-	config := testAccAzureRMVirtualMachine_primaryNetworkInterfaceId(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachine_primaryNetworkInterfaceId(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
 				),

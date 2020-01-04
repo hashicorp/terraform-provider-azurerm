@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	config := testAccAzureRMCdnProfile_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnProfile_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 				),
@@ -61,8 +60,6 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	preConfig := testAccAzureRMCdnProfile_withTags(data)
-	postConfig := testAccAzureRMCdnProfile_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -70,7 +67,7 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMCdnProfile_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -80,7 +77,7 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMCdnProfile_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -117,8 +114,6 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	preConfig := testAccAzureRMCdnProfile_basic(data)
-	postConfig := testAccAzureRMCdnProfile_standardAkamai(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -126,14 +121,14 @@ func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMCdnProfile_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Verizon"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMCdnProfile_standardAkamai(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Akamai"),
@@ -145,7 +140,6 @@ func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	config := testAccAzureRMCdnProfile_standardAkamai(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -153,7 +147,7 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnProfile_standardAkamai(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Akamai"),
@@ -166,7 +160,6 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 
 func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	config := testAccAzureRMCdnProfile_standardMicrosoft(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -174,7 +167,7 @@ func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCdnProfile_standardMicrosoft(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Microsoft"),

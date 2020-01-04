@@ -15,7 +15,6 @@ import (
 
 func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
-	config := testAccAzureRMCognitiveAccount_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +22,7 @@ func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCognitiveAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Face"),
@@ -39,7 +38,6 @@ func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 
 func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
-	config := testAccAzureRMCognitiveAccount_speechServices(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -47,7 +45,7 @@ func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCognitiveAccount_speechServices(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "SpeechServices"),
@@ -90,7 +88,6 @@ func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
 
 func TestAccAzureRMCognitiveAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
-	config := testAccAzureRMCognitiveAccount_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -98,7 +95,7 @@ func TestAccAzureRMCognitiveAccount_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCognitiveAccount_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Face"),
