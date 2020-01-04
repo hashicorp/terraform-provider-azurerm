@@ -372,6 +372,14 @@ func resourceArmBatchPool() *schema.Resource {
 					},
 				},
 			},
+			"metadata": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				ForceNew: false,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -479,6 +487,9 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	parameters.PoolProperties.Metadata = azure.ExpandMetaData(metaDataRaw)
+
 	future, err := client.Create(ctx, resourceGroup, accountName, poolName, parameters, "", "")
 	if err != nil {
 		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
@@ -583,6 +594,13 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	if d.HasChange("metadata") {
+		log.Printf("[DEBUG] Updating the MetaData for Batch pool %q (Account name %q / Resource Group %q)..", poolName, accountName, id.ResourceGroup)
+		metaDataRaw := d.Get("metadata").(map[string]interface{})
+
+		parameters.PoolProperties.Metadata = azure.ExpandMetaData(metaDataRaw)
+	}
+
 	result, err := client.Update(ctx, resourceGroup, accountName, poolName, parameters, "")
 	if err != nil {
 		return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
@@ -655,6 +673,8 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
+
+		d.Set("metadata", azure.FlattenMetaData(props.Metadata))
 	}
 
 	return nil
