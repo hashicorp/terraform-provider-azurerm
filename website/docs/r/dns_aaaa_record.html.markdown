@@ -29,7 +29,7 @@ resource "azurerm_dns_aaaa_record" "example" {
   zone_name           = "${azurerm_dns_zone.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   ttl                 = 300
-  
+
 }
 ```
 
@@ -51,7 +51,7 @@ resource "azurerm_public_ip" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   allocation_method   = "Dynamic"
-  ip_version          = "IPv6
+  ip_version          = "IPv6"
 }
 
 resource "azurerm_dns_aaaa_record" "example" {

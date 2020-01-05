@@ -128,7 +128,7 @@ A `aci_connector_linux` block supports the following:
 ```
 resource "azurerm_subnet" "virtual" {
 
-  ...
+  #...
 
   delegation {
     name = "aciDelegation"

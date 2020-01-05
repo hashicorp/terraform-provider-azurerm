@@ -42,10 +42,10 @@ data "azurerm_resources" "spokes" {
 resource "azurerm_virtual_network_peering" "spoke_peers" {
   count = length(data.azurerm_resources.spokes.resources)
 
-  name                        = "hub2${data.azurerm_resources.spokes.resources[count.index].name}"
-  resource_group_name         = azurerm_resource_group.hub.name
-  virtual_network_name        = azurerm_virtual_network.hub.name
-  remote_virtual_network_id   = data.azurerm_resources.spokes.resources[count.index].id
+  name                      = "hub2${data.azurerm_resources.spokes.resources[count.index].name}"
+  resource_group_name       = azurerm_resource_group.hub.name
+  virtual_network_name      = azurerm_virtual_network.hub.name
+  remote_virtual_network_id = data.azurerm_resources.spokes.resources[count.index].id
 }
 ```
 

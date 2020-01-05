@@ -41,7 +41,7 @@ resource "azurerm_eventhub_authorization_rule" "example" {
   namespace_name      = "${azurerm_eventhub_namespace.example.name}"
   eventhub_name       = "${azurerm_eventhub.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
- 
+
   listen = false
   send   = true
   manage = false
@@ -67,7 +67,7 @@ resource "azurerm_iothub_endpoint_eventhub" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   iothub_name         = "${azurerm_iothub.example.name}"
   name                = "example"
-  
+
   connection_string = "${azurerm_eventhub_authorization_rule.example.primary_connection_string}"
 }
 

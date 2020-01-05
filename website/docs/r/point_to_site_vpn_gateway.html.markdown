@@ -15,11 +15,6 @@ Manages a Point-to-Site VPN Gateway.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "example" { ... }
-resource "azurerm_virtual_wan" "example" { ... }
-resource "azurerm_virtual_hub" "example" { ... }
-resource "azurerm_vpn_server_configuration" "example" { ... }
-
 resource "azurerm_point_to_site_vpn_gateway" "example" {
   name                        = "example-vpn-gateway"
   location                    = azurerm_resource_group.example.location

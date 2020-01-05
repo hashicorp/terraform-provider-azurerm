@@ -27,9 +27,9 @@ resource "azurerm_network_security_group" "test" {
 }
 
 resource "azurerm_network_watcher" "test" {
-    name                = "acctestnw"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestnw"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -56,7 +56,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
   network_security_group_id = "${azurerm_network_security_group.test.id}"
   storage_account_id        = "${azurerm_storage_account.test.id}"
   enabled                   = true
-  
+
   retention_policy {
     enabled = true
     days    = 7

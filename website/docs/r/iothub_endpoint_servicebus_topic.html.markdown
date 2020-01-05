@@ -65,7 +65,7 @@ resource "azurerm_iothub_endpoint_servicebus_topic" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   iothub_name         = "${azurerm_iothub.example.name}"
   name                = "example"
-  
+
   connection_string = "${azurerm_servicebus_topic_authorization_rule.example.primary_connection_string}"
 }
 

@@ -62,8 +62,8 @@ resource "azurerm_app_service" "test" {
 }
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id       = "${azurerm_app_service.test.id}"
-  subnet_id            = "${azurerm_subnet.test1.id}"
+  app_service_id = "${azurerm_app_service.test.id}"
+  subnet_id      = "${azurerm_subnet.test1.id}"
 }
 ```
 
