@@ -213,20 +213,19 @@ func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	var d compute.Disk
 
-	config := testAccAzureRMManagedDiskNonStandardCasing(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagedDiskNonStandardCasing(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
 				),
 			},
 			{
-				Config:             config,
+				Config:             testAccAzureRMManagedDiskNonStandardCasing(data),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},

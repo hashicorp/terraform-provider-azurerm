@@ -53,7 +53,6 @@ func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 
 func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
-	config := testAccAzureRMBotChannelsRegistration_basicConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -61,7 +60,7 @@ func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelsRegistration_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
 				),
@@ -73,8 +72,6 @@ func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 
 func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
-	config := testAccAzureRMBotChannelsRegistration_basicConfig(data)
-	config2 := testAccAzureRMBotChannelsRegistration_updateConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -82,14 +79,14 @@ func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelsRegistration_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("developer_app_insights_api_key"),
 			{
-				Config: config2,
+				Config: testAccAzureRMBotChannelsRegistration_updateConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
 				),
@@ -101,7 +98,6 @@ func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 
 func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
-	config := testAccAzureRMBotChannelsRegistration_completeConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -109,7 +105,7 @@ func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelsRegistration_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelsRegistrationExists(data.ResourceName),
 				),

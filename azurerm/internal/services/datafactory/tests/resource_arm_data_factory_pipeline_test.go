@@ -32,8 +32,6 @@ func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 
 func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
-	config := testAccAzureRMDataFactoryPipeline_update1(data)
-	config2 := testAccAzureRMDataFactoryPipeline_update2(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -41,7 +39,7 @@ func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryPipelineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataFactoryPipeline_update1(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryPipelineExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "1"),
@@ -51,7 +49,7 @@ func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 				),
 			},
 			{
-				Config: config2,
+				Config: testAccAzureRMDataFactoryPipeline_update2(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryPipelineExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),

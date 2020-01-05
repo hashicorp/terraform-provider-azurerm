@@ -15,8 +15,6 @@ import (
 
 func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
-	preConfig := testAccAzureRMVirtualMachineExtension_basic(data)
-	postConfig := testAccAzureRMVirtualMachineExtension_basicUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,7 +22,7 @@ func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualMachineExtension_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExtensionExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "settings", regexp.MustCompile("hostname")),
@@ -32,7 +30,7 @@ func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 			},
 			data.ImportStep("protected_settings"),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualMachineExtension_basicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExtensionExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "settings", regexp.MustCompile("whoami")),
@@ -72,7 +70,6 @@ func TestAccAzureRMVirtualMachineExtension_requiresImport(t *testing.T) {
 func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
 	secondResourceName := "azurerm_virtual_machine_extension.test2"
-	config := testAccAzureRMVirtualMachineExtension_concurrent(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,7 +77,7 @@ func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachineExtension_concurrent(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExtensionExists(data.ResourceName),
 					testCheckAzureRMVirtualMachineExtensionExists(secondResourceName),
@@ -94,7 +91,6 @@ func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
-	config := testAccAzureRMVirtualMachineExtension_linuxDiagnostics(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -102,7 +98,7 @@ func TestAccAzureRMVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachineExtension_linuxDiagnostics(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExtensionExists(data.ResourceName),
 				),

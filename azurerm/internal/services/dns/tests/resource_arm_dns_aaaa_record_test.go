@@ -15,7 +15,6 @@ import (
 
 func TestAccAzureRMDnsAAAARecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
-	config := testAccAzureRMDnsAAAARecord_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +22,7 @@ func TestAccAzureRMDnsAAAARecord_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDnsAAAARecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
@@ -63,8 +62,6 @@ func TestAccAzureRMDnsAAAARecord_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDnsAAAARecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
-	preConfig := testAccAzureRMDnsAAAARecord_basic(data)
-	postConfig := testAccAzureRMDnsAAAARecord_updateRecords(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -72,14 +69,14 @@ func TestAccAzureRMDnsAAAARecord_updateRecords(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsAAAARecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsAAAARecord_updateRecords(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "3"),
@@ -91,8 +88,6 @@ func TestAccAzureRMDnsAAAARecord_updateRecords(t *testing.T) {
 
 func TestAccAzureRMDnsAAAARecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
-	preConfig := testAccAzureRMDnsAAAARecord_withTags(data)
-	postConfig := testAccAzureRMDnsAAAARecord_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -100,14 +95,14 @@ func TestAccAzureRMDnsAAAARecord_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsAAAARecord_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsAAAARecord_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -122,8 +117,6 @@ func TestAccAzureRMDnsAAAARecord_withAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 	targetResourceName := "azurerm_public_ip.test"
 	targetResourceName2 := "azurerm_public_ip.test2"
-	preConfig := testAccAzureRMDnsAAAARecord_withAlias(data)
-	postConfig := testAccAzureRMDnsAAAARecord_withAliasUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -131,14 +124,14 @@ func TestAccAzureRMDnsAAAARecord_withAlias(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsAAAARecord_withAlias(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsAAAARecord_withAliasUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName2, "id"),
@@ -152,8 +145,6 @@ func TestAccAzureRMDnsAAAARecord_withAlias(t *testing.T) {
 func TestAccAzureRMDnsAAAARecord_RecordsToAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 	targetResourceName := "azurerm_public_ip.test"
-	preConfig := testAccAzureRMDnsAaaaRecord_AliasToRecordsUpdate(data)
-	postConfig := testAccAzureRMDnsAaaaRecord_AliasToRecords(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -161,14 +152,14 @@ func TestAccAzureRMDnsAAAARecord_RecordsToAlias(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsAaaaRecord_AliasToRecordsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsAaaaRecord_AliasToRecords(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
@@ -183,8 +174,6 @@ func TestAccAzureRMDnsAAAARecord_RecordsToAlias(t *testing.T) {
 func TestAccAzureRMDnsAaaaRecord_AliasToRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 	targetResourceName := "azurerm_public_ip.test"
-	preConfig := testAccAzureRMDnsAaaaRecord_AliasToRecords(data)
-	postConfig := testAccAzureRMDnsAaaaRecord_AliasToRecordsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -192,14 +181,14 @@ func TestAccAzureRMDnsAaaaRecord_AliasToRecords(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsAaaaRecord_AliasToRecords(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrPair(data.ResourceName, "target_resource_id", targetResourceName, "id"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsAaaaRecord_AliasToRecordsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "2"),

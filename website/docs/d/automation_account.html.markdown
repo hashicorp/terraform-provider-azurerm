@@ -1,25 +1,25 @@
 ---
 subcategory: "Automation"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_automation_registration_info"
-sidebar_current: "docs-azurerm-datasource-automation-registration-info"
+page_title: "Azure Resource Manager: azurerm_automation_account"
+sidebar_current: "docs-azurerm-datasource-automation"
 description: |-
-  Gets information about an existing Automation Account Registration Information.
+  Gets information about an existing Automation Account.
 ---
 
-# Data Source: azurerm_automation_account_registration_info
+# Data Source: azurerm_automation_account
 
-Use this data source to access information about an existing Automation Account Registration Information.
+Use this data source to access information about an existing Automation Account.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_automation_account_registration_info" "example" {
-  name                = "automation-account"
-  resource_group_name = "automation-resource-group"
+data "azurerm_automation_account" "example" {
+  name                = "example-account"
+  resource_group_name = "example-resources"
 }
 output "automation_account_id" {
-  value = "${data.azurerm_automation_account_registration_info.example.id}"
+  value = "${data.azurerm_automation_account.example.id}"
 }
 ```
 
@@ -33,8 +33,8 @@ output "automation_account_id" {
 
 * `id` - The ID of the Automation Account
 
-* `primary_key` - The primary key for the Automation Account Registration information
+* `primary_key` - The Primary Access Key for the Automation Account.
 
-* `secondary_key` - The primary key for the Automation Account Registration information
+* `secondary_key` - The Secondary Access Key for the Automation Account.
 
-* `endpoint` - The Assigned Automation Account Registration endpoint
+* `endpoint` - The Endpoint for this Auomation Account.

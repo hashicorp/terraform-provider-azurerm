@@ -67,14 +67,14 @@ resource "azurerm_virtual_network_peering" "spoke_peers" {
 
 ---
 
-The `resource` block contains:
+The `resource` block exports the following:
 
-* `name` - The name of this resource.
+* `name` - The name of this Resource.
 
-* `id` - The Resource ID of this resource.
+* `id` - The ID of this Resource.
 
-* `type` - The type of this resource. (e.g. `Microsoft.Network/virtualNetworks`)
+* `type` - The type of this Resource. (e.g. `Microsoft.Network/virtualNetworks`).
 
-* `location` - The location of this resource.
+* `location` - The Azure Region in which this Resource exists.
 
-* `tags` - Map of tags that are applied to this resource
+* `tags` - A map of tags assigned to this Resource.

@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMApiManagementDiagnostic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
-	config := testAccAzureRMApiManagementDiagnostic_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMApiManagementDiagnostic_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDiagnosticDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagementDiagnostic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementDiagnosticExists(data.ResourceName),
 				),

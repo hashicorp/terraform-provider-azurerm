@@ -15,7 +15,6 @@ import (
 
 func TestAccProximityPlacementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
-	config := testAccProximityPlacementGroup_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +22,7 @@ func TestAccProximityPlacementGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccProximityPlacementGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMProximityPlacementGroupExists(data.ResourceName),
 				),
@@ -62,7 +61,6 @@ func TestAccProximityPlacementGroup_requiresImport(t *testing.T) {
 
 func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
-	config := testAccProximityPlacementGroup_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -70,7 +68,7 @@ func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccProximityPlacementGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMProximityPlacementGroupExists(data.ResourceName),
 					testCheckAzureRMProximityPlacementGroupDisappears(data.ResourceName),
@@ -83,8 +81,6 @@ func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 
 func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
-	preConfig := testAccProximityPlacementGroup_withTags(data)
-	postConfig := testAccProximityPlacementGroup_withUpdatedTags(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -92,7 +88,7 @@ func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccProximityPlacementGroup_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMProximityPlacementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -101,7 +97,7 @@ func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccProximityPlacementGroup_withUpdatedTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMProximityPlacementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),

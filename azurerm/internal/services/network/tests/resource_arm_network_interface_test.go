@@ -475,7 +475,7 @@ func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
 func testAccAzureRMNetworkInterface_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -529,7 +529,7 @@ resource "azurerm_network_interface" "import" {
 func testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -571,7 +571,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_multipleSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -613,7 +613,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_multipleSubnetsUpdatedPrimary(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -655,7 +655,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_ipForwarding(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -691,7 +691,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_acceleratedNetworking(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -728,7 +728,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -768,7 +768,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -807,7 +807,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_withIPAddresses(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -852,7 +852,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_withIPAddressesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -895,7 +895,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_withIPv6Addresses(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -945,7 +945,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_multipleLoadBalancers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1293,7 +1293,7 @@ resource "azurerm_network_interface" "test2" {
 func testAccAzureRMNetworkInterface_publicIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1336,7 +1336,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_applicationSecurityGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

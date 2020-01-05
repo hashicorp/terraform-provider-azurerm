@@ -34,7 +34,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_route_table":                               dataSourceArmRouteTable(),
 		"azurerm_subnet":                                    dataSourceArmSubnet(),
 		"azurerm_virtual_hub":                               dataSourceArmVirtualHub(),
-		"azurerm_virtual_machine":                           dataSourceArmVirtualMachine(),
 		"azurerm_virtual_network_gateway":                   dataSourceArmVirtualNetworkGateway(),
 		"azurerm_virtual_network_gateway_connection":        dataSourceArmVirtualNetworkGatewayConnection(),
 		"azurerm_virtual_network":                           dataSourceArmVirtualNetwork(),

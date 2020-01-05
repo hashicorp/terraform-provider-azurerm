@@ -140,12 +140,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-RSV-%s"
+  name                = "acctest-RSV-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data acceptance.TestData) string {

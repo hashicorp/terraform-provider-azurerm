@@ -15,7 +15,7 @@ Manages a Log Analytics (formally Operational Insights) Workspace.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG-01"
+  name     = "example-resources"
   location = "East US"
 }
 

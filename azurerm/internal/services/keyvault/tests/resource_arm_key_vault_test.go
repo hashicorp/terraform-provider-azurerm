@@ -899,7 +899,7 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_generateStorageAccountConfigs(accountNum int, rs string) string {
 	return fmt.Sprintf(`
-resource "azurerm_storage_account" "testsa%d" {
+resource "azurerm_storage_account" "test%d" {
   name                     = "testsa%s%d"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
@@ -921,7 +921,7 @@ func testAccAzureRMKeyVault_generateAccessPolicyConfigs(accountNum int) string {
 	return fmt.Sprintf(`
 access_policy {
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${azurerm_storage_account.testsa%d.identity.0.principal_id}"
+  object_id = "${azurerm_storage_account.test%d.identity.0.principal_id}"
 
   key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]

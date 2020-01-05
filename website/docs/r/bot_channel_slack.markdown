@@ -19,7 +19,7 @@ Manages a Slack integration for a Bot Channel
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

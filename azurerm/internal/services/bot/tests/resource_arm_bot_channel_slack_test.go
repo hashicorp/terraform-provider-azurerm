@@ -19,7 +19,6 @@ func testAccAzureRMBotChannelSlack_basic(t *testing.T) {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
-	config := testAccAzureRMBotChannelSlack_basicConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -27,7 +26,7 @@ func testAccAzureRMBotChannelSlack_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelSlackDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelSlack_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelSlackExists(data.ResourceName),
 				),
@@ -42,8 +41,6 @@ func testAccAzureRMBotChannelSlack_update(t *testing.T) {
 		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_slack", "test")
-	config := testAccAzureRMBotChannelSlack_basicConfig(data)
-	config2 := testAccAzureRMBotChannelSlack_basicUpdate(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -51,14 +48,14 @@ func testAccAzureRMBotChannelSlack_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotChannelSlackDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotChannelSlack_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelSlackExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("client_secret", "verification_token", "landing_page_url"),
 			{
-				Config: config2,
+				Config: testAccAzureRMBotChannelSlack_basicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelSlackExists(data.ResourceName),
 				),

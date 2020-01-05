@@ -17,7 +17,7 @@ Manages a Linked Service (connection) between Data Lake Storage Gen2 and Azure D
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

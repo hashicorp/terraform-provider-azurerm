@@ -16,14 +16,14 @@ import (
 
 func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
-	config := testAccAzureRMVirtualMachineDataDiskAttachment_basic(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_machine_id"),
@@ -67,14 +67,14 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
 
 	secondResourceName := "azurerm_virtual_machine_data_disk_attachment.second"
-	config := testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_machine_id"),
@@ -165,14 +165,14 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *
 
 func TestAccAzureRMVirtualMachineDataDiskAttachment_managedServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
-	config := testAccAzureRMVirtualMachineDataDiskAttachment_managedServiceIdentity(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_managedServiceIdentity(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_machine_id"),
@@ -638,7 +638,7 @@ resource "azurerm_managed_disk" "test" {
 func testAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtensionPrep(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
