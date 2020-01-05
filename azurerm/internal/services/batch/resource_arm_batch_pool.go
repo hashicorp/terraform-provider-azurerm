@@ -377,7 +377,8 @@ func resourceArmBatchPool() *schema.Resource {
 				Optional: true,
 				ForceNew: false,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
 		},
