@@ -96,21 +96,27 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 								string(documentdb.Consistent),
 								string(documentdb.Lazy),
 								string(documentdb.None),
-							}, true),
+							}, false),
 						},
 
 						"included_paths": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+							Set: schema.HashString,
 						},
 
 						"excluded_paths": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+							Set: schema.HashString,
 						},
 					},
 				},
@@ -123,13 +129,12 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"mode": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(documentdb.LastWriterWins),
 								string(documentdb.Custom),
-							}, true),
+							}, false),
 						},
 
 						"conflict_resolution_path": {
@@ -404,8 +409,7 @@ func resourceArmCosmosDbGremlinGraphDelete(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting on delete future for Comos Gremlin Graph %s (Account %s): %+v", id.Database, id.Account, err)
 	}
 

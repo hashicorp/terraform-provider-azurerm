@@ -97,7 +97,7 @@ func TestAccAzureRMCosmosDbGremlinGraph_indexPolicy(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCosmosDbGremlinGraph_complete(t *testing.T) {
+func TestAccAzureRMCosmosDbGremlinGraph_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -106,7 +106,7 @@ func TestAccAzureRMCosmosDbGremlinGraph_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDbGremlinGraphDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbGremlinGraph_complete(data, 700),
+				Config: testAccAzureRMCosmosDbGremlinGraph_update(data, 700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRmCosmosDbGremlinGraphExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "700"),
@@ -114,7 +114,7 @@ func TestAccAzureRMCosmosDbGremlinGraph_complete(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDbGremlinGraph_complete(data, 1700),
+				Config: testAccAzureRMCosmosDbGremlinGraph_update(data, 1700),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRmCosmosDbGremlinGraphExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "1700"),
@@ -262,7 +262,7 @@ func testAccAzureRMCosmosDbGremlinGraph_indexPolicy(data acceptance.TestData) st
 
 		index_policy {
 			automatic = false
-			indexing_mode = "none"
+			indexing_mode = "None"
 		}
 
 		conflict_resolution_policy {
@@ -273,7 +273,7 @@ func testAccAzureRMCosmosDbGremlinGraph_indexPolicy(data acceptance.TestData) st
 	`, testAccAzureRMCosmosGremlinDatabase_basic(data), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbGremlinGraph_complete(data acceptance.TestData, throughput int) string {
+func testAccAzureRMCosmosDbGremlinGraph_update(data acceptance.TestData, throughput int) string {
 	return fmt.Sprintf(`
 	%[1]s
 
