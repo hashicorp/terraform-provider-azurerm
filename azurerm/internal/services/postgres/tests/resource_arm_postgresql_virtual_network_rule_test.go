@@ -57,8 +57,8 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_requiresImport(t *testing.T) {
 
 func TestAccAzureRMPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
-	preConfig := testAccAzureRMPostgreSQLVirtualNetworkRule_subnetSwitchPre(data)
-	postConfig := testAccAzureRMPostgreSQLVirtualNetworkRule_subnetSwitchPost(data)
+	preConfig :=
+	postConfig :=
 
 	// Create regex strings that will ensure that one subnet name exists, but not the other
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", data.RandomInteger, data.RandomInteger))  //subnet 1 but not 2
@@ -70,14 +70,14 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_subnetSwitchPre(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLVirtualNetworkRuleExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", preConfigRegex),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_subnetSwitchPost(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLVirtualNetworkRuleExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", postConfigRegex),
