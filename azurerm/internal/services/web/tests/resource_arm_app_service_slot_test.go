@@ -296,7 +296,6 @@ func TestAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectU
 func TestAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	config := testAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(data, tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -304,7 +303,7 @@ func TestAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(data, tenantID),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
