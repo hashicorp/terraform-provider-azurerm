@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMMariaDbServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	config := testAccAzureRMMariaDbServer_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMMariaDbServer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMariaDbServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
@@ -64,7 +63,6 @@ func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_basicMaxStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	config := testAccAzureRMMariaDbServer_basicMaxStorage(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -72,7 +70,7 @@ func TestAccAzureRMMariaDbServer_basicMaxStorage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMariaDbServer_basicMaxStorage(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
@@ -87,7 +85,6 @@ func TestAccAzureRMMariaDbServer_basicMaxStorage(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_generalPurpose(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	config := testAccAzureRMMariaDbServer_generalPurpose(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -95,7 +92,7 @@ func TestAccAzureRMMariaDbServer_generalPurpose(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMariaDbServer_generalPurpose(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 				),
@@ -107,7 +104,6 @@ func TestAccAzureRMMariaDbServer_generalPurpose(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_memoryOptimized(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	config := testAccAzureRMMariaDbServer_memoryOptimizedGeoRedundant(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -115,7 +111,7 @@ func TestAccAzureRMMariaDbServer_memoryOptimized(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMariaDbServer_memoryOptimizedGeoRedundant(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 				),
@@ -127,8 +123,6 @@ func TestAccAzureRMMariaDbServer_memoryOptimized(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_updatePassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	config := testAccAzureRMMariaDbServer_basic(data)
-	updatedConfig := testAccAzureRMMariaDbServer_basicUpdatedPassword(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -136,13 +130,13 @@ func TestAccAzureRMMariaDbServer_updatePassword(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMariaDbServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMMariaDbServer_basicUpdatedPassword(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 				),
@@ -153,8 +147,6 @@ func TestAccAzureRMMariaDbServer_updatePassword(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	config := testAccAzureRMMariaDbServer_basic(data)
-	updatedConfig := testAccAzureRMMariaDbServer_basicUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -162,7 +154,7 @@ func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMariaDbServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "B_Gen5_2"),
@@ -172,7 +164,7 @@ func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMMariaDbServer_basicUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "B_Gen5_1"),
@@ -187,8 +179,6 @@ func TestAccAzureRMMariaDbServer_updated(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	config := testAccAzureRMMariaDbServer_generalPurpose(data)
-	updatedConfig := testAccAzureRMMariaDbServer_memoryOptimized(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -196,7 +186,7 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMariaDbServer_generalPurpose(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_32"),
@@ -208,7 +198,7 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMMariaDbServer_memoryOptimized(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "MO_Gen5_16"),
@@ -225,8 +215,6 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 
 func TestAccAzureRMMariaDbServer_storageAutogrow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
-	config := testAccAzureRMMariaDbServer_basic(data)
-	updatedConfig := testAccAzureRMMariaDbServer_storageAutogrowUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -234,14 +222,14 @@ func TestAccAzureRMMariaDbServer_storageAutogrow(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMariaDbServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Enabled"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMMariaDbServer_storageAutogrowUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Disabled"),

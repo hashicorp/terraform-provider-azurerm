@@ -134,8 +134,6 @@ func TestAccAzureRMSignalRService_standardWithCap2(t *testing.T) {
 
 func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
-	freeConfig := testAccAzureRMSignalRService_basic(data)
-	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(data, 1)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -143,7 +141,7 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: freeConfig,
+				Config: testAccAzureRMSignalRService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
@@ -159,7 +157,7 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: standardConfig,
+				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
@@ -175,7 +173,7 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: freeConfig,
+				Config: testAccAzureRMSignalRService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
@@ -196,8 +194,6 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 
 func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
-	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(data, 1)
-	standardCap5Config := testAccAzureRMSignalRService_standardWithCapacity(data, 5)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -205,7 +201,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: standardConfig,
+				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
@@ -221,7 +217,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: standardCap5Config,
+				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 5),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
@@ -237,7 +233,7 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: standardConfig,
+				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
@@ -258,8 +254,6 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 
 func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
-	freeConfig := testAccAzureRMSignalRService_basic(data)
-	standardConfig := testAccAzureRMSignalRService_standardWithCapacity(data, 2)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -267,7 +261,7 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: freeConfig,
+				Config: testAccAzureRMSignalRService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),
@@ -283,7 +277,7 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: standardConfig,
+				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 2),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_S1"),
@@ -299,7 +293,7 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: freeConfig,
+				Config: testAccAzureRMSignalRService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Free_F1"),

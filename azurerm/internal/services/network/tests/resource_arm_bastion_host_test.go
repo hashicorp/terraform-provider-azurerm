@@ -15,15 +15,13 @@ import (
 func TestAccAzureRMBastionHost_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
 
-	config := testAccAzureRMBastionHost_basic(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBastionHostDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBastionHost_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBastionHostExists(data.ResourceName),
 				),
@@ -35,15 +33,13 @@ func TestAccAzureRMBastionHost_basic(t *testing.T) {
 func TestAccAzureRMBastionHost_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
 
-	config := testAccAzureRMBastionHost_complete(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBastionHostDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBastionHost_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBastionHostExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),

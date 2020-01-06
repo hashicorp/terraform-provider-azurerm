@@ -78,8 +78,6 @@ func TestAccAzureRMServiceBusTopic_basicDisabled(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_basicDisableEnable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	enabledConfig := testAccAzureRMServiceBusTopic_basic(data)
-	disabledConfig := testAccAzureRMServiceBusTopic_basicDisabled(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -87,19 +85,19 @@ func TestAccAzureRMServiceBusTopic_basicDisableEnable(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: enabledConfig,
+				Config: testAccAzureRMServiceBusTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicExists(data.ResourceName),
 				),
 			},
 			{
-				Config: disabledConfig,
+				Config: testAccAzureRMServiceBusTopic_basicDisabled(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicExists(data.ResourceName),
 				),
 			},
 			{
-				Config: enabledConfig,
+				Config: testAccAzureRMServiceBusTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicExists(data.ResourceName),
 				),
@@ -110,8 +108,6 @@ func TestAccAzureRMServiceBusTopic_basicDisableEnable(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	preConfig := testAccAzureRMServiceBusTopic_basic(data)
-	postConfig := testAccAzureRMServiceBusTopic_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -119,13 +115,13 @@ func TestAccAzureRMServiceBusTopic_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMServiceBusTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicExists(data.ResourceName),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMServiceBusTopic_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_batched_operations", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_express", "true"),
@@ -137,8 +133,6 @@ func TestAccAzureRMServiceBusTopic_update(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	preConfig := testAccAzureRMServiceBusTopic_basic(data)
-	postConfig := testAccAzureRMServiceBusTopic_enablePartitioningStandard(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -146,13 +140,13 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMServiceBusTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicExists(data.ResourceName),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMServiceBusTopic_enablePartitioningStandard(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_partitioning", "true"),
 					// Ensure size is read back in it's original value and not the x16 value returned by Azure
@@ -166,8 +160,6 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	preConfig := testAccAzureRMServiceBusTopic_basicPremium(data)
-	postConfig := testAccAzureRMServiceBusTopic_enablePartitioningPremium(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -175,13 +167,13 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMServiceBusTopic_basicPremium(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicExists(data.ResourceName),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMServiceBusTopic_enablePartitioningPremium(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_partitioning", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "max_size_in_megabytes", "81920"),
@@ -194,8 +186,6 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	preConfig := testAccAzureRMServiceBusTopic_basic(data)
-	postConfig := testAccAzureRMServiceBusTopic_enableDuplicateDetection(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -203,13 +193,13 @@ func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMServiceBusTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicExists(data.ResourceName),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMServiceBusTopic_enableDuplicateDetection(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "requires_duplicate_detection", "true"),
 				),
@@ -221,7 +211,6 @@ func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 
 func TestAccAzureRMServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
-	config := testAccAzureRMServiceBusTopic_isoTimeSpanAttributes(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -229,7 +218,7 @@ func TestAccAzureRMServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusTopic_isoTimeSpanAttributes(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusTopicExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_delete_on_idle", "PT10M"),

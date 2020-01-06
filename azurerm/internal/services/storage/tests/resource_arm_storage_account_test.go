@@ -60,8 +60,6 @@ func TestValidateArmStorageAccountName(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_basic(data)
-	postConfig := testAccAzureRMStorageAccount_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,7 +67,7 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Standard"),
@@ -80,7 +78,7 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMStorageAccount_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Standard"),
@@ -151,7 +149,6 @@ func TestAccAzureRMStorageAccount_writeLock(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_premium(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -159,7 +156,7 @@ func TestAccAzureRMStorageAccount_premium(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_premium(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Premium"),
@@ -175,7 +172,6 @@ func TestAccAzureRMStorageAccount_premium(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -183,7 +179,7 @@ func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Standard"),
@@ -200,7 +196,6 @@ func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -208,7 +203,7 @@ func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_blob_connection_string"),
 				),
@@ -223,8 +218,6 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 		t.Skip("`TF_ACC_STORAGE_ENCRYPTION_DISABLE` isn't specified - skipping since disabling encryption is generally disabled")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_blobEncryption(data)
-	postConfig := testAccAzureRMStorageAccount_blobEncryptionDisabled(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -232,7 +225,7 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_blobEncryption(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_blob_encryption", "true"),
@@ -240,7 +233,7 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMStorageAccount_blobEncryptionDisabled(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_blob_encryption", "false"),
@@ -256,8 +249,6 @@ func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
 		t.Skip("`TF_ACC_STORAGE_ENCRYPTION_DISABLE` isn't specified - skipping since disabling encryption is generally disabled")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_fileEncryption(data)
-	postConfig := testAccAzureRMStorageAccount_fileEncryptionDisabled(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -265,7 +256,7 @@ func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_fileEncryption(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_file_encryption", "true"),
@@ -273,7 +264,7 @@ func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMStorageAccount_fileEncryptionDisabled(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_file_encryption", "false"),
@@ -285,8 +276,6 @@ func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_enableHttpsTrafficOnly(data)
-	postConfig := testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -294,7 +283,7 @@ func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_enableHttpsTrafficOnly(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_https_traffic_only", "true"),
@@ -302,7 +291,7 @@ func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_https_traffic_only", "false"),
@@ -314,8 +303,6 @@ func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_isHnsEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_isHnsEnabledTrue(data)
-	postConfig := testAccAzureRMStorageAccount_isHnsEnabledFalse(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -323,7 +310,7 @@ func TestAccAzureRMStorageAccount_isHnsEnabled(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_isHnsEnabledTrue(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "is_hns_enabled", "true"),
@@ -331,7 +318,7 @@ func TestAccAzureRMStorageAccount_isHnsEnabled(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMStorageAccount_isHnsEnabledFalse(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "is_hns_enabled", "false"),
@@ -343,8 +330,6 @@ func TestAccAzureRMStorageAccount_isHnsEnabled(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_blobStorage(data)
-	postConfig := testAccAzureRMStorageAccount_blobStorageUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -352,7 +337,7 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_blobStorage(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_kind", "BlobStorage"),
@@ -361,7 +346,7 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMStorageAccount_blobStorageUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_tier", "Cool"),
@@ -394,8 +379,6 @@ func TestAccAzureRMStorageAccount_blockBlobStorage(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_fileStorage(data)
-	postConfig := testAccAzureRMStorageAccount_fileStorageUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -403,7 +386,7 @@ func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_fileStorage(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_kind", "FileStorage"),
@@ -413,7 +396,7 @@ func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMStorageAccount_fileStorageUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Premium"),
@@ -425,8 +408,6 @@ func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
 }
 func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_storageV2(data)
-	postConfig := testAccAzureRMStorageAccount_storageV2Update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -434,7 +415,7 @@ func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_storageV2(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_kind", "StorageV2"),
@@ -443,7 +424,7 @@ func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMStorageAccount_storageV2Update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_tier", "Cool"),
@@ -455,7 +436,6 @@ func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_nonStandardCasing(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -463,14 +443,14 @@ func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_nonStandardCasing(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config:             preConfig,
+				Config:             testAccAzureRMStorageAccount_nonStandardCasing(data),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -480,7 +460,6 @@ func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	config := testAccAzureRMStorageAccount_identity(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -488,7 +467,7 @@ func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageAccount_identity(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
@@ -534,8 +513,6 @@ func TestAccAzureRMStorageAccount_updateResourceByEnablingIdentity(t *testing.T)
 
 func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_networkRules(data)
-	postConfig := testAccAzureRMStorageAccount_networkRulesUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -543,7 +520,7 @@ func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_networkRules(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.default_action", "Deny"),
@@ -553,7 +530,7 @@ func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMStorageAccount_networkRulesUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.default_action", "Deny"),
@@ -568,8 +545,6 @@ func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_networkRules(data)
-	postConfig := testAccAzureRMStorageAccount_networkRulesReverted(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -577,7 +552,7 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_networkRules(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.default_action", "Deny"),
@@ -586,7 +561,7 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMStorageAccount_networkRulesReverted(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_rules.0.default_action", "Allow"),
@@ -598,8 +573,6 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig := testAccAzureRMStorageAccount_enableAdvancedThreatProtection(data)
-	postConfig := testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -607,7 +580,7 @@ func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMStorageAccount_enableAdvancedThreatProtection(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_advanced_threat_protection", "true"),
@@ -615,7 +588,7 @@ func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMStorageAccount_enableAdvancedThreatProtectionDisabled(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_advanced_threat_protection", "false"),

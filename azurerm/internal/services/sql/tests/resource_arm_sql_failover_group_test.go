@@ -76,8 +76,6 @@ func TestAccAzureRMSqlFailoverGroup_disappears(t *testing.T) {
 
 func TestAccAzureRMSqlFailoverGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
-	preConfig := testAccAzureRMSqlFailoverGroup_withTags(data)
-	postConfig := testAccAzureRMSqlFailoverGroup_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -85,14 +83,14 @@ func TestAccAzureRMSqlFailoverGroup_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMSqlFailoverGroup_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlFailoverGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMSqlFailoverGroup_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlFailoverGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),

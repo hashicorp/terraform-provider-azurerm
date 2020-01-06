@@ -269,8 +269,6 @@ func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 
 func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
-	preConfig := testAccAzureRMMonitorActionGroup_disabledBasic(data)
-	postConfig := testAccAzureRMMonitorActionGroup_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -278,7 +276,7 @@ func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMMonitorActionGroup_disabledBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
@@ -286,7 +284,7 @@ func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMMonitorActionGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -294,7 +292,7 @@ func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: preConfig,
+				Config: testAccAzureRMMonitorActionGroup_disabledBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),

@@ -13,7 +13,6 @@ import (
 
 func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
-	config := testAccAzureRMStorageManagementPolicy_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -21,7 +20,7 @@ func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageManagementPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountManagementPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
@@ -48,7 +47,6 @@ func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
 
 func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
-	config := testAccAzureRMStorageManagementPolicy_multipleRule(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,7 +54,7 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageManagementPolicy_multipleRule(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountManagementPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "2"),
@@ -102,8 +100,6 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 
 func TestAccAzureRMStorageManagementPolicy_updateMultipleRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_management_policy", "test")
-	config1 := testAccAzureRMStorageManagementPolicy_multipleRule(data)
-	config2 := testAccAzureRMStorageManagementPolicy_multipleRuleUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -111,7 +107,7 @@ func TestAccAzureRMStorageManagementPolicy_updateMultipleRule(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: config1,
+				Config: testAccAzureRMStorageManagementPolicy_multipleRule(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountManagementPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "2"),
@@ -152,7 +148,7 @@ func TestAccAzureRMStorageManagementPolicy_updateMultipleRule(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: config2,
+				Config: testAccAzureRMStorageManagementPolicy_multipleRuleUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountManagementPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "2"),

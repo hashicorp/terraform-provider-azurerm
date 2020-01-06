@@ -206,8 +206,6 @@ func TestAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *tes
 
 func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
-	config := testAccAzureRMServiceBusQueue_lockDuration(data)
-	updatedConfig := testAccAzureRMServiceBusQueue_lockDurationUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -215,14 +213,14 @@ func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusQueue_lockDuration(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "lock_duration", "PT40S"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMServiceBusQueue_lockDurationUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "lock_duration", "PT2M"),

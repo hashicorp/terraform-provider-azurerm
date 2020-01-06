@@ -67,7 +67,6 @@ func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
 
 func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
-	config := testAccAzureRMSqlAdministrator_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -75,7 +74,7 @@ func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlAdministrator_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlAdministratorExists(data.ResourceName),
 					testCheckAzureRMSqlAdministratorDisappears(data.ResourceName),

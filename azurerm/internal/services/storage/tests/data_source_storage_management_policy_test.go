@@ -10,14 +10,13 @@ import (
 
 func TestAccDataSourceAzureRMStorageManagementPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
-	config := testAccDataSourceAzureRMStorageManagementPolicy_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMStorageManagementPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.name", "rule1"),

@@ -17,7 +17,6 @@ import (
 
 func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
-	config := testAccAzureRMKeyVaultSecret_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,7 +24,7 @@ func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultSecret_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "value", "rick-and-morty"),
@@ -38,7 +37,6 @@ func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 
 func TestAccAzureRMKeyVaultSecret_basicClassic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
-	config := testAccAzureRMKeyVaultSecret_basicClasic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -46,7 +44,7 @@ func TestAccAzureRMKeyVaultSecret_basicClassic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultSecret_basicClasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "value", "rick-and-morty"),
@@ -87,7 +85,6 @@ func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 
 func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
-	config := testAccAzureRMKeyVaultSecret_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -95,7 +92,7 @@ func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultSecret_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
 					testCheckAzureRMKeyVaultSecretDisappears(data.ResourceName),
@@ -108,7 +105,6 @@ func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
 
 func TestAccAzureRMKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
-	config := testAccAzureRMKeyVaultSecret_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -116,7 +112,7 @@ func TestAccAzureRMKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultSecret_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultSecretExists("azurerm_key_vault_secret.test"),
 					testCheckAzureRMKeyVaultDisappears("azurerm_key_vault.test"),
@@ -129,7 +125,6 @@ func TestAccAzureRMKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing
 
 func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
-	config := testAccAzureRMKeyVaultSecret_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -137,7 +132,7 @@ func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultSecret_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "not_before_date", "2019-01-01T01:02:03Z"),
@@ -153,8 +148,6 @@ func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 
 func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
-	config := testAccAzureRMKeyVaultSecret_basic(data)
-	updatedConfig := testAccAzureRMKeyVaultSecret_basicUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -162,14 +155,14 @@ func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultSecret_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "value", "rick-and-morty"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMKeyVaultSecret_basicUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "value", "szechuan"),

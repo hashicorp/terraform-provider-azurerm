@@ -25,15 +25,13 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_basic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	config := testAccAzureRMActiveDirectoryServicePrincipalPassword_basic(applicationId, value)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMActiveDirectoryServicePrincipalPassword_basic(applicationId, value),
 				Check: resource.ComposeTestCheckFunc(
 					// can't assert on Value since it's not returned
 					testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(data.ResourceName),

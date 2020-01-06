@@ -60,7 +60,6 @@ func TestAccAzureRMMySQLDatabase_requiresImport(t *testing.T) {
 
 func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
-	config := testAccAzureRMMySQLDatabase_charsetUppercase(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -68,7 +67,7 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLDatabase_charsetUppercase(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "charset", "utf8"),
@@ -81,7 +80,6 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 
 func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
-	config := testAccAzureRMMySQLDatabase_charsetMixedcase(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -89,7 +87,7 @@ func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLDatabase_charsetMixedcase(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "charset", "utf8"),

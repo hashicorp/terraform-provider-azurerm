@@ -69,8 +69,6 @@ func TestValidateMonitorMetricAlertRuleTags(t *testing.T) {
 
 func TestAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alertrule", "test")
-	preConfig := testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(data, true)
-	postConfig := testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(data, false)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,7 +76,7 @@ func TestAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -86,7 +84,7 @@ func TestAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
@@ -135,7 +133,6 @@ func TestAccAzureRMMonitorMetricAlertRule_requiresImport(t *testing.T) {
 
 func TestAccAzureRMMonitorMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alertrule", "test")
-	config := testAccAzureRMMonitorMetricAlertRule_sqlDatabaseStorage(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -143,7 +140,7 @@ func TestAccAzureRMMonitorMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMonitorMetricAlertRule_sqlDatabaseStorage(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertRuleExists(data.ResourceName),
 					resource.TestCheckNoResourceAttr(data.ResourceName, "tags.$type"),

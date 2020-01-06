@@ -15,7 +15,6 @@ import (
 func TestAccAzureRMActiveDirectoryApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_azuread_application", "test")
 	id := uuid.New().String()
-	config := testAccAzureRMActiveDirectoryApplication_basic(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +22,7 @@ func TestAccAzureRMActiveDirectoryApplication_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMActiveDirectoryApplication_basic(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest%s", id)),
@@ -39,7 +38,6 @@ func TestAccAzureRMActiveDirectoryApplication_basic(t *testing.T) {
 func TestAccAzureRMActiveDirectoryApplication_availableToOtherTenants(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_azuread_application", "test")
 	id := uuid.New().String()
-	config := testAccAzureRMActiveDirectoryApplication_availableToOtherTenants(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -47,7 +45,7 @@ func TestAccAzureRMActiveDirectoryApplication_availableToOtherTenants(t *testing
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMActiveDirectoryApplication_availableToOtherTenants(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "available_to_other_tenants", "true"),
@@ -61,7 +59,6 @@ func TestAccAzureRMActiveDirectoryApplication_availableToOtherTenants(t *testing
 func TestAccAzureRMActiveDirectoryApplication_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_azuread_application", "test")
 	id := uuid.New().String()
-	config := testAccAzureRMActiveDirectoryApplication_complete(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,7 +66,7 @@ func TestAccAzureRMActiveDirectoryApplication_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMActiveDirectoryApplication_complete(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest%s", id)),
@@ -87,10 +84,8 @@ func TestAccAzureRMActiveDirectoryApplication_complete(t *testing.T) {
 func TestAccAzureRMActiveDirectoryApplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_azuread_application", "test")
 	id := uuid.New().String()
-	config := testAccAzureRMActiveDirectoryApplication_basic(id)
 
 	updatedId := uuid.New().String()
-	updatedConfig := testAccAzureRMActiveDirectoryApplication_complete(updatedId)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -98,7 +93,7 @@ func TestAccAzureRMActiveDirectoryApplication_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMActiveDirectoryApplication_basic(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest%s", id)),
@@ -108,7 +103,7 @@ func TestAccAzureRMActiveDirectoryApplication_update(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMActiveDirectoryApplication_complete(updatedId),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest%s", updatedId)),

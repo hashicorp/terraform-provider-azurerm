@@ -16,7 +16,6 @@ import (
 func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_azuread_service_principal", "test")
 	id := uuid.New().String()
-	config := testAccAzureRMActiveDirectoryServicePrincipal_basic(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,7 +23,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMActiveDirectoryServicePrincipal_basic(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryServicePrincipalExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
