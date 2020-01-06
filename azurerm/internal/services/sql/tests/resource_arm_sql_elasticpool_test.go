@@ -75,8 +75,6 @@ func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 
 func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
-	preConfig := testAccAzureRMSqlElasticPool_basic(data)
-	postConfig := testAccAzureRMSqlElasticPool_resizedDtu(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -84,7 +82,7 @@ func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMSqlElasticPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "dtu", "50"),
@@ -92,7 +90,7 @@ func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMSqlElasticPool_resizedDtu(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlElasticPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "dtu", "100"),

@@ -61,7 +61,6 @@ func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
 
 func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
-	config := testAccAzureRMSqlServer_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,7 +68,7 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(data.ResourceName),
 					testCheckAzureRMSqlServerDisappears(data.ResourceName),
@@ -82,8 +81,6 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 
 func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
-	preConfig := testAccAzureRMSqlServer_withTags(data)
-	postConfig := testAccAzureRMSqlServer_withTagsUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -91,14 +88,14 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMSqlServer_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMSqlServer_withTagsUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
