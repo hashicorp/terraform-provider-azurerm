@@ -56,14 +56,13 @@ func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(t *testing.T)
 
 func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
-	preConfig := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
