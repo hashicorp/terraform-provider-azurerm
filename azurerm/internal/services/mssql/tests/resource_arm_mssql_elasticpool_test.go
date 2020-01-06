@@ -218,8 +218,6 @@ func TestAccAzureRMMsSqlElasticPool_resize_DTU(t *testing.T) {
 
 func TestAccAzureRMMsSqlElasticPool_resize_vCore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	preConfig :=
-	postConfig :=
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

@@ -573,8 +573,6 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 
 func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-	preConfig :=
-	postConfig :=
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

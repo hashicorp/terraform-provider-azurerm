@@ -292,7 +292,7 @@ func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: preConfig,
+				Config: testAccAzureRMMonitorActionGroup_disabledBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActionGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
