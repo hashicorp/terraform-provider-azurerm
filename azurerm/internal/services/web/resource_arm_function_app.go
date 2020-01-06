@@ -97,7 +97,7 @@ func resourceArmFunctionApp() *schema.Resource {
 			},
 
 			"connection_string": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
