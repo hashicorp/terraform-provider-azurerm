@@ -2,6 +2,7 @@ package policyinsights
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/policyinsights/mgmt/2019-10-01/policyinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -14,6 +15,10 @@ import (
 func dataSourceArmPolicyInsightsRemediation() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmPolicyInsightsRemediationRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
