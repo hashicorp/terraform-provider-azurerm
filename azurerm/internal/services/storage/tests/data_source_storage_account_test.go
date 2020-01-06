@@ -10,8 +10,6 @@ import (
 
 func TestAccDataSourceAzureRMStorageAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_account", "test")
-	preConfig := testAccDataSourceAzureRMStorageAccount_basic(data)
-	config := testAccDataSourceAzureRMStorageAccount_basicWithDataSource(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -19,10 +17,10 @@ func TestAccDataSourceAzureRMStorageAccount_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccDataSourceAzureRMStorageAccount_basic(data),
 			},
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMStorageAccount_basicWithDataSource(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "account_tier", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_replication_type", "LRS"),

@@ -17,7 +17,6 @@ import (
 
 func TestAccAzureRMStorageTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
-	config := testAccAzureRMStorageTable_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,7 +24,7 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageTable_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageTableExists(data.ResourceName),
 				),
@@ -63,7 +62,6 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 
 func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
-	config := testAccAzureRMStorageTable_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -71,7 +69,7 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMStorageTable_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageTableExists("azurerm_storage_table.test"),
 					testAccARMStorageTableDisappears("azurerm_storage_table.test"),
