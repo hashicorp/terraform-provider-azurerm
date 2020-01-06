@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
-	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
 				),
@@ -85,7 +84,6 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
-	config := testAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -93,7 +91,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
 				),
@@ -106,15 +104,13 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(t *testing
 	expectedConnectionProtocol := "IKEv1"
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 
-	config := testAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "connection_protocol", expectedConnectionProtocol),

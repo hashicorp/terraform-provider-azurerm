@@ -16,15 +16,13 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	config := testAccAzureRMVirtualNetworkPeering_basic(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
 					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
@@ -67,15 +65,13 @@ func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	config := testAccAzureRMVirtualNetworkPeering_basic(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
 					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
@@ -93,16 +89,13 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
-	preConfig := testAccAzureRMVirtualNetworkPeering_basic(data)
-	postConfig := testAccAzureRMVirtualNetworkPeering_basicUpdate(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
 					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
@@ -114,7 +107,7 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 			},
 
 			{
-				Config: postConfig,
+				Config: testAccAzureRMVirtualNetworkPeering_basicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkPeeringExists(data.ResourceName),
 					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),

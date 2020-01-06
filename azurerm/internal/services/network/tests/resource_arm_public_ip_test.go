@@ -123,7 +123,6 @@ func TestAccAzureRMPublicIpStatic_zones(t *testing.T) {
 func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	dnl := fmt.Sprintf("acctestdnl-%d", data.RandomInteger)
-	config := testAccAzureRMPublicIPStatic_basic_withDNSLabel(data, dnl)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -131,7 +130,7 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPStatic_basic_withDNSLabel(data, dnl),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
@@ -146,7 +145,6 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 
 func TestAccAzureRMPublicIpStatic_standard_withIPv6_fails(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	config := testAccAzureRMPublicIPStatic_standard_withIPVersion(data, "IPv6")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -154,7 +152,7 @@ func TestAccAzureRMPublicIpStatic_standard_withIPv6_fails(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      config,
+				Config:      testAccAzureRMPublicIPStatic_standard_withIPVersion(data, "IPv6"),
 				ExpectError: regexp.MustCompile("Cannot specify publicIpAllocationMethod as Static for IPv6 PublicIp"),
 			},
 		},
@@ -164,7 +162,6 @@ func TestAccAzureRMPublicIpStatic_standard_withIPv6_fails(t *testing.T) {
 func TestAccAzureRMPublicIpDynamic_basic_withIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	ipVersion := "Ipv6"
-	config := testAccAzureRMPublicIPDynamic_basic_withIPVersion(data, ipVersion)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -172,7 +169,7 @@ func TestAccAzureRMPublicIpDynamic_basic_withIPv6(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPDynamic_basic_withIPVersion(data, ipVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_version", "IPv6"),
@@ -185,7 +182,6 @@ func TestAccAzureRMPublicIpDynamic_basic_withIPv6(t *testing.T) {
 
 func TestAccAzureRMPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	config := testAccAzureRMPublicIPStatic_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -193,7 +189,7 @@ func TestAccAzureRMPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPStatic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_version", "IPv4"),
@@ -206,7 +202,6 @@ func TestAccAzureRMPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
 func TestAccAzureRMPublicIpStatic_basic_withIPv4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	ipVersion := "IPv4"
-	config := testAccAzureRMPublicIPStatic_basic_withIPVersion(data, ipVersion)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -214,7 +209,7 @@ func TestAccAzureRMPublicIpStatic_basic_withIPv4(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPStatic_basic_withIPVersion(data, ipVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_version", "IPv4"),
@@ -227,7 +222,6 @@ func TestAccAzureRMPublicIpStatic_basic_withIPv4(t *testing.T) {
 
 func TestAccAzureRMPublicIpStatic_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	config := testAccAzureRMPublicIPStatic_standard(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -235,7 +229,7 @@ func TestAccAzureRMPublicIpStatic_standard(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPStatic_standard(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 				),
@@ -247,7 +241,6 @@ func TestAccAzureRMPublicIpStatic_standard(t *testing.T) {
 
 func TestAccAzureRMPublicIpStatic_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	config := testAccAzureRMPublicIPStatic_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -255,7 +248,7 @@ func TestAccAzureRMPublicIpStatic_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPStatic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 					testCheckAzureRMPublicIpDisappears(data.ResourceName),
@@ -268,7 +261,6 @@ func TestAccAzureRMPublicIpStatic_disappears(t *testing.T) {
 
 func TestAccAzureRMPublicIpStatic_idleTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	config := testAccAzureRMPublicIPStatic_idleTimeout(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -276,7 +268,7 @@ func TestAccAzureRMPublicIpStatic_idleTimeout(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPStatic_idleTimeout(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "idle_timeout_in_minutes", "30"),
@@ -289,8 +281,6 @@ func TestAccAzureRMPublicIpStatic_idleTimeout(t *testing.T) {
 
 func TestAccAzureRMPublicIpStatic_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	preConfig := testAccAzureRMPublicIPStatic_withTags(data)
-	postConfig := testAccAzureRMPublicIPStatic_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -298,7 +288,7 @@ func TestAccAzureRMPublicIpStatic_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMPublicIPStatic_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -307,7 +297,7 @@ func TestAccAzureRMPublicIpStatic_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMPublicIPStatic_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -320,8 +310,6 @@ func TestAccAzureRMPublicIpStatic_withTags(t *testing.T) {
 
 func TestAccAzureRMPublicIpStatic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	preConfig := testAccAzureRMPublicIPStatic_basic(data)
-	postConfig := testAccAzureRMPublicIPStatic_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -329,13 +317,13 @@ func TestAccAzureRMPublicIpStatic_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMPublicIPStatic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMPublicIPStatic_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "domain_name_label", fmt.Sprintf("acctest-%d", data.RandomInteger)),
@@ -348,7 +336,6 @@ func TestAccAzureRMPublicIpStatic_update(t *testing.T) {
 
 func TestAccAzureRMPublicIpStatic_standardPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	config := testAccAzureRMPublicIPStatic_standardPrefix(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -356,7 +343,7 @@ func TestAccAzureRMPublicIpStatic_standardPrefix(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPStatic_standardPrefix(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 				),
@@ -367,8 +354,6 @@ func TestAccAzureRMPublicIpStatic_standardPrefix(t *testing.T) {
 
 func TestAccAzureRMPublicIpStatic_standardPrefixWithTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	preConfig := testAccAzureRMPublicIPStatic_standardPrefixWithTags(data)
-	postConfig := testAccAzureRMPublicIPStatic_standardPrefixWithTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -376,7 +361,7 @@ func TestAccAzureRMPublicIpStatic_standardPrefixWithTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMPublicIPStatic_standardPrefixWithTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -385,7 +370,7 @@ func TestAccAzureRMPublicIpStatic_standardPrefixWithTags(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMPublicIPStatic_standardPrefixWithTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -398,7 +383,6 @@ func TestAccAzureRMPublicIpStatic_standardPrefixWithTags(t *testing.T) {
 
 func TestAccAzureRMPublicIpDynamic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	config := testAccAzureRMPublicIPDynamic_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -406,7 +390,7 @@ func TestAccAzureRMPublicIpDynamic_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPDynamic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists(data.ResourceName),
 				),
@@ -419,14 +403,13 @@ func TestAccAzureRMPublicIpDynamic_basic(t *testing.T) {
 func TestAccAzureRMPublicIpStatic_importIdError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
-	config := testAccAzureRMPublicIPStatic_basic(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPStatic_basic(data),
 			},
 			{
 				ResourceName:      data.ResourceName,

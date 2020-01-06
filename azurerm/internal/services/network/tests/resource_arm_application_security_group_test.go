@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
-	config := testAccAzureRMApplicationSecurityGroup_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationSecurityGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationSecurityGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -61,7 +60,6 @@ func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
 
 func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
-	config := testAccAzureRMApplicationSecurityGroup_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,7 +67,7 @@ func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationSecurityGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationSecurityGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),

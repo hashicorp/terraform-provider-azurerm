@@ -77,8 +77,6 @@ func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	config := testAccAzureRMNetworkInterface_basic(data)
-	updatedConfig := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -86,13 +84,13 @@ func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMNetworkInterface_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
@@ -104,8 +102,6 @@ func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	config := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(data)
-	updatedConfig := testAccAzureRMNetworkInterface_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -113,13 +109,13 @@ func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMNetworkInterface_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_security_group_id", ""),
@@ -131,7 +127,6 @@ func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	config := testAccAzureRMNetworkInterface_multipleSubnets(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -139,7 +134,7 @@ func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMNetworkInterface_multipleSubnets(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.#", "2"),
@@ -151,8 +146,6 @@ func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	config := testAccAzureRMNetworkInterface_multipleSubnets(data)
-	updatedConfig := testAccAzureRMNetworkInterface_multipleSubnetsUpdatedPrimary(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -160,7 +153,7 @@ func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMNetworkInterface_multipleSubnets(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.0.primary", "true"),
@@ -170,7 +163,7 @@ func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMNetworkInterface_multipleSubnetsUpdatedPrimary(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.0.primary", "true"),
