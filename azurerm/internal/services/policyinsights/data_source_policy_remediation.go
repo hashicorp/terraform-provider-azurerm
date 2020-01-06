@@ -32,34 +32,6 @@ func dataSourceArmPolicyInsightsRemediation() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
-
-			"location_filters": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
-			"created_on": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"last_updated_on": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"policy_assignment_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"policy_definition_reference_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -104,17 +76,6 @@ func dataSourceArmPolicyInsightsRemediationRead(d *schema.ResourceData, meta int
 	d.SetId(*resp.ID)
 	d.Set("name", resp.Name)
 	d.Set("scope", scope)
-
-	if props := resp.RemediationProperties; props != nil {
-		if err := d.Set("location_filters", flattenArmRemediationLocationFilters(props.Filters)); err != nil {
-			return fmt.Errorf("Error setting `location_filters`: %+v", err)
-		}
-
-		d.Set("created_on", (props.CreatedOn).String())
-		d.Set("last_updated_on", (props.LastUpdatedOn).String())
-		d.Set("policy_assignment_id", props.PolicyAssignmentID)
-		d.Set("policy_definition_reference_id", props.PolicyDefinitionReferenceID)
-	}
 
 	return nil
 }

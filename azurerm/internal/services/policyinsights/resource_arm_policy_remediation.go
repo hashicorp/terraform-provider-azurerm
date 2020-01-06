@@ -63,16 +63,6 @@ func resourceArmPolicyInsightsRemediation() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validatePolicyDefinitionID,
 			},
-
-			"created_on": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"last_updated_on": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -154,8 +144,6 @@ func resourceArmPolicyInsightsRemediationRead(d *schema.ResourceData, meta inter
 			return fmt.Errorf("Error setting `location_filters`: %+v", err)
 		}
 
-		d.Set("created_on", (props.CreatedOn).String())
-		d.Set("last_updated_on", (props.LastUpdatedOn).String())
 		d.Set("policy_assignment_id", props.PolicyAssignmentID)
 		d.Set("policy_definition_reference_id", props.PolicyDefinitionReferenceID)
 	}
