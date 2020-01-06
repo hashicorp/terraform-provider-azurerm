@@ -62,7 +62,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: ValidateArmStorageAccountName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
