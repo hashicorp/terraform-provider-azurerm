@@ -519,8 +519,8 @@ func ValidateAzureRMBatchPoolName(v interface{}, k string) (warnings []string, e
 	return warnings, errors
 }
 
-// ExpandMetaData expands Batch pool metadata
-func ExpandMetaData(input map[string]interface{}) *[]batch.MetadataItem {
+// ExpandBatchMetaData expands Batch pool metadata
+func ExpandBatchMetaData(input map[string]interface{}) *[]batch.MetadataItem {
 	output := []batch.MetadataItem{}
 
 	for k, v := range input {
@@ -535,8 +535,8 @@ func ExpandMetaData(input map[string]interface{}) *[]batch.MetadataItem {
 	return &output
 }
 
-// FlattenMetaData flattens a Batch pool metadata
-func FlattenMetaData(metadatas *[]batch.MetadataItem) map[string]interface{} {
+// FlattenBatchMetaData flattens a Batch pool metadata
+func FlattenBatchMetaData(metadatas *[]batch.MetadataItem) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	if metadatas == nil {

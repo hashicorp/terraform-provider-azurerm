@@ -347,7 +347,7 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
 
-		d.Set("metadata", azure.FlattenMetaData(props.Metadata))
+		d.Set("metadata", azure.FlattenBatchMetaData(props.Metadata))
 	}
 
 	return nil
