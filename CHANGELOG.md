@@ -37,7 +37,7 @@ IMPROVEMENTS:
 * `azurerm_function_app` - support for the `ftps_state` property [GH-5169]
 * `azurerm_image` - support for configuring `hyper_v_generation` [GH-4453]
 * `azurerm_iothub_dps_shared_access_policy` - support for the `primary_connection_string` & `secondary_connection_string` properties [GH-5231]
-* `azurerm_key_vault`: the `network_acls` property is now computed [GH-5207]
+* `azurerm_key_vault` - the `network_acls` property is now computed [GH-5207]
 * `azurerm_kubernetes_cluster` - support for the `managed_cluster_identity` property [GH-5168]
 * `azurerm_kubernetes_cluster` - support for private link [GH-5161]
 * `azurerm_logic_app_trigger_recurrence` - support for the `start_time` property [GH-5244]
@@ -68,7 +68,7 @@ BUG FIXES:
 * `azurerm_storage_account_network_rules` - matching the validation used for `ip_rules ` with the validation used by `ip_rules ` in the `network_rules` block of `azurerm_storage_account` [GH-5201]
 * `azurerm_subnet` - allowing both `enforce_private_link_endpoint_network_policies` and `enforce_private_link_service_network_policies` to be set together [GH-5200]
 * `azurerm_virtual_machine` - handling a crash when `os_profile_secrets` was nil [GH-5308]
-* `azurerm_virtual_machine` - handling a crash when `os_profile_secrets 0.vault_certificates` was nil [GH-5308]
+* `azurerm_virtual_machine` - handling a crash when the `vault_certificates` block within the `os_profile_secrets` was nil [GH-5308]
 
 ## 1.39.0 (December 16, 2019)
 
