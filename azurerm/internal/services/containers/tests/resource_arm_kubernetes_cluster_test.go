@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -123,6 +124,12 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 		t.Run(group, func(t *testing.T) {
 			for name, tc := range m {
 				tc := tc
+
+				// the AKS API <-> Compute API can't handle creating too many clusters in parallel in a
+				// single subscription due to rate limiting from the Compute API during provisioning
+				// as such let's try only creating 3 at a time for now..
+				os.Setenv("GOMAXPROCS", "3")
+
 				t.Run(name, func(t *testing.T) {
 					tc(t)
 				})
