@@ -2,7 +2,7 @@
 
 * **New Data Source:** `azurerm_netapp_volume` [GH-4933]
 * **New Data Source:** `azurerm_netapp_snapshot` [GH-5215]
-* **New data source:** `azurerm_signalr_service` [GH-5276]
+* **New Data Source:** `azurerm_signalr_service` [GH-5276]
 * **New Resource:** `azurerm_advanced_threat_protection` [GH-4848]
 * **New Resource:** `azurerm_api_management_diagnostic ` [GH-4836]
 * **New Resource:** `azurerm_api_management_identity_provider_aad` [GH-5268]
@@ -66,6 +66,8 @@ BUG FIXES:
 * `azurerm_monitor_log_profile` - polling until the log profile is repeatedly available [GH-5194]
 * `azurerm_storage_account_network_rules` - matching the validation used for `ip_rules ` with the validation used by `ip_rules ` in the `network_rules` block of `azurerm_storage_account` [GH-5201]
 * `azurerm_subnet` - allowing both `enforce_private_link_endpoint_network_policies` and `enforce_private_link_service_network_policies` to be set together [GH-5200]
+* `azurerm_virtual_machine` - handling a crash when `os_profile_secrets` was nil [GH-5308]
+* `azurerm_virtual_machine` - handling a crash when `os_profile_secrets 0.vault_certificates` was nil [GH-5308]
 
 ## 1.39.0 (December 16, 2019)
 
