@@ -73,33 +73,11 @@ func parseSubscriptionID(input string) (*subscriptionId, error) {
 type ProvisioningType int
 
 const (
-	NotRecognized ProvisioningType = iota
-	AtSubscription
+	AtSubscription ProvisioningType = iota
 	AtManagementGroup
 	AtResourceGroup
 	AtResource
 )
-
-// TODO -- remove this
-func getProvisioningType(scope string) ProvisioningType {
-	log.Printf("[INFO] Parsing scope %s", scope)
-	if subsId, err := parseSubscriptionID(scope); err == nil && subsId != nil {
-		log.Printf("[INFO] Get Subscription ID from scope %s", scope)
-		return AtSubscription
-	} else if mgmtId, err := parseManagementGroupId(scope); err == nil && mgmtId != nil {
-		log.Printf("[INFO] Get Management Group ID from scope %s", scope)
-		return AtManagementGroup
-	} else if resId, err := azure.ParseAzureResourceID(scope); err == nil && resId != nil {
-		if len(resId.Path) == 0 {
-			log.Printf("[INFO] Get Resource Group ID from scope %s", scope)
-			return AtResourceGroup
-		} else {
-			log.Printf("[INFO] Get Resource ID from scope %s", scope)
-			return AtResource
-		}
-	}
-	return NotRecognized
-}
 
 type RemediationId struct {
 	Name string
