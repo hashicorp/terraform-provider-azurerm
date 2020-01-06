@@ -7,6 +7,7 @@
 * **New Resource:** `azurerm_api_management_diagnostic ` [GH-4836]
 * **New Resource:** `azurerm_api_management_identity_provider_aad` [GH-5268]
 * **New Resource:** `azurerm_api_management_identity_provider_google` [GH-5279]
+* **New Resource:** `azurerm_app_service_virtual_network_swift_connection` [GH-5214]
 * **New Resource:** `azurerm_automation_certificate` [GH-4785]
 * **New Resource:** `azurerm_backup_container_storage_account` [GH-5213]
 * **New Resource:** `azurerm_backup_policy_file_share` [GH-5213]
@@ -18,7 +19,6 @@
 * **New Resource:** `azurerm_netapp_volume` [GH-4933]
 * **New Resource:** `azurerm_netapp_snapshot` [GH-5215]
 * **New Resource:** `azurerm_stream_analytics_reference_input_blob` [GH-3633]
-* **New Resource:** `azurerm_app_service_virtual_network_swift_connection` [GH-5214]
 
 IMPROVEMENTS:
 
@@ -53,6 +53,7 @@ IMPROVEMENTS:
 * `azurerm_search_service` - exposing the `query_keys` [GH-5029]
 * `azurerm_storage_account`  - exposing the `blob_properties` block [GH-3807]
 * `aaurerm_storage_account` - correctly handle an empty network rules API response [GH-5210]
+* `azurerm_storage_account` - making the resource group name case sensitive [GH-5289]
 * `azurerm_shared_image_version` - support for the `storage_account_type` property [GH-5212]
 * `azurerm_virtual_network_gateway` - support for configuring `generation` [GH-5198]
 * `azurerm_virtual_network_gateway_connection` - support for the `connection_protocol` property [GH-5145]
