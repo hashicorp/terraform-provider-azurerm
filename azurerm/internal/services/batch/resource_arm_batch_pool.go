@@ -673,7 +673,6 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
-
 		d.Set("metadata", azure.FlattenBatchMetaData(props.Metadata))
 	}
 
