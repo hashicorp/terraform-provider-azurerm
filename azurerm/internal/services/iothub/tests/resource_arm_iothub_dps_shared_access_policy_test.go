@@ -195,6 +195,7 @@ resource "azurerm_iothub_dps_shared_access_policy" "test" {
 
 func testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -210,7 +211,6 @@ func testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName string) reso
 		iothubDpsName := rs.Primary.Attributes["iothub_dps_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 
 		_, err = client.ListKeysForKeyName(ctx, iothubDpsName, keyName, resourceGroup)
 		if err != nil {

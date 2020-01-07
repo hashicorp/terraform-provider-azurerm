@@ -127,6 +127,7 @@ func testCheckAzureRMIotHubRouteDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotHubRouteExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -141,7 +142,6 @@ func testCheckAzureRMIotHubRouteExists(resourceName string) resource.TestCheckFu
 		routeName := parsedIothubId.Path["Routes"]
 		resourceGroup := parsedIothubId.ResourceGroup
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {

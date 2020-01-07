@@ -135,6 +135,7 @@ resource "azurerm_iothub_endpoint_eventhub" "import" {
 
 func testAccAzureRMIotHubEndpointEventHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -149,7 +150,6 @@ func testAccAzureRMIotHubEndpointEventHubExists(resourceName string) resource.Te
 		endpointName := parsedIothubId.Path["Endpoints"]
 		resourceGroup := parsedIothubId.ResourceGroup
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
