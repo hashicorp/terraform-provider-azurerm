@@ -33,7 +33,6 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 		"auth": {
 			"apiServerAuthorizedIPRanges":                testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges,
 			"enablePodSecurityPolicy":                    testAccAzureRMKubernetesCluster_enablePodSecurityPolicy,
-			"managedClusterIdentity":                     testAccAzureRMKubernetesCluster_managedClusterIdentity,
 			"managedClusterIdentityWithServicePrincipal": testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal,
 			"roleBasedAccessControl":                     testAccAzureRMKubernetesCluster_roleBasedAccessControl,
 			"roleBasedAccessControlAAD":                  testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,

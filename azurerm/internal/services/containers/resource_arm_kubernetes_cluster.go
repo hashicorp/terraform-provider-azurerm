@@ -469,7 +469,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"service_principal": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -683,6 +683,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	managedClusterIdentity := expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
 
+	// since the Create and Update use separate methods, there's no point extracting this out
+	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
+	servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
+
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
 		Location: &location,
@@ -699,23 +703,13 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			NetworkProfile:          networkProfile,
 			NodeResourceGroup:       utils.String(nodeResourceGroup),
 			EnablePodSecurityPolicy: utils.Bool(enablePodSecurityPolicy),
+			ServicePrincipalProfile: &containerservice.ManagedClusterServicePrincipalProfile{
+				ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
+				Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
+			},
 		},
 		Identity: managedClusterIdentity,
 		Tags:     tags.Expand(t),
-	}
-
-	// since the Create and Update use separate methods, there's no point extracting this out
-	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
-	if len(servicePrincipalProfileRaw) > 0 {
-		servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
-		parameters.ManagedClusterProperties.ServicePrincipalProfile = &containerservice.ManagedClusterServicePrincipalProfile{
-			ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
-			Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
-		}
-	}
-
-	if len(managedClusterIdentityRaw) == 0 && len(servicePrincipalProfileRaw) == 0 {
-		return fmt.Errorf("One of either of `identity` or `service_principal` must be configured!")
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -763,26 +757,24 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("service_principal") {
 		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", name, resourceGroup)
 		servicePrincipals := d.Get("service_principal").([]interface{})
-		if len(servicePrincipals) > 0 {
-			servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
+		servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
 
-			clientId := servicePrincipalRaw["client_id"].(string)
-			clientSecret := servicePrincipalRaw["client_secret"].(string)
+		clientId := servicePrincipalRaw["client_id"].(string)
+		clientSecret := servicePrincipalRaw["client_secret"].(string)
 
-			params := containerservice.ManagedClusterServicePrincipalProfile{
-				ClientID: utils.String(clientId),
-				Secret:   utils.String(clientSecret),
-			}
-			future, err := clusterClient.ResetServicePrincipalProfile(ctx, resourceGroup, name, params)
-			if err != nil {
-				return fmt.Errorf("Error updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-				return fmt.Errorf("Error waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-			log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", name, resourceGroup)
+		params := containerservice.ManagedClusterServicePrincipalProfile{
+			ClientID: utils.String(clientId),
+			Secret:   utils.String(clientSecret),
 		}
+		future, err := clusterClient.ResetServicePrincipalProfile(ctx, resourceGroup, name, params)
+		if err != nil {
+			return fmt.Errorf("Error updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
+			return fmt.Errorf("Error waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", name, resourceGroup)
 	}
 
 	// we need to conditionally update the cluster

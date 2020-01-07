@@ -75,30 +75,6 @@ func testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_managedClusterIdentity(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_managedClusterIdentity(t)
-}
-
-func testAccAzureRMKubernetesCluster_managedClusterIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_managedClusterIdentityConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("service_principal.0.client_secret"),
-		},
-	})
-}
-
 func TestAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal(t)
@@ -290,33 +266,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
-}
-
-func testAccAzureRMKubernetesCluster_managedClusterIdentityConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-  	type       = "AvailabilitySet"
-    vm_size    = "Standard_DS2_v2"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipalConfig(data acceptance.TestData, clientId string, clientSecret string) string {
