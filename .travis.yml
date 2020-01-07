@@ -47,5 +47,3 @@ matrix:
       - make website-lint
     - name: "make website-test"
       script: make website-test
-    - name: "make website-registrycheck"
-      script: make website-registrycheck
