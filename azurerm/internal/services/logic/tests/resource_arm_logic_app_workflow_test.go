@@ -93,6 +93,9 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 
 func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -104,8 +107,7 @@ func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Logic App Workflow: %s", workflowName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
 		if err != nil {
