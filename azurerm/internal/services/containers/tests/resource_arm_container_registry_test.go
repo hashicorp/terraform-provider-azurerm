@@ -425,7 +425,6 @@ func testCheckAzureRMContainerRegistryExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on containerRegistryClient: %+v", err)
@@ -455,8 +454,6 @@ func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku s
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
-
-
 
 		resp, err := conn.List(ctx, resourceGroup, name)
 		if err != nil {

@@ -82,8 +82,6 @@ func testCheckAzureRMBotChannelSlackExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channel Slack")
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameSlackChannel))
 		if err != nil {
 			return fmt.Errorf("Bad: Get on botChannelClient: %+v", err)

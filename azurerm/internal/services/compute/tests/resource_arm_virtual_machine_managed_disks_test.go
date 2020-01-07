@@ -572,7 +572,6 @@ func TestAccAzureRMVirtualMachine_ultraSSD(t *testing.T) {
 
 func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -583,7 +582,6 @@ func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.
 
 		name := vmID.Path["virtualMachines"]
 		resourceGroup := vmID.ResourceGroup
-
 
 		future, err := client.Deallocate(ctx, resourceGroup, name)
 		if err != nil {

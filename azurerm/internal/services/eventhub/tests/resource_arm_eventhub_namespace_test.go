@@ -366,7 +366,6 @@ func testCheckAzureRMEventHubNamespaceExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub Namespace: %s", namespaceName)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

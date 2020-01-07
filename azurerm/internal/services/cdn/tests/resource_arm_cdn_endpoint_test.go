@@ -247,8 +247,6 @@ func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, profileName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cdnEndpointsClient: %+v", err)
@@ -279,8 +277,6 @@ func testCheckAzureRMCdnEndpointDisappears(resourceName string) resource.TestChe
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
 		}
-
-
 
 		future, err := conn.Delete(ctx, resourceGroup, profileName, name)
 		if err != nil {

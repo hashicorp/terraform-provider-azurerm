@@ -136,8 +136,6 @@ func testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName string) resour
 			return fmt.Errorf("Bad: no resource group found in state for data lake store firewall rule: %s", firewallRuleName)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, accountName, firewallRuleName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on dataLakeStoreFirewallRulesClient: %+v", err)

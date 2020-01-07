@@ -95,8 +95,6 @@ func testCheckAzureRMMarketplaceAgreementExists(resourceName string) resource.Te
 		plan := rs.Primary.Attributes["plan"]
 		publisher := rs.Primary.Attributes["publisher"]
 
-
-
 		resp, err := client.Get(ctx, publisher, offer, plan)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -121,8 +119,6 @@ func testCheckAzureRMMarketplaceAgreementDestroy(s *terraform.State) error {
 		offer := rs.Primary.Attributes["offer"]
 		plan := rs.Primary.Attributes["plan"]
 		publisher := rs.Primary.Attributes["publisher"]
-
-
 
 		resp, err := client.Get(ctx, publisher, offer, plan)
 		if err != nil {

@@ -97,8 +97,6 @@ func testCheckAzureRMDevTestPolicyExists(resourceName string) resource.TestCheck
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, labName, policySetName, policyName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get devTestPoliciesClient: %+v", err)

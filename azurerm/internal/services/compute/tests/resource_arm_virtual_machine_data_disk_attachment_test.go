@@ -229,7 +229,6 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string)
 		virtualMachineName := id.Path["virtualMachines"]
 		resourceGroup := id.ResourceGroup
 
-
 		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vmClient: %+v", err)

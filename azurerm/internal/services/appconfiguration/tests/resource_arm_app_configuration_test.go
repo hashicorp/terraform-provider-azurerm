@@ -217,8 +217,6 @@ func testCheckAzureAppConfigurationExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for App Configuration: %s", name)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on appConfigurationsClient: %+v", err)

@@ -192,8 +192,6 @@ func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resour
 		resGroup := id.ResourceGroup
 		appInsightsName := id.Path["components"]
 
-
-
 		resp, err := conn.Get(ctx, resGroup, appInsightsName, keyID)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on appInsightsAPIKeyClient: %+v", err)

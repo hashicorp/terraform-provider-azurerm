@@ -148,8 +148,6 @@ func testCheckAzureRMAutomationRunbookExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Automation Runbook: '%s'", name)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 
 		if err != nil {

@@ -152,7 +152,6 @@ func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resou
 		name := rs.Primary.Attributes["name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
 
-
 		resp, err := conn.Get(ctx, resGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on appInsightsWebTestClient: %+v", err)

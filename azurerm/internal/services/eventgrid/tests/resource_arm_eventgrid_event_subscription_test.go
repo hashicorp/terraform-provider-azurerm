@@ -162,7 +162,6 @@ func testCheckAzureRMEventGridEventSubscriptionExists(resourceName string) resou
 			return fmt.Errorf("Bad: no scope found in state for EventGrid Event Subscription: %s", name)
 		}
 
-
 		resp, err := client.Get(ctx, scope, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

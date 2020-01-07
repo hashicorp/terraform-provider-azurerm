@@ -216,8 +216,6 @@ func testCheckAzureRMVirtualMachineScaleSetExtensionExists(resourceName string) 
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-
-
 		name := rs.Primary.Attributes["name"]
 		virtualMachineScaleSetIdRaw := rs.Primary.Attributes["virtual_machine_scale_set_id"]
 		virtualMachineScaleSetId, err := compute.ParseVirtualMachineScaleSetID(virtualMachineScaleSetIdRaw)

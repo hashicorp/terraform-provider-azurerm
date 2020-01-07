@@ -300,7 +300,6 @@ func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		revision := rs.Primary.Attributes["revision"]
 
-
 		apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiId)
 		if err != nil {

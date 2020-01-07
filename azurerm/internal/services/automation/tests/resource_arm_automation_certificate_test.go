@@ -157,7 +157,6 @@ func testCheckAzureRMAutomationCertificateExists(resourceName string) resource.T
 		accName := rs.Primary.Attributes["automation_account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 
 		if err != nil {

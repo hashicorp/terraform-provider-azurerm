@@ -3009,8 +3009,6 @@ func testCheckAzureRMVirtualMachineVHDExistence(blobName string, shouldExist boo
 			accountName := rs.Primary.Attributes["storage_account_name"]
 			containerName := rs.Primary.Attributes["name"]
 
-
-
 			account, err := storageClient.FindAccount(ctx, accountName)
 			if err != nil {
 				return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
@@ -3063,8 +3061,6 @@ func testCheckAzureRMVirtualMachineDisappears(resourceName string) resource.Test
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
-
-
 
 		future, err := client.Delete(ctx, resourceGroup, vmName)
 		if err != nil {

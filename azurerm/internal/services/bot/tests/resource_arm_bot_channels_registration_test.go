@@ -120,7 +120,6 @@ func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestChe
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.BotClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -132,7 +131,6 @@ func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestChe
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channels Registration: %s", name)
 		}
-
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {

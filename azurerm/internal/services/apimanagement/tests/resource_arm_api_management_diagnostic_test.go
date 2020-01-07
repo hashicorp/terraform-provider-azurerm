@@ -94,7 +94,6 @@ func testCheckAzureRMApiManagementDiagnosticExists(resourceName string) resource
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-
 		resp, err := client.Get(ctx, resourceGroup, serviceName, identifier)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

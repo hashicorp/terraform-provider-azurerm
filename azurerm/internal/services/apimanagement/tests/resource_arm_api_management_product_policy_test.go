@@ -104,7 +104,6 @@ func testCheckAzureRMApiManagementProductPolicyExists(resourceName string) resou
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productID)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

@@ -151,7 +151,6 @@ func testCheckAzureRMDnsMxRecordExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for DNS MX record: %s", mxName)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, mxName, dns.MX)
 		if err != nil {
 			return fmt.Errorf("Bad: Get MX RecordSet: %+v", err)

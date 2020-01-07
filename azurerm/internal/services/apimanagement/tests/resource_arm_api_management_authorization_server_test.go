@@ -86,7 +86,6 @@ func testCheckAzureRMAPIManagementAuthorizationServerDestroy(s *terraform.State)
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 
 		if err != nil {
@@ -113,7 +112,6 @@ func testCheckAzureRMAPIManagementAuthorizationServerExists(resourceName string)
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
-
 
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {

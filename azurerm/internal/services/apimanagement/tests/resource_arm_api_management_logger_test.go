@@ -216,7 +216,6 @@ func testCheckAzureRMApiManagementLoggerExists(resourceName string) resource.Tes
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-
 		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Logger %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)

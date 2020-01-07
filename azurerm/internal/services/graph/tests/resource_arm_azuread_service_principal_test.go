@@ -73,7 +73,6 @@ func testCheckAzureRMActiveDirectoryServicePrincipalExists(resourceName string) 
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
 		if err != nil {
@@ -95,7 +94,6 @@ func testCheckAzureRMActiveDirectoryServicePrincipalDestroy(s *terraform.State) 
 		if rs.Type != "azurerm_azuread_service_principal" {
 			continue
 		}
-
 
 		resp, err := client.Get(ctx, rs.Primary.ID)
 

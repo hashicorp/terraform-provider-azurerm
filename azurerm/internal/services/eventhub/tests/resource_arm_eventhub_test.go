@@ -400,8 +400,6 @@ func testCheckAzureRMEventHubExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub: %s", name)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on eventHubClient: %+v", err)

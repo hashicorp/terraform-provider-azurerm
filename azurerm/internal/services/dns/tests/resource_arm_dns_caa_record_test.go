@@ -131,7 +131,6 @@ func testCheckAzureRMDnsCaaRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for DNS CAA record: %s", caaName)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, caaName, dns.CAA)
 		if err != nil {
 			return fmt.Errorf("Bad: Get CAA RecordSet: %+v", err)

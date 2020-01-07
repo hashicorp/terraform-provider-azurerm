@@ -141,8 +141,6 @@ func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.Virtu
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, vmName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vmClient: %+v", err)

@@ -70,8 +70,6 @@ func testCheckAzureRMBatchApplicationExists(resourceName string) resource.TestCh
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-
-
 		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Batch Application %q (Account Name %q / Resource Group %q) does not exist", name, accountName, resourceGroup)

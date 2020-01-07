@@ -79,7 +79,6 @@ func testCheckAzureRMAPIManagementCertificateDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 
 		if err != nil {
@@ -106,7 +105,6 @@ func testCheckAzureRMAPIManagementCertificateExists(resourceName string) resourc
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
-
 
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {

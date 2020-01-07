@@ -183,7 +183,6 @@ func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestChec
 		scope := rs.Primary.Attributes["scope"]
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
-
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
 
 		if err != nil {
@@ -208,7 +207,6 @@ func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
 
 		scope := rs.Primary.Attributes["scope"]
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
-
 
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
 

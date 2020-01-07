@@ -82,8 +82,6 @@ func testCheckAzureRMDataFactoryLinkedServiceMySQLExists(name string) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on dataFactoryLinkedServiceClient: %+v", err)

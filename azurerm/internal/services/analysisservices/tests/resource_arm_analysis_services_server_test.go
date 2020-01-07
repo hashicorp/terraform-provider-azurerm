@@ -447,7 +447,6 @@ func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
 		resp, err := client.GetDetails(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -478,7 +477,6 @@ func testCheckAzureRMAnalysisServicesServerExists(resourceName string) resource.
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Analysis Services Server: %s", analysisServicesServerName)
 		}
-
 
 		resp, err := client.GetDetails(ctx, resourceGroup, analysisServicesServerName)
 		if err != nil {

@@ -99,7 +99,6 @@ func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for DevTest Lab: %s", labName)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, labName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get devTestLabsClient: %+v", err)

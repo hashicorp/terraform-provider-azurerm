@@ -221,8 +221,6 @@ func testCheckAzureRMSharedImageVersionExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Shared Image Version: %s", imageName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, galleryName, imageName, imageVersion, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on galleryImageVersionsClient: %+v", err)

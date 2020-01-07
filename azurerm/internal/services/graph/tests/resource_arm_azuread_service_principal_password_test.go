@@ -124,8 +124,6 @@ func testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(resourceName 
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-
-
 		id := strings.Split(rs.Primary.ID, "/")
 		objectId := id[0]
 		keyId := id[1]

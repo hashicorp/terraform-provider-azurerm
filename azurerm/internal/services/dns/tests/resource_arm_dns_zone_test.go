@@ -121,7 +121,6 @@ func testCheckAzureRMDnsZoneExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for DNS zone: %s", zoneName)
 		}
 
-
 		resp, err := client.Get(ctx, resourceGroup, zoneName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get DNS zone: %+v", err)

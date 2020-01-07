@@ -20,7 +20,6 @@ func testCheckAzureRMHDInsightClusterDestroy(terraformResourceName string) func(
 				continue
 			}
 
-
 			name := rs.Primary.Attributes["name"]
 			resourceGroup := rs.Primary.Attributes["resource_group_name"]
 			resp, err := client.Get(ctx, resourceGroup, name)
@@ -49,7 +48,6 @@ func testCheckAzureRMHDInsightClusterExists(resourceName string) resource.TestCh
 
 		clusterName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
 
 		resp, err := client.Get(ctx, resourceGroup, clusterName)
 		if err != nil {

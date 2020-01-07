@@ -252,8 +252,6 @@ func testCheckAzureRMApiManagementBackendExists(name string) resource.TestCheckF
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -284,8 +282,6 @@ func testCheckAzureRMApiManagementBackendDisappears(resourceName string) resourc
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for backend: %s", name)
 		}
-
-
 
 		resp, err := conn.Delete(ctx, resourceGroup, serviceName, name, "")
 		if err != nil {

@@ -139,8 +139,6 @@ func testCheckAzureRMDevTestWindowsVirtualMachineExists(resourceName string) res
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, labName, virtualMachineName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get devTestVirtualMachinesClient: %+v", err)

@@ -127,8 +127,6 @@ func testCheckAzureRMSharedImageGalleryExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Shared Image Gallery: %s", galleryName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, galleryName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on galleriesClient: %+v", err)

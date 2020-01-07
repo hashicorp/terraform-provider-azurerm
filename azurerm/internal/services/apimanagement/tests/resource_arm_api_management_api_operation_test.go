@@ -191,8 +191,6 @@ func testCheckAzureRMApiManagementApiOperationExists(name string) resource.TestC
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

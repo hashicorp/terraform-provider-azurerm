@@ -164,7 +164,6 @@ func testCheckAzureRMAPIManagementSubscriptionExists(resourceName string) resour
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-
 		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

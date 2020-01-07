@@ -97,8 +97,6 @@ func testCheckAzureRMAutomationVariableExists(resourceName string, varType strin
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["automation_account_name"]
 
-
-
 		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Automation %s Variable %q (Automation Account Name %q / Resource Group %q) does not exist", varType, name, accountName, resourceGroup)

@@ -95,7 +95,6 @@ func testCheckAzureRMAPIManagementProductApiExists(resourceName string) resource
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {

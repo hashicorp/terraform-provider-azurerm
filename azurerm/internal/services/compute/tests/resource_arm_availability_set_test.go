@@ -196,8 +196,6 @@ func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", name)
 		}
 
-
-
 		vmss, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
@@ -228,7 +226,6 @@ func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", availSetName)
 		}
 
-
 		resp, err := client.Delete(ctx, resourceGroup, availSetName)
 		if err != nil {
 			if !response.WasNotFound(resp.Response) {
@@ -251,7 +248,6 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 

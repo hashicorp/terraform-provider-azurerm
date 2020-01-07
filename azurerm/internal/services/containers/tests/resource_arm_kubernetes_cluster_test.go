@@ -147,7 +147,6 @@ func testCheckAzureRMKubernetesClusterExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Managed Kubernetes Cluster: %s", name)
 		}
 
-
 		aks, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)

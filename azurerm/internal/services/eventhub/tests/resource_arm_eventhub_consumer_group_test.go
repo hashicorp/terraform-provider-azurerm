@@ -146,8 +146,6 @@ func testCheckAzureRMEventHubConsumerGroupExists(resourceName string) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub Consumer Group: %s", name)
 		}
 
-
-
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		eventHubName := rs.Primary.Attributes["eventhub_name"]
 

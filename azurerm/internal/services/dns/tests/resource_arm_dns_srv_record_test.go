@@ -131,7 +131,6 @@ func testCheckAzureRMDnsSrvRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for DNS SRV record: %s", srvName)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, srvName, dns.SRV)
 		if err != nil {
 			return fmt.Errorf("Bad: Get SRV RecordSet: %+v", err)

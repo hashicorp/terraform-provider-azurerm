@@ -346,8 +346,6 @@ func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, sho
 			return fmt.Errorf("Bad: no resource group found in state for disk: %s", dName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, dName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on diskClient: %+v", err)
@@ -407,8 +405,6 @@ func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
-
-
 
 		future, err := client.Delete(ctx, resourceGroup, vmName)
 		if err != nil {

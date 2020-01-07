@@ -292,8 +292,6 @@ func testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(name string) res
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory Managed Integration Runtime: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on IntegrationRuntimesClient: %+v", err)

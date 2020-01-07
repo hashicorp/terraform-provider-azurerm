@@ -341,8 +341,6 @@ func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource
 			return fmt.Errorf("Bad: no resource group found in state for image: %s", dName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, dName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on imageClient: %+v", err)
@@ -401,7 +399,6 @@ func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.Test
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		log.Printf("[INFO] testing MANAGED IMAGE VMSS EXISTS - BEGIN.")
-
 
 		vmRs, vmOk := s.RootModule().Resources[sourceVMSS]
 		if !vmOk {

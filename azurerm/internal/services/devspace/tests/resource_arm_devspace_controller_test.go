@@ -82,7 +82,6 @@ func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for DevSpace Controller: %s", ctrlName)
 		}
 
-
 		result, err := client.Get(ctx, resGroupName, ctrlName)
 
 		if err == nil {

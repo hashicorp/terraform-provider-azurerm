@@ -166,7 +166,6 @@ func testCheckAzureRMEventHubAuthorizationRuleExists(resourceName string) resour
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub: %s", name)
 		}
 
-
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

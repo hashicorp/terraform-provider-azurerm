@@ -276,7 +276,6 @@ func testCheckAzureRMRoleAssignmentExists(resourceName string) resource.TestChec
 		scope := rs.Primary.Attributes["scope"]
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
-
 		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
 		if err != nil {
@@ -301,7 +300,6 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 
 		scope := rs.Primary.Attributes["scope"]
 		roleAssignmentName := rs.Primary.Attributes["name"]
-
 
 		resp, err := client.Get(ctx, scope, roleAssignmentName)
 

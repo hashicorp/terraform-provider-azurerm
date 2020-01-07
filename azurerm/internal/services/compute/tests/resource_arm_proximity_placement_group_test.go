@@ -126,7 +126,6 @@ func testCheckAzureRMProximityPlacementGroupExists(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for proximity placement group: %s", ppgName)
 		}
 
-
 		resp, err := client.Get(ctx, resourceGroup, ppgName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -157,7 +156,6 @@ func testCheckAzureRMProximityPlacementGroupDisappears(resourceName string) reso
 			return fmt.Errorf("Bad: no resource group found in state for proximity placement group: %s", ppgName)
 		}
 
-
 		resp, err := client.Delete(ctx, resourceGroup, ppgName)
 		if err != nil {
 			if !response.WasNotFound(resp.Response) {
@@ -180,7 +178,6 @@ func testCheckAzureRMProximityPlacementGroupDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 

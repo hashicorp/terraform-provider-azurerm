@@ -234,7 +234,6 @@ func testCheckAzureRMDnsCNameRecordExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for DNS CNAME record: %s", cnameName)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, cnameName, dns.CNAME)
 		if err != nil {
 			return fmt.Errorf("Bad: Get CNAME RecordSet: %v", err)

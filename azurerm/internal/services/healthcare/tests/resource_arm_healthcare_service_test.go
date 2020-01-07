@@ -90,8 +90,6 @@ func testCheckAzureRMHealthCareServiceExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for healthcare service: %s", healthcareServiceName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, healthcareServiceName)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

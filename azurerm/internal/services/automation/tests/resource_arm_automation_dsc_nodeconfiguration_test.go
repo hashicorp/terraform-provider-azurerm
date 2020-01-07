@@ -107,7 +107,6 @@ func testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName string) r
 			return fmt.Errorf("Bad: no resource group found in state for Automation Dsc Node Configuration: '%s'", name)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 
 		if err != nil {

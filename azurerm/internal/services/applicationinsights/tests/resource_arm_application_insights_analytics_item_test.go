@@ -160,8 +160,6 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terrafor
 		return false, fmt.Errorf("Failed to parse ID (id: %s): %+v", id, err)
 	}
 
-
-
 	response, err := conn.Get(ctx, resGroup, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
 		if response.Response.IsHTTPStatus(404) {

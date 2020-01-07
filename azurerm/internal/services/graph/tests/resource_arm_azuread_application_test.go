@@ -126,7 +126,6 @@ func testCheckAzureRMActiveDirectoryApplicationExists(resourceName string) resou
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
 		if err != nil {
@@ -148,7 +147,6 @@ func testCheckAzureRMActiveDirectoryApplicationDestroy(s *terraform.State) error
 		if rs.Type != "azurerm_azuread_application" {
 			continue
 		}
-
 
 		resp, err := client.Get(ctx, rs.Primary.ID)
 

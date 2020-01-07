@@ -394,7 +394,6 @@ func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on batchPoolClient: %+v", err)
@@ -420,8 +419,6 @@ func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
 		poolName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["account_name"]
-
-
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {

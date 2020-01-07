@@ -1049,8 +1049,6 @@ func testGetAzureRMVirtualMachineScaleSet(s *terraform.State, resourceName strin
 		return nil, fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
 	}
 
-
-
 	vmss, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return nil, fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
@@ -1086,8 +1084,6 @@ func testCheckAzureRMVirtualMachineScaleSetDisappears(name string) resource.Test
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
 		}
-
-
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {

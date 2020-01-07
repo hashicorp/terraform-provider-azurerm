@@ -122,7 +122,6 @@ func testCheckAzureRMApiManagementIdentityProviderGoogleExists(resourceName stri
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-
 		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Google)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

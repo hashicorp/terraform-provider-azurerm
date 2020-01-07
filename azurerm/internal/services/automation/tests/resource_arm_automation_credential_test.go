@@ -128,8 +128,6 @@ func testCheckAzureRMAutomationCredentialExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Automation Credential: '%s'", name)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 
 		if err != nil {

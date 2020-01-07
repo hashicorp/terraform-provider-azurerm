@@ -125,8 +125,6 @@ func testCheckAzureRMAutomationModuleExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Automation Module: '%s'", name)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 
 		if err != nil {

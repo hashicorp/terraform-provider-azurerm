@@ -190,8 +190,6 @@ func testCheckAzureRMDataLakeStoreExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", accountName)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, accountName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on dataLakeStoreAccountClient: %+v", err)

@@ -177,8 +177,6 @@ func testCheckAzureRMDataFactoryExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on dataFactoryClient: %+v", err)
@@ -208,8 +206,6 @@ func testCheckAzureRMDataFactoryDisappears(name string) resource.TestCheckFunc {
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
-
-
 
 		resp, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {

@@ -117,8 +117,6 @@ func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.Test
 		devTestLabName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, devTestLabName, name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on devTestLabSchedulesClient: %s", err)

@@ -75,7 +75,6 @@ func testCheckAzureRMBotConnectionExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channels Registration: %s", name)
 		}
 
-
 		resp, err := client.Get(ctx, resourceGroup, botName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on botConnectionClient: %+v", err)

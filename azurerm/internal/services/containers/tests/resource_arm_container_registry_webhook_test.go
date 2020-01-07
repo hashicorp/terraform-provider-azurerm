@@ -642,7 +642,6 @@ func testCheckAzureRMContainerRegistryWebhookExists(resourceName string) resourc
 			return fmt.Errorf("Bad: no registry name found in state for Container Registry Webhook: %s", webhookName)
 		}
 
-
 		resp, err := client.Get(ctx, resourceGroup, registryName, webhookName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

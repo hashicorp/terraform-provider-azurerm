@@ -82,8 +82,6 @@ func testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Exists(name stri
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory Storage: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on dataFactoryLinkedServiceClient: %+v", err)

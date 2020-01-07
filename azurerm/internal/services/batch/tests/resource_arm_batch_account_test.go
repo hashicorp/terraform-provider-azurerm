@@ -154,7 +154,6 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 
 		// Ensure resource group exists in API
 
-
 		resp, err := conn.Get(ctx, resourceGroup, batchAccount)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on batchAccountClient: %+v", err)

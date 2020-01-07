@@ -66,7 +66,6 @@ func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product" {
 			continue
@@ -223,7 +222,6 @@ func testCheckAzureRMApiManagementProductExists(resourceName string) resource.Te
 		productId := rs.Primary.Attributes["product_id"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {

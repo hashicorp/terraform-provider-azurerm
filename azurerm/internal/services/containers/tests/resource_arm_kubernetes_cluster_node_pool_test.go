@@ -524,7 +524,6 @@ func testCheckAzureRMKubernetesClusterNodePoolDestroy(s *terraform.State) error 
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-
 		resp, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
 
 		if err != nil {
@@ -556,8 +555,6 @@ func testCheckAzureRMKubernetesNodePoolExists(resourceName string) resource.Test
 		if err != nil {
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
-
-
 
 		agent_pool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
 		if err != nil {

@@ -138,8 +138,6 @@ func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestC
 		remoteFilePath := rs.Primary.Attributes["remote_file_path"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-
-
 		resp, err := conn.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
 		if err != nil {
 			return fmt.Errorf("Bad: Get on dataLakeStoreFileClient: %+v", err)
