@@ -99,10 +99,8 @@ debugacc: fmtcheck
 website-lint:
 	@echo "==> Checking website spelling..."
 	@misspell -error -source=text -i hdinsight website/
+	@sh -c "$(CURDIR)/scripts/website-registrycheck.sh"
 	@sh -c "'$(CURDIR)/scripts/website-tf-formatcheck.sh'"
-
-website-registrycheck:
-	@sh "$(CURDIR)/scripts/website-registrycheck.sh"
 
 website:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
