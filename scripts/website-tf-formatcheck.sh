@@ -15,8 +15,8 @@ echo $tofmt
 if $error; then
   echo "------------------------------------------------"
   echo ""
-  echo "The preceding files contain terraform blocks that are not correctly formatted:"
-  echo "You can fix this by running terrafmt on them:"
+  echo "The preceding files contain terraform blocks that are not correctly formatted."
+  echo "You can fix this by running make tools and then terrafmt on them."
   echo ""
   echo "format a single file:"
   echo "$ terrafmt fmt ./website/path/to/file.html.markdown"
