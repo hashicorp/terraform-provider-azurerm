@@ -39,7 +39,13 @@ matrix:
     - name: "make depscheck"
       script: make depscheck
     - name: "make website-lint"
-      script: make website-lint
+      script:
+      - curl -sLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.18/terraform_0.12.18_linux_amd64.zip
+      - unzip /tmp/terraform.zip -d /tmp
+      - mkdir ~/bin
+      - mv /tmp/terraform ~/bin
+      - export PATH="~/bin:$PATH"
+      - make website-lint
     - name: "make website-test"
       script: make website-test
     - name: "make website-registrycheck"
