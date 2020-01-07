@@ -15,7 +15,7 @@ tools:
 	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
 	GO111MODULE=off go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
-	GO111MODULE=off go get -u github.com/katbyte/terrafmt/cmd/terrafmt
+	GO111MODULE=off go get -u github.com/katbyte/terrafmt
 
 build: fmtcheck
 	go install
