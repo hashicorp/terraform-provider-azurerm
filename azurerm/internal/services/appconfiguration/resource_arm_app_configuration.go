@@ -48,7 +48,9 @@ func resourceArmAppConfiguration() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// the API changed and now returns the rg in lowercase
+			// revert when https://github.com/Azure/azure-sdk-for-go/issues/6606 is fixed
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"sku": {
 				Type:     schema.TypeString,
