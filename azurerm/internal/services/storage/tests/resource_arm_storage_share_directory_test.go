@@ -138,6 +138,9 @@ func TestAccAzureRMStorageShareDirectory_nested(t *testing.T) {
 
 func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -148,8 +151,7 @@ func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.T
 		shareName := rs.Primary.Attributes["share_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -178,6 +180,9 @@ func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
+	storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_share_directory" {
 			continue
@@ -187,8 +192,7 @@ func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
 		shareName := rs.Primary.Attributes["share_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
