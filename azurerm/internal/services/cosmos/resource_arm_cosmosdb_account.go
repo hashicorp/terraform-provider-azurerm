@@ -211,6 +211,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 								"EnableTable",
 								"EnableGremlin",
 								"EnableCassandra",
+								"EnableMongo",
 								"EnableAggregationPipeline",
 								"MongoDBv3.4",
 								"mongoEnableDocLevelTTL",
@@ -397,21 +398,6 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	//for some reason capabilities doesn't always work on create, so lets patch it
-	//tracked: https://github.com/Azure/azure-sdk-for-go/issues/2864
-	future, err := client.Patch(ctx, resourceGroup, name, documentdb.DatabaseAccountPatchParameters{
-		DatabaseAccountPatchProperties: &documentdb.DatabaseAccountPatchProperties{
-			Capabilities: account.Capabilities,
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("Error Patching CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(context.Background(), client.Client); err != nil {
-		return fmt.Errorf("Error waiting on patch future CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
 	id := resp.ID
 	if id == nil {
 		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
@@ -548,21 +534,6 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	id := (*upsertResponse).ID
 	if id == nil {
 		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
-	}
-
-	//for some reason capabilities doesn't always work on create, so lets patch it
-	//tracked: https://github.com/Azure/azure-sdk-for-go/issues/2864
-	future, err := client.Patch(ctx, resourceGroup, name, documentdb.DatabaseAccountPatchParameters{
-		DatabaseAccountPatchProperties: &documentdb.DatabaseAccountPatchProperties{
-			Capabilities: account.Capabilities,
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("Error Patching CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(context.Background(), client.Client); err != nil {
-		return fmt.Errorf("Error waiting on patch future CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*id)
