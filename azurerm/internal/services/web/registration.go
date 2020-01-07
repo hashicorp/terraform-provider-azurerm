@@ -34,5 +34,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_app_service_virtual_network_swift_connection": resourceArmAppServiceVirtualNetworkSwiftConnection(),
 		"azurerm_app_service":                                  resourceArmAppService(),
 		"azurerm_function_app":                                 resourceArmFunctionApp(),
+		"azurerm_app_service_hybrid_connection":                resourceArmAppServiceHybridConnection(),
 	}
 }
