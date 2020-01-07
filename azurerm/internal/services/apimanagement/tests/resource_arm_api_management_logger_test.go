@@ -204,6 +204,9 @@ func TestAccAzureRMApiManagementLogger_update(t *testing.T) {
 
 func testCheckAzureRMApiManagementLoggerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.LoggerClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("API Management Logger not found: %s", resourceName)
@@ -213,8 +216,6 @@ func testCheckAzureRMApiManagementLoggerExists(resourceName string) resource.Tes
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.LoggerClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
