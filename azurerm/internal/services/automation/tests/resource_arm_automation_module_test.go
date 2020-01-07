@@ -108,6 +108,9 @@ func testCheckAzureRMAutomationModuleDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAutomationModuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.ModuleClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -122,8 +125,7 @@ func testCheckAzureRMAutomationModuleExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Automation Module: '%s'", name)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.ModuleClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
 
