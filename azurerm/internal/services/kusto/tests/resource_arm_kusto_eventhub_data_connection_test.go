@@ -94,7 +94,6 @@ func testCheckAzureRMKustoEventHubDataConnectionDestroy(s *terraform.State) erro
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DataConnectionsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_kusto_eventhub_data_connection" {
 			continue
@@ -146,7 +145,6 @@ func testCheckAzureRMKustoEventHubDataConnectionExists(resourceName string) reso
 		if !hasDatabaseName {
 			return fmt.Errorf("Bad: no resource group found in state for Kusto EventHub Data Connection: %s", name)
 		}
-
 
 		resp, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
 		if err != nil {

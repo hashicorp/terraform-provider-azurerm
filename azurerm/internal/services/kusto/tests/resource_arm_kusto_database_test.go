@@ -229,7 +229,6 @@ func testCheckAzureRMKustoDatabaseDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_kusto_database" {
 			continue
@@ -275,7 +274,6 @@ func testCheckAzureRMKustoDatabaseExists(resourceName string) resource.TestCheck
 		if !hasClusterName {
 			return fmt.Errorf("Bad: no resource group found in state for Kusto Database: %s", kustoDatabase)
 		}
-
 
 		resp, err := client.Get(ctx, resourceGroup, clusterName, kustoDatabase)
 		if err != nil {

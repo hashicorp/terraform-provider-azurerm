@@ -140,7 +140,6 @@ func testCheckAzureRMIotDPSExists(resourceName string) resource.TestCheckFunc {
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)

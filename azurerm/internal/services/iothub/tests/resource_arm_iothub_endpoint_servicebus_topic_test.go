@@ -149,7 +149,6 @@ func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) reso
 		endpointName := parsedIothubId.Path["Endpoints"]
 		resourceGroup := parsedIothubId.ResourceGroup
 
-
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if utils.ResponseWasNotFound(iothub.Response) {

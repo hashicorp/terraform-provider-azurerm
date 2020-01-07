@@ -142,7 +142,6 @@ func testCheckAzureRMIotHubRouteExists(resourceName string) resource.TestCheckFu
 		routeName := parsedIothubId.Path["Routes"]
 		resourceGroup := parsedIothubId.ResourceGroup
 
-
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if utils.ResponseWasNotFound(iothub.Response) {

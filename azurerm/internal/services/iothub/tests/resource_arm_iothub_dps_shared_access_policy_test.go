@@ -211,7 +211,6 @@ func testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName string) reso
 		iothubDpsName := rs.Primary.Attributes["iothub_dps_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
 		_, err = client.ListKeysForKeyName(ctx, iothubDpsName, keyName, resourceGroup)
 		if err != nil {
 			return fmt.Errorf("Bad: No shared access policy %s defined for IotHub DPS %s", keyName, iothubDpsName)

@@ -182,7 +182,6 @@ func testCheckAzureRMIotHubSharedAccessPolicyExists(resourceName string) resourc
 		keyName := parsedIothubId.Path["IotHubKeys"]
 		resourceGroup := parsedIothubId.ResourceGroup
 
-
 		for accessPolicyIterator, err := client.ListKeysComplete(ctx, resourceGroup, iothubName); accessPolicyIterator.NotDone(); err = accessPolicyIterator.NextWithContext(ctx) {
 			if err != nil {
 				return fmt.Errorf("Error loading Shared Access Profiles of IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)

@@ -131,7 +131,6 @@ func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.Tes
 		iothubName := parsedIothubId.Path["IotHubs"]
 		resourceGroup := parsedIothubId.ResourceGroup
 
-
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if utils.ResponseWasNotFound(iothub.Response) {

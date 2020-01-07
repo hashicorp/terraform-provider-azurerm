@@ -34,7 +34,6 @@ func testCheckAzureRMKustoDatabasePrincipalDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_kusto_database_principal" {
 			continue
@@ -100,7 +99,6 @@ func testCheckAzureRMKustoDatabasePrincipalExists(resourceName string) resource.
 		if !hasDatabaseName {
 			return fmt.Errorf("Bad: no database name found in state for Kusto Database Principal: %s", fqn)
 		}
-
 
 		resp, err := client.ListPrincipals(ctx, resourceGroup, clusterName, databaseName)
 		if err != nil {
