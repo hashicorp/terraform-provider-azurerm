@@ -278,7 +278,7 @@ A `http_application_routing` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - The type of identity used for the managed cluster. Valid values are `SystemAssigned` or `None`. 
+* `type` - The type of identity used for the managed cluster. At this time the only supported value is `SystemAssigned`. 
 
 ---
 

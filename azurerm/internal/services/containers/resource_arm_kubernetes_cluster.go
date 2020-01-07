@@ -273,7 +273,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.None),
 								string(containerservice.SystemAssigned),
 							}, false),
 						},
@@ -1625,7 +1624,8 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 }
 
 func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) []interface{} {
-	if input == nil {
+	// if it's none, omit the block
+	if input == nil || input.Type == containerservice.None {
 		return []interface{}{}
 	}
 
