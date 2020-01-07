@@ -102,6 +102,9 @@ func TestAccAzureRMSqlFailoverGroup_withTags(t *testing.T) {
 
 func testCheckAzureRMSqlFailoverGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FailoverGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -110,8 +113,7 @@ func testCheckAzureRMSqlFailoverGroupExists(resourceName string) resource.TestCh
 		serverName := rs.Primary.Attributes["server_name"]
 		name := rs.Primary.Attributes["name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FailoverGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -128,6 +130,10 @@ func testCheckAzureRMSqlFailoverGroupExists(resourceName string) resource.TestCh
 
 func testCheckAzureRMSqlFailoverGroupDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FailoverGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -138,8 +144,6 @@ func testCheckAzureRMSqlFailoverGroupDisappears(resourceName string) resource.Te
 		serverName := rs.Primary.Attributes["server_name"]
 		name := rs.Primary.Attributes["name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FailoverGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -155,6 +159,9 @@ func testCheckAzureRMSqlFailoverGroupDisappears(resourceName string) resource.Te
 }
 
 func testCheckAzureRMSqlFailoverGroupDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FailoverGroupsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_failover_group" {
 			continue
@@ -164,8 +171,7 @@ func testCheckAzureRMSqlFailoverGroupDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FailoverGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
