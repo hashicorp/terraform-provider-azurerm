@@ -800,7 +800,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 }
 
 func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
-	input := d.Get("connection_string").(*schema.Set).([]interface{})
+	input := d.Get("connection_string").(*schema.Set).List()
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
 	for _, v := range input {
