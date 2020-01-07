@@ -105,6 +105,9 @@ func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 
 func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -114,8 +117,7 @@ func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		resp, err := client.Get(ctx, resourceGroup)
 		if err != nil {
@@ -132,6 +134,9 @@ func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheck
 
 func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -141,8 +146,7 @@ func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestC
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		deleteFuture, err := client.Delete(ctx, resourceGroup)
 		if err != nil {
