@@ -1,42 +1,30 @@
 #!/usr/bin/env bash
 
-echo "==> Checking that website Terraform Blocks are formatted..."
+echo "==> Checking website Terraform blocks are formatted..."
 
+files=$(find ./website -type f -name "*.html.markdown")
+tofmt=()
 error=false
 
-
-find ./website -type f -name "*.html.markdown" | while read f; do
-  echo "$f"
+for f in $files; do
+  terrafmt diff -c -q "$f" || error=true
 done
 
+echo $tofmt
+
 if $error; then
-  echo ""
   echo "------------------------------------------------"
   echo ""
-  echo "The files listed above must use a Wrapped StopContext to enable Custom Timeouts."
-  echo "You can do this by changing:"
+  echo "The preceding files contain terraform blocks that are not correctly formatted:"
+  echo "You can fix this by running terrafmt on them:"
   echo ""
-  echo "> ctx := meta.(*clients.Client).StopContext"
+  echo "format a single file:"
+  echo "$ terrafmt fmt ./website/path/to/file.html.markdown"
   echo ""
-  echo "to"
+  echo "format all website files:"
+  echo "$ find . | egrep html.markdown | sort | while read f; do terrafmt fmt \$f; done"
   echo ""
-  echo "> ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)"
-  echo "> defer cancel()"
   echo ""
-  echo "where 'ForCreate', 'ForCreateUpdate', 'ForDelete', 'ForRead' and 'ForUpdate' are available"
-  echo ""
-  echo "and then configuring Timeouts on the resource:"
-  echo ""
-  echo "> return &schema.Resource{"
-  echo ">   ..."
-  echo ">   Timeouts: &schema.ResourceTimeout{"
-  echo ">     Create: schema.DefaultTimeout(30 * time.Minute),"
-  echo ">     Read:   schema.DefaultTimeout(5 * time.Minute),"
-  echo ">     Update: schema.DefaultTimeout(30 * time.Minute),"
-  echo ">     Delete: schema.DefaultTimeout(30 * time.Minute),"
-  echo ">   },"
-  echo ">   ..."
-  echo "> }"
   exit 1
 fi
 
