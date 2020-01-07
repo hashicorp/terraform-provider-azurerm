@@ -286,10 +286,10 @@ func flattenArmDiskEncryptionSetIdentity(input *compute.EncryptionSetIdentity) [
 		tenantId = *input.TenantID
 	}
 	return []interface{}{
-		map[string]interface{} {
-			"type": t,
+		map[string]interface{}{
+			"type":         t,
 			"principal_id": principalId,
-			"tenant_id": tenantId,
+			"tenant_id":    tenantId,
 		},
 	}
 }
