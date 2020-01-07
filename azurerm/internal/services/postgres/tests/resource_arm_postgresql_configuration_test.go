@@ -88,6 +88,9 @@ func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 
 func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -101,8 +104,7 @@ func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value str
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Configuration: %s", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -123,11 +125,13 @@ func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value str
 
 func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestpsqlsvr-%d", rInt)
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
 		if err != nil {
