@@ -179,6 +179,9 @@ func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
 
 func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -193,8 +196,7 @@ func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		vmss, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -211,6 +213,9 @@ func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestChe
 
 func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -223,8 +228,7 @@ func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", availSetName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		resp, err := client.Delete(ctx, resourceGroup, availSetName)
 		if err != nil {
 			if !response.WasNotFound(resp.Response) {
@@ -237,6 +241,9 @@ func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_availability_set" {
 			continue
@@ -245,8 +252,7 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.AvailabilitySetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
