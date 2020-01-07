@@ -76,8 +76,6 @@ func testCheckAzureRMMySQLFirewallRuleExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Firewall Rule: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

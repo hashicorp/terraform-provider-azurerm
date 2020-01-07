@@ -28,8 +28,6 @@ func testCheckAzureRMPublicIPPrefixExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for public ip prefix: %s", publicIpPrefixName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, publicIpPrefixName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on publicIPPrefixClient: %+v", err)
@@ -59,7 +57,6 @@ func testCheckAzureRMPublicIPPrefixDisappears(resourceName string) resource.Test
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for public ip prefix: %s", publicIpPrefixName)
 		}
-
 
 		future, err := client.Delete(ctx, resourceGroup, publicIpPrefixName)
 		if err != nil {

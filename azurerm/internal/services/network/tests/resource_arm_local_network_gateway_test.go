@@ -272,8 +272,6 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(resourceName string) resource
 		localNetName := id.Path["localNetworkGateways"]
 		resourceGroup := id.ResourceGroup
 
-
-
 		future, err := client.Delete(ctx, resourceGroup, localNetName)
 		if err != nil {
 			if response.WasNotFound(future.Response()) {
@@ -305,7 +303,6 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 		}
 		localNetName := id.Path["localNetworkGateways"]
 		resourceGroup := id.ResourceGroup
-
 
 		resp, err := client.Get(ctx, resourceGroup, localNetName)
 

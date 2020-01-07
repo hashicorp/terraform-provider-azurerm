@@ -116,8 +116,6 @@ func testCheckAzureRMPointToSiteVPNGatewayExists(resourceName string) resource.T
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: VPN Gateway %q (Resource Group %q) does not exist", name, resourceGroup)
@@ -138,7 +136,6 @@ func testCheckAzureRMPointToSiteVPNGatewayDestroy(s *terraform.State) error {
 		if rs.Type != "azurerm_vpn_server_configuration" {
 			continue
 		}
-
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]

@@ -213,8 +213,6 @@ func testCheckAzureRMLoadBalancerExists(resourceName string, lb *network.LoadBal
 			return fmt.Errorf("Bad: no resource group found in state for loadbalancer: %s", loadBalancerName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, loadBalancerName, "")
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

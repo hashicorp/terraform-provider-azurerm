@@ -99,8 +99,6 @@ func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName string)
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS zone virtual network link: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, dnsZoneName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

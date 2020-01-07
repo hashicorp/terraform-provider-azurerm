@@ -186,8 +186,6 @@ func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-
-
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
@@ -227,8 +225,6 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-
-
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
@@ -261,8 +257,6 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 		if rs.Type != "azurerm_storage_container" {
 			continue
 		}
-
-
 
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]

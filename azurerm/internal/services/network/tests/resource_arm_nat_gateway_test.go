@@ -89,7 +89,6 @@ func testCheckAzureRMNatGatewayExists(resourceName string) resource.TestCheckFun
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.NatGatewayClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Nat Gateway not found: %s", resourceName)
@@ -97,7 +96,6 @@ func testCheckAzureRMNatGatewayExists(resourceName string) resource.TestCheckFun
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
 
 		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

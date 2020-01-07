@@ -120,7 +120,6 @@ func testCheckAzureRMRedisFirewallRuleExists(resourceName string) resource.TestC
 		cacheName := rs.Primary.Attributes["redis_cache_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
 		resp, err := client.Get(ctx, resourceGroup, cacheName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

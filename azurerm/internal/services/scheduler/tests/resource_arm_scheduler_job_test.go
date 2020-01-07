@@ -432,8 +432,6 @@ func testCheckAzureRMSchedulerJobDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		jobCollection := rs.Primary.Attributes["job_collection_name"]
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, jobCollection, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -467,8 +465,6 @@ func testCheckAzureRMSchedulerJobExists(resourceName string) resource.TestCheckF
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Scheduler Job: %q", name)
 		}
-
-
 
 		resp, err := client.Get(ctx, resourceGroup, jobCollection, name)
 		if err != nil {

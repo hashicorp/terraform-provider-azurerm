@@ -142,7 +142,6 @@ func testCheckAzureRMSubnetNatGatewayAssociationDisappears(resourceName string) 
 		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 		subnetName := parsedSubnetId.Path["subnets"]
 
-
 		subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(subnet.Response) {
@@ -186,7 +185,6 @@ func testCheckAzureRMSubnetHasNoNatGateways(resourceName string) resource.TestCh
 		resourceGroupName := parsedSubnetId.ResourceGroup
 		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 		subnetName := parsedSubnetId.Path["subnets"]
-
 
 		subnet, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {

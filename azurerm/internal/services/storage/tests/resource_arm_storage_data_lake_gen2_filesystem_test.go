@@ -91,8 +91,6 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName string) re
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-
-
 		fileSystemName := rs.Primary.Attributes["name"]
 		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
 		if err != nil {
@@ -120,8 +118,6 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemDestroy(s *terraform.State) er
 		if rs.Type != "azurerm_storage_data_lake_gen2_filesystem" {
 			continue
 		}
-
-
 
 		fileSystemName := rs.Primary.Attributes["name"]
 		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])

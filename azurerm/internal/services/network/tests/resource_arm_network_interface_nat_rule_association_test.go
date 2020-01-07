@@ -100,8 +100,6 @@ func testCheckAzureRMNetworkInterfaceNATRuleAssociationExists(resourceName strin
 		natRuleId := rs.Primary.Attributes["nat_rule_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-
-
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {
 			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
@@ -151,8 +149,6 @@ func testCheckAzureRMNetworkInterfaceNATRuleAssociationDisappears(resourceName s
 		resourceGroup := nicID.ResourceGroup
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 		natRuleId := rs.Primary.Attributes["nat_rule_id"]
-
-
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {

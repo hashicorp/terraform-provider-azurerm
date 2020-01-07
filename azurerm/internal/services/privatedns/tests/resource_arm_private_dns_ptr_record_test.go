@@ -123,7 +123,6 @@ func testCheckAzureRMPrivateDnsPtrRecordExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS PTR record: %s", ptrName)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.PTR, ptrName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get PTR RecordSet: %+v", err)

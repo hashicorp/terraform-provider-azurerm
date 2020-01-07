@@ -203,8 +203,6 @@ func testCheckAzureRMServiceBusSubscriptionRuleExists(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for Subscription Rule: %q", ruleName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, ruleName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on serviceBusRulesClient: %+v", err)

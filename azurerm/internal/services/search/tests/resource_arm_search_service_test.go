@@ -121,8 +121,6 @@ func testCheckAzureRMSearchServiceExists(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		searchName := rs.Primary.Attributes["name"]
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -147,8 +145,6 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		searchName := rs.Primary.Attributes["name"]
-
-
 
 		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
 		if err != nil {

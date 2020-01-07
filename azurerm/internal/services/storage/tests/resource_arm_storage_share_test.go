@@ -166,7 +166,6 @@ func testCheckAzureRMStorageShareExists(resourceName string) resource.TestCheckF
 		shareName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
 			return fmt.Errorf("Error retrieving Account %q for Share %q: %s", accountName, shareName, err)
@@ -201,8 +200,6 @@ func testCheckAzureRMStorageShareDisappears(resourceName string) resource.TestCh
 		shareName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-
-
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
 			return fmt.Errorf("Error retrieving Account %q for Share %q: %s", accountName, shareName, err)
@@ -235,8 +232,6 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 
 		shareName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

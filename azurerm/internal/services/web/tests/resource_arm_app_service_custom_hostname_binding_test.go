@@ -181,7 +181,6 @@ func testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName string) 
 		appServiceName := rs.Primary.Attributes["app_service_name"]
 		hostname := rs.Primary.Attributes["hostname"]
 
-
 		resp, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

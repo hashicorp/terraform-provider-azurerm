@@ -100,8 +100,6 @@ func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssocia
 		backendAddressPoolId := rs.Primary.Attributes["backend_address_pool_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-
-
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {
 			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
@@ -151,8 +149,6 @@ func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssocia
 		resourceGroup := nicID.ResourceGroup
 		backendAddressPoolId := rs.Primary.Attributes["backend_address_pool_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
-
-
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {

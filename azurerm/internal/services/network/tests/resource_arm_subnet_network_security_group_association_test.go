@@ -104,7 +104,6 @@ func testCheckAzureRMSubnetNetworkSecurityGroupAssociationExists(resourceName st
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -148,7 +147,6 @@ func testCheckAzureRMSubnetNetworkSecurityGroupAssociationDisappears(resourceNam
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-
 		read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(read.Response) {
@@ -190,7 +188,6 @@ func testCheckAzureRMSubnetHasNoNetworkSecurityGroup(resourceName string) resour
 		resourceGroupName := parsedId.ResourceGroup
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
-
 
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {

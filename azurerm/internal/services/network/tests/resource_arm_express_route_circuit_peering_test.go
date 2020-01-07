@@ -125,8 +125,6 @@ func testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit Peering: %s", peeringType)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

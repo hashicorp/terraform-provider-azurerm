@@ -96,7 +96,6 @@ func testCheckAzureRMPrivateDnsZoneExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS zone: %s", zoneName)
 		}
 
-
 		resp, err := client.Get(ctx, resourceGroup, zoneName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get Private DNS zone: %+v", err)

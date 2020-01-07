@@ -266,8 +266,6 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 		policySetName := rs.Primary.Attributes["name"]
 		managementGroupId := rs.Primary.Attributes["management_group_id"]
 
-
-
 		var err error
 		var resp policy.SetDefinition
 		if managementGroupId != "" {

@@ -103,7 +103,6 @@ func testCheckAzureRMSubnetRouteTableAssociationExists(resourceName string) reso
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -147,7 +146,6 @@ func testCheckAzureRMSubnetRouteTableAssociationDisappears(resourceName string) 
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-
 		read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(read.Response) {
@@ -189,7 +187,6 @@ func testCheckAzureRMSubnetHasNoRouteTable(resourceName string) resource.TestChe
 		resourceGroupName := parsedId.ResourceGroup
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
-
 
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {

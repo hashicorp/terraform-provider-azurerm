@@ -123,7 +123,6 @@ func testCheckAzureRMPrivateDnsSrvRecordExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS SRV record: %s", srvName)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.SRV, srvName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get SRV RecordSet: %+v", err)

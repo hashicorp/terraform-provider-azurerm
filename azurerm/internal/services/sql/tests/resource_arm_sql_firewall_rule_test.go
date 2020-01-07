@@ -99,8 +99,6 @@ func testCheckAzureRMSqlFirewallRuleExists(resourceName string) resource.TestChe
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -126,8 +124,6 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -158,8 +154,6 @@ func testCheckAzureRMSqlFirewallRuleDisappears(resourceName string) resource.Tes
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-
 
 		resp, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {

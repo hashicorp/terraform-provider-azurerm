@@ -437,8 +437,6 @@ func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for Redis Instance: %s", redisName)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, redisName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on redis.Client: %+v", err)

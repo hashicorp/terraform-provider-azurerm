@@ -558,8 +558,6 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-
-
 		name := rs.Primary.Attributes["name"]
 		containerName := rs.Primary.Attributes["storage_container_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
@@ -601,8 +599,6 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-
-
 		name := rs.Primary.Attributes["name"]
 		containerName := rs.Primary.Attributes["storage_container_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
@@ -640,8 +636,6 @@ func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind blobs.Blob
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
-
-
 
 		name := rs.Primary.Attributes["name"]
 		containerName := rs.Primary.Attributes["storage_container_name"]
@@ -702,8 +696,6 @@ func testCheckAzureRMStorageBlobDestroy(s *terraform.State) error {
 		if rs.Type != "azurerm_storage_blob" {
 			continue
 		}
-
-
 
 		name := rs.Primary.Attributes["name"]
 		containerName := rs.Primary.Attributes["storage_container_name"]

@@ -283,8 +283,6 @@ func testCheckAzureRMVirtualNetworkGatewayExists(resourceName string) resource.T
 		gatewayName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vnetGatewayClient: %+v", err)

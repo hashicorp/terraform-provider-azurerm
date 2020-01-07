@@ -382,7 +382,7 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-	if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
+		if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
 			return fmt.Errorf("Bad: Delete on trafficManagerEndpointsClient: %+v", err)
 		}
 

@@ -165,7 +165,6 @@ func testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName str
 			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Namespace: %s", name)
 		}
 
-
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

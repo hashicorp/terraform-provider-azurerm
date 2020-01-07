@@ -162,8 +162,6 @@ func testCheckAzureRMBackupProtectedVmDestroy(s *terraform.State) error {
 		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
-
-
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

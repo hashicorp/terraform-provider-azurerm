@@ -262,8 +262,6 @@ func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCh
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, serverName, poolName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on msSqlElasticPoolsClient: %+v", err)
@@ -317,8 +315,6 @@ func testCheckAzureRMMsSqlElasticPoolDisappears(resourceName string) resource.Te
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
-
-
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName, poolName); err != nil {
 			return fmt.Errorf("Bad: Delete on msSqlElasticPoolsClient: %+v", err)

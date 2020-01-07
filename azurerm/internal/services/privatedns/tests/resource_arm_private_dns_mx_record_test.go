@@ -141,7 +141,6 @@ func testCheckAzureRMPrivateDnsMxRecordExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS MX record: %s", mxName)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.MX, mxName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get MX RecordSet: %+v", err)

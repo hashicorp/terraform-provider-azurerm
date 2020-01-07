@@ -107,8 +107,6 @@ func testCheckAzureRMMariaDbConfigurationValue(resourceName string, value string
 			return fmt.Errorf("Bad: no resource group found in state for MariaDb Configuration: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -133,8 +131,6 @@ func testCheckAzureRMMariaDbConfigurationValueReset(rInt int, configurationName 
 
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestmariadbsvr-%d", rInt)
-
-
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
 		if err != nil {

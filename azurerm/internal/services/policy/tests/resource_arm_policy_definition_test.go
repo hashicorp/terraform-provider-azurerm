@@ -102,8 +102,6 @@ func testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(policyName string) resour
 		policyName := rs.Primary.Attributes["name"]
 		managementGroupID := rs.Primary.Attributes["management_group_id"]
 
-
-
 		resp, err := client.GetAtManagementGroup(ctx, policyName, managementGroupID)
 		if err != nil {
 			return fmt.Errorf("Bad: GetAtManagementGroup on policyDefinitionsClient: %s", err)
@@ -128,8 +126,6 @@ func testCheckAzureRMPolicyDefinitionExists(resourceName string) resource.TestCh
 		}
 
 		policyName := rs.Primary.Attributes["name"]
-
-
 
 		resp, err := client.Get(ctx, policyName)
 		if err != nil {

@@ -218,8 +218,6 @@ func testCheckAzureRMManagementGroupExists(resourceName string) resource.TestChe
 
 		groupName := rs.Primary.Attributes["group_id"]
 
-
-
 		recurse := false
 		resp, err := client.Get(ctx, groupName, "", &recurse, "", "no-cache")
 		if err != nil {

@@ -117,8 +117,6 @@ func testCheckAzureRMPolicyAssignmentExists(resourceName string) resource.TestCh
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-
-
 		id := rs.Primary.ID
 		resp, err := client.GetByID(ctx, id)
 		if err != nil {

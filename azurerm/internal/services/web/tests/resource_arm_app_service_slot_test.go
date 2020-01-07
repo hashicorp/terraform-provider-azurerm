@@ -1435,7 +1435,6 @@ func testCheckAzureRMAppServiceSlotExists(slot string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for App Service Slot: %q/%q", appServiceName, slot)
 		}
 
-
 		resp, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

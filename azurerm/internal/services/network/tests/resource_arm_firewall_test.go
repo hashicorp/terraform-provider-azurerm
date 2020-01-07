@@ -249,7 +249,6 @@ func testCheckAzureRMFirewallExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
 		}
 
-
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -279,7 +278,6 @@ func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckF
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
 		}
-
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {

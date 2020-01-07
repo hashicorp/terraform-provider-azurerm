@@ -151,7 +151,6 @@ func testCheckAzureRMMonitorDiagnosticSettingExists(resourceName string) resourc
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-
 		name := rs.Primary.Attributes["name"]
 		actualResourceId := rs.Primary.Attributes["target_resource_id"]
 		targetResourceId := strings.TrimPrefix(actualResourceId, "/")

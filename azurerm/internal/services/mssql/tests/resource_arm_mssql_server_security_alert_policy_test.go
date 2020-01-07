@@ -85,8 +85,6 @@ func testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName string) r
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, serverName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -112,8 +110,6 @@ func testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy(s *terraform.State) e
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
-
-
 
 		resp, err := client.Get(ctx, resourceGroup, serverName)
 		if err != nil {

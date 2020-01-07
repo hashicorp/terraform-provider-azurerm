@@ -153,7 +153,6 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName string)
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -167,7 +166,6 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName string)
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Queue Authorization Rule: %s", name)
 		}
-
 
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
 		if err != nil {

@@ -167,8 +167,6 @@ func testCheckAzureRMMetricAlertRuleExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for Alert Rule: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

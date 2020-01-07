@@ -136,8 +136,6 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-
-
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
 			return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", accountName, name, err)
@@ -175,8 +173,6 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

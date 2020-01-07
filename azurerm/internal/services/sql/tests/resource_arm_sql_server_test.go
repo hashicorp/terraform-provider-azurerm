@@ -188,7 +188,6 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s", sqlServerName)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -242,8 +241,6 @@ func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheck
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["name"]
-
-
 
 		future, err := client.Delete(ctx, resourceGroup, serverName)
 		if err != nil {

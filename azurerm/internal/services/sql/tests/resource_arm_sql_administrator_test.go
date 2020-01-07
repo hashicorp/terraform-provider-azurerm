@@ -98,8 +98,6 @@ func testCheckAzureRMSqlAdministratorExists(resourceName string) resource.TestCh
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-
-
 		_, err := client.Get(ctx, resourceGroup, serverName)
 		return err
 	}
@@ -117,8 +115,6 @@ func testCheckAzureRMSqlAdministratorDisappears(resourceName string) resource.Te
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
-
-
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName); err != nil {
 			return fmt.Errorf("Bad: Delete on sqlAdministratorClient: %+v", err)
@@ -139,7 +135,6 @@ func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
-
 
 		resp, err := client.Get(ctx, resourceGroup, serverName)
 		if err != nil {

@@ -196,8 +196,6 @@ func testCheckAzureRMTemplateDeploymentExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on deploymentsClient: %s", err)
@@ -227,8 +225,6 @@ func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", deploymentName)
 		}
-
-
 
 		if _, err := client.Delete(ctx, resourceGroup, deploymentName); err != nil {
 			return fmt.Errorf("Failed deleting Deployment %q (Resource Group %q): %+v", deploymentName, resourceGroup, err)

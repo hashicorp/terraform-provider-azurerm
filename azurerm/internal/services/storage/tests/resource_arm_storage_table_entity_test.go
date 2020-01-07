@@ -100,8 +100,6 @@ func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFu
 		partitionKey := rs.Primary.Attributes["partition_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
 
-
-
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
 			return fmt.Errorf("Error locating Resource Group for Storage Table Entity (Partition Key %q / Row Key %q) (Table %q / Account %q): %v", partitionKey, rowKey, tableName, accountName, err)
@@ -146,8 +144,6 @@ func testCheckAzureRMTableEntityDestroy(s *terraform.State) error {
 		accountName := rs.Primary.Attributes["storage_account_name"]
 		partitionKey := rs.Primary.Attributes["parititon_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
-
-
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

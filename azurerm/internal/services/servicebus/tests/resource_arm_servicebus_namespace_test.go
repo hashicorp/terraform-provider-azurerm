@@ -212,8 +212,6 @@ func testCheckAzureRMServiceBusNamespaceExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for Service Bus Namespace: %s", namespaceName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, namespaceName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on serviceBusNamespacesClient: %+v", err)

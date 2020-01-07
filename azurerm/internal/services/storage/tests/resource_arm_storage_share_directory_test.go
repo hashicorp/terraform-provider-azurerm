@@ -151,8 +151,6 @@ func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.T
 		shareName := rs.Primary.Attributes["share_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-
-
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
 			return fmt.Errorf("Error retrieving Account %q for Directory %q (Share %q): %s", accountName, name, shareName, err)
@@ -191,8 +189,6 @@ func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		shareName := rs.Primary.Attributes["share_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

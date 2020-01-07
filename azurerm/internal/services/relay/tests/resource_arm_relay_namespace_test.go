@@ -150,7 +150,6 @@ func testCheckAzureRMRelayNamespaceExists(resourceName string) resource.TestChec
 
 		// Ensure resource group exists in API
 
-
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on relayNamespacesClient: %+v", err)

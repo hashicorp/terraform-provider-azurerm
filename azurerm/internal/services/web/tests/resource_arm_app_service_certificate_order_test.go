@@ -216,7 +216,6 @@ func testCheckAzureRMAppServiceCertificateOrderExists(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for App Service Certificate Order: %s", appServiceName)
 		}
 
-
 		resp, err := client.Get(ctx, resourceGroup, appServiceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

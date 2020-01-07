@@ -247,7 +247,6 @@ func testCheckAzureRMNetworkSecurityGroupExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for network security group: %q", sgName)
 		}
 
-
 		resp, err := client.Get(ctx, resourceGroup, sgName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -276,7 +275,6 @@ func testCheckAzureRMNetworkSecurityGroupDisappears(resourceName string) resourc
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for network security group: %q", sgName)
 		}
-
 
 		future, err := client.Delete(ctx, resourceGroup, sgName)
 		if err != nil {

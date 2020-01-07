@@ -150,7 +150,6 @@ func testCheckAzureRMVPNGatewayExists(resourceName string) resource.TestCheckFun
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		name := rs.Primary.Attributes["name"]
 
-
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on VpnGatewaysClient: %+v", err)
@@ -175,7 +174,6 @@ func testCheckAzureRMVPNGatewayDestroy(s *terraform.State) error {
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		name := rs.Primary.Attributes["name"]
-
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {

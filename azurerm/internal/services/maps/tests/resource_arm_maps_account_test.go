@@ -101,8 +101,6 @@ func testCheckAzureRMMapsAccountExists(resourceName string) resource.TestCheckFu
 		mapsAccountName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, mapsAccountName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on MapsAccountClient: %+v", err)

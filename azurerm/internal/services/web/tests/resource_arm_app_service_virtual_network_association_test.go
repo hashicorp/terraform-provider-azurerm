@@ -100,7 +100,6 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(resourceName 
 		name := parsedID.Path["sites"]
 		resourceGroup := parsedID.ResourceGroup
 
-
 		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -132,7 +131,6 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDisappears(resourceN
 		}
 		name := parsedID.Path["sites"]
 		resourceGroup := parsedID.ResourceGroup
-
 
 		resp, err := client.DeleteSwiftVirtualNetwork(ctx, resourceGroup, name)
 		if err != nil {

@@ -171,8 +171,6 @@ func testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName string) resour
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Linked Service: '%s'", name)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, workspaceName, lsName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on Log Analytics Linked Service Client: %+v", err)

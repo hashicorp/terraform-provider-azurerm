@@ -348,8 +348,6 @@ func testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName string) resource.T
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -378,8 +376,6 @@ func testCheckAzureRMSqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -413,7 +409,6 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(resourceName string) resour
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {

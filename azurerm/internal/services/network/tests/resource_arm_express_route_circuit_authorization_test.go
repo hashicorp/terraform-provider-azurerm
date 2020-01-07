@@ -100,8 +100,6 @@ func testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName string)
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit Authorization: %s", expressRouteCircuitName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, expressRouteCircuitName, authorizationName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

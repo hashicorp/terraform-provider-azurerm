@@ -211,8 +211,6 @@ func testCheckAzureRMNetworkWatcherExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -241,7 +239,6 @@ func testCheckAzureRMNetworkWatcherDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", name)
 		}
 
-
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
 			if !response.WasNotFound(future.Response()) {
@@ -268,7 +265,6 @@ func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 

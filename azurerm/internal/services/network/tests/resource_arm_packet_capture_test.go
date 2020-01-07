@@ -128,8 +128,6 @@ func testCheckAzureRMPacketCaptureExists(resourceName string) resource.TestCheck
 		watcherName := rs.Primary.Attributes["network_watcher_name"]
 		packetCaptureName := rs.Primary.Attributes["name"]
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, watcherName, packetCaptureName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on packetCapturesClient: %s", err)

@@ -927,8 +927,6 @@ func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Application Gateway: %q", gatewayName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

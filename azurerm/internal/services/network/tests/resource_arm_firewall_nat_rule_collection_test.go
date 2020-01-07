@@ -243,7 +243,6 @@ func testCheckAzureRMFirewallNatRuleCollectionExists(resourceName string) resour
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
@@ -279,7 +278,6 @@ func testCheckAzureRMFirewallNatRuleCollectionDoesNotExist(resourceName string, 
 		firewallName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
@@ -309,7 +307,6 @@ func testCheckAzureRMFirewallNatRuleCollectionDisappears(resourceName string) re
 		name := rs.Primary.Attributes["name"]
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
 
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {

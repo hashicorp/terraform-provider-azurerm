@@ -200,8 +200,6 @@ func testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName string)
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-
-
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		notificationHubName := rs.Primary.Attributes["notification_hub_name"]
 		namespaceName := rs.Primary.Attributes["namespace_name"]

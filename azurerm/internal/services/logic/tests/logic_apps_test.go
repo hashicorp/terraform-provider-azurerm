@@ -32,8 +32,6 @@ func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestChec
 		workflowName := id.Path["workflows"]
 		resourceGroup := id.ResourceGroup
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on logicWorkflowsClient: %+v", err)
@@ -81,8 +79,6 @@ func testCheckAzureRMLogicAppTriggerExists(resourceName string) resource.TestChe
 		triggerName := rs.Primary.Attributes["name"]
 		workflowName := id.Path["workflows"]
 		resourceGroup := id.ResourceGroup
-
-
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
 		if err != nil {

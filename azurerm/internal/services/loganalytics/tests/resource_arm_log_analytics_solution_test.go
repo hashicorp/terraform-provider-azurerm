@@ -117,8 +117,6 @@ func testCheckAzureRMLogAnalyticsSolutionExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Workspace: %q", name)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on Log Analytics Solutions Client: %+v", err)

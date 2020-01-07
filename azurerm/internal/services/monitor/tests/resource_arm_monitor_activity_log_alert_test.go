@@ -370,8 +370,6 @@ func testCheckAzureRMMonitorActivityLogAlertExists(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for Activity Log Alert Instance: %s", name)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on monitorActivityLogAlertsClient: %+v", err)

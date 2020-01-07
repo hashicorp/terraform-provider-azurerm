@@ -88,8 +88,6 @@ func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Media Services Account: '%s'", name)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on mediaServicesClient: %+v", err)

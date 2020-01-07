@@ -671,7 +671,6 @@ func testCheckAzureRMFunctionAppExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for Function App: %s", functionAppName)
 		}
 
-
 		resp, err := client.Get(ctx, resourceGroup, functionAppName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -701,8 +700,6 @@ func testCheckAzureRMFunctionAppHasContentShare(resourceName string) resource.Te
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Function App: %s", functionAppName)
 		}
-
-
 
 		appSettingsResp, err := client.ListApplicationSettings(ctx, resourceGroup, functionAppName)
 		if err != nil {

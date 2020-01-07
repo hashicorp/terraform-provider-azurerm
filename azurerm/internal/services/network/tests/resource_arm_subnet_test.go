@@ -281,8 +281,6 @@ func testCheckAzureRMSubnetExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, vnetName, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -316,8 +314,6 @@ func testCheckAzureRMSubnetRouteTableExists(resourceName string, routeTableId st
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", subnetName)
 		}
-
-
 
 		vnetResp, vnetErr := networksClient.Get(ctx, resourceGroup, vnetName, "")
 		if vnetErr != nil {
@@ -366,7 +362,6 @@ func testCheckAzureRMSubnetDisappears(resourceName string) resource.TestCheckFun
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
-
 
 		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
 		if err != nil {

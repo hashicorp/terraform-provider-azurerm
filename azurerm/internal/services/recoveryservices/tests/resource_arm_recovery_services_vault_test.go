@@ -77,8 +77,6 @@ func testCheckAzureRMRecoveryServicesVaultDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -110,7 +108,6 @@ func testCheckAzureRMRecoveryServicesVaultExists(resourceName string) resource.T
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Recovery Services Vault: %q", name)
 		}
-
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {

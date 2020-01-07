@@ -279,8 +279,6 @@ func testCheckAzureRMServiceBusTopicExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for topic: %s", topicName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on serviceBusTopicsClient: %+v", err)

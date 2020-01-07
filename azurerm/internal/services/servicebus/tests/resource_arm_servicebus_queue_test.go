@@ -325,8 +325,6 @@ func testCheckAzureRMServiceBusQueueExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for queue: %s", queueName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, queueName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on serviceBusQueuesClient: %s", err)

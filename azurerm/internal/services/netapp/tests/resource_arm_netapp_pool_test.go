@@ -123,8 +123,6 @@ func testCheckAzureRMNetAppPoolExists(resourceName string) resource.TestCheckFun
 		accountName := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: NetApp Pool %q (Resource Group %q) does not exist", name, resourceGroup)

@@ -303,8 +303,6 @@ func testCheckAzureRMMonitorAutoScaleSettingExists(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for Monitor AutoScale Setting: %s", autoscaleSettingName)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, autoscaleSettingName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on Monitor AutoScale Setting: %+v", err)

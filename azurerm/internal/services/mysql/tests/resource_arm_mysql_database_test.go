@@ -116,8 +116,6 @@ func testCheckAzureRMMySQLDatabaseExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Database: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

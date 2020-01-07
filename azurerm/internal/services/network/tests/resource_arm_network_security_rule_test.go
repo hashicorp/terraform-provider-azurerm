@@ -145,7 +145,6 @@ func testCheckAzureRMNetworkSecurityRuleExists(resourceName string) resource.Tes
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityRuleClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -157,7 +156,6 @@ func testCheckAzureRMNetworkSecurityRuleExists(resourceName string) resource.Tes
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for network security rule: %q", sgName)
 		}
-
 
 		resp, err := client.Get(ctx, resourceGroup, sgName, sgrName)
 		if err != nil {
@@ -187,7 +185,6 @@ func testCheckAzureRMNetworkSecurityRuleDisappears(resourceName string) resource
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for network security rule: %s", sgName)
 		}
-
 
 		future, err := client.Delete(ctx, resourceGroup, sgName, sgrName)
 		if err != nil {

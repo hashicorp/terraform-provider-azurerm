@@ -490,7 +490,6 @@ func testCheckAzureRMPublicIpDisappears(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for public ip: %s", publicIpName)
 		}
 
-
 		future, err := client.Delete(ctx, resourceGroup, publicIpName)
 		if err != nil {
 			return fmt.Errorf("Error deleting Public IP %q (Resource Group %q): %+v", publicIpName, resourceGroup, err)

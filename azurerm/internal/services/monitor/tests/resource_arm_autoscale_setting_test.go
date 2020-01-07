@@ -303,8 +303,6 @@ func testCheckAzureRMAutoScaleSettingExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for AutoScale Setting: %s", autoscaleSettingName)
 		}
 
-
-
 		resp, err := conn.Get(ctx, resourceGroup, autoscaleSettingName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on AutoScale Setting: %+v", err)

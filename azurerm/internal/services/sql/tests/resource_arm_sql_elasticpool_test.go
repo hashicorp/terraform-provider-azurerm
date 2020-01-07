@@ -106,7 +106,6 @@ func testCheckAzureRMSqlElasticPoolExists(resourceName string) resource.TestChec
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ElasticPoolsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -115,7 +114,6 @@ func testCheckAzureRMSqlElasticPoolExists(resourceName string) resource.TestChec
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
-
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, poolName)
 		if err != nil {
@@ -162,7 +160,6 @@ func testCheckAzureRMSqlElasticPoolDisappears(resourceName string) resource.Test
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ElasticPoolsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -172,7 +169,6 @@ func testCheckAzureRMSqlElasticPoolDisappears(resourceName string) resource.Test
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
-
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName, poolName); err != nil {
 			return fmt.Errorf("Bad: Delete on sqlElasticPoolsClient: %+v", err)

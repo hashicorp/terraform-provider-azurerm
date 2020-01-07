@@ -281,8 +281,6 @@ func testCheckAzureRMConnectionMonitorExists(resourceName string) resource.TestC
 		watcherName := rs.Primary.Attributes["network_watcher_name"]
 		connectionMonitorName := rs.Primary.Attributes["name"]
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, watcherName, connectionMonitorName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on connectionMonitorsClient: %s", err)

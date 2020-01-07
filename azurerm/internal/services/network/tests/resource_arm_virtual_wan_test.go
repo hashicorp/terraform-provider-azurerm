@@ -122,7 +122,6 @@ func testCheckAzureRMVirtualWanExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for Virtual WAN: %s", virtualWanName)
 		}
 
-
 		resp, err := client.Get(ctx, resourceGroup, virtualWanName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on virtualWanClient: %+v", err)

@@ -107,8 +107,6 @@ func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Logic App Workflow: %s", workflowName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on logicWorkflowsClient: %+v", err)

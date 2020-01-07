@@ -100,8 +100,6 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(r
 		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-
-
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {
 			return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
@@ -151,8 +149,6 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationDisappea
 		resourceGroup := nicID.ResourceGroup
 		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
-
-
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {

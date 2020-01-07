@@ -76,8 +76,6 @@ func testCheckAzureRMMariaDBFirewallRuleExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for MariaDB Firewall Rule: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

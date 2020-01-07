@@ -181,8 +181,6 @@ func testCheckAzureRMLogProfileExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-
-
 		name := rs.Primary.Attributes["name"]
 		resp, err := client.Get(ctx, name)
 		if err != nil {
@@ -209,8 +207,6 @@ func testCheckAzureRMLogProfileDisappears(resourceName string) resource.TestChec
 		}
 
 		name := rs.Primary.Attributes["name"]
-
-
 
 		if _, err := client.Delete(ctx, name); err != nil {
 			return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)

@@ -245,8 +245,6 @@ func testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccount
 	resourceGroupName := rid.ResourceGroup
 	storageAccountName := rid.Path["storageAccounts"]
 
-
-
 	response, err := conn.Get(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		if response.Response.IsHTTPStatus(404) {

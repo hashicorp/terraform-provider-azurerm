@@ -668,8 +668,6 @@ func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestChec
 		storageAccount := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
@@ -697,8 +695,6 @@ func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.Test
 
 		storageAccount := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-
 
 		if _, err := conn.Delete(ctx, resourceGroup, storageAccount); err != nil {
 			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)

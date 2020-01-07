@@ -140,7 +140,6 @@ func testCheckAzureRMPrivateDnsCNameRecordExists(resourceName string) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS CNAME record: %s", aName)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.CNAME, aName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get CNAME RecordSet: %+v", err)

@@ -157,8 +157,6 @@ func testCheckAzureRMRouteExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for route: %q", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, rtName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -187,8 +185,6 @@ func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for route: %s", name)
 		}
-
-
 
 		future, err := client.Delete(ctx, resourceGroup, rtName, name)
 		if err != nil {

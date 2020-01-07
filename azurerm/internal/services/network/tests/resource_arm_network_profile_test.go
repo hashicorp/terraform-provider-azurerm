@@ -126,7 +126,6 @@ func testCheckAzureRMNetworkProfileExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Network Profile: %q", name)
 		}
 
-
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -156,7 +155,6 @@ func testCheckAzureRMNetworkProfileDisappears(resourceName string) resource.Test
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Network Profile: %q", name)
 		}
-
 
 		if _, err := client.Delete(ctx, resourceGroup, name); err != nil {
 			return fmt.Errorf("Bad: Delete on netProfileClient: %+v", err)

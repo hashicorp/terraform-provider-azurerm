@@ -291,7 +291,6 @@ func testCheckAzureRMAppServicePlanExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for App Service Plan: %s", appServicePlanName)
 		}
 
-
 		resp, err := conn.Get(ctx, resourceGroup, appServicePlanName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

@@ -206,7 +206,6 @@ func testCheckAzureRMRelayHybridConnectionExists(resourceName string) resource.T
 
 		// Ensure resource group exists in API
 
-
 		resp, err := client.Get(ctx, resourceGroup, relayNamespace, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on relayHybridConnectionsClient: %+v", err)

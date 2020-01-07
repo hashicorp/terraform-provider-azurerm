@@ -142,8 +142,6 @@ func testCheckAzureRMVirtualHubExists(resourceName string) resource.TestCheckFun
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Virtual Hub %q (Resource Group %q) does not exist", name, resourceGroup)

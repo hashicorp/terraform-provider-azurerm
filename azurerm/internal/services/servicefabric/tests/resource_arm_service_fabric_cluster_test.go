@@ -763,8 +763,6 @@ func testCheckAzureRMServiceFabricClusterExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Service Fabric Cluster %q", clusterName)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, clusterName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on serviceFabricClustersClient: %+v", err)

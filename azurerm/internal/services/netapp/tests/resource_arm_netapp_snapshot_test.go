@@ -123,8 +123,6 @@ func testCheckAzureRMNetAppSnapshotExists(resourceName string) resource.TestChec
 		volumeName := rs.Primary.Attributes["volume_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
-
 		if resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: NetApp Snapshot %q (Resource Group %q) does not exist", name, resourceGroup)

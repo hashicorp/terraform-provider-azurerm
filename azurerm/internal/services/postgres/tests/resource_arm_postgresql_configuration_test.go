@@ -104,8 +104,6 @@ func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value str
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Configuration: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -130,8 +128,6 @@ func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationNa
 
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestpsqlsvr-%d", rInt)
-
-
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
 		if err != nil {

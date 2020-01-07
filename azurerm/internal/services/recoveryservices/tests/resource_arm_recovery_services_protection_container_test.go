@@ -65,7 +65,6 @@ func testCheckAzureRMRecoveryProtectionContainerExists(resourceName string) reso
 	return func(s *terraform.State) error {
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-
 		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)

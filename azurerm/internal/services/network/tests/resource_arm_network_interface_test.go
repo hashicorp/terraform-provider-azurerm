@@ -395,8 +395,6 @@ func testCheckAzureRMNetworkInterfaceExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -426,8 +424,6 @@ func testCheckAzureRMNetworkInterfaceDisappears(resourceName string) resource.Te
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
-
-
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {

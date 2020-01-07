@@ -126,7 +126,6 @@ func testCheckAzureRMDDoSProtectionPlanExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for DDoS Protection Plan: %q", name)
 		}
 
-
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -156,7 +155,6 @@ func testCheckAzureRMDDoSProtectionPlanDisappears(resourceName string) resource.
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for DDoS Protection Plan: %q", name)
 		}
-
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {

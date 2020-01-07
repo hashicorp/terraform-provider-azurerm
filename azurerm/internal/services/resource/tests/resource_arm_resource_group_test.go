@@ -118,7 +118,6 @@ func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheck
 
 		// Ensure resource group exists in API
 
-
 		resp, err := client.Get(ctx, resourceGroup)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on resourceGroupClient: %+v", err)
@@ -146,7 +145,6 @@ func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestC
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-
 
 		deleteFuture, err := client.Delete(ctx, resourceGroup)
 		if err != nil {

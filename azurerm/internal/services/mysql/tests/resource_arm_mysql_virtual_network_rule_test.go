@@ -146,7 +146,6 @@ func testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName string) resource
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -172,8 +171,6 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -204,7 +201,6 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDisappears(resourceName string) reso
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {

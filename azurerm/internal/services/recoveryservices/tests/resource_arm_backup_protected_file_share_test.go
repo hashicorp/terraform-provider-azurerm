@@ -125,7 +125,6 @@ func testCheckAzureRMBackupProtectedFileShareDestroy(s *terraform.State) error {
 		protectedItemName := fmt.Sprintf("AzureFileShare;%s", fileShareName)
 		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageID.ResourceGroup, accountName)
 
-
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

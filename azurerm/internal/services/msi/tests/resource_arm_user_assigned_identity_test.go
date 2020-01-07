@@ -80,8 +80,6 @@ func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", name)
 		}
 
-
-
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on userAssignedIdentitiesClient: %+v", err)

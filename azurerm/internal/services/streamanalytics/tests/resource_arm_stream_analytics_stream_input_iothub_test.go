@@ -136,7 +136,6 @@ func testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(resourceName string)
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on streamAnalyticsInputsClient: %+v", err)

@@ -119,8 +119,6 @@ func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckF
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-
-
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
 			return fmt.Errorf("Error retrieving Account %q for Table %q: %s", accountName, tableName, err)
@@ -159,8 +157,6 @@ func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFun
 
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -203,8 +199,6 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

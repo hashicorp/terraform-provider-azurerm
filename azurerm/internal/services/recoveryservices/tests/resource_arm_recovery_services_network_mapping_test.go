@@ -145,7 +145,6 @@ func testCheckAzureRMRecoveryNetworkMappingDestroy(s *terraform.State) error {
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
 
-
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
 		if err != nil {
 			return nil

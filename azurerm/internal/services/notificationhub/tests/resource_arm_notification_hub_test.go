@@ -67,8 +67,6 @@ func testCheckAzureRMNotificationHubExists(resourceName string) resource.TestChe
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-
-
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		hubName := rs.Primary.Attributes["name"]
