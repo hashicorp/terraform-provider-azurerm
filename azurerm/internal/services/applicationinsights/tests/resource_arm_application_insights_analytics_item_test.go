@@ -151,6 +151,8 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName string)
 }
 
 func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terraform.ResourceState) (bool, error) {
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.AnalyticsItemsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 	id := rs.Primary.Attributes["id"]
 
 	resGroup, appInsightsName, itemScopePath, itemID, err := applicationinsights.ResourcesArmApplicationInsightsAnalyticsItemParseID(id)
@@ -158,8 +160,7 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terrafor
 		return false, fmt.Errorf("Failed to parse ID (id: %s): %+v", id, err)
 	}
 
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.AnalyticsItemsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 	response, err := conn.Get(ctx, resGroup, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
