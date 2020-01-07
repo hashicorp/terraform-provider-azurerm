@@ -9,6 +9,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+func TestAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t)
+}
+
 func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -43,6 +48,11 @@ func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t)
+}
+
 func testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -65,6 +75,11 @@ func testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_managedClusterIdentity(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_managedClusterIdentity(t)
+}
+
 func testAccAzureRMKubernetesCluster_managedClusterIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
@@ -82,6 +97,11 @@ func testAccAzureRMKubernetesCluster_managedClusterIdentity(t *testing.T) {
 			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal(t)
 }
 
 func testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal(t *testing.T) {
@@ -103,6 +123,11 @@ func testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal(t *t
 			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_roleBasedAccessControl(t)
 }
 
 func testAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
@@ -129,6 +154,11 @@ func testAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t)
 }
 
 func testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
