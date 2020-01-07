@@ -85,6 +85,9 @@ func testAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 
 func testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteAuthsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -97,8 +100,7 @@ func testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName string)
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit Authorization: %s", expressRouteCircuitName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRouteAuthsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		resp, err := client.Get(ctx, resourceGroup, expressRouteCircuitName, authorizationName)
 		if err != nil {

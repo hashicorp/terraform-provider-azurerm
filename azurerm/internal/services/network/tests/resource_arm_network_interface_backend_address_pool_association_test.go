@@ -81,6 +81,9 @@ func TestAccAzureRMNetworkInterfaceBackendAddressPoolAssociation_deleted(t *test
 
 func testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -97,8 +100,7 @@ func testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(resourc
 		backendAddressPoolId := rs.Primary.Attributes["backend_address_pool_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {
@@ -131,6 +133,9 @@ func testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationExists(resourc
 
 func testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -147,8 +152,6 @@ func testCheckAzureRMNetworkInterfaceBackendAddressPoolAssociationDisappears(res
 		backendAddressPoolId := rs.Primary.Attributes["backend_address_pool_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
 		if err != nil {
