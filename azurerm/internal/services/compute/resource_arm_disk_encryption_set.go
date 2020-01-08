@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -142,7 +143,7 @@ func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta inter
 	diskEncryptionSet.Identity = expandArmDiskEncryptionSetIdentity(d)
 
 	// validate whether the keyvault has soft-delete and purge-protection enabled
-	if err := validateKeyVault(ctx, meta.(*clients.Client), resourceGroup, *keyVaultID); err != nil {
+	if err := validateKeyVault(ctx, meta.(*clients.Client).KeyVault.VaultsClient, resourceGroup, *keyVaultID); err != nil {
 		return fmt.Errorf("Error creating Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -166,8 +167,7 @@ func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta inter
 	return resourceArmDiskEncryptionSetRead(d, meta)
 }
 
-func validateKeyVault(ctx context.Context, armClient *clients.Client, resourceGroup string, keyVaultID string) error {
-	client := armClient.KeyVault.VaultsClient
+func validateKeyVault(ctx context.Context, client *keyvault.VaultsClient, resourceGroup string, keyVaultID string) error {
 	parsedId, err := azure.ParseAzureResourceID(keyVaultID)
 	if err != nil {
 		return fmt.Errorf("Error parsing ID for keyvault in Disk Encryption Set: %+v", err)
