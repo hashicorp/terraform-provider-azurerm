@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_logger"
-sidebar_current: "docs-azurerm-resource-api-management-logger"
 description: |-
   Manages a Logger within an API Management Service.
 ---

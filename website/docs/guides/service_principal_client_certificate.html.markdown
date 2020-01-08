@@ -1,7 +1,6 @@
 ---
 layout: "azurerm"
 page_title: "Azure Provider: Authenticating via a Service Principal and a Client Certificate"
-sidebar_current: "docs-azurerm-guide-authentication-service-principal-client-certificate"
 description: |-
   This guide will cover how to use a Service Principal (Shared Account) with a Client Certificate as authentication for the Azure Provider.
 

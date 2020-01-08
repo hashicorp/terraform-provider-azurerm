@@ -2,7 +2,6 @@
 subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster_node_pool"
-sidebar_current: "docs-azurerm-resource-container-kubernetes-cluster-node-pool"
 description: |-
   Manages a Node Pool within a Kubernetes Cluster
 ---

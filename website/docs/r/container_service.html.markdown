@@ -2,7 +2,6 @@
 subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_service"
-sidebar_current: "docs-azurerm-resource-container-service"
 description: |-
   Manages an Azure Container Service instance.
 ---

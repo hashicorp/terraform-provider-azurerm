@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventgrid_domain"
-sidebar_current: "docs-azurerm-resource-messaging-eventgrid-domain"
 description: |-
   Manages an EventGrid Domain
 

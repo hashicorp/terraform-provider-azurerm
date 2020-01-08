@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_watcher"
-sidebar_current: "docs-azurerm-datasource-network-watcher"
 description: |-
   Gets information about an existing Network Watcher.
 ---

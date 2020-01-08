@@ -2,7 +2,6 @@
 subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_dps_certificate"
-sidebar_current: "docs-azurerm-resource-iothub-dps_certificate"
 description: |-
   Manages an IoT Device Provisioning Service Certificate.
 ---

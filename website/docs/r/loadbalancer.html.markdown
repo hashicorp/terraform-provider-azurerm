@@ -2,7 +2,6 @@
 subcategory: "Load Balancer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb"
-sidebar_current: "docs-azurerm-resource-loadbalancer-x"
 description: |-
   Manages a Load Balancer Resource.
 ---

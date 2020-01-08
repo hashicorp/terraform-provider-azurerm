@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_profile"
-sidebar_current: "docs-azurerm-resource-network-traffic-manager-profile"
 description: |-
   Manages a Traffic Manager Profile.
 

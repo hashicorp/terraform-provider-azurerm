@@ -2,7 +2,6 @@
 subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_windows_virtual_machine"
-sidebar_current: "docs-azurerm-resource-dev-test-windows-virtual-machine"
 description: |-
   Manages a Windows Virtual Machine within a Dev Test Lab.
 ---

@@ -2,7 +2,6 @@
 subcategory: "Private DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_dns_ptr_record"
-sidebar_current: "docs-azurerm-resource-private-dns-ptr-record"
 description: |-
   Manages a Private DNS PTR Record.
 ---

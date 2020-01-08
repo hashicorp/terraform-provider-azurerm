@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_notification_hub_namespace"
-sidebar_current: "docs-azurerm-datasource-notification-hub-namespace"
 description: |-
   Gets information about an existing Notification Hub Namespace.
 ---

@@ -2,7 +2,6 @@
 subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subscriptions"
-sidebar_current: "docs-azurerm-datasource-subscriptions"
 description: |-
   Get information about the available subscriptions.
 ---
