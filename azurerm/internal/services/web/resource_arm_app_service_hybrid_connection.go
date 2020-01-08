@@ -2,13 +2,14 @@ package web
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/response"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -32,30 +33,21 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"app_service_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"resource_group_name": azure.SchemaResourceGroupName(),
-			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(6, 50),
+				ValidateFunc: validateAppServiceName,
 			},
-			"relay_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": azure.SchemaResourceGroupName(),
 			"relay_arm_uri": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"hostname": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 			"port": {
 				Type:         schema.TypeInt,
@@ -65,19 +57,26 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 			"service_bus_namespace": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{0,100}[a-zA-Z0-9]$"),
+					"The namespace can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number.",
+				),
 			},
 			"service_bus_suffix": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 			"send_key_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 			"send_key_value": {
-				Type:      schema.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 		},
 	}
@@ -89,33 +88,38 @@ func resourceArmAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, m
 	defer cancel()
 
 	name := d.Get("app_service_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	namespaceName := d.Get("namespace_name").(string)
-	relayName := d.Get("relay_name").(string)
-	relayNameArmUri := d.Get("relay_arm_uri").(string)
-	hostname := d.Get("hostname").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	relayArmURI := d.Get("relay_arm_uri").(string)
+	relayId, _ := azure.ParseAzureResourceID(relayArmURI)
+
+	namespaceName := relayId.Path["namespaces"]
+	if namespaceName == "" {
+		return fmt.Errorf("Failed to parse relay namespace from ID: %s", relayArmURI)
+	}
+
+	relayName := relayId.Path["hybridConnections"]
+	if relayName == "" {
+		return fmt.Errorf("Failed to parse relay name from ID: %s", relayArmURI)
+	}
+
 	port := int32(d.Get("port").(int))
-	serviceBusSuffix := d.Get("service_bus_suffix").(string)
-	serviceBusNamespace := d.Get("service_bus_namespace").(string)
-	sendKeyName := d.Get("send_key_name").(string)
-	sendKeyValue := d.Get("send_key_value").(string)
 
 	hybridConnectionProperties := web.HybridConnectionProperties{
-		ServiceBusNamespace: &serviceBusNamespace,
+		ServiceBusNamespace: utils.String(d.Get("service_bus_namespace").(string)),
 		RelayName:           &relayName,
-		RelayArmURI:         &relayNameArmUri,
-		Hostname:            &hostname,
+		RelayArmURI:         &relayArmURI,
+		Hostname:            utils.String(d.Get("hostname").(string)),
 		Port:                &port,
-		SendKeyName:         &sendKeyName,
-		SendKeyValue:        &sendKeyValue,
-		ServiceBusSuffix:    &serviceBusSuffix,
+		SendKeyName:         utils.String(d.Get("send_key_name").(string)),
+		SendKeyValue:        utils.String(d.Get("send_key_value").(string)),
+		ServiceBusSuffix:    utils.String(d.Get("service_bus_suffix").(string)),
 	}
 
 	connectionEnvelope := web.HybridConnection{}
 	connectionEnvelope.HybridConnectionProperties = &hybridConnectionProperties
 
-	if _, err := client.CreateOrUpdateHybridConnection(ctx, resGroup, name, namespaceName, relayName, connectionEnvelope); err != nil {
-		return fmt.Errorf("Error creating App Service Hybrid Connection %q (resource group %q): %s", name, resGroup, err)
+	if _, err := client.CreateOrUpdateHybridConnection(ctx, resourceGroup, name, namespaceName, relayName, connectionEnvelope); err != nil {
+		return fmt.Errorf("Error creating App Service Hybrid Connection %q (resource group %q): %s", name, resourceGroup, err)
 	}
 	return resourceArmAppServiceHybridConnectionRead(d, meta)
 }
@@ -129,23 +133,23 @@ func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta inte
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["sites"]
 	namespaceName := id.Path["hybridConnectionNamespaces"]
 	relayName := id.Path["relays"]
 
-	resp, err := client.GetHybridConnection(ctx, resGroup, name, namespaceName, relayName)
+	resp, err := client.GetHybridConnection(ctx, resourceGroup, name, namespaceName, relayName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on App Service Hybrid Connection %q in Namespace %q, Resource Group %q: %s", name, namespaceName, resGroup, err)
+		return fmt.Errorf("Error making Read request on App Service Hybrid Connection %q in Namespace %q, Resource Group %q: %s", name, namespaceName, resourceGroup, err)
 	}
 	d.Set("app_service_name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("namespace_name", namespaceName)
-	d.Set("relay_name", relayName)
+	d.Set("resource_group_name", resourceGroup)
+	//d.Set("namespace_name", namespaceName)
+	//d.Set("relay_name", relayName)
 
 	if props := resp.HybridConnectionProperties; props != nil {
 		d.Set("port", resp.Port)
@@ -169,17 +173,17 @@ func resourceArmAppServiceHybridConnectionDelete(d *schema.ResourceData, meta in
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["sites"]
 	namespaceName := id.Path["hybridConnectionNamespaces"]
 	relayName := id.Path["relays"]
 
-	resp, err := client.DeleteHybridConnection(ctx, resGroup, name, namespaceName, relayName)
+	resp, err := client.DeleteHybridConnection(ctx, resourceGroup, name, namespaceName, relayName)
 	if err != nil {
-		if response.WasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.Response) {
 			return nil
 		}
-		return err
+		return fmt.Errorf("Error deleting App Service Hybrid Connection %q (Resource Group %q, Relay %q): %+v", name, resourceGroup, relayName, err)
 	}
 
 	return nil
