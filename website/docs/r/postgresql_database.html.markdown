@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_database"
-sidebar_current: "docs-azurerm-resource-database-postgresql-database"
 description: |-
   Manages a PostgreSQL Database within a PostgreSQL Server.
 ---

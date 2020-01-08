@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api_operation"
-sidebar_current: "docs-azurerm-resource-api-management-api-operation"
 description: |-
   Manages an API Operation within an API Management Service.
 ---

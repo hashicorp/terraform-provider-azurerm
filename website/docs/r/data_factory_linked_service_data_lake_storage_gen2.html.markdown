@@ -2,7 +2,6 @@
 subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_data_lake_storage_gen2"
-sidebar_current: "docs-azurerm-resource-data-factory-linked-service-data-lake-storage-gen2"
 description: |-
   Manages a Linked Service (connection) between Data Lake Storage Gen2 and Azure Data Factory.
 ---

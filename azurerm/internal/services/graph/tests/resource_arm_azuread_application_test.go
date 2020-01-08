@@ -118,13 +118,14 @@ func TestAccAzureRMActiveDirectoryApplication_update(t *testing.T) {
 
 func testCheckAzureRMActiveDirectoryApplicationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ApplicationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ApplicationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
 		if err != nil {
@@ -139,13 +140,14 @@ func testCheckAzureRMActiveDirectoryApplicationExists(resourceName string) resou
 }
 
 func testCheckAzureRMActiveDirectoryApplicationDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ApplicationsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_azuread_application" {
 			continue
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ApplicationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
 		if err != nil {

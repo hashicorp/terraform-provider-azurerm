@@ -124,6 +124,8 @@ func testCheckAzureRMRecoveryNetworkMappingExists(resourceName string) resource.
 }
 
 func testCheckAzureRMRecoveryNetworkMappingDestroy(s *terraform.State) error {
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_recovery_network_mapping" {
 			continue
@@ -142,7 +144,6 @@ func testCheckAzureRMRecoveryNetworkMappingDestroy(s *terraform.State) error {
 		networkName := id.Path["virtualNetworks"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
 		if err != nil {

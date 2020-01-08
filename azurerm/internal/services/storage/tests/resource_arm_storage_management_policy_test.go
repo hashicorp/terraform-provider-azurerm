@@ -234,6 +234,9 @@ func testCheckAzureRMStorageAccountManagementPolicyExists(resourceName string) r
 }
 
 func testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccountID string) (bool, error) {
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.ManagementPoliciesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	rid, err := azure.ParseAzureResourceID(storageAccountID)
 	if err != nil {
 		return false, fmt.Errorf("Bad: Failed to parse ID (id: %s): %+v", storageAccountID, err)
@@ -241,9 +244,6 @@ func testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccount
 
 	resourceGroupName := rid.ResourceGroup
 	storageAccountName := rid.Path["storageAccounts"]
-
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.ManagementPoliciesClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	response, err := conn.Get(ctx, resourceGroupName, storageAccountName)
 	if err != nil {

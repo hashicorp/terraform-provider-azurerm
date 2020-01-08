@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_gateway"
-sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-x"
 description: |-
   Manages a virtual network gateway to establish secure, cross-premises connectivity.
 ---

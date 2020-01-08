@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_signalr_service"
-sidebar_current: "docs-azurerm-resource-messaging-signalr-service"
 description: |-
   Manages an Azure SignalR service.
 ---

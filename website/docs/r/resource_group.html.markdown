@@ -2,7 +2,6 @@
 subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_group"
-sidebar_current: "docs-azurerm-resource-resource-group"
 description: |-
     Manages a resource group on Azure.
 ---

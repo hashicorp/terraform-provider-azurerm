@@ -218,6 +218,9 @@ func TestAccAzureRMDnsCNameRecord_AliasToRecord(t *testing.T) {
 
 func testCheckAzureRMDnsCNameRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -231,8 +234,6 @@ func testCheckAzureRMDnsCNameRecordExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for DNS CNAME record: %s", cnameName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, cnameName, dns.CNAME)
 		if err != nil {
 			return fmt.Errorf("Bad: Get CNAME RecordSet: %v", err)
@@ -422,11 +423,11 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_cname_record" "target" {
-	name                = "mycnametarget%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	zone_name           = "${azurerm_dns_zone.test.name}"
-	ttl                 = 300
-	record              = "contoso.com"
+  name                = "mycnametarget%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  record              = "contoso.com"
 }
 
 resource "azurerm_dns_cname_record" "test" {
@@ -434,7 +435,7 @@ resource "azurerm_dns_cname_record" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_dns_zone.test.name}"
   ttl                 = 300
-  target_resource_id   = "${azurerm_dns_cname_record.target.id}"
+  target_resource_id  = "${azurerm_dns_cname_record.target.id}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -452,11 +453,11 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_cname_record" "target2" {
-	name                = "mycnametarget%d2"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	zone_name           = "${azurerm_dns_zone.test.name}"
-	ttl                 = 300
-	record              = "contoso.co.uk"
+  name                = "mycnametarget%d2"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  record              = "contoso.co.uk"
 }
 
 resource "azurerm_dns_cname_record" "test" {
@@ -482,11 +483,11 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_cname_record" "target2" {
-	name                = "mycnametarget%d2"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	zone_name           = "${azurerm_dns_zone.test.name}"
-	ttl                 = 300
-	record              = "contoso.co.uk"
+  name                = "mycnametarget%d2"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  record              = "contoso.co.uk"
 }
 
 resource "azurerm_dns_cname_record" "test" {

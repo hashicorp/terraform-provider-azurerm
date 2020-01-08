@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account_network_rules"
-sidebar_current: "docs-azurerm-resource-storage-account-network-rules"
 description: |-
   Manages network rules inside of a Azure Storage Account.
 ---

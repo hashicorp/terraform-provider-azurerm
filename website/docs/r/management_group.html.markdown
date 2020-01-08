@@ -2,7 +2,6 @@
 subcategory: "Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_management_group"
-sidebar_current: "docs-azurerm-management-group"
 description: |-
   Manages a Management Group.
 ---

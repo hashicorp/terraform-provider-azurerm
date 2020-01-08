@@ -83,13 +83,13 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_properties(t *testing.T) {
 
 func testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		fileSystemName := rs.Primary.Attributes["name"]
 		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
@@ -111,13 +111,13 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName string) re
 }
 
 func testCheckAzureRMStorageDataLakeGen2FileSystemDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_data_lake_gen2_filesystem" {
 			continue
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		fileSystemName := rs.Primary.Attributes["name"]
 		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])

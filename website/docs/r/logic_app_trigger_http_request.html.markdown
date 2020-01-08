@@ -2,7 +2,6 @@
 subcategory: "Logic App"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_logic_app_trigger_http_request"
-sidebar_current: "docs-azurerm-resource-logic-app-trigger-http-request"
 description: |-
   Manages a HTTP Request Trigger within a Logic App Workflow
 ---

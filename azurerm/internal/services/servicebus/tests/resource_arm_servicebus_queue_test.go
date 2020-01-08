@@ -309,6 +309,9 @@ func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
 
 func testCheckAzureRMServiceBusQueueExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -321,9 +324,6 @@ func testCheckAzureRMServiceBusQueueExists(resourceName string) resource.TestChe
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for queue: %s", queueName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, queueName)
 		if err != nil {

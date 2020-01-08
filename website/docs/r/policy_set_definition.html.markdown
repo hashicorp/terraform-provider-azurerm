@@ -2,7 +2,6 @@
 subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_set_definition"
-sidebar_current: "docs-azurerm-resource-policy-set-definition"
 description: |-
   Manages a policy set definition.
 ---

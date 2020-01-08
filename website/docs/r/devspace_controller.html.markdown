@@ -2,7 +2,6 @@
 subcategory: "DevSpace"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_devspace_controller"
-sidebar_current: "docs-azurerm-resource-devspace-controller"
 description: |-
   Manages a DevSpace Controller.
 ---

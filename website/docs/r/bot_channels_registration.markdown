@@ -2,7 +2,6 @@
 subcategory: "Bot"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_channels_registration"
-sidebar_current: "docs-azurerm-resource-bot_channels_registration"
 description: |-
   Manages a Bot Channels Registration.
 ---

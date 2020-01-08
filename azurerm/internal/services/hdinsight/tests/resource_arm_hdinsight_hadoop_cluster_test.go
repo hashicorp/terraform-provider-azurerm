@@ -700,10 +700,10 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 
     edge_node {
       target_instance_count = %d
-      vm_size  = "%s"
+      vm_size               = "%s"
       install_script_action {
         name = "script1"
-        uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-hdinsight-linux-with-edge-node/scripts/EmptyNodeSetup.sh"
+        uri  = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-hdinsight-linux-with-edge-node/scripts/EmptyNodeSetup.sh"
       }
     }
   }
@@ -765,22 +765,22 @@ func testAccAzureRMHDInsightHadoopCluster_gen2AndBlobStorage(data acceptance.Tes
 	return fmt.Sprintf(`
 %s
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestsa%s"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
-	name                  = "acctest"
-	storage_account_name  = "${azurerm_storage_account.test.name}"
-	container_access_type = "private"
+  name                  = "acctest"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
 }
 
 resource "azurerm_hdinsight_hadoop_cluster" "test" {
   depends_on = [azurerm_role_assignment.test]
-  
+
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"

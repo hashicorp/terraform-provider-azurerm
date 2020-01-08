@@ -137,7 +137,7 @@ resource "azurerm_cosmosdb_table" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
-  throughput		  = %[3]d
+  throughput          = %[3]d
 }
 `, testAccAzureRMCosmosDBAccount_capabilityTable(data), data.RandomInteger, throughput)
 }

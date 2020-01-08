@@ -2,7 +2,6 @@
 subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_definition"
-sidebar_current: "docs-azurerm-resource-policy-definition"
 description: |-
   Manages a policy rule definition. Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
 ---

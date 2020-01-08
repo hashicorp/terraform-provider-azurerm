@@ -2,7 +2,6 @@
 subcategory: "Private DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_dns_mx_record"
-sidebar_current: "docs-azurerm-resource-private-dns-mx-record"
 description: |-
   Manages a Private DNS MX Record.
 ---

@@ -95,6 +95,8 @@ resource "azurerm_recovery_services_protection_container_mapping" "test" {
 
 func testCheckAzureRMRecoveryProtectionContainerMappingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -109,7 +111,6 @@ func testCheckAzureRMRecoveryProtectionContainerMappingExists(resourceName strin
 
 		// Ensure mapping exists in API
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ContainerMappingClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, mappingName)
 		if err != nil {
@@ -125,6 +126,8 @@ func testCheckAzureRMRecoveryProtectionContainerMappingExists(resourceName strin
 }
 
 func testCheckAzureRMRecoveryProtectionContainerMappingDestroy(s *terraform.State) error {
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_recovery_services_protection_container_mapping" {
 			continue
@@ -138,7 +141,6 @@ func testCheckAzureRMRecoveryProtectionContainerMappingDestroy(s *terraform.Stat
 
 		// Ensure mapping exists in API
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ContainerMappingClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, mappingName)
 		if err != nil {

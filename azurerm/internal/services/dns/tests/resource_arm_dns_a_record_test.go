@@ -202,6 +202,9 @@ func TestAccAzureRMDnsARecord_AliasToRecords(t *testing.T) {
 
 func testCheckAzureRMDnsARecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -215,8 +218,6 @@ func testCheckAzureRMDnsARecordExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for DNS A record: %s", aName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, aName, dns.A)
 		if err != nil {
 			return fmt.Errorf("Bad: Get A RecordSet: %+v", err)
@@ -384,11 +385,11 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-	name                = "mypublicip%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	allocation_method   = "Dynamic"
-	ip_version          = "IPv4"
+  name                = "mypublicip%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  ip_version          = "IPv4"
 }
 
 resource "azurerm_dns_a_record" "test" {
@@ -396,7 +397,7 @@ resource "azurerm_dns_a_record" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_dns_zone.test.name}"
   ttl                 = 300
-  target_resource_id   = "${azurerm_public_ip.test.id}"
+  target_resource_id  = "${azurerm_public_ip.test.id}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -414,11 +415,11 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_public_ip" "test2" {
-	name                = "mypublicip%d2"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	allocation_method   = "Dynamic"
-	ip_version          = "IPv4"
+  name                = "mypublicip%d2"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  ip_version          = "IPv4"
 }
 
 resource "azurerm_dns_a_record" "test" {
@@ -444,19 +445,19 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-	name                = "mypublicip%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	allocation_method   = "Dynamic"
-	ip_version          = "IPv4"
+  name                = "mypublicip%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  ip_version          = "IPv4"
 }
 
 resource "azurerm_dns_a_record" "test" {
-	name                = "myarecord%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	zone_name           = "${azurerm_dns_zone.test.name}"
-	ttl                 = 300
-	target_resource_id  = "${azurerm_public_ip.test.id}"
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  target_resource_id  = "${azurerm_public_ip.test.id}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

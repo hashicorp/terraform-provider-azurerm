@@ -2,7 +2,6 @@
 subcategory: "Batch"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_certificate"
-sidebar_current: "docs-azurerm-resource-batch-certificate"
 description: |-
   Manages a certificate in an Azure Batch account.
 

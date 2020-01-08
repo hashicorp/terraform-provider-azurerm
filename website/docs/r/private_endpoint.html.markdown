@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_endpoint"
-sidebar_current: "docs-azurerm-resource-private-endpoint"
 description: |-
   Manages an Private Endpoint.
 ---

@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_virtual_network_swift_connection"
-sidebar_current: "docs-azurerm-resource-app-service-virtual-network-association"
 description: |-
   Manages an App Service Virtual Network Association.
 

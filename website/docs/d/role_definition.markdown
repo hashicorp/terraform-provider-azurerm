@@ -2,7 +2,6 @@
 subcategory: "Authorization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_role_definition"
-sidebar_current: "docs-azurerm-datasource-role-definition"
 description: |-
   Get information about an existing Role Definition.
 ---

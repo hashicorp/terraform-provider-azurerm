@@ -265,6 +265,9 @@ func testAccAzureRMActiveDirectoryServicePrincipal_group(t *testing.T) {
 
 func testCheckAzureRMRoleAssignmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
@@ -273,8 +276,6 @@ func testCheckAzureRMRoleAssignmentExists(resourceName string) resource.TestChec
 		scope := rs.Primary.Attributes["scope"]
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
 		if err != nil {
@@ -289,6 +290,9 @@ func testCheckAzureRMRoleAssignmentExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_role_assignment" {
 			continue
@@ -297,8 +301,6 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 		scope := rs.Primary.Attributes["scope"]
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleAssignmentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
 		if err != nil {

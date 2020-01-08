@@ -2,7 +2,6 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_site_recovery_protection_container_mapping"
-sidebar_current: "docs-azurerm-recovery-services-protection-container-mapping"
 description: |-
     Manages a Site Recovery protection container mapping on Azure.
 ---

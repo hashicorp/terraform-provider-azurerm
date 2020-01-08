@@ -2,7 +2,6 @@
 subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_snapshot"
-sidebar_current: "docs-azurerm-resource-netapp-snapshot"
 description: |-
   Manages a NetApp Snapshot.
 ---

@@ -437,6 +437,7 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_analysis_services_server" {
@@ -446,7 +447,6 @@ func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetDetails(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -464,6 +464,8 @@ func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAnalysisServicesServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -476,8 +478,6 @@ func testCheckAzureRMAnalysisServicesServerExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for Analysis Services Server: %s", analysisServicesServerName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetDetails(ctx, resourceGroup, analysisServicesServerName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

@@ -767,12 +767,12 @@ func (client TopicsClient) ListByNamespace(ctx context.Context, resourceGroupNam
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
-					{Target: "skip", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil},
+					{Target: "skip", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil},
 				}}}},
 		{TargetValue: top,
 			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
-					{Target: "top", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("servicebus.TopicsClient", "ListByNamespace", err.Error())
 	}

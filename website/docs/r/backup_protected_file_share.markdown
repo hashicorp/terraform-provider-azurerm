@@ -2,7 +2,6 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_backup_protected_file_share"
-sidebar_current: "docs-azurerm-backup-protected-vm"
 description: |-
   Manages an Azure Backup Protected File Share.
 ---

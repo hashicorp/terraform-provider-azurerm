@@ -131,6 +131,9 @@ func TestAccAzureRMVirtualHub_tags(t *testing.T) {
 
 func testCheckAzureRMVirtualHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualHubClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Virtual Hub not found: %s", resourceName)
@@ -138,9 +141,6 @@ func testCheckAzureRMVirtualHubExists(resourceName string) resource.TestCheckFun
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualHubClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -234,7 +234,7 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.1.0/24"
 
   route {
-    address_prefixes    = [ "172.0.1.0/24" ]
+    address_prefixes    = ["172.0.1.0/24"]
     next_hop_ip_address = "12.34.56.78"
   }
 }
@@ -254,7 +254,7 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.1.0/24"
 
   route {
-    address_prefixes    = [ "172.0.1.0/24" ]
+    address_prefixes    = ["172.0.1.0/24"]
     next_hop_ip_address = "87.65.43.21"
   }
 }

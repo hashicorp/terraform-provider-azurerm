@@ -9,12 +9,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+func TestAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t)
+}
+
 func testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -32,6 +37,11 @@ func testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T)
 			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t)
 }
 
 func testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *testing.T) {
@@ -60,12 +70,17 @@ func testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *te
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_addonProfileAzurePolicy(t)
+}
+
 func testAccAzureRMKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -83,12 +98,17 @@ func testAccAzureRMKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_addonProfileKubeDashboard(t)
+}
+
 func testAccAzureRMKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -106,12 +126,17 @@ func testAccAzureRMKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_addonProfileOMS(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_addonProfileOMS(t)
+}
+
 func testAccAzureRMKubernetesCluster_addonProfileOMS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -129,6 +154,11 @@ func testAccAzureRMKubernetesCluster_addonProfileOMS(t *testing.T) {
 			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_addonProfileOMSToggle(t)
 }
 
 func testAccAzureRMKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
@@ -181,12 +211,17 @@ func testAccAzureRMKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_addonProfileRouting(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_addonProfileRouting(t)
+}
+
 func testAccAzureRMKubernetesCluster_addonProfileRouting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,

@@ -2,7 +2,6 @@
 subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_variable_bool"
-sidebar_current: "docs-azurerm-resource-automation-variable-bool"
 description: |-
   Manages a boolean variable in Azure Automation.
 ---
