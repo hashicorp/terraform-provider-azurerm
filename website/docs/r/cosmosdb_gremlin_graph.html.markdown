@@ -26,28 +26,28 @@ resource "azurerm_cosmosdb_gremlin_database" "example" {
 }
 
 resource "azurerm_cosmosdb_gremlin_graph" "example" {
-	name				= "tfex-cosmos-gremlin-graph"
-	resource_group_name = "${azurerm_cosmosdb_account.example.resource_group_name}"
-	account_name        = "${azurerm_cosmosdb_account.example.name}"
-	database_name       = "${azurerm_cosmosdb_gremlin_database.example.name}"
-	partition_key_path	= "/Example"
-	throughput			= 400
+  name                = "tfex-cosmos-gremlin-graph"
+  resource_group_name = "${azurerm_cosmosdb_account.example.resource_group_name}"
+  account_name        = "${azurerm_cosmosdb_account.example.name}"
+  database_name       = "${azurerm_cosmosdb_gremlin_database.example.name}"
+  partition_key_path  = "/Example"
+  throughput          = 400
 
-	index_policy {
-		automatic = true
-		indexing_mode = "Consistent"
-		included_paths = ["/*"]
-		excluded_paths = ["/\"_etag\"/?"]
-	}
+  index_policy {
+    automatic      = true
+    indexing_mode  = "Consistent"
+    included_paths = ["/*"]
+    excluded_paths = ["/\"_etag\"/?"]
+  }
 
-	conflict_resolution_policy {
-		mode                     = "LastWriterWins"
-		conflict_resolution_path = "/_ts"
-	}
-		
-	unique_key {
-		paths = ["/definition/id1", "/definition/id2"]
-	}
+  conflict_resolution_policy {
+    mode                     = "LastWriterWins"
+    conflict_resolution_path = "/_ts"
+  }
+
+  unique_key {
+    paths = ["/definition/id1", "/definition/id2"]
+  }
 }
 ```
 
