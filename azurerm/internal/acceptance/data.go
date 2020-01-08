@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"testing"
 
@@ -83,16 +84,29 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 	return testData
 }
 
-func (td *TestData) RandomIntOfLength(len int) {
+func (td *TestData) RandomIntOfLength(len int) int {
 	// len should not be
 	//  - greater then 18, longest a int can represent
-	//  - less then 6, as it would not be random enough
-	if 6 > len  || len > 18 {
+	//  - less then 8, as that gives us YYMMDDRR
+	if 8 > len || len > 18 {
 		panic(fmt.Sprintf("Invalid Test: RandomIntOfLength: len is not between 6 or 18 inclusive"))
 	}
 
-	// pull off last 2 digits of randomness
-	r := td.RandomInteger%100
+	r := td.RandomInteger % 100
 
-	// always preseve the
+	// 18 - just return the int
+	if len >= 18 {
+		return td.RandomInteger
+	}
+
+	// 16-17 just strip off the last 1-2 digits
+	if len >= 16 {
+		return td.RandomInteger / int(math.Pow10(18-len))
+	}
+
+	// 8-15 remove the last x digits
+	a := td.RandomInteger / int(math.Pow10(18-len+2))
+
+	// multiply by 100 and add last two digits of randomness back in
+	return (a * 100) + r
 }
