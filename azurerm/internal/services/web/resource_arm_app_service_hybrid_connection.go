@@ -74,6 +74,7 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 			"service_bus_suffix": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Default:      ".servicebus.windows.net",
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 			"send_key_name": {
