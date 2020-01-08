@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_iothub_dps` [GH-5336]
 * **New Resource:** `azurerm_api_management_identity_provider_twitter` [GH-5306]
+* **New Resource:** `azurerm_cosmosdb_gremlin_graph` [GH-5301]
 
 IMPROVEMENTS:
 
