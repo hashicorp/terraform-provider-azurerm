@@ -547,7 +547,7 @@ func FlattenBatchMetaData(metadatas *[]batch.MetadataItem) map[string]interface{
 		if metadata.Name == nil || metadata.Value == nil {
 			continue
 		}
-		
+
 		output[*metadata.Name] = *metadata.Value
 	}
 
