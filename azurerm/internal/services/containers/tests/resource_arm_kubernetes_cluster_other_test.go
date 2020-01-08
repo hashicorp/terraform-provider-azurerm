@@ -326,7 +326,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-  	type       = "AvailabilitySet"
+    type       = "AvailabilitySet"
     vm_size    = "Standard_DS2_v2"
   }
 
@@ -439,9 +439,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name        = "default"
-    node_count  = 1
-    vm_size     = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
     node_taints = [
       "key=value:PreferNoSchedule"
     ]

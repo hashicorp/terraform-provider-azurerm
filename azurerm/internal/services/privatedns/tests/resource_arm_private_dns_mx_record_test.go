@@ -267,13 +267,13 @@ resource "azurerm_private_dns_mx_record" "import" {
 func testAccAzureRMPrivateDnsMxRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-prvdns-%d"
-	location = "%s"
+  name     = "acctestRG-prvdns-%d"
+  location = "%s"
 }
-	
+
 resource "azurerm_private_dns_zone" "test" {
-	name                = "testzone%d.com"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "testzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_private_dns_mx_record" "test" {
@@ -300,13 +300,13 @@ resource "azurerm_private_dns_mx_record" "test" {
 func testAccAzureRMPrivateDnsMxRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-prvdns-%d"
-	location = "%s"
+  name     = "acctestRG-prvdns-%d"
+  location = "%s"
 }
-  
+
 resource "azurerm_private_dns_zone" "test" {
-	name                = "testzone%d.com"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "testzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_private_dns_mx_record" "test" {
@@ -334,13 +334,13 @@ resource "azurerm_private_dns_mx_record" "test" {
 func testAccAzureRMPrivateDnsMxRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-prvdns-%d"
-	location = "%s"
+  name     = "acctestRG-prvdns-%d"
+  location = "%s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-	name                = "testzone%d.com"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "testzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_private_dns_mx_record" "test" {

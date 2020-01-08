@@ -200,7 +200,7 @@ resource "azurerm_api_management_identity_provider_aad" "import" {
   resource_group_name = "${azurerm_api_management_identity_provider_aad.test.resource_group_name}"
   api_management_name = "${azurerm_api_management_identity_provider_aad.test.api_management_name}"
   client_id           = "${azurerm_api_management_identity_provider_aad.test.client_id}"
-  client_secret	      = "${azurerm_api_management_identity_provider_aad.test.client_secret}"
+  client_secret       = "${azurerm_api_management_identity_provider_aad.test.client_secret}"
   allowed_tenants     = "${azurerm_api_management_identity_provider_aad.test.allowed_tenants}"
 }
 `, template)

@@ -173,7 +173,7 @@ resource "azurerm_storage_account_network_rules" "test" {
   default_action             = "Allow"
   ip_rules                   = ["127.0.0.2", "127.0.0.3"]
   virtual_network_subnet_ids = ["${azurerm_subnet.test.id}", "${azurerm_subnet.test2.id}"]
-  bypass = ["Metrics"]
+  bypass                     = ["Metrics"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
@@ -201,8 +201,8 @@ resource "azurerm_storage_account_network_rules" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 
-  default_action             = "Deny"
-  bypass = ["Metrics"]
+  default_action = "Deny"
+  bypass         = ["Metrics"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

@@ -120,10 +120,10 @@ resource "azurerm_relay_namespace" "test" {
 }
 
 resource "azurerm_relay_hybrid_connection" "test" {
-	name                 = "acctestrnhc-%d"
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	relay_namespace_name = "${azurerm_relay_namespace.test.name}"
-  }
+  name                 = "acctestrnhc-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  relay_namespace_name = "${azurerm_relay_namespace.test.name}"
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
@@ -143,11 +143,11 @@ resource "azurerm_relay_namespace" "test" {
 }
 
 resource "azurerm_relay_hybrid_connection" "test" {
-	name                 = "acctestrnhc-%d"
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	relay_namespace_name = "${azurerm_relay_namespace.test.name}"
-	user_metadata        = "metadatatest"
-  }
+  name                 = "acctestrnhc-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  relay_namespace_name = "${azurerm_relay_namespace.test.name}"
+  user_metadata        = "metadatatest"
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
@@ -167,12 +167,12 @@ resource "azurerm_relay_namespace" "test" {
 }
 
 resource "azurerm_relay_hybrid_connection" "test" {
-	name                          = "acctestrnhc-%d"
-	resource_group_name           = "${azurerm_resource_group.test.name}"
-	relay_namespace_name          = "${azurerm_relay_namespace.test.name}"
-	requires_client_authorization = false
-	user_metadata                 = "metadataupdated"
-  }
+  name                          = "acctestrnhc-%d"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  relay_namespace_name          = "${azurerm_relay_namespace.test.name}"
+  requires_client_authorization = false
+  user_metadata                 = "metadataupdated"
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
@@ -182,9 +182,9 @@ func testAccAzureRMRelayHybridConnection_requiresImport(data acceptance.TestData
 %s
 
 resource "azurerm_relay_namespace" "import" {
-	name                 = "acctestrnhc-%d"
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	relay_namespace_name = "${azurerm_relay_namespace.test.name}"
+  name                 = "acctestrnhc-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  relay_namespace_name = "${azurerm_relay_namespace.test.name}"
 }
 `, template, data.RandomInteger)
 }

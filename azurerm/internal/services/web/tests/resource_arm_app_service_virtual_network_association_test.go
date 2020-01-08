@@ -250,8 +250,8 @@ func testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data acceptance
 %s
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id       = "${azurerm_app_service.test.id}"
-  subnet_id            = "${azurerm_subnet.test1.id}"
+  app_service_id = "${azurerm_app_service.test.id}"
+  subnet_id      = "${azurerm_subnet.test1.id}"
 }
 `, template)
 }
@@ -262,8 +262,8 @@ func testAccAzureRMAppServiceVirtualNetworkSwiftConnection_update(data acceptanc
 %s
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id       = "${azurerm_app_service.test.id}"
-  subnet_id            = "${azurerm_subnet.test2.id}"
+  app_service_id = "${azurerm_app_service.test.id}"
+  subnet_id      = "${azurerm_subnet.test2.id}"
 }
 `, template)
 }

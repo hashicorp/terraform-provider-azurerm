@@ -281,7 +281,7 @@ resource "azurerm_vpn_gateway" "test" {
 
   tags = {
     Hello = "World"
-    Rick = "C-137"
+    Rick  = "C-137"
   }
 }
 `, template, data.RandomInteger)

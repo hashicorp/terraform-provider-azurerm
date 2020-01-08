@@ -223,8 +223,8 @@ resource "azurerm_netapp_account" "test" {
     password            = "aduserpwd"
     smb_server_name     = "SMBSERVER"
     dns_servers         = ["1.2.3.4"]
-	domain              = "westcentralus.com"
-	organizational_unit = "OU=FirstLevel"
+    domain              = "westcentralus.com"
+    organizational_unit = "OU=FirstLevel"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

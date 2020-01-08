@@ -332,21 +332,21 @@ resource "azurerm_sql_server" "test" {
 func testAccAzureRMSqlServer_withIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-	name                         = "acctestsqlserver%d"
-	resource_group_name          = "${azurerm_resource_group.test.name}"
-	location                     = "${azurerm_resource_group.test.location}"
-	version                      = "12.0"
-	administrator_login          = "mradministrator"
-	administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 
-	identity {
-		type = "SystemAssigned"
-	}
-}	
+  identity {
+    type = "SystemAssigned"
+  }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

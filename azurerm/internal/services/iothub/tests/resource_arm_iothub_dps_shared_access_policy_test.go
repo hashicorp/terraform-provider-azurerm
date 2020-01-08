@@ -96,21 +96,21 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_iothub_dps" "test" {
-	name                = "acctestIoTDPS-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-  
-	sku {
-	  name     = "S1"
-	  tier     = "Standard"
-	  capacity = "1"
-	}
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    tier     = "Standard"
+    capacity = "1"
   }
+}
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
   name                = "acctest"
-  service_config  = true
+  service_config      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -122,21 +122,21 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_iothub_dps" "test" {
-	name                = "acctestIoTDPS-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-  
-	sku {
-	  name     = "S1"
-	  tier     = "Standard"
-	  capacity = "1"
-	}
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    tier     = "Standard"
+    capacity = "1"
   }
+}
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
   name                = "acctest"
-  registration_write = true
+  registration_write  = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -148,21 +148,21 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_iothub_dps" "test" {
-	name                = "acctestIoTDPS-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-  
-	sku {
-	  name     = "S1"
-	  tier     = "Standard"
-	  capacity = "1"
-	}
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    tier     = "Standard"
+    capacity = "1"
   }
+}
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
   name                = "acctest"
-  enrollment_read = true
+  enrollment_read     = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -174,21 +174,21 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_iothub_dps" "test" {
-	name                = "acctestIoTDPS-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-  
-	sku {
-	  name     = "S1"
-	  tier     = "Standard"
-	  capacity = "1"
-	}
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    tier     = "Standard"
+    capacity = "1"
   }
+}
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
   name                = "acctest"
-  enrollment_write = true
+  enrollment_write    = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

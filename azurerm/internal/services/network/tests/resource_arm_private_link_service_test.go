@@ -291,23 +291,23 @@ func testAccAzureRMPrivateLinkService_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                                  = "acctestsnet-basic-%d"
-  resource_group_name                   = azurerm_resource_group.test.name
-  virtual_network_name                  = azurerm_virtual_network.test.name
-  address_prefix                        = "10.5.4.0/24"
+  name                 = "acctestsnet-basic-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.5.4.0/24"
 
   enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_private_link_service" "test" {
-  name                           = "acctestPLS-%d"
-  location                       = azurerm_resource_group.test.location
-  resource_group_name            = azurerm_resource_group.test.name
+  name                = "acctestPLS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    primary                      = true
+    name      = "primaryIpConfiguration-%d"
+    subnet_id = azurerm_subnet.test.id
+    primary   = true
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -322,25 +322,25 @@ func testAccAzureRMPrivateLinkService_basicIp(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                                  = "acctestsnet-update-%d"
-  resource_group_name                   = azurerm_resource_group.test.name
-  virtual_network_name                  = azurerm_virtual_network.test.name
-  address_prefix                        = "10.5.3.0/24"
+  name                 = "acctestsnet-update-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.5.3.0/24"
 
   enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_private_link_service" "test" {
-  name                           = "acctestPLS-%d"
-  location                       = azurerm_resource_group.test.location
-  resource_group_name            = azurerm_resource_group.test.name
+  name                = "acctestPLS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.3.30"
-    private_ip_address_version   = "IPv4"
-    primary                      = true
+    name                       = "primaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.3.30"
+    private_ip_address_version = "IPv4"
+    primary                    = true
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -356,14 +356,14 @@ func testAccAzureRMPrivateLinkService_requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_private_link_service" "import" {
-  name                           = azurerm_private_link_service.test.name
-  location                       = azurerm_private_link_service.test.location
-  resource_group_name            = azurerm_private_link_service.test.name
+  name                = azurerm_private_link_service.test.name
+  location            = azurerm_private_link_service.test.location
+  resource_group_name = azurerm_private_link_service.test.name
 
   nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    primary                      = true
+    name      = "primaryIpConfiguration-%d"
+    subnet_id = azurerm_subnet.test.id
+    primary   = true
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -379,24 +379,24 @@ func testAccAzureRMPrivateLinkService_enableProxyProtocol(data acceptance.TestDa
 %s
 
 resource "azurerm_subnet" "test" {
-  name                                  = "acctestsnet-basic-%d"
-  resource_group_name                   = azurerm_resource_group.test.name
-  virtual_network_name                  = azurerm_virtual_network.test.name
-  address_prefix                        = "10.5.4.0/24"
+  name                 = "acctestsnet-basic-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.5.4.0/24"
 
   enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_private_link_service" "test" {
-  name                           = "acctestPLS-%d"
-  location                       = azurerm_resource_group.test.location
-  resource_group_name            = azurerm_resource_group.test.name
-  enable_proxy_protocol          = %t
+  name                  = "acctestPLS-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  enable_proxy_protocol = %t
 
   nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    primary                      = true
+    name      = "primaryIpConfiguration-%d"
+    subnet_id = azurerm_subnet.test.id
+    primary   = true
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -412,10 +412,10 @@ func testAccAzureRMPrivateLinkService_update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                                  = "acctestsnet-update-%d"
-  resource_group_name                   = azurerm_resource_group.test.name
-  virtual_network_name                  = azurerm_virtual_network.test.name
-  address_prefix                        = "10.5.3.0/24"
+  name                 = "acctestsnet-update-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.5.3.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -428,35 +428,35 @@ resource "azurerm_private_link_service" "test" {
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
 
   nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.3.30"
-    private_ip_address_version   = "IPv4"
-    primary                      = true
+    name                       = "primaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.3.30"
+    private_ip_address_version = "IPv4"
+    primary                    = true
   }
 
   nat_ip_configuration {
-    name                         = "secondaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.3.22"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "secondaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.3.22"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   nat_ip_configuration {
-    name                         = "thirdaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.3.23"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "thirdaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.3.23"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   nat_ip_configuration {
-    name                         = "fourtharyIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.3.24"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "fourtharyIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.3.24"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -476,10 +476,10 @@ func testAccAzureRMPrivateLinkService_moveSetup(data acceptance.TestData) string
 %s
 
 resource "azurerm_subnet" "test" {
-  name                                  = "acctestsnet-move-%d"
-  resource_group_name                   = azurerm_resource_group.test.name
-  virtual_network_name                  = azurerm_virtual_network.test.name
-  address_prefix                        = "10.5.2.0/24"
+  name                 = "acctestsnet-move-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.5.2.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -492,11 +492,11 @@ resource "azurerm_private_link_service" "test" {
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
 
   nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.17"
-    private_ip_address_version   = "IPv4"
-    primary                      = true
+    name                       = "primaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.17"
+    private_ip_address_version = "IPv4"
+    primary                    = true
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -516,10 +516,10 @@ func testAccAzureRMPrivateLinkService_moveAdd(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                                  = "acctestsnet-move-%d"
-  resource_group_name                   = azurerm_resource_group.test.name
-  virtual_network_name                  = azurerm_virtual_network.test.name
-  address_prefix                        = "10.5.2.0/24"
+  name                 = "acctestsnet-move-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.5.2.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -532,35 +532,35 @@ resource "azurerm_private_link_service" "test" {
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
 
   nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.17"
-    private_ip_address_version   = "IPv4"
-    primary                      = true
+    name                       = "primaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.17"
+    private_ip_address_version = "IPv4"
+    primary                    = true
   }
 
   nat_ip_configuration {
-    name                         = "secondaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.18"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "secondaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.18"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   nat_ip_configuration {
-    name                         = "thirdaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.19"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "thirdaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.19"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   nat_ip_configuration {
-    name                         = "fourtharyIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.20"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "fourtharyIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.20"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -580,10 +580,10 @@ func testAccAzureRMPrivateLinkService_moveChangeOne(data acceptance.TestData) st
 %s
 
 resource "azurerm_subnet" "test" {
-  name                                  = "acctestsnet-move-%d"
-  resource_group_name                   = azurerm_resource_group.test.name
-  virtual_network_name                  = azurerm_virtual_network.test.name
-  address_prefix                        = "10.5.2.0/24"
+  name                 = "acctestsnet-move-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.5.2.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -596,35 +596,35 @@ resource "azurerm_private_link_service" "test" {
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
 
   nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.17"
-    private_ip_address_version   = "IPv4"
-    primary                      = true
+    name                       = "primaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.17"
+    private_ip_address_version = "IPv4"
+    primary                    = true
   }
 
   nat_ip_configuration {
-    name                         = "secondaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.18"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "secondaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.18"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   nat_ip_configuration {
-    name                         = "thirdaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.19"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "thirdaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.19"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   nat_ip_configuration {
-    name                         = "fourtharyIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.21"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "fourtharyIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.21"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -644,10 +644,10 @@ func testAccAzureRMPrivateLinkService_moveChangeTwo(data acceptance.TestData) st
 %s
 
 resource "azurerm_subnet" "test" {
-  name                                  = "acctestsnet-move-%d"
-  resource_group_name                   = azurerm_resource_group.test.name
-  virtual_network_name                  = azurerm_virtual_network.test.name
-  address_prefix                        = "10.5.2.0/24"
+  name                 = "acctestsnet-move-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.5.2.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -660,35 +660,35 @@ resource "azurerm_private_link_service" "test" {
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
 
   nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.17"
-    private_ip_address_version   = "IPv4"
-    primary                      = true
+    name                       = "primaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.17"
+    private_ip_address_version = "IPv4"
+    primary                    = true
   }
 
   nat_ip_configuration {
-    name                         = "secondaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.20"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "secondaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.20"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   nat_ip_configuration {
-    name                         = "thirdaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.19"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "thirdaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.19"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   nat_ip_configuration {
-    name                         = "fourtharyIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.21"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "fourtharyIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.21"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -708,10 +708,10 @@ func testAccAzureRMPrivateLinkService_moveChangeThree(data acceptance.TestData) 
 %s
 
 resource "azurerm_subnet" "test" {
-  name                                  = "acctestsnet-move-%d"
-  resource_group_name                   = azurerm_resource_group.test.name
-  virtual_network_name                  = azurerm_virtual_network.test.name
-  address_prefix                        = "10.5.2.0/24"
+  name                 = "acctestsnet-move-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.5.2.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -724,35 +724,35 @@ resource "azurerm_private_link_service" "test" {
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
 
   nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.17"
-    private_ip_address_version   = "IPv4"
-    primary                      = true
+    name                       = "primaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.17"
+    private_ip_address_version = "IPv4"
+    primary                    = true
   }
 
   nat_ip_configuration {
-    name                         = "secondaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.20"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "secondaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.20"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   nat_ip_configuration {
-    name                         = "thirdaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.19"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "thirdaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.19"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   nat_ip_configuration {
-    name                         = "fourtharyIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.2.18"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "fourtharyIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.2.18"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -772,10 +772,10 @@ func testAccAzureRMPrivateLinkService_complete(data acceptance.TestData) string 
 %s
 
 resource "azurerm_subnet" "test" {
-  name                                  = "acctestsnet-complete-%d"
-  resource_group_name                   = azurerm_resource_group.test.name
-  virtual_network_name                  = azurerm_virtual_network.test.name
-  address_prefix                        = "10.5.1.0/24"
+  name                 = "acctestsnet-complete-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.5.1.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -788,19 +788,19 @@ resource "azurerm_private_link_service" "test" {
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
 
   nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.40"
-    private_ip_address_version   = "IPv4"
-    primary                      = true
+    name                       = "primaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.1.40"
+    private_ip_address_version = "IPv4"
+    primary                    = true
   }
 
   nat_ip_configuration {
-    name                         = "secondaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.41"
-    private_ip_address_version   = "IPv4"
-    primary                      = false
+    name                       = "secondaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.1.41"
+    private_ip_address_version = "IPv4"
+    primary                    = false
   }
 
   load_balancer_frontend_ip_configuration_ids = [

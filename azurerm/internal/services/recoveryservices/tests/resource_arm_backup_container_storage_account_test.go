@@ -55,9 +55,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_backup_container_storage_account" "test" {
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  recovery_vault_name  = "${azurerm_recovery_services_vault.testvlt.name}"
-  storage_account_id   = "${azurerm_storage_account.test.id}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.testvlt.name}"
+  storage_account_id  = "${azurerm_storage_account.test.id}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

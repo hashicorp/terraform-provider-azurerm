@@ -168,7 +168,7 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   connection_configuration {
     name = "first"
     vpn_client_address_pool {
-      address_prefixes = [ "172.100.0.0/14" ]
+      address_prefixes = ["172.100.0.0/14"]
     }
   }
 }
@@ -191,7 +191,7 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   connection_configuration {
     name = "first"
     vpn_client_address_pool {
-      address_prefixes = [ "172.100.0.0/14", "10.100.0.0/14" ]
+      address_prefixes = ["172.100.0.0/14", "10.100.0.0/14"]
     }
   }
 }
@@ -214,7 +214,7 @@ resource "azurerm_point_to_site_vpn_gateway" "import" {
   connection_configuration {
     name = "first"
     vpn_client_address_pool {
-      address_prefixes = [ "172.100.0.0/14" ]
+      address_prefixes = ["172.100.0.0/14"]
     }
   }
 }
@@ -237,7 +237,7 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   connection_configuration {
     name = "first"
     vpn_client_address_pool {
-      address_prefixes = [ "172.100.0.0/14" ]
+      address_prefixes = ["172.100.0.0/14"]
     }
   }
 
@@ -278,7 +278,7 @@ resource "azurerm_vpn_server_configuration" "test" {
   client_root_certificate {
     name = "DigiCert-Federated-ID-Root-CA"
 
-      public_cert_data = <<EOF
+    public_cert_data = <<EOF
 MIIDuzCCAqOgAwIBAgIQCHTZWCM+IlfFIRXIvyKSrjANBgkqhkiG9w0BAQsFADBn
 MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
 d3cuZGlnaWNlcnQuY29tMSYwJAYDVQQDEx1EaWdpQ2VydCBGZWRlcmF0ZWQgSUQg
