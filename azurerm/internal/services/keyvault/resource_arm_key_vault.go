@@ -157,6 +157,25 @@ func resourceArmKeyVault() *schema.Resource {
 				Optional: true,
 			},
 
+			"enabled_for_soft_delete": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				ValidateFunc: validate.BoolIsTrue(),
+			},
+
+			"enabled_for_purge_protection": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				ValidateFunc: validate.BoolIsTrue(),
+			},
+
+			"purge_on_delete": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ConflictsWith: []string{"enabled_for_purge_protection"},
+			},
+
 			"network_acls": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -252,6 +271,8 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
+	enabledForSoftDelete := d.Get("enabled_for_soft_delete").(bool)
+	enabledForPurgeProtection := d.Get("enabled_for_purge_protection").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	networkAclsRaw := d.Get("network_acls").([]interface{})
@@ -275,6 +296,16 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			NetworkAcls:                  networkAcls,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	// This setting can only be set if it is true, if set when value is false API returns errors
+	if enabledForSoftDelete {
+		parameters.Properties.EnableSoftDelete = &enabledForSoftDelete
+	}
+
+	// This setting can only be set if it is true, if set when value is false API returns errors
+	if enabledForPurgeProtection {
+		parameters.Properties.EnablePurgeProtection = &enabledForPurgeProtection
 	}
 
 	// Locking this resource so we don't make modifications to it at the same time if there is a
@@ -375,6 +406,8 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		d.Set("enabled_for_soft_delete", props.EnableSoftDelete)
+		d.Set("enabled_for_purge_protection", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
 
 		if sku := props.Sku; sku != nil {
@@ -458,6 +491,22 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
+	if d.Get("purge_on_delete").(bool) && d.Get("enabled_for_soft_delete").(bool) && err == nil {
+		log.Printf("[DEBUG] KeyVault %s marked for purge, executing purge", name)
+		location := d.Get("location").(string)
+
+		future, err := client.PurgeDeleted(ctx, name, location)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[DEBUG] Waiting for purge of KeyVault %s", name)
+		err = future.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error purging Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 

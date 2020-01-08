@@ -111,6 +111,26 @@ func TestAccDataSourceAzureRMKeyVault_networkAcls(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMKeyVault_enable_soft_delete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAzureRMKeyVault_enable_soft_delete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled_for_soft_delete", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled_for_purge_protection", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAzureRMKeyVault_basic(data acceptance.TestData) string {
 	r := testAccAzureRMKeyVault_basic(data)
 	return fmt.Sprintf(`
@@ -144,5 +164,17 @@ data "azurerm_key_vault" "test" {
   name                = "${azurerm_key_vault.test.name}"
   resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
 }
+`, r)
+}
+
+func testAccDataSourceAzureRMKeyVault_enable_soft_delete(data acceptance.TestData) string {
+	r := testAccAzureRMKeyVault_enable_soft_delete(data)
+	return fmt.Sprintf(` 
+%s 
+
+data "azurerm_key_vault" "test" { 
+  name                = "${azurerm_key_vault.test.name}" 
+  resource_group_name = "${azurerm_key_vault.test.resource_group_name}" 
+} 
 `, r)
 }
