@@ -544,6 +544,10 @@ func FlattenBatchMetaData(metadatas *[]batch.MetadataItem) map[string]interface{
 	}
 
 	for _, metadata := range *metadatas {
+		if metadata.Name == nil || metadata.Value == nil {
+			continue
+		}
+		
 		output[*metadata.Name] = *metadata.Value
 	}
 
