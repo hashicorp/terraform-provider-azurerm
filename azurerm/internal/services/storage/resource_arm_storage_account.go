@@ -1239,20 +1239,29 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	queueClient, err := storageClient.QueuesClient(ctx, *account)
-	if err != nil {
-		return fmt.Errorf("Error building Queues Client: %s", err)
+	// queue is only available for certain tier and kind (as specified below)
+	if resp.Sku == nil {
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `sku` was nil", name, resGroup)
 	}
 
-	queueProps, err := queueClient.GetServiceProperties(ctx, name)
-	if err != nil {
-		if queueProps.Response.Response != nil && !utils.ResponseWasNotFound(queueProps.Response) {
-			return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
+	if resp.Sku.Tier == storage.Standard {
+		if resp.Kind == storage.Storage || resp.Kind == storage.StorageV2 {
+			queueClient, err := storageClient.QueuesClient(ctx, *account)
+			if err != nil {
+				return fmt.Errorf("Error building Queues Client: %s", err)
+			}
+
+			queueProps, err := queueClient.GetServiceProperties(ctx, name)
+			if err != nil {
+				if queueProps.Response.Response != nil && !utils.ResponseWasNotFound(queueProps.Response) {
+					return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
+				}
+			}
+
+			if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
+				return fmt.Errorf("Error setting `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
+			}
 		}
-	}
-
-	if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
-		return fmt.Errorf("Error setting `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
