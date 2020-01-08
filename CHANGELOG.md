@@ -5,6 +5,10 @@ FEATURES:
 * **New Data Source:** `azurerm_iothub_dps` [GH-5336]
 * **New Resource:** `azurerm_api_management_identity_provider_twitter` [GH-5306]
 
+IMPROVEMENTS:
+
+* `azurerm_function_app` - convert `connection_string`s from a `TypList` to a `TypeSet` [GH-5319]
+
 ## 1.40.0 (January 08, 2020)
 
 FEATURES:
