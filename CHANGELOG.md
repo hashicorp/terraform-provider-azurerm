@@ -38,7 +38,7 @@ IMPROVEMENTS:
 * `azurerm_image` - support for configuring `hyper_v_generation` [GH-4453]
 * `azurerm_iothub_dps_shared_access_policy` - support for the `primary_connection_string` & `secondary_connection_string` properties [GH-5231]
 * `azurerm_key_vault` - the `network_acls` property is now computed [GH-5207]
-* `azurerm_kubernetes_cluster` - support for the `managed_cluster_identity` property [GH-5168]
+* `azurerm_kubernetes_cluster` - support for the `identity` property [GH-5168]
 * `azurerm_kubernetes_cluster` - support for private link [GH-5161]
 * `azurerm_logic_app_trigger_recurrence` - support for the `start_time` property [GH-5244]
 * `azurerm_private_link_service` - support for the `enable_proxy_protocol` property  [GH-5178]
