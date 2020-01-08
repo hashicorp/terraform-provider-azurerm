@@ -11,7 +11,7 @@ description: |-
 
 Manages a Disk Encryption Set.
 
--> **NOTE:** The Disk Encryption Sets are currently in Public Preview and are only available in a limited set of regions. 
+-> **NOTE:** The Disk Encryption Sets are currently in Public Preview and are only available in a limited set of regions: West Central US, Canada Central and North Europe. 
 
 -> **NOTE:** At this time the Key Vault used to store the Active Key for this Disk Encryption Set must have both Soft Delete & Purge Protection enabled - which are not yet supported by Terraform - instead you can configure this using [a provisioner](https://www.terraform.io/docs/provisioners/local-exec.html) or [the `azurerm_template_deployment` resource](https://www.terraform.io/docs/providers/azurerm/r/template_deployment.html).
 
@@ -77,7 +77,6 @@ resource "azurerm_disk_encryption_set" "example" {
   location            = azurerm_resource_group.example.location
 
   key_vault_key_uri   = azurerm_key_vault_key.example.id
-  }
 }
 ```
 
