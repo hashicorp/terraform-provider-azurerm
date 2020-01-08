@@ -45,6 +45,14 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+			"namespace_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"relay_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"hostname": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -91,7 +99,10 @@ func resourceArmAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, m
 	name := d.Get("app_service_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	relayArmURI := d.Get("relay_arm_uri").(string)
-	relayId, _ := azure.ParseAzureResourceID(relayArmURI)
+	relayId, err := azure.ParseAzureResourceID(relayArmURI)
+	if err != nil {
+		return fmt.Errorf("Error parsing relay_arm_uri as ID: %s", relayArmURI)
+	}
 
 	namespaceName := relayId.Path["namespaces"]
 	if namespaceName == "" {
@@ -119,9 +130,12 @@ func resourceArmAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, m
 	connectionEnvelope := web.HybridConnection{}
 	connectionEnvelope.HybridConnectionProperties = &hybridConnectionProperties
 
-	if _, err := client.CreateOrUpdateHybridConnection(ctx, resourceGroup, name, namespaceName, relayName, connectionEnvelope); err != nil {
+	hybridConnection, err := client.CreateOrUpdateHybridConnection(ctx, resourceGroup, name, namespaceName, relayName, connectionEnvelope)
+	if err != nil {
 		return fmt.Errorf("Error creating App Service Hybrid Connection %q (resource group %q): %s", name, resourceGroup, err)
 	}
+
+	d.SetId(*hybridConnection.ID)
 	return resourceArmAppServiceHybridConnectionRead(d, meta)
 }
 
@@ -149,8 +163,8 @@ func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta inte
 	}
 	d.Set("app_service_name", name)
 	d.Set("resource_group_name", resourceGroup)
-	//d.Set("namespace_name", namespaceName)
-	//d.Set("relay_name", relayName)
+	d.Set("namespace_name", namespaceName)
+	d.Set("relay_name", relayName)
 
 	if props := resp.HybridConnectionProperties; props != nil {
 		d.Set("port", resp.Port)

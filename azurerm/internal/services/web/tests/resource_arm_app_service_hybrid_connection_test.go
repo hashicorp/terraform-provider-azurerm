@@ -64,7 +64,7 @@ func testCheckAzureRMAppServiceHybridConnectionExists(resourceName string) resou
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
+		name := rs.Primary.Attributes["app_service_name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		relayName := rs.Primary.Attributes["relay_name"]
