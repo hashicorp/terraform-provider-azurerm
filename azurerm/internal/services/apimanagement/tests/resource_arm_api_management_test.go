@@ -318,7 +318,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 }
-`, data.RandomInteger, data.Locations, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMApiManagement_policyXmlContent(data acceptance.TestData) string {
@@ -370,7 +370,7 @@ resource "azurerm_api_management" "test" {
     xml_link = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
   }
 }
-`, data.RandomInteger, data.Locations, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMApiManagement_policyRemoved(data acceptance.TestData) string {

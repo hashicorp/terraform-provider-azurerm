@@ -145,7 +145,7 @@ resource "azurerm_api_management_certificate" "test" {
   data                = "${filebase64("testdata/keyvaultcert.pfx")}"
   password            = ""
 }
-`, data.RandomInteger, data.Locations, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMAPIManagementCertificate_requiresImport(data acceptance.TestData) string {
