@@ -1,3 +1,4 @@
+## 1.41.0 (Unreleased)
 ## 1.40.0 (January 08, 2020)
 
 * **New Data Source:** `azurerm_netapp_volume` ([#4933](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4933))
