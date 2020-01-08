@@ -479,6 +479,10 @@ resource "azurerm_batch_pool" "test" {
     sku       = "16.04.0-LTS"
     version   = "latest"
   }
+
+  metadata = {
+    tagName = "Example tag"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
