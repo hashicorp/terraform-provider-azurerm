@@ -43,10 +43,19 @@ func validatePolicyAssignmentID(i interface{}, k string) (warnings []string, err
 	}
 
 	scope := v[0:index]
+	assignmentPath := v[index + 1:]
 	// scope should be a resource ID, resource group ID, subscription ID, or Management Group ID
 	_, err := ParseScope(scope)
 	if err != nil {
 		errors = append(errors, err)
+	}
+	// assignment should have a name
+	segments := strings.Split(assignmentPath, "/")
+	if len(segments) != 4 {
+		errors = append(errors, fmt.Errorf("expect the following part of policy assignment id to have 4 segment, but got %d", len(segments)))
+	}
+	if segments[3] == "" {
+		errors = append(errors, fmt.Errorf("the policy assignment name should not be empty"))
 	}
 
 	return warnings, errors
@@ -68,10 +77,18 @@ func validatePolicyDefinitionID(i interface{}, k string) (warnings []string, err
 	}
 
 	scope := v[0:index]
+	definitionPath := v[index + 1:]
 	// scope should be a Subscription ID or ManagementGroup ID
 	_, err := ParseScope(scope)
 	if err != nil {
 		errors = append(errors, err)
+	}
+	segments := strings.Split(definitionPath, "/")
+	if len(segments) != 4 {
+		errors = append(errors, fmt.Errorf("expect the following part of policy definition id to have 4 segment, but got %d", len(segments)))
+	}
+	if segments[3] == "" {
+		errors = append(errors, fmt.Errorf("the policy definition name should not be empty"))
 	}
 
 	return warnings, errors

@@ -111,7 +111,14 @@ func ParseScope(scope string) (*RemediationScope, error) {
 			scopeObj.ResourceGroup = &resId.ResourceGroup
 			scopeObj.Type = AtResourceGroup
 		} else {
+			// test if this resource id is legal
+			id, err := azure.ParseAzureResourceID(scope)
+			if err != nil {
+				return nil, fmt.Errorf("Resource ID '%s' is illegal: %+v", scope, err)
+			}
 			log.Printf("[INFO] Get Resource ID from scope %s", scope)
+			scopeObj.SubscriptionId = &id.SubscriptionID
+			scopeObj.ResourceGroup = &id.ResourceGroup
 			scopeObj.Type = AtResource
 		}
 	} else {
