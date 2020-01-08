@@ -3,7 +3,6 @@ package validate
 import "testing"
 
 func TestBoolIsTrue(t *testing.T) {
-
 	testCases := []struct {
 		Value           bool
 		ShouldHaveError bool
@@ -31,7 +30,6 @@ func TestBoolIsTrue(t *testing.T) {
 				t.Fatalf("Expected %t to return no errors, but got some %+v", value.Value, errors)
 				return
 			}
-
 		}
 	})
 }
