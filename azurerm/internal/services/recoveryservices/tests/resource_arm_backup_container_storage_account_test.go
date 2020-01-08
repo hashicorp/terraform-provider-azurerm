@@ -64,6 +64,9 @@ resource "azurerm_backup_container_storage_account" "test" {
 
 func testCheckAzureRMBackupProtectionContainerStorageAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.BackupProtectionContainersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -86,9 +89,6 @@ func testCheckAzureRMBackupProtectionContainerStorageAccountExists(resourceName 
 		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
 
 		// Ensure container exists in API
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.BackupProtectionContainersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
 		resp, err := client.Get(ctx, vaultName, resourceGroupName, "Azure", containerName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on protection container: %+v", err)
@@ -103,6 +103,9 @@ func testCheckAzureRMBackupProtectionContainerStorageAccountExists(resourceName 
 }
 
 func testCheckAzureRMBackupProtectionContainerStorageAccountDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.BackupProtectionContainersClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_backup_container_storage_account" {
 			continue
@@ -124,9 +127,6 @@ func testCheckAzureRMBackupProtectionContainerStorageAccountDestroy(s *terraform
 		containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
 
 		// Ensure container exists in API
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.BackupProtectionContainersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
 		resp, err := client.Get(ctx, vaultName, resourceGroupName, "Azure", containerName)
 		if err != nil {
 			return nil

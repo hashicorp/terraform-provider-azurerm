@@ -422,6 +422,9 @@ func TestAccAzureRMRedisCache_WithoutAuth(t *testing.T) {
 }
 func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Redis.Client
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -433,9 +436,6 @@ func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFun
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Redis Instance: %s", redisName)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Redis.Client
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, redisName)
 		if err != nil {

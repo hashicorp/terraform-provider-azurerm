@@ -107,6 +107,9 @@ func TestAccAzureRMRedisFirewallRule_update(t *testing.T) {
 
 func testCheckAzureRMRedisFirewallRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Redis.FirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -117,8 +120,6 @@ func testCheckAzureRMRedisFirewallRuleExists(resourceName string) resource.TestC
 		cacheName := rs.Primary.Attributes["redis_cache_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Redis.FirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, cacheName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

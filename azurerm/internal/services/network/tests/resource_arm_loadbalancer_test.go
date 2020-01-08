@@ -199,6 +199,9 @@ func TestAccAzureRMLoadBalancer_emptyPrivateIP(t *testing.T) {
 
 func testCheckAzureRMLoadBalancerExists(resourceName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -209,9 +212,6 @@ func testCheckAzureRMLoadBalancerExists(resourceName string, lb *network.LoadBal
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for loadbalancer: %s", loadBalancerName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LoadBalancersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, loadBalancerName, "")
 		if err != nil {

@@ -188,6 +188,9 @@ func TestAccAzureRMNetAppVolume_updateExportPolicyRule(t *testing.T) {
 
 func testCheckAzureRMNetAppVolumeExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.VolumeClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("NetApp Volume not found: %s", resourceName)
@@ -197,9 +200,6 @@ func testCheckAzureRMNetAppVolumeExists(resourceName string) resource.TestCheckF
 		accountName := rs.Primary.Attributes["account_name"]
 		poolName := rs.Primary.Attributes["pool_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.VolumeClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, accountName, poolName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

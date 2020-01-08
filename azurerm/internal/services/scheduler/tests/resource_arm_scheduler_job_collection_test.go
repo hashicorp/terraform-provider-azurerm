@@ -79,6 +79,9 @@ func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 }
 
 func testCheckAzureRMSchedulerJobCollectionDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Scheduler.JobCollectionsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_scheduler_job_collection" {
 			continue
@@ -86,9 +89,6 @@ func testCheckAzureRMSchedulerJobCollectionDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Scheduler.JobCollectionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 
@@ -108,6 +108,9 @@ func testCheckAzureRMSchedulerJobCollectionDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSchedulerJobCollectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Scheduler.JobCollectionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -120,8 +123,6 @@ func testCheckAzureRMSchedulerJobCollectionExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for Scheduler Job Collection: %q", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Scheduler.JobCollectionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
