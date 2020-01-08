@@ -875,6 +875,14 @@ type ApplicationInsightsComponentProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// SamplingPercentage - Percentage of the data produced by the application being monitored that is being sampled for Application Insights telemetry.
 	SamplingPercentage *float64 `json:"SamplingPercentage,omitempty"`
+	// ConnectionString - READ-ONLY; Application Insights component connection string.
+	ConnectionString *string `json:"ConnectionString,omitempty"`
+	// RetentionInDays - Retention period in days.
+	RetentionInDays *int32 `json:"RetentionInDays,omitempty"`
+	// DisableIPMasking - Disable IP masking.
+	DisableIPMasking *bool `json:"DisableIpMasking,omitempty"`
+	// ImmediatePurgeDataOn30Days - Purge data immediately after 30 days.
+	ImmediatePurgeDataOn30Days *bool `json:"ImmediatePurgeDataOn30Days,omitempty"`
 }
 
 // ApplicationInsightsComponentQuotaStatus an Application Insights component daily data volume cap status

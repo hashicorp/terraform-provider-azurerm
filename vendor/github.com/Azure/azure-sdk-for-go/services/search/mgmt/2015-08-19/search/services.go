@@ -161,11 +161,11 @@ func (client ServicesClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 			Constraints: []validation.Constraint{{Target: "service.ServiceProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "service.ServiceProperties.ReplicaCount", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "service.ServiceProperties.ReplicaCount", Name: validation.InclusiveMaximum, Rule: int64(12), Chain: nil},
-						{Target: "service.ServiceProperties.ReplicaCount", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+						{Target: "service.ServiceProperties.ReplicaCount", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 					}},
 					{Target: "service.ServiceProperties.PartitionCount", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "service.ServiceProperties.PartitionCount", Name: validation.InclusiveMaximum, Rule: int64(12), Chain: nil},
-							{Target: "service.ServiceProperties.PartitionCount", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+							{Target: "service.ServiceProperties.PartitionCount", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 						}},
 				}}}}}); err != nil {
 		return result, validation.NewError("search.ServicesClient", "CreateOrUpdate", err.Error())

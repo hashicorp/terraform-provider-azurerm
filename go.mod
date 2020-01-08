@@ -1,7 +1,7 @@
 module github.com/terraform-providers/terraform-provider-azurerm
 
 require (
-	github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
+	github.com/Azure/azure-sdk-for-go v38.0.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.9.3
 	github.com/Azure/go-autorest/autorest/date v0.2.0
 	github.com/apparentlymart/go-dump v0.0.0-20190214190832-042adf3cf4a0 // indirect
@@ -26,7 +26,5 @@ require (
 	golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )
-
-replace github.com/Azure/azure-sdk-for-go => github.com/hashicorp/azure-sdk-for-go v36.2.2-hashi+incompatible
 
 go 1.13

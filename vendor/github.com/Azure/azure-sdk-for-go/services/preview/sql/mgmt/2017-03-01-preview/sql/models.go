@@ -2257,7 +2257,7 @@ func NewDatabaseBlobAuditingPolicyListResultPage(getNextPage func(context.Contex
 type DatabaseBlobAuditingPolicyProperties struct {
 	// State - Specifies the state of the policy. If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled are required. Possible values include: 'BlobAuditingPolicyStateEnabled', 'BlobAuditingPolicyStateDisabled'
 	State BlobAuditingPolicyState `json:"state,omitempty"`
-	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint is required.
+	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
 	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
 	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
@@ -2337,6 +2337,9 @@ type DatabaseBlobAuditingPolicyProperties struct {
 	// For more information, see [Diagnostic Settings REST API](https://go.microsoft.com/fwlink/?linkid=2033207)
 	// or [Diagnostic Settings PowerShell](https://go.microsoft.com/fwlink/?linkid=2033043)
 	IsAzureMonitorTargetEnabled *bool `json:"isAzureMonitorTargetEnabled,omitempty"`
+	// QueueDelayMs - Specifies the amount of time in milliseconds that can elapse before audit actions are forced to be processed.
+	// The default minimum value is 1000 (1 second). The maximum is 2,147,483,647.
+	QueueDelayMs *int32 `json:"queueDelayMs,omitempty"`
 }
 
 // DatabaseListResult represents the response to a list database request.
@@ -3328,7 +3331,7 @@ func NewDatabaseVulnerabilityAssessmentListResultPage(getNextPage func(context.C
 type DatabaseVulnerabilityAssessmentProperties struct {
 	// StorageContainerPath - A blob storage container path to hold the scan results (e.g. https://myStorage.blob.core.windows.net/VaScans/).  It is required if server level vulnerability assessment policy doesn't set
 	StorageContainerPath *string `json:"storageContainerPath,omitempty"`
-	// StorageContainerSasKey - A shared access signature (SAS Key) that has write access to the blob container specified in 'storageContainerPath' parameter. If 'storageAccountAccessKey' isn't specified, StorageContainerSasKey is required.
+	// StorageContainerSasKey - A shared access signature (SAS Key) that has read and write access to the blob container specified in 'storageContainerPath' parameter. If 'storageAccountAccessKey' isn't specified, StorageContainerSasKey is required.
 	StorageContainerSasKey *string `json:"storageContainerSasKey,omitempty"`
 	// StorageAccountAccessKey - Specifies the identifier key of the storage account for vulnerability assessment scan results. If 'StorageContainerSasKey' isn't specified, storageAccountAccessKey is required.
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
@@ -4752,7 +4755,7 @@ type ExtendedDatabaseBlobAuditingPolicyProperties struct {
 	PredicateExpression *string `json:"predicateExpression,omitempty"`
 	// State - Specifies the state of the policy. If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled are required. Possible values include: 'BlobAuditingPolicyStateEnabled', 'BlobAuditingPolicyStateDisabled'
 	State BlobAuditingPolicyState `json:"state,omitempty"`
-	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint is required.
+	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
 	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
 	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
@@ -4832,6 +4835,9 @@ type ExtendedDatabaseBlobAuditingPolicyProperties struct {
 	// For more information, see [Diagnostic Settings REST API](https://go.microsoft.com/fwlink/?linkid=2033207)
 	// or [Diagnostic Settings PowerShell](https://go.microsoft.com/fwlink/?linkid=2033043)
 	IsAzureMonitorTargetEnabled *bool `json:"isAzureMonitorTargetEnabled,omitempty"`
+	// QueueDelayMs - Specifies the amount of time in milliseconds that can elapse before audit actions are forced to be processed.
+	// The default minimum value is 1000 (1 second). The maximum is 2,147,483,647.
+	QueueDelayMs *int32 `json:"queueDelayMs,omitempty"`
 }
 
 // ExtendedServerBlobAuditingPoliciesCreateOrUpdateFuture an abstraction for monitoring and retrieving the
@@ -4942,7 +4948,7 @@ type ExtendedServerBlobAuditingPolicyProperties struct {
 	PredicateExpression *string `json:"predicateExpression,omitempty"`
 	// State - Specifies the state of the policy. If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled are required. Possible values include: 'BlobAuditingPolicyStateEnabled', 'BlobAuditingPolicyStateDisabled'
 	State BlobAuditingPolicyState `json:"state,omitempty"`
-	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint is required.
+	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
 	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
 	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
@@ -5022,6 +5028,9 @@ type ExtendedServerBlobAuditingPolicyProperties struct {
 	// For more information, see [Diagnostic Settings REST API](https://go.microsoft.com/fwlink/?linkid=2033207)
 	// or [Diagnostic Settings PowerShell](https://go.microsoft.com/fwlink/?linkid=2033043)
 	IsAzureMonitorTargetEnabled *bool `json:"isAzureMonitorTargetEnabled,omitempty"`
+	// QueueDelayMs - Specifies the amount of time in milliseconds that can elapse before audit actions are forced to be processed.
+	// The default minimum value is 1000 (1 second). The maximum is 2,147,483,647.
+	QueueDelayMs *int32 `json:"queueDelayMs,omitempty"`
 }
 
 // FailoverGroup a failover group.
@@ -11441,7 +11450,7 @@ func NewServerBlobAuditingPolicyListResultPage(getNextPage func(context.Context,
 type ServerBlobAuditingPolicyProperties struct {
 	// State - Specifies the state of the policy. If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled are required. Possible values include: 'BlobAuditingPolicyStateEnabled', 'BlobAuditingPolicyStateDisabled'
 	State BlobAuditingPolicyState `json:"state,omitempty"`
-	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint is required.
+	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
 	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
 	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
@@ -11521,6 +11530,9 @@ type ServerBlobAuditingPolicyProperties struct {
 	// For more information, see [Diagnostic Settings REST API](https://go.microsoft.com/fwlink/?linkid=2033207)
 	// or [Diagnostic Settings PowerShell](https://go.microsoft.com/fwlink/?linkid=2033043)
 	IsAzureMonitorTargetEnabled *bool `json:"isAzureMonitorTargetEnabled,omitempty"`
+	// QueueDelayMs - Specifies the amount of time in milliseconds that can elapse before audit actions are forced to be processed.
+	// The default minimum value is 1000 (1 second). The maximum is 2,147,483,647.
+	QueueDelayMs *int32 `json:"queueDelayMs,omitempty"`
 }
 
 // ServerCommunicationLink server communication link.
