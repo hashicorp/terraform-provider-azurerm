@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "==> Checking that website files meet registry guidelines..."
+
 docs=$(ls website/docs/**/*.markdown)
 error=false
 
