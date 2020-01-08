@@ -7,6 +7,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_batch_pool` - support for the `metadata` property [GH-5309]
 * `azurerm_function_app` - convert `connection_string`s from a `TypList` to a `TypeSet` [GH-5319]
 
 ## 1.40.0 (January 08, 2020)
