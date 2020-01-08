@@ -43,7 +43,7 @@ func validatePolicyAssignmentID(i interface{}, k string) (warnings []string, err
 	}
 
 	scope := v[0:index]
-	assignmentPath := v[index + 1:]
+	assignmentPath := v[index+1:]
 	// scope should be a resource ID, resource group ID, subscription ID, or Management Group ID
 	_, err := ParseScope(scope)
 	if err != nil {
@@ -77,7 +77,7 @@ func validatePolicyDefinitionID(i interface{}, k string) (warnings []string, err
 	}
 
 	scope := v[0:index]
-	definitionPath := v[index + 1:]
+	definitionPath := v[index+1:]
 	// scope should be a Subscription ID or ManagementGroup ID
 	_, err := ParseScope(scope)
 	if err != nil {
