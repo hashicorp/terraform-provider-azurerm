@@ -2,9 +2,10 @@ package web
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"regexp"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/hashicorp/go-azure-helpers/response"
 
