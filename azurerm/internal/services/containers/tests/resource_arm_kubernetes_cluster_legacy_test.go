@@ -11,12 +11,17 @@ import (
 
 // NOTE: all of the tests in this file are for functionality which will be removed in 2.0
 
+func TestAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet(t)
+}
+
 func testAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -34,12 +39,17 @@ func testAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet(t *te
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS(t)
+}
+
 func testAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
