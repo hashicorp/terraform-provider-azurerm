@@ -85,6 +85,9 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 
 func testCheckAzureRMAutomationVariableExists(resourceName string, varType string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Automation.VariableClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Automation %s Variable not found: %s", varType, resourceName)
@@ -93,9 +96,6 @@ func testCheckAzureRMAutomationVariableExists(resourceName string, varType strin
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["automation_account_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Automation.VariableClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

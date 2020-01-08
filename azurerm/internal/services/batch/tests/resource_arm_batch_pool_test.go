@@ -381,6 +381,9 @@ func TestAccAzureRMBatchPool_customImage(t *testing.T) {
 
 func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.PoolClient
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -390,9 +393,6 @@ func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 		poolName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["account_name"]
-
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
@@ -408,6 +408,9 @@ func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.PoolClient
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_batch_pool" {
 			continue
@@ -416,9 +419,6 @@ func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
 		poolName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["account_name"]
-
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {

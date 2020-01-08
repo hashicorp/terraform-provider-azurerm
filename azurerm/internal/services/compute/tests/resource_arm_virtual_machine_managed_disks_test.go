@@ -572,6 +572,9 @@ func TestAccAzureRMVirtualMachine_ultraSSD(t *testing.T) {
 
 func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		vmID, err := azure.ParseAzureResourceID(*vm.ID)
 		if err != nil {
 			return fmt.Errorf("Unable to parse virtual machine ID %s, %+v", *vm.ID, err)
@@ -579,9 +582,6 @@ func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.
 
 		name := vmID.Path["virtualMachines"]
 		resourceGroup := vmID.ResourceGroup
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Deallocate(ctx, resourceGroup, name)
 		if err != nil {
@@ -2179,14 +2179,16 @@ func findAzureRMVirtualMachineManagedDiskID(md *compute.ManagedDiskParameters) (
 }
 
 func testGetAzureRMVirtualMachineManagedDisk(managedDiskID *string) (*compute.Disk, error) {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	armID, err := azure.ParseAzureResourceID(*managedDiskID)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse Managed Disk ID %s, %+v", *managedDiskID, err)
 	}
 	name := armID.Path["disks"]
 	resourceGroup := armID.ResourceGroup
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	d, err := client.Get(ctx, resourceGroup, name)
 	//check status first since sdk client returns error if not 200
 	if d.Response.StatusCode == http.StatusNotFound {

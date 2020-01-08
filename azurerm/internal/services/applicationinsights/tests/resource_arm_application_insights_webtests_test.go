@@ -140,6 +140,9 @@ func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) erro
 
 func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.WebTestsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up a WebTest
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -148,8 +151,6 @@ func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resou
 
 		name := rs.Primary.Attributes["name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.WebTestsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, name)
 		if err != nil {

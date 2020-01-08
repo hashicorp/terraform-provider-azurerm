@@ -202,6 +202,9 @@ func TestAccAzureRMDnsAaaaRecord_AliasToRecords(t *testing.T) {
 
 func testCheckAzureRMDnsAaaaRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -215,8 +218,6 @@ func testCheckAzureRMDnsAaaaRecordExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for DNS AAAA record: %s", aaaaName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, aaaaName, dns.AAAA)
 		if err != nil {
 			return fmt.Errorf("Bad: Get AAAA RecordSet: %+v", err)

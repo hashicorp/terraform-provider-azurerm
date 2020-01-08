@@ -1032,6 +1032,9 @@ func TestAccAzureRMVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *t
 }
 
 func testGetAzureRMVirtualMachineScaleSet(s *terraform.State, resourceName string) (result *compute.VirtualMachineScaleSet, err error) {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	// Ensure we have enough information in state to look up in API
 	rs, ok := s.RootModule().Resources[resourceName]
 	if !ok {
@@ -1045,9 +1048,6 @@ func testGetAzureRMVirtualMachineScaleSet(s *terraform.State, resourceName strin
 	if !hasResourceGroup {
 		return nil, fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
 	}
-
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	vmss, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -1070,6 +1070,9 @@ func testCheckAzureRMVirtualMachineScaleSetExists(name string) resource.TestChec
 
 func testCheckAzureRMVirtualMachineScaleSetDisappears(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -1081,9 +1084,6 @@ func testCheckAzureRMVirtualMachineScaleSetDisappears(name string) resource.Test
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -1362,6 +1362,9 @@ func testCheckAzureRMVirtualMachineScaleSetExtension(name string) resource.TestC
 
 func testCheckAzureRMVirtualMachineScaleSetHasDataDisks(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -1374,8 +1377,6 @@ func testCheckAzureRMVirtualMachineScaleSetHasDataDisks(name string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)

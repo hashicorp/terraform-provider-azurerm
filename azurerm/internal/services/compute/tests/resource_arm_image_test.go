@@ -325,6 +325,9 @@ func deprovisionVM(userName string, password string, hostName string, port strin
 
 func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ImagesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		log.Printf("[INFO] testing MANAGED IMAGE EXISTS - BEGIN.")
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -337,9 +340,6 @@ func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for image: %s", dName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ImagesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dName, "")
 		if err != nil {
@@ -359,10 +359,11 @@ func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource
 
 func testCheckAzureVMExists(sourceVM string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		log.Printf("[INFO] testing MANAGED IMAGE VM EXISTS - BEGIN.")
-
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		log.Printf("[INFO] testing MANAGED IMAGE VM EXISTS - BEGIN.")
+
 		vmRs, vmOk := s.RootModule().Resources[sourceVM]
 		if !vmOk {
 			return fmt.Errorf("VM Not found: %s", sourceVM)
@@ -394,10 +395,11 @@ func testCheckAzureVMExists(sourceVM string, shouldExist bool) resource.TestChec
 
 func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		log.Printf("[INFO] testing MANAGED IMAGE VMSS EXISTS - BEGIN.")
-
 		vmssClient := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		log.Printf("[INFO] testing MANAGED IMAGE VMSS EXISTS - BEGIN.")
+
 		vmRs, vmOk := s.RootModule().Resources[sourceVMSS]
 		if !vmOk {
 			return fmt.Errorf("VMSS Not found: %s", sourceVMSS)
