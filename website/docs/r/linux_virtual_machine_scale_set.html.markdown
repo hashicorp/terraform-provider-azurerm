@@ -2,7 +2,6 @@
 subcategory: "Beta"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_linux_virtual_machine_scale_set"
-sidebar_current: "docs-azurerm-resource-linux-virtual-machine-scale-set"
 description: |-
   Manages a Linux Virtual Machine Scale Set.
 ---

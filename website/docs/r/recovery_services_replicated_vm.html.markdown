@@ -2,7 +2,6 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_replicated_vm"
-sidebar_current: "docs-azurerm-recovery-replicated-vm"
 description: |-
     Manages a site recovery services protection container mappings on Azure.
 ---

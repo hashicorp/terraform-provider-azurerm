@@ -2,7 +2,6 @@
 subcategory: "Scheduler"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_scheduler_job_collection"
-sidebar_current: "docs-azurerm-resource-scheduler-job-collection"
 description: |-
   Manages a Scheduler Job Collection.
 ---

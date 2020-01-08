@@ -2,7 +2,6 @@
 subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_variable_datetime"
-sidebar_current: "docs-azurerm-resource-automation-variable-datetime"
 description: |-
   Manages a date/time variable in Azure Automation.
 ---

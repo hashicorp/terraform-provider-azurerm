@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_property"
-sidebar_current: "docs-azurerm-resource-api-management-property-x"
 description: |-
   Manages an API Management Property.
 ---

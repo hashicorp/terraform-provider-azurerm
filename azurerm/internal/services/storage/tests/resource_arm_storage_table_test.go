@@ -108,6 +108,9 @@ func TestAccAzureRMStorageTable_acl(t *testing.T) {
 
 func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -115,9 +118,6 @@ func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckF
 
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -147,6 +147,9 @@ func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckF
 
 func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -154,9 +157,6 @@ func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFun
 
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -189,6 +189,9 @@ func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
+	storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_table" {
 			continue
@@ -196,9 +199,6 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

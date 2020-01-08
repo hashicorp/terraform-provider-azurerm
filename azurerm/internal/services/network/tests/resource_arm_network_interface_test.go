@@ -380,6 +380,9 @@ func TestAccAzureRMNetworkInterface_importPublicIP(t *testing.T) {
 
 func testCheckAzureRMNetworkInterfaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -391,9 +394,6 @@ func testCheckAzureRMNetworkInterfaceExists(resourceName string) resource.TestCh
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
@@ -410,6 +410,9 @@ func testCheckAzureRMNetworkInterfaceExists(resourceName string) resource.TestCh
 
 func testCheckAzureRMNetworkInterfaceDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -421,9 +424,6 @@ func testCheckAzureRMNetworkInterfaceDisappears(resourceName string) resource.Te
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {

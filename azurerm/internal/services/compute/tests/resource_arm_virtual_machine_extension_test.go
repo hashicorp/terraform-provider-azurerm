@@ -109,6 +109,9 @@ func TestAccAzureRMVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
 
 func testCheckAzureRMVirtualMachineExtensionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMExtensionClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -118,9 +121,6 @@ func testCheckAzureRMVirtualMachineExtensionExists(resourceName string) resource
 		name := rs.Primary.Attributes["name"]
 		vmName := rs.Primary.Attributes["virtual_machine_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMExtensionClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
 		if err != nil {

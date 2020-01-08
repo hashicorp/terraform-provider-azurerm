@@ -85,6 +85,9 @@ func TestAccAzureRMSubnetNatGatewayAssociation_deleted(t *testing.T) {
 
 func testCheckAzureRMSubnetNatGatewayAssociationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -98,8 +101,6 @@ func testCheckAzureRMSubnetNatGatewayAssociationExists(resourceName string) reso
 		resourceGroupName := parsedSubnetId.ResourceGroup
 		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 		subnetName := parsedSubnetId.Path["subnets"]
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		subnet, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -124,6 +125,9 @@ func testCheckAzureRMSubnetNatGatewayAssociationExists(resourceName string) reso
 
 func testCheckAzureRMSubnetNatGatewayAssociationDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -137,8 +141,6 @@ func testCheckAzureRMSubnetNatGatewayAssociationDisappears(resourceName string) 
 		resourceGroup := parsedSubnetId.ResourceGroup
 		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 		subnetName := parsedSubnetId.Path["subnets"]
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -168,6 +170,9 @@ func testCheckAzureRMSubnetNatGatewayAssociationDisappears(resourceName string) 
 
 func testCheckAzureRMSubnetHasNoNatGateways(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -180,8 +185,6 @@ func testCheckAzureRMSubnetHasNoNatGateways(resourceName string) resource.TestCh
 		resourceGroupName := parsedSubnetId.ResourceGroup
 		virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 		subnetName := parsedSubnetId.Path["subnets"]
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		subnet, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {

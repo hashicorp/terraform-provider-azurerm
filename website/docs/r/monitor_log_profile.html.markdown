@@ -2,7 +2,6 @@
 subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_log_profile"
-sidebar_current: "docs-azurerm-resource-monitor-log-profile"
 description: |-
   Manages a Log Profile.
 ---

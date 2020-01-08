@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_endpoint_eventhub"
-sidebar_current: "docs-azurerm-resource-messaging-iothub-endpoint-eventhub"
 description: |-
   Manages an IotHub EventHub Endpoint
 ---

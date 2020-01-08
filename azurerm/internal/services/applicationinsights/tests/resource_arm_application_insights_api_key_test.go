@@ -175,6 +175,9 @@ func testCheckAzureRMApplicationInsightsAPIKeyDestroy(s *terraform.State) error 
 
 func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.APIKeysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -188,9 +191,6 @@ func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resour
 		keyID := id.Path["APIKeys"]
 		resGroup := id.ResourceGroup
 		appInsightsName := id.Path["components"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.APIKeysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, appInsightsName, keyID)
 		if err != nil {

@@ -106,6 +106,9 @@ func TestAccAzureRMDataLakeAnalyticsAccount_withTags(t *testing.T) {
 
 func testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.AnalyticsAccountsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -117,9 +120,6 @@ func testCheckAzureRMDataLakeAnalyticsAccountExists(resourceName string) resourc
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", accountName)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.AnalyticsAccountsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName)
 		if err != nil {

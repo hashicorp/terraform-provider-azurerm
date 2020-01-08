@@ -172,6 +172,9 @@ func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 
 func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
@@ -180,8 +183,6 @@ func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestChec
 		scope := rs.Primary.Attributes["scope"]
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
 
 		if err != nil {
@@ -196,6 +197,9 @@ func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_role_definition" {
 			continue
@@ -204,8 +208,6 @@ func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
 		scope := rs.Primary.Attributes["scope"]
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
 
 		if err != nil {

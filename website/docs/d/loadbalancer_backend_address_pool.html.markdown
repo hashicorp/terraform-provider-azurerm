@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_backend_address_pool"
-sidebar_current: "docs-azurerm-datasource-load-balancer-backend-address-pool"
 description: |-
   Get information about an existing Load Balancer Backend Address Pool
 

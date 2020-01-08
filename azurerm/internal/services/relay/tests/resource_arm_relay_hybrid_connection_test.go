@@ -191,6 +191,9 @@ resource "azurerm_relay_namespace" "import" {
 
 func testCheckAzureRMRelayHybridConnectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Relay.HybridConnectionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -202,8 +205,6 @@ func testCheckAzureRMRelayHybridConnectionExists(resourceName string) resource.T
 		relayNamespace := rs.Primary.Attributes["relay_namespace_name"]
 
 		// Ensure resource group exists in API
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Relay.HybridConnectionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, relayNamespace, name)
 		if err != nil {

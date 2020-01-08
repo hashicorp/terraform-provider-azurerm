@@ -153,6 +153,9 @@ func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 
 func testCheckAzureRMDatabricksWorkspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).DataBricks.WorkspacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Bad: Not found: %s", resourceName)
@@ -164,8 +167,6 @@ func testCheckAzureRMDatabricksWorkspaceExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: No resource group found in state for Databricks Workspace: %s", workspaceName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).DataBricks.WorkspacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, workspaceName)
 		if err != nil {
 			return fmt.Errorf("Bad: Getting Workspace: %+v", err)

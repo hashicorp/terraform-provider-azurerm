@@ -116,6 +116,9 @@ func testAccAzureRMPacketCapture_withFilters(t *testing.T) {
 
 func testCheckAzureRMPacketCaptureExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PacketCapturesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
@@ -124,9 +127,6 @@ func testCheckAzureRMPacketCaptureExists(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		watcherName := rs.Primary.Attributes["network_watcher_name"]
 		packetCaptureName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PacketCapturesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, watcherName, packetCaptureName)
 		if err != nil {

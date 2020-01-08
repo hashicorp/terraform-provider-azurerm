@@ -2,7 +2,6 @@
 subcategory: "Security Center"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_advanced_threat_protection"
-sidebar_current: "docs-azurerm-resource-azurerm-advanced-threat-protection-x"
 description: |-
   Manages a resources Advanced Threat Protection setting.
 ---

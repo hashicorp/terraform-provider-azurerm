@@ -2,7 +2,6 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_fabric"
-sidebar_current: "docs-azurerm-recovery-services-fabric"
 description: |-
     Manages a site recovery services fabric on Azure.
 ---

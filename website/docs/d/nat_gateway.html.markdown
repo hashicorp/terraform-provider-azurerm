@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nat_gateway"
-sidebar_current: "docs-azurerm-datasource-nat-gateway"
 description: |-
   Gets information about an existing NAT Gateway
 ---

@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_disk"
-sidebar_current: "docs-azurerm-resource-compute-managed-disk"
 description: |-
   Manages a Managed Disk.
 ---

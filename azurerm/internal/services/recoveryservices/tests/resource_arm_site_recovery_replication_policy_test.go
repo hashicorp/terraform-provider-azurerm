@@ -56,6 +56,8 @@ resource "azurerm_site_recovery_replication_policy" "test" {
 
 func testCheckAzureRMSiteRecoveryReplicationPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -67,7 +69,6 @@ func testCheckAzureRMSiteRecoveryReplicationPolicyExists(resourceName string) re
 		policyName := state.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, policyName)
 		if err != nil {
@@ -83,6 +84,8 @@ func testCheckAzureRMSiteRecoveryReplicationPolicyExists(resourceName string) re
 }
 
 func testCheckAzureRMSiteRecoveryReplicationPolicyDestroy(s *terraform.State) error {
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_site_recovery_replication_policy" {
 			continue
@@ -93,7 +96,6 @@ func testCheckAzureRMSiteRecoveryReplicationPolicyDestroy(s *terraform.State) er
 		policyName := rs.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, policyName)
 		if err != nil {
 			return nil

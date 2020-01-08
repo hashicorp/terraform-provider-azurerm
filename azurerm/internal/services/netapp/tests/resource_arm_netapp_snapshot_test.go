@@ -109,6 +109,9 @@ func TestAccAzureRMNetAppSnapshot_update(t *testing.T) {
 
 func testCheckAzureRMNetAppSnapshotExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.SnapshotClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("NetApp Snapshot not found: %s", resourceName)
@@ -119,9 +122,6 @@ func testCheckAzureRMNetAppSnapshotExists(resourceName string) resource.TestChec
 		poolName := rs.Primary.Attributes["pool_name"]
 		volumeName := rs.Primary.Attributes["volume_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.SnapshotClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, accountName, poolName, volumeName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

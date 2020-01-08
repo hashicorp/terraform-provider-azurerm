@@ -112,6 +112,7 @@ func testCheckAzureRMIotDPSCertificateDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotDPSCertificateExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSCertificateClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -126,7 +127,6 @@ func testCheckAzureRMIotDPSCertificateExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for IoT Device Provisioning Service Certificate: %s", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSCertificateClient
 		resp, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

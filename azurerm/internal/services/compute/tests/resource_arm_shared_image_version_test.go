@@ -204,6 +204,9 @@ func testCheckAzureRMSharedImageVersionDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSharedImageVersionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleryImageVersionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -217,9 +220,6 @@ func testCheckAzureRMSharedImageVersionExists(resourceName string) resource.Test
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Shared Image Version: %s", imageName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.GalleryImageVersionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, galleryName, imageName, imageVersion, "")
 		if err != nil {

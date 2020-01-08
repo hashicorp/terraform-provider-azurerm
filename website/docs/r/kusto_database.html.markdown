@@ -2,7 +2,6 @@
 subcategory: "Data Explorer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kusto_database"
-sidebar_current: "docs-azurerm-resource-kusto-database"
 description: |-
   Manages Kusto / Data Explorer Database
 ---

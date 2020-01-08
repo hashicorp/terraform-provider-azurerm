@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_endpoint"
-sidebar_current: "docs-azurerm-resource-network-traffic-manager-endpoint"
 description: |-
   Manages a Traffic Manager Endpoint.
 ---

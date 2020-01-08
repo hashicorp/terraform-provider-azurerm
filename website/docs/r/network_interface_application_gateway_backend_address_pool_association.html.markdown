@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_interface_application_gateway_backend_address_pool_association"
-sidebar_current: "docs-azurerm-resource-network-interface-application-gateway-backend-address-pool-association"
 description: |-
   Manages the association between a Network Interface and a Application Gateway's Backend Address Pool.
 

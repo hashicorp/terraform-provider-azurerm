@@ -65,6 +65,8 @@ func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 
 func testCheckAzureRMDataFactoryPipelineDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.PipelinesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_factory_pipeline" {
 			continue
@@ -74,7 +76,6 @@ func testCheckAzureRMDataFactoryPipelineDestroy(s *terraform.State) error {
 		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 
 		if err != nil {
@@ -90,6 +91,9 @@ func testCheckAzureRMDataFactoryPipelineDestroy(s *terraform.State) error {
 
 func testCheckAzureRMDataFactoryPipelineExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.PipelinesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -99,8 +103,6 @@ func testCheckAzureRMDataFactoryPipelineExists(resourceName string) resource.Tes
 		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.PipelinesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

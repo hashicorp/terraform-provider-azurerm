@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image_version"
-sidebar_current: "docs-azurerm-datasource-shared-image-version"
 description: |-
   Gets information about an existing Version of a Shared Image within a Shared Image Gallery.
 

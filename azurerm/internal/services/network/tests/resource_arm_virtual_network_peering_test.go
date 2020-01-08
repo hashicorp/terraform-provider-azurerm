@@ -123,6 +123,9 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 
 func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -137,9 +140,6 @@ func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.T
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
 		resp, err := client.Get(ctx, resourceGroup, vnetName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vnetPeeringsClient: %s", err)
@@ -155,6 +155,9 @@ func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.T
 
 func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -169,9 +172,6 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resour
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetPeeringsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
 		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
 		if err != nil {
 			return fmt.Errorf("Error deleting Peering %q (NW %q / RG %q): %+v", name, vnetName, resourceGroup, err)

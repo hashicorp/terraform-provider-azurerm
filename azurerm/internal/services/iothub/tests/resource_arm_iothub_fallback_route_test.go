@@ -117,6 +117,7 @@ func testCheckAzureRMIotHubFallbackRouteDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -129,8 +130,6 @@ func testCheckAzureRMIotHubFallbackRouteExists(resourceName string) resource.Tes
 		}
 		iothubName := parsedIothubId.Path["IotHubs"]
 		resourceGroup := parsedIothubId.ResourceGroup
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {

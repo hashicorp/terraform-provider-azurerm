@@ -2,7 +2,6 @@
 subcategory: "DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_aaaa_record"
-sidebar_current: "docs-azurerm-resource-dns-aaaa-record"
 description: |-
   Manages a DNS AAAA Record.
 ---

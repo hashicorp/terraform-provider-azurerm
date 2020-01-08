@@ -32,6 +32,7 @@ func TestAccAzureRMKustoDatabasePrincipal_basic(t *testing.T) {
 
 func testCheckAzureRMKustoDatabasePrincipalDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_kusto_database_principal" {
@@ -43,7 +44,6 @@ func testCheckAzureRMKustoDatabasePrincipalDestroy(s *terraform.State) error {
 		databaseName := rs.Primary.Attributes["database_name"]
 		role := rs.Primary.Attributes["role"]
 		fqn := rs.Primary.Attributes["fully_qualified_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.ListPrincipals(ctx, resourceGroup, clusterName, databaseName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -74,6 +74,9 @@ func testCheckAzureRMKustoDatabasePrincipalDestroy(s *terraform.State) error {
 
 func testCheckAzureRMKustoDatabasePrincipalExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -97,8 +100,6 @@ func testCheckAzureRMKustoDatabasePrincipalExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no database name found in state for Kusto Database Principal: %s", fqn)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.DatabasesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.ListPrincipals(ctx, resourceGroup, clusterName, databaseName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

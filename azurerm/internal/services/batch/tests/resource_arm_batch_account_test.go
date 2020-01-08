@@ -140,6 +140,9 @@ func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
 
 func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.AccountClient
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -150,8 +153,6 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		// Ensure resource group exists in API
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.AccountClient
 
 		resp, err := conn.Get(ctx, resourceGroup, batchAccount)
 		if err != nil {

@@ -84,6 +84,9 @@ func TestAccAzureRMStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
 
 func testCheckAzureRMStreamAnalyticsOutputSqlExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -94,8 +97,6 @@ func testCheckAzureRMStreamAnalyticsOutputSqlExists(resourceName string) resourc
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on streamAnalyticsOutputsClient: %+v", err)
@@ -111,6 +112,7 @@ func testCheckAzureRMStreamAnalyticsOutputSqlExists(resourceName string) resourc
 
 func testCheckAzureRMStreamAnalyticsOutputSqlDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.OutputsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_output_mssql" {
@@ -120,7 +122,6 @@ func testCheckAzureRMStreamAnalyticsOutputSqlDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return nil

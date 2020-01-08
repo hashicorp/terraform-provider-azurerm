@@ -91,6 +91,9 @@ func TestAccAzureRMMySQLConfiguration_logSlowAdminStatements(t *testing.T) {
 
 func testCheckAzureRMMySQLConfigurationValue(resourceName string, value string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ConfigurationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -103,9 +106,6 @@ func testCheckAzureRMMySQLConfigurationValue(resourceName string, value string) 
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Configuration: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -126,11 +126,11 @@ func testCheckAzureRMMySQLConfigurationValue(resourceName string, value string) 
 
 func testCheckAzureRMMySQLConfigurationValueReset(data acceptance.TestData, configurationName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-		serverName := fmt.Sprintf("acctestmysqlsvr-%d", data.RandomInteger)
-
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ConfigurationsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+		serverName := fmt.Sprintf("acctestmysqlsvr-%d", data.RandomInteger)
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
 		if err != nil {

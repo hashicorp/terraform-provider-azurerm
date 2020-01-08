@@ -2,7 +2,6 @@
 subcategory: "Bot"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_channel_email"
-sidebar_current: "docs-azurerm-resource-bot-channel-email"
 description: |-
   Manages a Email integration for a Bot Channel
 ---

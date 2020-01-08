@@ -158,6 +158,9 @@ func TestAccAzureRMVPNServerConfiguration_tags(t *testing.T) {
 
 func testCheckAzureRMVPNServerConfigurationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnServerConfigurationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("VPN Gateway Server Configuration not found: %s", resourceName)
@@ -165,9 +168,6 @@ func testCheckAzureRMVPNServerConfigurationExists(resourceName string) resource.
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnServerConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -182,13 +182,14 @@ func testCheckAzureRMVPNServerConfigurationExists(resourceName string) resource.
 }
 
 func testCheckAzureRMVPNServerConfigurationDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnServerConfigurationsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_vpn_server_configuration" {
 			continue
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnServerConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 

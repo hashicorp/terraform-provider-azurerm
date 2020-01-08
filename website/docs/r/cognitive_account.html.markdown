@@ -2,7 +2,6 @@
 subcategory: "Cognitive Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cognitive_account"
-sidebar_current: "docs-azurerm-resource-cognitive-account"
 description: |-
   Manages a Cognitive Services Account.
 ---

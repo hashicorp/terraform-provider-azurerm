@@ -2,7 +2,6 @@
 subcategory: "Bot"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_channel_ms_teams"
-sidebar_current: "docs-azurerm-resource-bot-channel-ms-teams"
 description: |-
   Manages an MS Teams integration for a Bot Channel
 ---

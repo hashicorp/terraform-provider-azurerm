@@ -67,6 +67,9 @@ func TestAccAzureRMDevSpaceController_requiresImport(t *testing.T) {
 
 func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DevSpace.ControllersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -79,8 +82,6 @@ func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for DevSpace Controller: %s", ctrlName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DevSpace.ControllersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		result, err := client.Get(ctx, resGroupName, ctrlName)
 
 		if err == nil {

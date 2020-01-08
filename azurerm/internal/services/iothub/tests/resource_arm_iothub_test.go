@@ -189,6 +189,7 @@ func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -201,7 +202,6 @@ func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for IotHub: %s", iothubName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		resp, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
