@@ -495,8 +495,8 @@ resource "azurerm_api_management_api" "test" {
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
-  version			  = "v1"
-  version_set_id	  = "${azurerm_api_management_api_version_set.test.id}"
+  version             = "v1"
+  version_set_id      = "${azurerm_api_management_api_version_set.test.id}"
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }

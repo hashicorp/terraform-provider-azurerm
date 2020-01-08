@@ -664,9 +664,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
 
@@ -687,7 +687,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   availability_zones    = ["1"]
-  vnet_subnet_id = azurerm_subnet.test.id
+  vnet_subnet_id        = azurerm_subnet.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
 }
@@ -805,11 +805,11 @@ func testAccAzureRMKubernetesClusterNodePool_nodePublicIPConfig(data acceptance.
 %s
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                   = "internal"
-  kubernetes_cluster_id  = azurerm_kubernetes_cluster.test.id
-  vm_size                = "Standard_DS2_v2"
-  node_count             = 1
-  enable_node_public_ip  = true
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  enable_node_public_ip = true
 }
 `, template)
 }

@@ -371,7 +371,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-  	type       = "AvailabilitySet"
+    type       = "AvailabilitySet"
     vm_size    = "Standard_DS2_v2"
   }
 
@@ -441,13 +441,13 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_id     = "%s"
     client_secret = "%s"
   }
-  
+
   network_profile {
     network_plugin    = "kubenet"
     load_balancer_sku = "standard"
   }
-  
-  api_server_authorized_ip_ranges = [ "%s"]
+
+  api_server_authorized_ip_ranges = ["%s"]
   private_link_enabled            = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, cdir, enablePrivateLink)
@@ -527,9 +527,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name        = "default"
-    node_count  = 1
-    vm_size     = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
     node_taints = [
       "key=value:PreferNoSchedule"
     ]
@@ -734,7 +734,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-  	type       = "AvailabilitySet"
+    type       = "AvailabilitySet"
     vm_size    = "Standard_DS2_v2"
   }
 

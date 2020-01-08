@@ -234,7 +234,7 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.1.0/24"
 
   route {
-    address_prefixes    = [ "172.0.1.0/24" ]
+    address_prefixes    = ["172.0.1.0/24"]
     next_hop_ip_address = "12.34.56.78"
   }
 }
@@ -254,7 +254,7 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.1.0/24"
 
   route {
-    address_prefixes    = [ "172.0.1.0/24" ]
+    address_prefixes    = ["172.0.1.0/24"]
     next_hop_ip_address = "87.65.43.21"
   }
 }

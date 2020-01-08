@@ -191,7 +191,7 @@ resource "azurerm_api_management_identity_provider_google" "import" {
   resource_group_name = "${azurerm_api_management_identity_provider_google.test.resource_group_name}"
   api_management_name = "${azurerm_api_management_identity_provider_google.test.api_management_name}"
   client_id           = "${azurerm_api_management_identity_provider_google.test.client_id}"
-  client_secret	      = "${azurerm_api_management_identity_provider_google.test.client_secret}"
+  client_secret       = "${azurerm_api_management_identity_provider_google.test.client_secret}"
 }
 `, template)
 }

@@ -113,7 +113,7 @@ resource "azurerm_iothub_endpoint_servicebus_queue" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
   name                = "acctest"
-  
+
   connection_string = "${azurerm_servicebus_queue_authorization_rule.test.primary_connection_string}"
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -128,7 +128,7 @@ resource "azurerm_iothub_endpoint_servicebus_queue" "import" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
   name                = "acctest"
-    
+
   connection_string = "${azurerm_servicebus_queue_authorization_rule.test.primary_connection_string}"
 }
 `, template)

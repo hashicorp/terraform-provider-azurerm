@@ -264,7 +264,7 @@ resource "azurerm_backup_policy_file_share" "test2" {
   name                = "acctest-%d-Secondary"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
-	
+
   backup {
     frequency = "Daily"
     time      = "23:00"

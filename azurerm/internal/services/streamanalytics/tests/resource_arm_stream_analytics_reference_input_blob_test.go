@@ -176,15 +176,15 @@ func testAccAzureRMStreamAnalyticsReferenceInputBlob_avro(data acceptance.TestDa
 %s
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.test.name}"
-  storage_account_key          = "${azurerm_storage_account.test.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.test.name}"
-  path_pattern                 = "some-random-pattern"
-  date_format                  = "yyyy/MM/dd"
-  time_format                  = "HH"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.test.name}"
+  storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.test.name}"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
+  time_format               = "HH"
 
   serialization {
     type = "Avro"
@@ -199,15 +199,15 @@ func testAccAzureRMStreamAnalyticsReferenceInputBlob_csv(data acceptance.TestDat
 %s
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.test.name}"
-  storage_account_key          = "${azurerm_storage_account.test.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.test.name}"
-  path_pattern                 = "some-random-pattern"
-  date_format                  = "yyyy/MM/dd"
-  time_format                  = "HH"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.test.name}"
+  storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.test.name}"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
+  time_format               = "HH"
 
   serialization {
     type            = "Csv"
@@ -224,15 +224,15 @@ func testAccAzureRMStreamAnalyticsReferenceInputBlob_json(data acceptance.TestDa
 %s
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.test.name}"
-  storage_account_key          = "${azurerm_storage_account.test.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.test.name}"
-  path_pattern                 = "some-random-pattern"
-  date_format                  = "yyyy/MM/dd"
-  time_format                  = "HH"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.test.name}"
+  storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.test.name}"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
+  time_format               = "HH"
 
   serialization {
     type     = "Json"

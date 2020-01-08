@@ -1875,7 +1875,7 @@ resource "azurerm_application_gateway" "test" {
     request_timeout       = 1
 
     pick_host_name_from_backend_address = true
-    trusted_root_certificate_names      = ["${local.auth_cert_name}"] 
+    trusted_root_certificate_names      = ["${local.auth_cert_name}"]
   }
 
   trusted_root_certificate {

@@ -280,11 +280,11 @@ func testAccAzureRMServiceBusSubscription_requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_servicebus_subscription" "import" {
-    name                = "${azurerm_servicebus_subscription.test.name}"
-    namespace_name      = "${azurerm_servicebus_subscription.test.namespace_name}"
-    topic_name          = "${azurerm_servicebus_subscription.test.topic_name}"
-    resource_group_name = "${azurerm_servicebus_subscription.test.resource_group_name}"
-    max_delivery_count  = "${azurerm_servicebus_subscription.test.max_delivery_count}"
+  name                = "${azurerm_servicebus_subscription.test.name}"
+  namespace_name      = "${azurerm_servicebus_subscription.test.namespace_name}"
+  topic_name          = "${azurerm_servicebus_subscription.test.topic_name}"
+  resource_group_name = "${azurerm_servicebus_subscription.test.resource_group_name}"
+  max_delivery_count  = "${azurerm_servicebus_subscription.test.max_delivery_count}"
 }
 `, testAccAzureRMServiceBusSubscription_basic(data))
 }

@@ -446,10 +446,10 @@ resource "azurerm_signalr_service" "test" {
   }
 
   cors {
-	allowed_origins = [
-	  "https://example.com",
-	  "https://contoso.com",
-	]
+    allowed_origins = [
+      "https://example.com",
+      "https://contoso.com",
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

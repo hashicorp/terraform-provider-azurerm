@@ -86,7 +86,7 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   eventhub_name       = "${azurerm_eventhub.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
- 
+
   listen = false
   send   = true
   manage = false
@@ -112,7 +112,7 @@ resource "azurerm_iothub_endpoint_eventhub" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
   name                = "acctest"
-  
+
   connection_string = "${azurerm_eventhub_authorization_rule.test.primary_connection_string}"
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -127,7 +127,7 @@ resource "azurerm_iothub_endpoint_eventhub" "import" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
   name                = "acctest"
-    
+
   connection_string = "${azurerm_eventhub_authorization_rule.test.primary_connection_string}"
 }
 `, template)

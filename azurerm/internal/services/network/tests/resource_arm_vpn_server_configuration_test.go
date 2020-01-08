@@ -210,10 +210,10 @@ func testAccAzureRMAzureRMVPNServerConfiguration_azureAD(data acceptance.TestDat
 %s
 
 resource "azurerm_vpn_server_configuration" "test" {
-  name                    = "acctestVPNSC-%d"
-  resource_group_name     = azurerm_resource_group.test.name
-  location                = azurerm_resource_group.test.location
-  vpn_authentication_types =  [ "AAD" ]
+  name                     = "acctestVPNSC-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  vpn_authentication_types = ["AAD"]
 
   azure_active_directory_authentication {
     audience = "https://www.example.com/"
@@ -315,16 +315,16 @@ func testAccAzureRMAzureRMVPNServerConfiguration_radius(data acceptance.TestData
 %s
 
 resource "azurerm_vpn_server_configuration" "test" {
-  name                    = "acctestVPNSC-%d"
-  resource_group_name     = azurerm_resource_group.test.name
-  location                = azurerm_resource_group.test.location
-  vpn_authentication_types =  [ "Radius" ]
+  name                     = "acctestVPNSC-%d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  vpn_authentication_types = ["Radius"]
 
   radius_server {
     address = "10.104.1.1"
     secret  = "vindicators-the-return-of-worldender"
 
-	server_root_certificate {
+    server_root_certificate {
       name             = "DigiCert-Federated-ID-Root-CA"
       public_cert_data = <<EOF
 MIIDuzCCAqOgAwIBAgIQCHTZWCM+IlfFIRXIvyKSrjANBgkqhkiG9w0BAQsFADBn

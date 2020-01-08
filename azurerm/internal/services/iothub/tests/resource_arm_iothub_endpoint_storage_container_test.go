@@ -77,7 +77,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
-  
+
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcont"
   resource_group_name   = "${azurerm_resource_group.test.name}"
@@ -105,8 +105,8 @@ resource "azurerm_iothub_endpoint_storage_container" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
   name                = "acctest"
-  
-  container_name    = "acctestcont"  
+
+  container_name    = "acctestcont"
   connection_string = "${azurerm_storage_account.test.primary_blob_connection_string}"
 
   file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
@@ -126,10 +126,10 @@ resource "azurerm_iothub_endpoint_storage_container" "import" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
   name                = "acctest"
-  
-  container_name    = "acctestcont"  
+
+  container_name    = "acctestcont"
   connection_string = "${azurerm_storage_account.test.primary_blob_connection_string}"
-  
+
   file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
   batch_frequency_in_seconds = 60
   max_chunk_size_in_bytes    = 10485760

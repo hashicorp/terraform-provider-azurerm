@@ -301,8 +301,8 @@ resource "azurerm_shared_image_version" "test" {
 
   target_region {
     name                   = "${azurerm_resource_group.test.location}"
-	regional_replica_count = 1
-	storage_account_type   = "%s"
+    regional_replica_count = 1
+    storage_account_type   = "%s"
   }
 }
 `, template, storageAccountType)
