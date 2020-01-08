@@ -82,3 +82,17 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 
 	return testData
 }
+
+func (td *TestData) RandomIntOfLength(len int) {
+	// len should not be
+	//  - greater then 18, longest a int can represent
+	//  - less then 6, as it would not be random enough
+	if 6 > len  || len > 18 {
+		panic(fmt.Sprintf("Invalid Test: RandomIntOfLength: len is not between 6 or 18 inclusive"))
+	}
+
+	// pull off last 2 digits of randomness
+	r := td.RandomInteger%100
+
+	// always preseve the
+}
