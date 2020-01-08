@@ -245,7 +245,7 @@ func resourceArmApiManagementApiOperationDelete(d *schema.ResourceData, meta int
 }
 
 func expandApiManagementOperationRequestContract(input []interface{}) (*apimanagement.RequestContract, error) {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 
