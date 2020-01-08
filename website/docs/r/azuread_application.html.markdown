@@ -2,7 +2,6 @@
 subcategory: "Azure Active Directory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_azuread_application"
-sidebar_current: "docs-azurerm-resource-azuread-application"
 description: |-
   Manages an Application within Azure Active Directory.
 

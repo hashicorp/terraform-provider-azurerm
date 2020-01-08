@@ -116,13 +116,13 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_customKeyId(t *testin
 
 func testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ServicePrincipalsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ServicePrincipalsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		id := strings.Split(rs.Primary.ID, "/")
 		objectId := id[0]

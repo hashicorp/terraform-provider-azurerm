@@ -2,7 +2,6 @@
 subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_credential"
-sidebar_current: "docs-azurerm-resource-automation-credential"
 description: |-
   Manages a Automation Credential.
 ---

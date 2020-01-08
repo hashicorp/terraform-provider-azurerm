@@ -2,7 +2,6 @@
 subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_schedule"
-sidebar_current: "docs-azurerm-dev-test-schedule"
 description: |-
     Manages automated startup and shutdown schedules for Azure Dev Test Lab.
 ---

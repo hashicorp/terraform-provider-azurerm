@@ -256,6 +256,7 @@ func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
 
 func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api" {
@@ -266,7 +267,6 @@ func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		revision := rs.Primary.Attributes["revision"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiId)
@@ -286,6 +286,9 @@ func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
 
 func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -296,9 +299,6 @@ func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc 
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		revision := rs.Primary.Attributes["revision"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiId)

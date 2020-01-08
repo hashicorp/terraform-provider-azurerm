@@ -83,6 +83,9 @@ func testAccAzureRMMarketplaceAgreement_requiresImport(t *testing.T) {
 
 func testCheckAzureRMMarketplaceAgreementExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.MarketplaceAgreementsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -91,9 +94,6 @@ func testCheckAzureRMMarketplaceAgreementExists(resourceName string) resource.Te
 		offer := rs.Primary.Attributes["offer"]
 		plan := rs.Primary.Attributes["plan"]
 		publisher := rs.Primary.Attributes["publisher"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.MarketplaceAgreementsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, publisher, offer, plan)
 		if err != nil {
@@ -108,6 +108,9 @@ func testCheckAzureRMMarketplaceAgreementExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMMarketplaceAgreementDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.MarketplaceAgreementsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_marketplace_agreement" {
 			continue
@@ -116,9 +119,6 @@ func testCheckAzureRMMarketplaceAgreementDestroy(s *terraform.State) error {
 		offer := rs.Primary.Attributes["offer"]
 		plan := rs.Primary.Attributes["plan"]
 		publisher := rs.Primary.Attributes["publisher"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.MarketplaceAgreementsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, publisher, offer, plan)
 		if err != nil {

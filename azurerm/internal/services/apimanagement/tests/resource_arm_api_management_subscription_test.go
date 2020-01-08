@@ -128,6 +128,8 @@ func TestAccAzureRMAPIManagementSubscription_complete(t *testing.T) {
 
 func testCheckAzureRMAPIManagementSubscriptionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.SubscriptionsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_subscription" {
 			continue
@@ -137,7 +139,6 @@ func testCheckAzureRMAPIManagementSubscriptionDestroy(s *terraform.State) error 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 
 		if err != nil {
@@ -151,6 +152,9 @@ func testCheckAzureRMAPIManagementSubscriptionDestroy(s *terraform.State) error 
 
 func testCheckAzureRMAPIManagementSubscriptionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.SubscriptionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -160,8 +164,6 @@ func testCheckAzureRMAPIManagementSubscriptionExists(resourceName string) resour
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.SubscriptionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

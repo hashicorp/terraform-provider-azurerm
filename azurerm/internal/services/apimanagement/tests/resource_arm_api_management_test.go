@@ -206,6 +206,7 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 
 func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ServiceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management" {
@@ -214,7 +215,6 @@ func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -233,6 +233,9 @@ func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
 
 func testCheckAzureRMApiManagementExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ServiceClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -245,8 +248,6 @@ func testCheckAzureRMApiManagementExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for Api Management: %s", apiMangementName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ServiceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, apiMangementName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

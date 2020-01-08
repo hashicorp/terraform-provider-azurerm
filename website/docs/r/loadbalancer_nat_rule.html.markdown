@@ -2,7 +2,6 @@
 subcategory: "Load Balancer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_nat_rule"
-sidebar_current: "docs-azurerm-resource-loadbalancer-nat-rule"
 description: |-
   Manages a Load Balancer NAT Rule.
 ---

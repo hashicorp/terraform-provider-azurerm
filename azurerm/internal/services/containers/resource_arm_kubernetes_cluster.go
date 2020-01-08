@@ -237,28 +237,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			"service_principal": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"client_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
-						},
-
-						"client_secret": {
-							Type:         schema.TypeString,
-							Required:     true,
-							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
-						},
-					},
-				},
-			},
-
 			// Optional
 			"addon_profile": SchemaKubernetesAddOnProfiles(),
 
@@ -271,12 +249,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			"private_link_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-
 			"private_fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -287,6 +259,33 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
+			},
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerservice.SystemAssigned),
+							}, false),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"linux_profile": {
@@ -405,6 +404,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"private_link_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"role_based_access_control": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -457,6 +462,28 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+
+			"service_principal": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"client_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
+						"client_secret": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -574,34 +601,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
-
-			"managed_cluster_identity": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.None),
-								string(containerservice.SystemAssigned),
-							}, false),
-						},
-						"principal_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -662,14 +661,6 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	rbacRaw := d.Get("role_based_access_control").([]interface{})
 	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
 
-	// since the Create and Update use separate methods, there's no point extracting this out
-	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
-	servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
-	servicePrincipalProfile := &containerservice.ManagedClusterServicePrincipalProfile{
-		ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
-		Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
-	}
-
 	t := d.Get("tags").(map[string]interface{})
 
 	windowsProfileRaw := d.Get("windows_profile").([]interface{})
@@ -680,7 +671,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	enablePrivateLink := d.Get("private_link_enabled").(bool)
 
-	apiAccesProfile := containerservice.ManagedClusterAPIServerAccessProfile{
+	apiAccessProfile := containerservice.ManagedClusterAPIServerAccessProfile{
 		EnablePrivateCluster: &enablePrivateLink,
 		AuthorizedIPRanges:   apiServerAuthorizedIPRanges,
 	}
@@ -689,14 +680,18 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
 
-	managedClusterIdentityRaw := d.Get("managed_cluster_identity").([]interface{})
+	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	managedClusterIdentity := expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
+
+	// since the Create and Update use separate methods, there's no point extracting this out
+	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
+	servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
 
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
 		Location: &location,
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
-			APIServerAccessProfile:  &apiAccesProfile,
+			APIServerAccessProfile:  &apiAccessProfile,
 			AadProfile:              azureADProfile,
 			AddonProfiles:           addonProfiles,
 			AgentPoolProfiles:       agentProfiles,
@@ -706,9 +701,12 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			LinuxProfile:            linuxProfile,
 			WindowsProfile:          windowsProfile,
 			NetworkProfile:          networkProfile,
-			ServicePrincipalProfile: servicePrincipalProfile,
 			NodeResourceGroup:       utils.String(nodeResourceGroup),
 			EnablePodSecurityPolicy: utils.Bool(enablePodSecurityPolicy),
+			ServicePrincipalProfile: &containerservice.ManagedClusterServicePrincipalProfile{
+				ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
+				Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
+			},
 		},
 		Identity: managedClusterIdentity,
 		Tags:     tags.Expand(t),
@@ -849,9 +847,9 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.WindowsProfile = windowsProfile
 	}
 
-	if d.HasChange("managed_cluster_identity") {
+	if d.HasChange("identity") {
 		updateCluster = true
-		managedClusterIdentityRaw := d.Get("managed_cluster_identity").([]interface{})
+		managedClusterIdentityRaw := d.Get("identity").([]interface{})
 		existing.Identity = expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
 	}
 
@@ -1043,8 +1041,8 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if err := d.Set("managed_cluster_identity", flattenKubernetesClusterManagedClusterIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `managed_cluster_identity`: %+v", err)
+	if err := d.Set("identity", flattenKubernetesClusterManagedClusterIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	kubeConfigRaw, kubeConfig := flattenKubernetesClusterAccessProfile(profile)
@@ -1478,8 +1476,11 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 
 func expandKubernetesClusterManagedClusterIdentity(input []interface{}) *containerservice.ManagedClusterIdentity {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return &containerservice.ManagedClusterIdentity{
+			Type: containerservice.None,
+		}
 	}
+
 	values := input[0].(map[string]interface{})
 
 	return &containerservice.ManagedClusterIdentity{
@@ -1615,7 +1616,8 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 }
 
 func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) []interface{} {
-	if input == nil {
+	// if it's none, omit the block
+	if input == nil || input.Type == containerservice.None {
 		return []interface{}{}
 	}
 

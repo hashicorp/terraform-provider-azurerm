@@ -2,7 +2,6 @@
 subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_job_schedule"
-sidebar_current: "docs-azurerm-resource-automation-job-schedule"
 description: |-
   Links an Automation Runbook and Schedule.
 ---

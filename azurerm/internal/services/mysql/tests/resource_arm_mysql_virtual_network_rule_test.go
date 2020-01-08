@@ -134,6 +134,9 @@ func TestAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 
 func testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -142,9 +145,6 @@ func testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName string) resource
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -160,6 +160,9 @@ func testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName string) resource
 }
 
 func testCheckAzureRMMySqlVirtualNetworkRuleDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mysql_virtual_network_rule" {
 			continue
@@ -168,9 +171,6 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -189,6 +189,9 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 
 func testCheckAzureRMMySqlVirtualNetworkRuleDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -198,9 +201,6 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDisappears(resourceName string) reso
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {

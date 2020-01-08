@@ -138,6 +138,9 @@ func TestAccAzureRMRecoveryServicesProtectedVm_updateBackupPolicyId(t *testing.T
 }
 
 func testCheckAzureRMRecoveryServicesProtectedVmDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_recovery_services_protected_vm" {
 			continue
@@ -159,9 +162,6 @@ func testCheckAzureRMRecoveryServicesProtectedVmDestroy(s *terraform.State) erro
 		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -179,6 +179,9 @@ func testCheckAzureRMRecoveryServicesProtectedVmDestroy(s *terraform.State) erro
 
 func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -205,9 +208,6 @@ func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) reso
 
 		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectedItemsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 		if err != nil {

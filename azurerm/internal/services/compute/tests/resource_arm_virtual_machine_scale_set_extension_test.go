@@ -207,14 +207,14 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_updateVersion(t *testing.T) {
 
 func testCheckAzureRMVirtualMachineScaleSetExtensionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetExtensionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetExtensionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		virtualMachineScaleSetIdRaw := rs.Primary.Attributes["virtual_machine_scale_set_id"]

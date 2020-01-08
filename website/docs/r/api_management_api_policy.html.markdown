@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api_policy"
-sidebar_current: "docs-azurerm-resource-api-management-api-policy"
 description: |-
   Manages an API Management API Policy
 ---

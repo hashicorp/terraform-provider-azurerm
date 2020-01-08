@@ -152,6 +152,9 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 
 func testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualMachinesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -161,9 +164,6 @@ func testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName string) resou
 		virtualMachineName := rs.Primary.Attributes["name"]
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualMachinesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, labName, virtualMachineName, "")
 		if err != nil {

@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mariadb_database"
-sidebar_current: "docs-azurerm-resource-database-mariadb-database"
 description: |-
   Manages a MariaDB Database within a MariaDB Server.
 ---

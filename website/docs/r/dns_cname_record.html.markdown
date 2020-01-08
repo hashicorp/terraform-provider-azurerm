@@ -2,7 +2,6 @@
 subcategory: "DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_cname_record"
-sidebar_current: "docs-azurerm-resource-dns-cname-record"
 description: |-
   Manages a DNS CNAME Record.
 ---

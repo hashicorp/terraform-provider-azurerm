@@ -9,12 +9,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_basic(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -39,13 +45,18 @@ func testAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_privateLink(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_privateLink(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_privateLink(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	privateIpAddressCdir := "10.0.0.0/8"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -64,12 +75,17 @@ func testAccDataSourceAzureRMKubernetesCluster_privateLink(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -89,13 +105,18 @@ func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl(t *testing
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	tenantId := os.Getenv("ARM_TENANT_ID")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -118,12 +139,17 @@ func testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *test
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_internalNetwork(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -139,12 +165,17 @@ func testAccDataSourceAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -164,12 +195,18 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure(t *testin
 		},
 	})
 }
+
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -192,12 +229,17 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPoli
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -220,12 +262,17 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -246,12 +293,17 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -274,12 +326,17 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPoli
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -302,12 +359,17 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyC
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -328,12 +390,17 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet(t *test
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -354,12 +421,17 @@ func testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -378,12 +450,17 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileKubeDashboard(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_addOnProfileKubeDashboard(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_addOnProfileKubeDashboard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -401,12 +478,17 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileKubeDashboard(t *test
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicy(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicy(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -423,12 +505,17 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicy(t *testin
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -447,12 +534,17 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(t *testing.T)
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_autoscalingNoAvailabilityZones(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_autoscalingNoAvailabilityZones(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_autoscalingNoAvailabilityZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -472,12 +564,17 @@ func testAccDataSourceAzureRMKubernetesCluster_autoscalingNoAvailabilityZones(t 
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -499,12 +596,17 @@ func testAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones(
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_nodeTaints(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
@@ -520,12 +622,17 @@ func testAccDataSourceAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP(t)
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,

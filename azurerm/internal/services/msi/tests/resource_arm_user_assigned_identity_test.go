@@ -65,6 +65,9 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 
 func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MSI.UserAssignedIdentitiesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -76,9 +79,6 @@ func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.Te
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MSI.UserAssignedIdentitiesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {

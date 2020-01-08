@@ -2,7 +2,6 @@
 subcategory: "Application Insights"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_insights_api_key"
-sidebar_current: "docs-azurerm-resource-application-insights-api-key"
 description: |-
   Manages an Application Insights API key.
 ---

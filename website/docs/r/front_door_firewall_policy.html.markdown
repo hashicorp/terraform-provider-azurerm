@@ -2,7 +2,6 @@
 subcategory: "Front Door"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor_firewall_policy"
-sidebar_current: "docs-azurerm-resource-front-door-firewall-policy"
 description: |-
   Manages an Azure Front Door Web Application Firewall Policy instance.
 ---

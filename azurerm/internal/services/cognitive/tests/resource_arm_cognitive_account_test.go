@@ -170,6 +170,9 @@ func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cognitive.AccountsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -178,9 +181,6 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cognitive.AccountsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.GetProperties(ctx, resourceGroup, name)
 		if err != nil {

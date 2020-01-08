@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_openid_connect_provider"
-sidebar_current: "docs-azurerm-resource-api-management-openid-connect-provider"
 description: |-
   Manages an OpenID Connect Provider within a API Management Service.
 ---

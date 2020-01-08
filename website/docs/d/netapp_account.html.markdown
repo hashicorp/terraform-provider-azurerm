@@ -2,7 +2,6 @@
 subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_account"
-sidebar_current: "docs-azurerm-datasource-netapp-account"
 description: |-
   Gets information about an existing NetApp Account
 ---

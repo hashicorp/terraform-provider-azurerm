@@ -63,6 +63,8 @@ resource "azurerm_site_recovery_protection_container" "test" {
 
 func testCheckAzureRMSiteRecoveryProtectionContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -75,7 +77,6 @@ func testCheckAzureRMSiteRecoveryProtectionContainerExists(resourceName string) 
 		protectionContainerName := state.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName)
 		if err != nil {
@@ -91,6 +92,8 @@ func testCheckAzureRMSiteRecoveryProtectionContainerExists(resourceName string) 
 }
 
 func testCheckAzureRMSiteRecoveryProtectionContainerDestroy(s *terraform.State) error {
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_site_recovery_protection_container" {
 			continue
@@ -102,7 +105,6 @@ func testCheckAzureRMSiteRecoveryProtectionContainerDestroy(s *terraform.State) 
 		protectionContainerName := rs.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName)
 		if err != nil {

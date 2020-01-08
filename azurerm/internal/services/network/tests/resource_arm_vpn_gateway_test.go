@@ -138,6 +138,9 @@ func TestAccAzureRMVPNGateway_tags(t *testing.T) {
 
 func testCheckAzureRMVPNGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -147,8 +150,6 @@ func testCheckAzureRMVPNGatewayExists(resourceName string) resource.TestCheckFun
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		name := rs.Primary.Attributes["name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on VpnGatewaysClient: %+v", err)
@@ -163,6 +164,9 @@ func testCheckAzureRMVPNGatewayExists(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMVPNGatewayDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnGatewaysClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_vpn_gateway" {
 			continue
@@ -171,8 +175,6 @@ func testCheckAzureRMVPNGatewayDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		name := rs.Primary.Attributes["name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return nil

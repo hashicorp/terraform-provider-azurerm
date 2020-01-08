@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_subscription"
-sidebar_current: "docs-azurerm-resource-api-management-subscription"
 description: |-
   Manages a Subscription within a API Management Service.
 ---

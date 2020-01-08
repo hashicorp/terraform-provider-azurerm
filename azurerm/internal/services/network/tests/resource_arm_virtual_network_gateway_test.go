@@ -272,6 +272,9 @@ func TestAccAzureRMVirtualNetworkGateway_expressRoute(t *testing.T) {
 
 func testCheckAzureRMVirtualNetworkGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetGatewayClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -279,9 +282,6 @@ func testCheckAzureRMVirtualNetworkGatewayExists(resourceName string) resource.T
 
 		gatewayName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetGatewayClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {

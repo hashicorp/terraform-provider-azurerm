@@ -2,7 +2,6 @@
 subcategory: "DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_mx_record"
-sidebar_current: "docs-azurerm-resource-dns-mx-record"
 description: |-
   Manages a DNS MX Record.
 ---

@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_product"
-sidebar_current: "docs-azurerm-datasource-api-management-product"
 description: |-
   Gets information about an existing API Management Product.
 ---

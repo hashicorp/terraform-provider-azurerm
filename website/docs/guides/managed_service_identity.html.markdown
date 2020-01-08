@@ -1,7 +1,6 @@
 ---
 layout: "azurerm"
 page_title: "Azure Provider: Authenticating via Managed Identity"
-sidebar_current: "docs-azurerm-guide-authentication-managed-service-identity"
 description: |-
   This guide will cover how to use managed identity for Azure resources as authentication for the Azure Provider.
 

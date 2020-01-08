@@ -67,6 +67,9 @@ func TestAccAzureRMPrivateEndpoint_requestMessage(t *testing.T) {
 
 func testCheckAzureRMPrivateEndpointExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PrivateEndpointClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Private Endpoint not found: %s", resourceName)
@@ -74,9 +77,6 @@ func testCheckAzureRMPrivateEndpointExists(resourceName string) resource.TestChe
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PrivateEndpointClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

@@ -1,75 +1,88 @@
-## 1.40.0 (Unreleased)
+## 1.41.0 (Unreleased)
 
-* **New Data Source:** `azurerm_netapp_volume` [GH-4933]
-* **New Data Source:** `azurerm_netapp_snapshot` [GH-5215]
-* **New Data Source:** `azurerm_signalr_service` [GH-5276]
-* **New Resource:** `azurerm_advanced_threat_protection` [GH-4848]
-* **New Resource:** `azurerm_api_management_diagnostic ` [GH-4836]
-* **New Resource:** `azurerm_api_management_identity_provider_aad` [GH-5268]
-* **New Resource:** `azurerm_api_management_identity_provider_google` [GH-5279]
-* **New Resource:** `azurerm_app_service_virtual_network_swift_connection` [GH-5214]
-* **New Resource:** `azurerm_automation_certificate` [GH-4785]
-* **New Resource:** `azurerm_backup_container_storage_account` [GH-5213]
-* **New Resource:** `azurerm_backup_policy_file_share` [GH-5213]
-* **New Resource:** `azurerm_backup_protected_file_share` [GH-5213]
-* **New Resource:** `azurerm_cosmosdb_gremlin_database` [GH-5248]
-* **New Resource:** `azurerm_iothub_dps_shared_access_policy` [GH-5171]
-* **New Resource:** `azurerm_kusto_database_principal` [GH-5242]
-* **New Resource:** `azurerm_network_watcher_flow_log` [GH-5059]
-* **New Resource:** `azurerm_netapp_volume` [GH-4933]
-* **New Resource:** `azurerm_netapp_snapshot` [GH-5215]
-* **New Resource:** `azurerm_stream_analytics_reference_input_blob` [GH-3633]
+FEATURES:
+
+* **New Data Source:** `azurerm_iothub_dps` [GH-5336]
+* **New Resource:** `azurerm_api_management_identity_provider_twitter` [GH-5306]
 
 IMPROVEMENTS:
 
-* Data Source: `azurerm_private_link_service` - exposing the `enable_proxy_protocol` property  [GH-5178]
-* Data Source: `azurerm_virtual_network_gateway` - exposing the `generation` property [GH-5198]
-* `azurerm_application_gateway` - support for the `trusted_root_certificate_names` property [GH-5204]
-* `azurerm_api_management_operation` - will no longer panic when `response` is missing values [GH-5273]
-* `azurerm_cosmosdb_cassandra_keyspace` - support for the `throughput` property [GH-5203]
-* `azurerm_cosmosdb_sql_container` - support for the `throughput` property [GH-5203]
-* `azurerm_cosmosdb_sql_database` - support for the `throughput` property [GH-5203]
-* `azurerm_cosmosdb_table` - support for the `throughput` property [GH-5203]
-* `azurerm_dns_a_record` - support for configuring `target_resource_id` [GH-5218]
-* `azurerm_dns_aaaa_record` - support for configuring `target_resource_id` [GH-5218]
-* `azurerm_dns_cname_record` - support for configuring `target_resource_id` [GH-5218]
-* `azurerm_dns_mx_record` - the `name` property is now optional [GH-5205]
-* `azurerm_function_app` - support for the `ftps_state` property [GH-5169]
-* `azurerm_image` - support for configuring `hyper_v_generation` [GH-4453]
-* `azurerm_iothub_dps_shared_access_policy` - support for the `primary_connection_string` & `secondary_connection_string` properties [GH-5231]
-* `azurerm_key_vault` - the `network_acls` property is now computed [GH-5207]
-* `azurerm_kubernetes_cluster` - support for the `managed_cluster_identity` property [GH-5168]
-* `azurerm_kubernetes_cluster` - support for private link [GH-5161]
-* `azurerm_logic_app_trigger_recurrence` - support for the `start_time` property [GH-5244]
-* `azurerm_private_link_service` - support for the `enable_proxy_protocol` property  [GH-5178]
-* `azurerm_recovery_services_fabric` - has been deprecated and renamed to `	azurerm_site_recovery_fabric` [GH-5170]
-* `azurerm_recovery_network_mapping` - has been deprecated and renamed to `	azurerm_site_recovery_network_mapping` [GH-5170]
-* `azurerm_recovery_services_protection_container` - has been deprecated and renamed to `	azurerm_site_recovery_protection_container` [GH-5170]
-* `azurerm_recovery_services_protection_container_mapping` - has been deprecated and renamed to `azurerm_site_recovery_protection_container_mapping` [GH-5170]
-* `azurerm_recovery_services_replication_policy` - has been deprecated and renamed to `azurerm_site_recovery_protection_policy` [GH-5170]
-* `azurerm_recovery_replicated_vm` - has been deprecated and renamed to `azurerm_site_recovery_replicated_vm` [GH-5170]
-* `azurerm_recovery_services_protection_policy_vm` - has been deprecated and renamed to `	zurerm_backup_policy_vm` [GH-5170]
-* `azurerm_recovery_services_protected_vm` - has been deprecated and renamed to `azurerm_backup_protected_vm` [GH-5170]
-* `azurerm_search_service` - exposing the `query_keys` [GH-5029]
-* `azurerm_storage_account`  - exposing the `blob_properties` block [GH-3807]
-* `aaurerm_storage_account` - correctly handle an empty network rules API response [GH-5210]
-* `azurerm_storage_account` - making the resource group name case sensitive [GH-5289]
-* `azurerm_shared_image_version` - support for the `storage_account_type` property [GH-5212]
-* `azurerm_virtual_network_gateway` - support for configuring `generation` [GH-5198]
-* `azurerm_virtual_network_gateway_connection` - support for the `connection_protocol` property [GH-5145]
+* `azurerm_function_app` - convert `connection_string`s from a `TypList` to a `TypeSet` [GH-5319]
+
+## 1.40.0 (January 08, 2020)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_netapp_volume` ([#4933](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4933))
+* **New Data Source:** `azurerm_netapp_snapshot` ([#5215](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5215))
+* **New Data Source:** `azurerm_signalr_service` ([#5276](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5276))
+* **New Resource:** `azurerm_advanced_threat_protection` ([#4848](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4848))
+* **New Resource:** `azurerm_api_management_diagnostic ` ([#4836](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4836))
+* **New Resource:** `azurerm_api_management_identity_provider_aad` ([#5268](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5268))
+* **New Resource:** `azurerm_api_management_identity_provider_google` ([#5279](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5279))
+* **New Resource:** `azurerm_app_service_virtual_network_swift_connection` ([#5214](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5214))
+* **New Resource:** `azurerm_automation_certificate` ([#4785](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4785))
+* **New Resource:** `azurerm_backup_container_storage_account` ([#5213](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5213))
+* **New Resource:** `azurerm_backup_policy_file_share` ([#5213](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5213))
+* **New Resource:** `azurerm_backup_protected_file_share` ([#5213](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5213))
+* **New Resource:** `azurerm_cosmosdb_gremlin_database` ([#5248](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5248))
+* **New Resource:** `azurerm_iothub_dps_shared_access_policy` ([#5171](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5171))
+* **New Resource:** `azurerm_kusto_database_principal` ([#5242](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5242))
+* **New Resource:** `azurerm_network_watcher_flow_log` ([#5059](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5059))
+* **New Resource:** `azurerm_netapp_volume` ([#4933](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4933))
+* **New Resource:** `azurerm_netapp_snapshot` ([#5215](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5215))
+* **New Resource:** `azurerm_stream_analytics_reference_input_blob` ([#3633](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3633))
+
+IMPROVEMENTS:
+
+* Data Source: `azurerm_private_link_service` - exposing the `enable_proxy_protocol` property  ([#5178](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5178))
+* Data Source: `azurerm_virtual_network_gateway` - exposing the `generation` property ([#5198](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5198))
+* `azurerm_application_gateway` - support for the `trusted_root_certificate_names` property ([#5204](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5204))
+* `azurerm_api_management_operation` - will no longer panic when `response` is missing values ([#5273](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5273))
+* `azurerm_cosmosdb_cassandra_keyspace` - support for the `throughput` property ([#5203](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5203))
+* `azurerm_cosmosdb_sql_container` - support for the `throughput` property ([#5203](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5203))
+* `azurerm_cosmosdb_sql_database` - support for the `throughput` property ([#5203](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5203))
+* `azurerm_cosmosdb_table` - support for the `throughput` property ([#5203](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5203))
+* `azurerm_dns_a_record` - support for configuring `target_resource_id` ([#5218](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5218))
+* `azurerm_dns_aaaa_record` - support for configuring `target_resource_id` ([#5218](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5218))
+* `azurerm_dns_cname_record` - support for configuring `target_resource_id` ([#5218](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5218))
+* `azurerm_dns_mx_record` - the `name` property is now optional ([#5205](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5205))
+* `azurerm_function_app` - support for the `ftps_state` property ([#5169](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5169))
+* `azurerm_image` - support for configuring `hyper_v_generation` ([#4453](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4453))
+* `azurerm_iothub_dps_shared_access_policy` - support for the `primary_connection_string` & `secondary_connection_string` properties ([#5231](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5231))
+* `azurerm_key_vault` - the `network_acls` property is now computed ([#5207](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5207))
+* `azurerm_kubernetes_cluster` - support for the `identity` property ([#5168](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5168))
+* `azurerm_kubernetes_cluster` - support for private link ([#5161](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5161))
+* `azurerm_logic_app_trigger_recurrence` - support for the `start_time` property ([#5244](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5244))
+* `azurerm_private_link_service` - support for the `enable_proxy_protocol` property  ([#5178](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5178))
+* `azurerm_recovery_services_fabric` - has been deprecated and renamed to `	azurerm_site_recovery_fabric` ([#5170](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5170))
+* `azurerm_recovery_network_mapping` - has been deprecated and renamed to `	azurerm_site_recovery_network_mapping` ([#5170](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5170))
+* `azurerm_recovery_services_protection_container` - has been deprecated and renamed to `	azurerm_site_recovery_protection_container` ([#5170](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5170))
+* `azurerm_recovery_services_protection_container_mapping` - has been deprecated and renamed to `azurerm_site_recovery_protection_container_mapping` ([#5170](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5170))
+* `azurerm_recovery_services_replication_policy` - has been deprecated and renamed to `azurerm_site_recovery_protection_policy` ([#5170](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5170))
+* `azurerm_recovery_replicated_vm` - has been deprecated and renamed to `azurerm_site_recovery_replicated_vm` ([#5170](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5170))
+* `azurerm_recovery_services_protection_policy_vm` - has been deprecated and renamed to `	zurerm_backup_policy_vm` ([#5170](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5170))
+* `azurerm_recovery_services_protected_vm` - has been deprecated and renamed to `azurerm_backup_protected_vm` ([#5170](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5170))
+* `azurerm_search_service` - exposing the `query_keys` ([#5029](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5029))
+* `azurerm_storage_account`  - exposing the `blob_properties` block ([#3807](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3807))
+* `aaurerm_storage_account` - correctly handle an empty network rules API response ([#5210](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5210))
+* `azurerm_storage_account` - making the resource group name case sensitive ([#5289](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5289))
+* `azurerm_shared_image_version` - support for the `storage_account_type` property ([#5212](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5212))
+* `azurerm_virtual_network_gateway` - support for configuring `generation` ([#5198](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5198))
+* `azurerm_virtual_network_gateway_connection` - support for the `connection_protocol` property ([#5145](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5145))
 
 BUG FIXES:
 
-* Data Source: `azurerm_shared_image_version` - change the `storage_account_type` property from a set to a list [GH-5212]
-* `azurerm_api_management_api` - working around a behavioural change in the API detecting deleted resources [GH-5054]
-* `azurerm_api_management_api` - correctly setting the soap API type when `soap_pass_through` is true [GH-5081]
-* `azurerm_app_configuration` - temporarily treating `resource_group_name` as case-insensitive to work around a breaking API change [GH-5324]
-* `azurerm_healthcare_service` - making rhe `cors_configuration` block computed [GH-5046]
-* `azurerm_monitor_log_profile` - polling until the log profile is repeatedly available [GH-5194]
-* `azurerm_storage_account_network_rules` - matching the validation used for `ip_rules ` with the validation used by `ip_rules ` in the `network_rules` block of `azurerm_storage_account` [GH-5201]
-* `azurerm_subnet` - allowing both `enforce_private_link_endpoint_network_policies` and `enforce_private_link_service_network_policies` to be set together [GH-5200]
-* `azurerm_virtual_machine` - handling a crash when `os_profile_secrets` was nil [GH-5308]
-* `azurerm_virtual_machine` - handling a crash when the `vault_certificates` block within the `os_profile_secrets` was nil [GH-5308]
+* Data Source: `azurerm_shared_image_version` - change the `storage_account_type` property from a set to a list ([#5212](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5212))
+* `azurerm_api_management_api` - working around a behavioural change in the API detecting deleted resources ([#5054](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5054))
+* `azurerm_api_management_api` - correctly setting the soap API type when `soap_pass_through` is true ([#5081](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5081))
+* `azurerm_app_configuration` - temporarily treating `resource_group_name` as case-insensitive to work around a breaking API change ([#5324](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5324))
+* `azurerm_healthcare_service` - making rhe `cors_configuration` block computed ([#5046](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5046))
+* `azurerm_monitor_log_profile` - polling until the log profile is repeatedly available ([#5194](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5194))
+* `azurerm_storage_account_network_rules` - matching the validation used for `ip_rules ` with the validation used by `ip_rules ` in the `network_rules` block of `azurerm_storage_account` ([#5201](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5201))
+* `azurerm_subnet` - allowing both `enforce_private_link_endpoint_network_policies` and `enforce_private_link_service_network_policies` to be set together ([#5200](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5200))
+* `azurerm_virtual_machine` - handling a crash when `os_profile_secrets` was nil ([#5308](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5308))
+* `azurerm_virtual_machine` - handling a crash when the `vault_certificates` block within the `os_profile_secrets` was nil ([#5308](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5308))
 
 ## 1.39.0 (December 16, 2019)
 
