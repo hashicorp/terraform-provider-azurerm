@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_certificate_order"
-sidebar_current: "docs-azurerm-datasource-app-service-x"
 description: |-
   Gets information about an existing App Service Certificate Order.
 ---

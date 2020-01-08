@@ -1,7 +1,6 @@
 ---
 layout: "azurerm"
 page_title: "Azure Active Directory: Migrating to the AzureAD Provider"
-sidebar_current: "docs-azurerm-migrating-to-azuread"
 description: |-
   This page documents how to migrate from using the AzureAD resources within this repository to the resources in the new split-out repository.
 

@@ -2,7 +2,6 @@
 subcategory: "Load Balancer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_rule"
-sidebar_current: "docs-azurerm-resource-loadbalancer-rule"
 description: |-
   Manages a Load Balancer Rule.
 ---

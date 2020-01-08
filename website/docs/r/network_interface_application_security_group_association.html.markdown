@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_interface_application_security_group_association"
-sidebar_current: "docs-azurerm-resource-network-interface-application-security-group-association"
 description: |-
   Manages the association between a Network Interface and a Application Security Group
 

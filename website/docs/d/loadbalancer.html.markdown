@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb"
-sidebar_current: "docs-azurerm-datasource-load-balancer-x"
 description: |-
   Get information about an existing Load Balancer
 

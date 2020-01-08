@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_gateway"
-sidebar_current: "docs-azurerm-resource-network-application-gateway"
 description: |-
   Manages an Application Gateway.
 ---

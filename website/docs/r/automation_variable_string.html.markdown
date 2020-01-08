@@ -2,7 +2,6 @@
 subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_variable_string"
-sidebar_current: "docs-azurerm-resource-automation-variable-string"
 description: |-
   Manages a string variable in Azure Automation.
 ---

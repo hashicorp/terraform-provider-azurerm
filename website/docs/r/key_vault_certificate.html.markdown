@@ -2,7 +2,6 @@
 subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_certificate"
-sidebar_current: "docs-azurerm-resource-key-vault-certificate"
 description: |-
   Manages a Key Vault Certificate.
 

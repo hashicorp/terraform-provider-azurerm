@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_public_ip_prefix"
-sidebar_current: "docs-azurerm-resource-network-public-ip-prefix"
 description: |-
   Manages a Public IP Prefix.
 ---

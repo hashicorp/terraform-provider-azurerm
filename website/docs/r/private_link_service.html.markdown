@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_service"
-sidebar_current: "docs-azurerm-resource-private-link-service"
 description: |-
   Manages a Private Link Service.
 ---

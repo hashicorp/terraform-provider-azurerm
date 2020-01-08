@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_public_ips"
-sidebar_current: "docs-azurerm-datasource-public-ips"
 description: |-
   Gets information about a set of existing Public IP Addresses.
 ---

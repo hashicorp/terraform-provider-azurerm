@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_availability_set"
-sidebar_current: "docs-azurerm-resource-compute-availability-set"
 description: |-
   Manages an availability set for virtual machines.
 

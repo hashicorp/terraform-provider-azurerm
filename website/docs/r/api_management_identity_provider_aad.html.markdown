@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_identity_provider_aad"
-sidebar_current: "docs-azurerm-resource-api-management-identity-provider-aad"
 description: |-
   Manages an API Management AAD Identity Provider.
 ---

@@ -2,7 +2,6 @@
 subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_volume"
-sidebar_current: "docs-azurerm-resource-netapp-volume"
 description: |-
   Manages a NetApp Volume.
 ---

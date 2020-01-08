@@ -2,7 +2,6 @@
 subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_output_servicebus_queue"
-sidebar_current: "docs-azurerm-resource-stream-analytics-output-servicebus-queue"
 description: |-
   Manages a Stream Analytics Output to a ServiceBus Queue.
 ---

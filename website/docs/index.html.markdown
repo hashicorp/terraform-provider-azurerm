@@ -1,7 +1,6 @@
 ---
 layout: "azurerm"
 page_title: "Provider: Azure"
-sidebar_current: "docs-azurerm-index"
 description: |-
   The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (also known as AzureRM) through its APIs.
 

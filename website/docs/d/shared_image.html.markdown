@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image"
-sidebar_current: "docs-azurerm-datasource-shared-image-x"
 description: |-
   Gets information about an existing Shared Image a Shared Image Gallery.
 

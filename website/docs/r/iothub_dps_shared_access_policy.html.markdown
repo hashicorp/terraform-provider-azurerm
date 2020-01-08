@@ -2,7 +2,6 @@
 subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_dps_shared_access_policy"
-sidebar_current: "docs-azurerm-resource-iothub-dps-shared-access-policy-x"
 description: |-
   Manages an IotHub Device Provisioning Service Shared Access Policy
 ---

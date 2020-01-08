@@ -2,7 +2,6 @@
 subcategory: "Azure Active Directory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_azuread_service_principal"
-sidebar_current: "docs-azurerm-datasource-azuread-service-principal"
 description: |-
   Gets information about an existing Service Principal associated with an Application within Azure Active Directory.
 

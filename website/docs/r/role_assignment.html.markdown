@@ -2,7 +2,6 @@
 subcategory: "Authorization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_role_assignment"
-sidebar_current: "docs-azurerm-resource-authorization-role-assignment"
 description: |-
   Assigns a given Principal (User or Application) to a given Role.
 

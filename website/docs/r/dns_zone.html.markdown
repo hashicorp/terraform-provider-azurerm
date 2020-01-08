@@ -2,7 +2,6 @@
 subcategory: "DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_zone"
-sidebar_current: "docs-azurerm-resource-dns-zone"
 description: |-
   Manages a DNS Zone.
 ---

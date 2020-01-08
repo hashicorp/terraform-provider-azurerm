@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_hub"
-sidebar_current: "docs-azurerm-resource-virtual-hub"
 description: |-
   Manages a Virtual Hub within a Virtual WAN.
 ---

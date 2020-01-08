@@ -2,7 +2,6 @@
 subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_lab"
-sidebar_current: "docs-azurerm-resource-dev-test-lab"
 description: |-
   Manages a Dev Test Lab.
 ---
