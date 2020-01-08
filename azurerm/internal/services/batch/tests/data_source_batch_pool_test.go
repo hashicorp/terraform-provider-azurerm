@@ -152,7 +152,7 @@ resource "azurerm_batch_pool" "test" {
   }
 
   metadata = {
-    "tagName"= "Example tag"
+    tagName = "Example tag"
   }
 }
 
