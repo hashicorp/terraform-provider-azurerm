@@ -1241,7 +1241,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	// queue is only available for certain tier and kind (as specified below)
 	if resp.Sku == nil {
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `sku` was nil", name, resourceGrup)
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `sku` was nil", name, resGroup)
 	}
 
 	if resp.Sku.Tier == storage.Standard {
