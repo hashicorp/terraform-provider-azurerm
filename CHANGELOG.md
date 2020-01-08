@@ -1,5 +1,12 @@
 ## 1.41.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_iothub_dps` [GH-5336]
+
 ## 1.40.0 (January 08, 2020)
+
+FEATURES:
 
 * **New Data Source:** `azurerm_netapp_volume` ([#4933](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4933))
 * **New Data Source:** `azurerm_netapp_snapshot` ([#5215](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5215))
