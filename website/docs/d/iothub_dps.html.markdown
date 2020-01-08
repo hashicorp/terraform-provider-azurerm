@@ -2,7 +2,6 @@
 subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_dps"
-sidebar_current: "docs-azurerm-datasource-iothub-dps"
 description: |-
   Gets information about an existing IoT Hub Device Provisioning Service.
 ---
