@@ -28,7 +28,7 @@ func dataSourceArmIotHubDPS() *schema.Resource {
 				ValidateFunc: validate.IoTHubName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(), // azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
 
