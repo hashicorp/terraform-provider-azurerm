@@ -91,7 +91,7 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 						"indexing_mode": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifference, // Open issue https://github.com/Azure/azure-sdk-for-go/issues/6603
 							ValidateFunc: validation.StringInSlice([]string{
 								string(documentdb.Consistent),
 								string(documentdb.Lazy),
@@ -194,7 +194,7 @@ func resourceArmCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interfac
 		} else {
 			id, err := azure.CosmosGetIDFromResponse(existing.Response)
 			if err != nil {
-				return fmt.Errorf("Error generationg import ID for Cosmos Gremlin Graph '%s' (Account: %s, Database: %s)", name, account, database)
+				return fmt.Errorf("Error getting import ID for Cosmos Gremlin Graph '%s' (Account: %s, Database: %s)", name, account, database)
 			}
 
 			return tf.ImportAsExistsError("azurerm_cosmosdb_gremlin_graph", id)

@@ -77,17 +77,17 @@ The following arguments are supported:
 
 An `index_policy` block supports the following:
 
-* `automatic` - (Optional) Indicates if the indexing policy is automatic. Defaults to true
+* `automatic` - (Optional) Indicates if the indexing policy is automatic. Defaults to `true`.
 
-* `indexing_mode` - (Required) Indicates the indexing mode. Possible values include: 'Consistent', 'Lazy', 'None'
+* `indexing_mode` - (Required) Indicates the indexing mode. Possible values include: `Consistent`, `Lazy`, `None`.
 
-* `included_paths` - (Optional) List of paths to include in the indexing. Required if `indexing_mode` is 'Consistent' or 'Lazy'. 
+* `included_paths` - (Optional) List of paths to include in the indexing. Required if `indexing_mode` is `Consistent` or `Lazy`. 
 
-* `excluded_paths` - (Optional) List of paths to exclude from indexing. Required if `indexing_mode` is 'Consistent' or 'Lazy'.
+* `excluded_paths` - (Optional) List of paths to exclude from indexing. Required if `indexing_mode` is `Consistent` or `Lazy`.
 
 An `conflict_resolution_policy` block supports the following:
 
-* `mode` - (Required) Indicates the conflict resolution mode. Possible values include: 'LastWriterWins', 'Custom'
+* `mode` - (Required) Indicates the conflict resolution mode. Possible values include: `LastWriterWins`, `Custom`.
 
 * `conflict_resolution_path` - (Optional) The conflict resolution path in the case of LastWriterWins mode.
 
@@ -101,7 +101,7 @@ An `unique_key` block supports the following:
 
 The following attributes are exported:
 
-* `id` - the Cosmos DB Gremlin Graph ID.
+* `id` - The Cosmos DB Gremlin Graph ID.
 
 ## Import
 
