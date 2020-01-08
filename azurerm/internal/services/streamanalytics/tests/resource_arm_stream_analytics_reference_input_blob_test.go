@@ -250,7 +250,7 @@ func testAccAzureRMStreamAnalyticsReferenceInputBlob_updated(data acceptance.Tes
 resource "azurerm_storage_account" "updated" {
   name                     = "acctestsa2%s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  data.Locations.Primary                 = "${azurerm_resource_group.test.data.Locations.Primary}"
+  location                 = "${azurerm_resource_group.test.data.Locations.Primary}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -304,13 +304,13 @@ func testAccAzureRMStreamAnalyticsReferenceInputBlob_template(data acceptance.Te
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  data.Locations.Primary = "%s"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  data.Locations.Primary                 = "${azurerm_resource_group.test.data.Locations.Primary}"
+  location                 = "${azurerm_resource_group.test.data.Locations.Primary}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -325,7 +325,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
   resource_group_name                      = "${azurerm_resource_group.test.name}"
-  data.Locations.Primary                                 = "${azurerm_resource_group.test.data.Locations.Primary}"
+  location                                 = "${azurerm_resource_group.test.data.Locations.Primary}"
   compatibility_level                      = "1.0"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60
