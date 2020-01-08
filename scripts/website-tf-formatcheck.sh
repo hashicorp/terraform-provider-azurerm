@@ -24,6 +24,9 @@ if $error; then
   echo "format all website files:"
   echo "$ find . | egrep html.markdown | sort | while read f; do terrafmt fmt \$f; done"
   echo ""
+  echo "or on windows:"
+  echo "$ ls -recursive | where {$.filename -Match “html.markdown”} | foreach {terrafmt fmt $.name}"
+  echo ""
   echo ""
   exit 1
 fi
