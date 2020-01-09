@@ -15,6 +15,7 @@ tools:
 	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
 	GO111MODULE=off go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
+	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
 	GO111MODULE=off go get -u github.com/katbyte/terrafmt
 
 build: fmtcheck
@@ -97,9 +98,11 @@ debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
 
 website-lint:
-	@echo "==> Checking website spelling..."
+	@echo "==> Checking documentation spelling..."
 	@misspell -error -source=text -i hdinsight website/
-	@sh -c "$(CURDIR)/scripts/website-registrycheck.sh"
+	@echo "==> Checking documentation for errors..."
+	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
+		-allowed-resource-subcategories-file website/allowed-subcategories
 	@sh -c "'$(CURDIR)/scripts/website-tf-formatcheck.sh'"
 
 website:
