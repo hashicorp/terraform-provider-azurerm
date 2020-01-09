@@ -89,7 +89,7 @@ func (td *TestData) RandomIntOfLength(len int) int {
 	//  - greater then 18, longest a int can represent
 	//  - less then 8, as that gives us YYMMDDRR
 	if 8 > len || len > 18 {
-		panic(fmt.Sprintf("Invalid Test: RandomIntOfLength: len is not between 6 or 18 inclusive"))
+		panic(fmt.Sprintf("Invalid Test: RandomIntOfLength: len is not between 8 or 18 inclusive"))
 	}
 
 	r := td.RandomInteger % 100

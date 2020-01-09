@@ -4,9 +4,6 @@ import (
 	"testing"
 )
 
-// since this depends on GetAuthConfig which lives in this package
-// unfortunately this has to live in a different package to the other func
-
 func TestAccAzureRMTestDataRandomIntOfLength(t *testing.T) {
 	td := TestData{
 		RandomInteger: 112233445566779999,
