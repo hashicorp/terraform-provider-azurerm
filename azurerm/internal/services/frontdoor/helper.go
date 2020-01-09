@@ -219,6 +219,8 @@ func FlattenFrontendEndpointLinkSlice(input *[]frontdoor.FrontendEndpointLink) [
 // so if I need to parse the name of the resource from its ID string I would be
 // unable to do so with the current implementation so I normalize the key into
 // a known format so I can reliable parse the ID string.
+//
+// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
 func ParseAzureResourceIDLowerPath(id string) (*azure.ResourceID, error) {
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
