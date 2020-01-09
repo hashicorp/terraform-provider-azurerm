@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -444,10 +445,12 @@ func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.AnalysisServicesServerID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.GetDetails(ctx, resourceGroup, name)
+		resp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -472,16 +475,15 @@ func testCheckAzureRMAnalysisServicesServerExists(resourceName string) resource.
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		analysisServicesServerName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Analysis Services Server: %s", analysisServicesServerName)
+		id, err := parse.AnalysisServicesServerID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := client.GetDetails(ctx, resourceGroup, analysisServicesServerName)
+		resp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Analysis Services Server %q (resource group: %q) does not exist", analysisServicesServerName, resourceGroup)
+				return fmt.Errorf("Bad: Analysis Services Server %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on analysisServicesServerClient: %+v", err)

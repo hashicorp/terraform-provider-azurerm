@@ -14,7 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,9 +35,10 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.AnalysisServicesServerID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -189,26 +192,22 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AnalysisServicesServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["servers"]
-
-	server, err := client.GetDetails(ctx, resourceGroup, name)
-
+	server, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(server.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Analytics Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Analytics Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := server.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -232,7 +231,6 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 		}
 
 		d.Set("querypool_connection_mode", string(serverProps.QuerypoolConnectionMode))
-
 		d.Set("server_full_name", serverProps.ServerFullName)
 
 		if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
@@ -250,13 +248,10 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AnalysisServicesServerID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	resourceGroup := id.ResourceGroup
-	name := id.Path["servers"]
 
 	serverProperties := expandAnalysisServicesServerMutableProperties(d)
 	sku := d.Get("sku").(string)
@@ -268,13 +263,13 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 		ServerMutableProperties: serverProperties,
 	}
 
-	future, err := client.Update(ctx, resourceGroup, name, analysisServicesServer)
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, analysisServicesServer)
 	if err != nil {
-		return fmt.Errorf("Error creating Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return resourceArmAnalysisServicesServerRead(d, meta)
@@ -285,21 +280,18 @@ func resourceArmAnalysisServicesServerDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AnalysisServicesServerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["servers"]
-
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Analysis Services Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error deleting Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Analysis Services Server %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
