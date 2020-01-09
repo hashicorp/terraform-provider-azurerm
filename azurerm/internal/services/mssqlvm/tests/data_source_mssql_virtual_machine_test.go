@@ -21,7 +21,7 @@ func TestAccDataSourceAzureRMMsSqlVirtualMachine_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_machine_resource_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "sql_server_license_type"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "sql_license_type"),
 				),
 			},
 		},

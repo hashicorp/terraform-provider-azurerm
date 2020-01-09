@@ -13,62 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMsSqlVirtualMachine_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlVirtualMachine_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMMsSqlVirtualMachine_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlVirtualMachine_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sql_server_license_type", "PAYG"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMMsSqlVirtualMachine_withStorage(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlVirtualMachine_withStorage(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sql_server_license_type", "PAYG"),
-				),
-			},
-		},
-	})
-}
-
 func testCheckAzureRMMsSqlVirtualMachineExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -117,6 +61,112 @@ func testCheckAzureRMMsSqlVirtualMachineDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func TestAccAzureRMMsSqlVirtualMachine_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlVirtualMachine_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlVirtualMachine_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlVirtualMachine_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"auto_patching.#","key_vault_credential.#","server_configuration.#"},
+			},
+			{
+				Config: testAccAzureRMMsSqlVirtualMachine_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sql_license_type", "PAYG"),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"auto_patching.#","key_vault_credential.#","server_configuration.#"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlVirtualMachine_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlVirtualMachine_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sql_license_type", "PAYG"),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"auto_patching.#","key_vault_credential.#","server_configuration.#"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlVirtualMachine_withStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlVirtualMachine_withStorage(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sql_license_type", "PAYG"),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"storage_configuration.#"},
+			},
+		},
+	})
 }
 
 func testAccAzureRMVirtualMachine_template(data acceptance.TestData) string {
@@ -192,7 +242,7 @@ resource "azurerm_network_security_rule" "MSSQLRule" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                      = "acctest-NI-%[1]d"
+  name                      = "acctest-NIC-%[1]d"
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
   network_security_group_id = azurerm_network_security_group.nsg.id
@@ -258,9 +308,39 @@ resource "azurerm_mssql_virtual_machine" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   virtual_machine_resource_id = azurerm_virtual_machine.test.id
-  sql_server_license_type     = "PAYG"
+  sql_license_type     = "PAYG"
 }
 `, vmconfig)
+}
+
+func testAccAzureRMMsSqlVirtualMachine_update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_mssql_virtual_machine" "test" {
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  virtual_machine_resource_id = azurerm_virtual_machine.test.id
+  sql_license_type     = "PAYG"
+  sql_sku               = "Developer"
+
+  auto_patching {
+    day_of_week                      = "Sunday"
+    enable                           = true
+    maintenance_window_duration_in_minutes      = 60
+    maintenance_window_starting_hour = 2
+  }
+
+  key_vault_credential {
+    enable = false
+  }
+  server_configuration {
+    is_r_services_enabled                  = false
+    sql_connectivity_type                  = "PRIVATE"
+    sql_connectivity_port                  = 1433
+    sql_connectivity_update_password  = "<password>"
+    sql_connectivity_update_user_name = "sqllogin"
+  }
+}
+`)
 }
 
 func testAccAzureRMMsSqlVirtualMachine_complete(data acceptance.TestData) string {
@@ -271,25 +351,25 @@ resource "azurerm_mssql_virtual_machine" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   virtual_machine_resource_id = azurerm_virtual_machine.test.id
-  sql_server_license_type     = "PAYG"
-  sql_image_sku               = "Developer"
+  sql_license_type     = "PAYG"
+  sql_sku               = "Developer"
 
-  auto_patching_settings {
+  auto_patching {
     day_of_week                      = "Sunday"
     enable                           = true
-    maintenance_window_duration      = 60
+    maintenance_window_duration_in_minutes      = 60
     maintenance_window_starting_hour = 2
   }
 
-  key_vault_credential_settings {
+  key_vault_credential {
     enable = false
   }
-  server_configurations_management_settings {
+  server_configuration {
     is_r_services_enabled                  = false
     sql_connectivity_type                  = "PRIVATE"
     sql_connectivity_port                  = 1433
-    sql_connectivity_auth_update_password  = "<password>"
-    sql_connectivity_auth_update_user_name = "sqllogin"
+    sql_connectivity_update_password  = "<password>"
+    sql_connectivity_update_user_name = "sqllogin"
   }
 }
 `, vmconfig)
@@ -303,9 +383,9 @@ resource "azurerm_mssql_virtual_machine" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   virtual_machine_resource_id = azurerm_virtual_machine.test.id
-  sql_server_license_type     = "PAYG"
-  sql_image_sku               = "Developer"
-  storage_configuration_settings {
+  sql_license_type     = "PAYG"
+  sql_sku               = "Developer"
+  storage_configuration {
     storage_workload_type         = "OLTP"
     sql_data_default_file_path    = "F:\\folderpath\\"
     sql_data_luns                 = [0]

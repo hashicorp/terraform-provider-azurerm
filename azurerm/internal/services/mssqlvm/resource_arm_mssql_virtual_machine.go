@@ -39,27 +39,17 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"location": azure.SchemaLocation(),
-
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			"location": azure.SchemaLocation(),
 
 			"virtual_machine_resource_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := val.(string)
-					_, err := azure.ParseAzureResourceID(v)
-					errs = append(errs, err)
-					return
-				},
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"sql_server_license_type": {
+			"sql_license_type": {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -68,7 +58,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				}, false),
 			},
 
-			"sql_image_sku": {
+			"sql_sku": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -82,18 +72,13 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 			},
 
 			"sql_virtual_machine_group_resource_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := val.(string)
-					_, err := azure.ParseAzureResourceID(v)
-					errs = append(errs, err)
-					return
-				},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"auto_patching_settings": {
+			"auto_patching": {
 				Type:       schema.TypeList,
 				Optional:   true,
 				MaxItems:   1,
@@ -117,9 +102,10 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
-						"maintenance_window_duration": {
-							Type:     schema.TypeInt,
-							Optional: true,
+						"maintenance_window_duration_in_minutes": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(30, 180),
 						},
 						"maintenance_window_starting_hour": {
 							Type:     schema.TypeInt,
@@ -129,7 +115,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				},
 			},
 
-			"key_vault_credential_settings": {
+			"key_vault_credential": {
 				Type:       schema.TypeList,
 				Optional:   true,
 				MaxItems:   1,
@@ -139,7 +125,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 						"azure_key_vault_url": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validate.URLIsHTTPS,
 						},
 						"credential_name": {
 							Type:         schema.TypeString,
@@ -165,7 +151,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				},
 			},
 
-			"server_configurations_management_settings": {
+			"server_configuration": {
 				Type:       schema.TypeList,
 				Optional:   true,
 				MaxItems:   1,
@@ -186,16 +172,17 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							}, false),
 						},
 						"sql_connectivity_port": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validate.PortNumber,
 						},
-						"sql_connectivity_auth_update_password": {
+						"sql_connectivity_update_password": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
-						"sql_connectivity_auth_update_user_name": {
+						"sql_connectivity_update_user_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validate.NoEmptyStrings,
@@ -204,14 +191,12 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				},
 			},
 
-			"storage_configuration_settings": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				MaxItems:   1,
-				ConfigMode: schema.SchemaConfigModeAttr,
+			"storage_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-
 						"sql_data_default_file_path": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -222,6 +207,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeInt,
+								ValidateFunc:validation.IntAtLeast(0),
 							},
 						},
 						"sql_log_default_file_path": {
@@ -234,6 +220,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeInt,
+								ValidateFunc:validation.IntAtLeast(0),
 							},
 						},
 						"sql_temp_db_default_file_path": {
@@ -246,6 +233,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeInt,
+								ValidateFunc:validation.IntAtLeast(0),
 							},
 						},
 						"storage_workload_type": {
@@ -262,6 +250,11 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -271,10 +264,14 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-
-	id, _ := azure.ParseAzureResourceID(d.Get("virtual_machine_resource_id").(string))
+	vmResourceId := d.Get("virtual_machine_resource_id").(string)
+	id, err := azure.ParseAzureResourceID(vmResourceId)
+	if err != nil {
+		return fmt.Errorf("Error creating Sql Virtual Machine from virtual machine %s: %+v", vmResourceId, err)
+	}
 	name := id.Path["virtualMachines"]
+
+	resourceGroupName := d.Get("resource_group_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroupName, name, "")
@@ -289,12 +286,16 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	sqlServerLicenseType := d.Get("sql_server_license_type").(string)
+	sqlServerLicenseType := d.Get("sql_license_type").(string)
 	virtualMachineResourceName := d.Get("virtual_machine_resource_id").(string)
 
 	properties := sqlvirtualmachine.Properties{
-		SQLServerLicenseType:     sqlvirtualmachine.SQLServerLicenseType(sqlServerLicenseType),
-		VirtualMachineResourceID: &virtualMachineResourceName,
+		SQLServerLicenseType:                   sqlvirtualmachine.SQLServerLicenseType(sqlServerLicenseType),
+		VirtualMachineResourceID:               &virtualMachineResourceName,
+		AutoPatchingSettings:                   expandArmSqlVirtualMachineAutoPatchingSettings(d),
+		KeyVaultCredentialSettings:             expandArmSqlVirtualMachineKeyVaultCredentialSettings(d),
+		ServerConfigurationsManagementSettings: expandArmSqlVirtualMachineServerConfigurationsManagementSettings(d),
+		StorageConfigurationSettings:           expandArmSqlVirtualMachineStorageConfigurationSettings(d),
 	}
 
 	if sqlVirtualMachineGroupResourceID, ok := d.GetOk("sql_virtual_machine_group_resource_id"); ok {
@@ -302,33 +303,15 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 		properties.SQLVirtualMachineGroupResourceID = &SQLVirtualMachineGroupResourceID
 	}
 
-	if sqlImageSku, ok := d.GetOk("sql_image_sku"); ok {
+	if sqlImageSku, ok := d.GetOk("sql_sku"); ok {
 		SQLImageSku := sqlvirtualmachine.SQLImageSku(sqlImageSku.(string))
 		properties.SQLImageSku = SQLImageSku
 	}
 
-	if _, ok := d.GetOk("auto_patching_settings"); ok {
-		properties.AutoPatchingSettings = expandArmSqlVirtualMachineAutoPatchingSettings(d)
-	}
-
-	if _, ok := d.GetOk("key_vault_credential_settings"); ok {
-		properties.KeyVaultCredentialSettings = expandArmSqlVirtualMachineKeyVaultCredentialSettings(d)
-	}
-
-	if _, ok := d.GetOk("server_configurations_management_settings"); ok {
-		properties.ServerConfigurationsManagementSettings = expandArmSqlVirtualMachineServerConfigurationsManagementSettings(d)
-	}
-
-	if _, ok := d.GetOk("storage_configuration_settings"); ok {
-		properties.StorageConfigurationSettings = expandArmSqlVirtualMachineStorageConfigurationSettings(d)
-	}
-
-	Tags := d.Get("tags").(map[string]interface{})
-
 	parameters := sqlvirtualmachine.SQLVirtualMachine{
 		Location:   utils.String(location),
 		Properties: &properties,
-		Tags:       tags.Expand(Tags),
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
@@ -378,12 +361,11 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if properties := resp.Properties; properties != nil {
-		d.Set("sql_image_sku", string(properties.SQLImageSku))
-		d.Set("sql_server_license_type", string(properties.SQLServerLicenseType))
+		d.Set("sql_sku", string(properties.SQLImageSku))
+		d.Set("sql_license_type", string(properties.SQLServerLicenseType))
 		d.Set("virtual_machine_resource_id", properties.VirtualMachineResourceID)
 	}
 	d.Set("name", name)
-	d.Set("id", resp.ID)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -418,7 +400,10 @@ func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface
 }
 
 func expandArmSqlVirtualMachineAutoPatchingSettings(d *schema.ResourceData) *sqlvirtualmachine.AutoPatchingSettings {
-	autoPatchingSettings := d.Get("auto_patching_settings").([]interface{})
+	autoPatchingSettings := d.Get("auto_patching").([]interface{})
+	if len(autoPatchingSettings) == 0 {
+		return nil
+	}
 	autoPatchingSetting := autoPatchingSettings[0].(map[string]interface{})
 	result := sqlvirtualmachine.AutoPatchingSettings{}
 
@@ -426,7 +411,7 @@ func expandArmSqlVirtualMachineAutoPatchingSettings(d *schema.ResourceData) *sql
 		Enable := enable.(bool)
 		result.Enable = &Enable
 	}
-	if maintenanceWindowDuration, ok := autoPatchingSetting["maintenance_window_duration"]; ok {
+	if maintenanceWindowDuration, ok := autoPatchingSetting["maintenance_window_duration_in_minutes"]; ok {
 		MaintenanceWindowDuration := int32(maintenanceWindowDuration.(int))
 		result.MaintenanceWindowDuration = &MaintenanceWindowDuration
 	}
@@ -441,7 +426,10 @@ func expandArmSqlVirtualMachineAutoPatchingSettings(d *schema.ResourceData) *sql
 }
 
 func expandArmSqlVirtualMachineKeyVaultCredentialSettings(d *schema.ResourceData) *sqlvirtualmachine.KeyVaultCredentialSettings {
-	keyVaultCredentialSettings := d.Get("key_vault_credential_settings").([]interface{})
+	keyVaultCredentialSettings := d.Get("key_vault_credential").([]interface{})
+	if len(keyVaultCredentialSettings) == 0 {
+		return nil
+	}
 	keyVaultCredentialSetting := keyVaultCredentialSettings[0].(map[string]interface{})
 	result := sqlvirtualmachine.KeyVaultCredentialSettings{}
 
@@ -470,7 +458,10 @@ func expandArmSqlVirtualMachineKeyVaultCredentialSettings(d *schema.ResourceData
 }
 
 func expandArmSqlVirtualMachineServerConfigurationsManagementSettings(d *schema.ResourceData) *sqlvirtualmachine.ServerConfigurationsManagementSettings {
-	serverConfigMMs := d.Get("server_configurations_management_settings").([]interface{})
+	serverConfigMMs := d.Get("server_configuration").([]interface{})
+	if len(serverConfigMMs) == 0 {
+		return nil
+	}
 	serverConfigMM := serverConfigMMs[0].(map[string]interface{})
 
 	result := sqlvirtualmachine.ServerConfigurationsManagementSettings{}
@@ -488,11 +479,11 @@ func expandArmSqlVirtualMachineServerConfigurationsManagementSettings(d *schema.
 		ConnectivityPort := int32(connectivityPort.(int))
 		sqlConnectivityUpdateSettings.Port = &ConnectivityPort
 	}
-	if sqlAuthUpdatePassword, ok := serverConfigMM["sql_connectivity_auth_update_password"]; ok {
+	if sqlAuthUpdatePassword, ok := serverConfigMM["sql_connectivity_update_password"]; ok {
 		SQLAuthUpdatePassword := sqlAuthUpdatePassword.(string)
 		sqlConnectivityUpdateSettings.SQLAuthUpdatePassword = &SQLAuthUpdatePassword
 	}
-	if sqlAuthUpdateUserName, ok := serverConfigMM["sql_connectivity_auth_update_user_name"]; ok {
+	if sqlAuthUpdateUserName, ok := serverConfigMM["sql_connectivity_update_user_name"]; ok {
 		SQLAuthUpdateUserName := sqlAuthUpdateUserName.(string)
 		sqlConnectivityUpdateSettings.SQLAuthUpdateUserName = &SQLAuthUpdateUserName
 	}
@@ -502,7 +493,10 @@ func expandArmSqlVirtualMachineServerConfigurationsManagementSettings(d *schema.
 }
 
 func expandArmSqlVirtualMachineStorageConfigurationSettings(d *schema.ResourceData) *sqlvirtualmachine.StorageConfigurationSettings {
-	storageConfigs := d.Get("storage_configuration_settings").([]interface{})
+	storageConfigs := d.Get("storage_configuration").([]interface{})
+	if len(storageConfigs) == 0 {
+		return nil
+	}
 	storageConfig := storageConfigs[0].(map[string]interface{})
 	result := sqlvirtualmachine.StorageConfigurationSettings{}
 	sqlDataSetting := sqlvirtualmachine.SQLStorageSettings{}

@@ -38,12 +38,12 @@ func dataSourceArmMsSqlVirtualMachine() *schema.Resource {
 				Computed: true,
 			},
 
-			"sql_server_license_type": {
+			"sql_license_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"sql_image_sku": {
+			"sql_sku": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -58,8 +58,8 @@ func dataSourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroupName := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+	resourceGroupName := d.Get("resource_group_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroupName, name, "")
 	if err != nil {
@@ -77,8 +77,8 @@ func dataSourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if properties := resp.Properties; properties != nil {
-		d.Set("sql_image_sku", string(properties.SQLImageSku))
-		d.Set("sql_server_license_type", string(properties.SQLServerLicenseType))
+		d.Set("sql_sku", string(properties.SQLImageSku))
+		d.Set("sql_license_type", string(properties.SQLServerLicenseType))
 		d.Set("virtual_machine_resource_id", properties.VirtualMachineResourceID)
 	}
 

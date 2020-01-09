@@ -119,5 +119,5 @@ resource "azurerm_mssql_virtual_machine" "example" {
   resource_group_name         = azurerm_resource_group.example.name
   location                    = azurerm_resource_group.example.location
   virtual_machine_resource_id = azurerm_virtual_machine.example.id
-  sql_server_license_type     = "PAYG"
+  sql_license_type     = "PAYG"
 }

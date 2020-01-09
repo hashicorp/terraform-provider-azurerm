@@ -29,28 +29,28 @@ output "mssql_virtual_machine_id" {
 
 The following arguments are supported:
 
-* `resource_group_name` - (Required) Name of the resource group that contains the resource. You can obtain this value from the Azure Resource Manager API or the portal.
+* `name` - (Required) The name of the SQL virtual machine.
 
-* `name` - (Required) Name of the SQL virtual machine.
+* `resource_group_name` - (Required) The name of the resource group that contains the resource. You can obtain this value from the Azure Resource Manager API or the portal.
 
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `resource_group_name` - (Required) Name of the resource group that contains the resource. You can obtain this value from the Azure Resource Manager API or the portal. Changing this forces a new resource to be created.
+* `id` - The ARM resource id of the SQL virtual machine group this SQL virtual machine is or will be part of.
 
-* `location` - (Required) Resource location. Changing this forces a new resource to be created.
+* `name` - The name of the SQL virtual machine, which is the same with the name of the Virtual Machine provided.
 
-* `virtual_machine_resource_id` - ARM Resource id of underlying virtual machine created from SQL marketplace image.
+* `resource_group_name` - (Required) The name of the resource group that contains the resource. You can obtain this value from the Azure Resource Manager API or the portal. Changing this forces a new resource to be created.
 
-* `id` - ARM resource id of the SQL virtual machine group this SQL virtual machine is or will be part of.
+* `location` - (Required) The resource location. The change of the location forces a new resource to be created.
 
-* `name` - Name of the SQL virtual machine, which is the same with the name of the Virtual Machine provided.
+* `virtual_machine_resource_id` - The ARM Resource id of underlying virtual machine created from SQL marketplace image.
 
-* `sql_server_license_type` - SQL Server license type. Possible values include: 'PAYG'(Pay As You Go), 'AHUB'(Azure Hybrid Benefit).Defaults to `PAYG`.
+* `sql_license_type` - The SQL Server license type. Possible values include: 'PAYG'(Pay As You Go), 'AHUB'(Azure Hybrid Benefit).Defaults to `PAYG`.
 
-* `sql_image_sku` - SQL Server edition type. Possible values include: 'Developer', 'Express', 'Standard', 'Enterprise', 'Web'. Defaults to `Developer`.
+* `sql_sku` - The SQL Server edition type. Possible values include: 'Developer', 'Express', 'Standard', 'Enterprise', 'Web'. Defaults to `Developer`.
 
 * `tags` - Resource tags. Changing this forces a new resource to be created.
 
