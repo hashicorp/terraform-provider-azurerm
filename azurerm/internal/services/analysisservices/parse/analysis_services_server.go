@@ -17,11 +17,11 @@ func AnalysisServicesServerID(input string) (*AnalysisServicesServerId, error) {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Analysis Services Server ID %q: %+v", input, err)
 	}
 
-	appService := AnalysisServicesServerId{
+	server := AnalysisServicesServerId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if appService.Name, err = id.PopSegment("servers"); err != nil {
+	if server.Name, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +29,5 @@ func AnalysisServicesServerID(input string) (*AnalysisServicesServerId, error) {
 		return nil, err
 	}
 
-	return &appService, nil
+	return &server, nil
 }
