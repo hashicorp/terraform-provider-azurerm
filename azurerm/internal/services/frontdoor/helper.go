@@ -2,9 +2,11 @@ package frontdoor
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-04-01/frontdoor"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func VerifyBackendPoolExists(backendPoolName string, backendPools []interface{}) error {
@@ -200,4 +202,93 @@ func FlattenFrontendEndpointLinkSlice(input *[]frontdoor.FrontendEndpointLink) [
 		}
 	}
 	return result
+}
+
+// ParseAzureResourceIDLowerPath converts a long-form Azure Resource Manager ID
+// into a ResourceID. We make assumptions about the structure of URLs,
+// which is obviously not good, but the best thing available given the
+// SDK. I had to normalize the key casing of Path because the Front Door API
+// via Portal does not have consistent casing within the resource, for example:
+//
+// In the backendPools block the casing of the HealthProbeSettings is (notice the lowercase 'h'):
+// portal-front-door/ -> healthProbeSettings/healthProbeSettings-1571100669337
+//
+// but in the HealthProbeSettings block the casing of the HealthProbeSettings is (notice the uppercase 'H')::
+// portal-front-door/ -> HealthProbeSettings/healthProbeSettings-1571100669337
+//
+// so if I need to parse the name of the resource from its ID string I would be
+// unable to do so with the current implementation so I normalize the key into
+// a known format so I can reliable parse the ID string.
+//
+// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+func ParseAzureResourceIDLowerPath(id string) (*azure.ResourceID, error) {
+	idURL, err := url.ParseRequestURI(id)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot parse Azure ID: %s", err)
+	}
+
+	path := idURL.Path
+
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, "/")
+
+	components := strings.Split(path, "/")
+
+	// We should have an even number of key-value pairs.
+	if len(components)%2 != 0 {
+		return nil, fmt.Errorf("The number of path segments is not divisible by 2 in %q", path)
+	}
+
+	var subscriptionID string
+
+	// Put the constituent key-value pairs into a map
+	componentMap := make(map[string]string, len(components)/2)
+	for current := 0; current < len(components); current += 2 {
+		key := strings.ToLower(components[current])
+		value := components[current+1]
+
+		// Check key/value for empty strings.
+		if key == "" || value == "" {
+			return nil, fmt.Errorf("Key/Value cannot be empty strings. Key: '%s', Value: '%s'", key, value)
+		}
+
+		// Catch the subscriptionID before it can be overwritten by another "subscriptions"
+		// value in the ID which is the case for the Service Bus subscription resource
+		if key == "subscriptions" && subscriptionID == "" {
+			subscriptionID = value
+		} else {
+			componentMap[key] = value
+		}
+	}
+
+	// Build up a ResourceID from the map
+	idObj := &azure.ResourceID{}
+	idObj.Path = componentMap
+
+	if subscriptionID != "" {
+		idObj.SubscriptionID = subscriptionID
+	} else {
+		return nil, fmt.Errorf("No subscription ID found in: %q", path)
+	}
+
+	if resourceGroup, ok := componentMap["resourceGroups"]; ok {
+		idObj.ResourceGroup = resourceGroup
+		delete(componentMap, "resourceGroups")
+	} else {
+		// Some Azure APIs are weird and provide things in lower case...
+		// However it's not clear whether the casing of other elements in the URI
+		// matter, so we explicitly look for that case here.
+		if resourceGroup, ok := componentMap["resourcegroups"]; ok {
+			idObj.ResourceGroup = resourceGroup
+			delete(componentMap, "resourcegroups")
+		}
+	}
+
+	// It is OK not to have a provider in the case of a resource group
+	if provider, ok := componentMap["providers"]; ok {
+		idObj.Provider = provider
+		delete(componentMap, "providers")
+	}
+
+	return idObj, nil
 }
