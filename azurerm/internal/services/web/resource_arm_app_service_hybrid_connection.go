@@ -45,14 +45,6 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-			"namespace_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"relay_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"hostname": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -87,6 +79,14 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 				Required:     true,
 				Sensitive:    true,
 				ValidateFunc: validate.NoEmptyStrings,
+			},
+			"namespace_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"relay_name": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
