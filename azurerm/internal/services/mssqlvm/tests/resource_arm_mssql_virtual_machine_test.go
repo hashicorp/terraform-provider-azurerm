@@ -122,12 +122,12 @@ func testCheckAzureRMMsSqlVirtualMachineDestroy(s *terraform.State) error {
 func testAccAzureRMVirtualMachine_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-mssqlvm-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
+  name                     = "accsa%[1]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_kind             = "StorageV2"
@@ -136,14 +136,14 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctest-VN-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                      = "acctsub-%d"
+  name                      = "acctest-SN-%[1]d"
   resource_group_name       = azurerm_resource_group.test.name
   virtual_network_name      = azurerm_virtual_network.test.name
   address_prefix            = "10.0.0.0/24"
@@ -151,14 +151,14 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "vm" {
-  name                = "acctpIP%d"
+  name                = "acctest-PIP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
 }
 
 resource "azurerm_network_security_group" "nsg" {
-  name                = "accnsg%d"
+  name                = "acctest-NSG-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -192,7 +192,7 @@ resource "azurerm_network_security_rule" "MSSQLRule" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                      = "acctni-%d"
+  name                      = "acctest-NI-%[1]d"
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
   network_security_group_id = azurerm_network_security_group.nsg.id
@@ -206,7 +206,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
+  name                  = "acctest-VM-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.test.id]
@@ -220,8 +220,8 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name          = "acctvm-%dOSDisk"
-    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}vhds/acctvm-%dOSDisk.vhd"
+    name          = "acctvm-%[1]dOSDisk"
+    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}vhds/acctvm-%[1]dOSDisk.vhd"
     caching       = "ReadOnly"
     create_option = "FromImage"
   }
@@ -247,7 +247,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMMsSqlVirtualMachine_basic(data acceptance.TestData) string {

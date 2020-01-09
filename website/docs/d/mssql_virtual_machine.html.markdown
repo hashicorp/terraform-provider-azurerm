@@ -48,9 +48,9 @@ The following attributes are exported:
 
 * `name` - Name of the SQL virtual machine, which is the same with the name of the Virtual Machine provided.
 
-* `sql_server_license_type` - SQL Server license type. Defaults to `PAYG`.Possible values include: 'PAYG'(Pay As You Go), 'AHUB'(Azure Hybrid Benefit).
+* `sql_server_license_type` - SQL Server license type. Possible values include: 'PAYG'(Pay As You Go), 'AHUB'(Azure Hybrid Benefit).Defaults to `PAYG`.
 
-* `sql_image_sku` - SQL Server edition type. Defaults to `Developer`.Possible values include: 'Developer', 'Express', 'Standard', 'Enterprise', 'Web'.
+* `sql_image_sku` - SQL Server edition type. Possible values include: 'Developer', 'Express', 'Standard', 'Enterprise', 'Web'. Defaults to `Developer`.
 
 * `tags` - Resource tags. Changing this forces a new resource to be created.
 

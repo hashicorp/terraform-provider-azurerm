@@ -21,16 +21,16 @@ func dataSourceArmMsSqlVirtualMachine() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"location": {
+			"name": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"name": {
+			"location": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
 			},
 
 			"virtual_machine_resource_id": {
@@ -71,6 +71,7 @@ func dataSourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface
 
 	d.SetId(*resp.ID)
 
+	d.Set("name", name)
 	d.Set("resource_group", resourceGroupName)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -80,8 +81,6 @@ func dataSourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface
 		d.Set("sql_server_license_type", string(properties.SQLServerLicenseType))
 		d.Set("virtual_machine_resource_id", properties.VirtualMachineResourceID)
 	}
-	d.Set("name", name)
-	d.Set("id", resp.ID)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

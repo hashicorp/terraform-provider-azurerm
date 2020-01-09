@@ -154,9 +154,9 @@ The following arguments are supported:
 
 * `name` - (Computed) Name of the SQL virtual machine, which is the same with the name of the Virtual Machine provided.
 
-* `sql_server_license_type` - (Optional) SQL Server license type. Defaults to `PAYG`.Possible values include: 'PAYG'(Pay As You Go), 'AHUB'(Azure Hybrid Benefit).
+* `sql_server_license_type` - (Optional) SQL Server license type. Possible values include: 'PAYG'(Pay As You Go), 'AHUB'(Azure Hybrid Benefit). Defaults to `PAYG`.
 
-* `sql_image_sku` - (Optional) SQL Server edition type. Defaults to `Developer`.Possible values include: 'Developer', 'Express', 'Standard', 'Enterprise', 'Web'.
+* `sql_image_sku` - (Optional) SQL Server edition type. Possible values include: 'Developer', 'Express', 'Standard', 'Enterprise', 'Web'. Defaults to `Developer`.
 
 * `auto_patching_settings` - (Optional) One `auto_patching_setting` block defined below.SQL Server Azure VMs can use Automated Patching to schedule a maintenance window for installing important windows and SQL Server updates automatically. Please refer [automated patching](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/sql/virtual-machines-windows-sql-automated-patching) for more information.
 
@@ -212,7 +212,7 @@ The `server_configurations_management_setting` block supports the following:
 
 The `storage_configuration_setting` block supports the following:
 
-* `storage_workload_type` - (Optional) Storage workload type. Defaults to `GENERAL`.Possible values include: 'GENERAL', 'OLTP'(Transactional processing), 'DW'(Data warehousing).
+* `storage_workload_type` - (Optional) Storage workload type. Possible values include: 'GENERAL', 'OLTP'(Transactional processing), 'DW'(Data warehousing). Defaults to `GENERAL`.
 
 * `sql_data_luns` - (Optional) Logical Unit Numbers for the disks.
 
