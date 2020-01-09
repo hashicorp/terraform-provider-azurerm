@@ -3,6 +3,7 @@ package compute
 import (
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
@@ -18,6 +19,10 @@ import (
 func dataSourceArmDedicatedHostGroup() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmDedicatedHostGroupRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

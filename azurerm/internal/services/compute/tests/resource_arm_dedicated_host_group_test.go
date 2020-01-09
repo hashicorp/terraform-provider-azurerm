@@ -137,15 +137,16 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_dedicated_host_group" "test" {
+  name							= "acctestDHG-compute-%d"
   resource_group_name			= "${azurerm_resource_group.test.name}"
-  name							= "acctestDHG-compute-%s"
   location						= "${azurerm_resource_group.test.location}"
   platform_fault_domain_count	= 2
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMDedicatedHostGroup_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDedicatedHostGroup_basic(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_dedicated_host_group" "import" {
@@ -154,7 +155,7 @@ resource "azurerm_dedicated_host_group" "import" {
   location						= "${azurerm_dedicated_host_group.test.location}"
   platform_fault_domain_count	= 2
 }
-`, testAccAzureRMDedicatedHostGroup_basic(data))
+`, template)
 }
 
 func testAccAzureRMDedicatedHostGroup_complete(data acceptance.TestData) string {
@@ -165,8 +166,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_dedicated_host_group" "test" {
+  name							= "acctestDHG-compute-%d"
   resource_group_name			= "${azurerm_resource_group.test.name}"
-  name							= "acctestDHG-compute-%s"
   location						= "${azurerm_resource_group.test.location}"
   platform_fault_domain_count	= 2
   zones = ["1"]
@@ -174,5 +175,5 @@ resource "azurerm_dedicated_host_group" "test" {
     ENV = "prod"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

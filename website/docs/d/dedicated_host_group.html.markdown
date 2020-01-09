@@ -14,8 +14,8 @@ Use this data source to access information about an existing Dedicated Host Grou
 
 ```hcl
 data "azurerm_dedicated_host_group" "example" {
+  name                = "example-dedicated-host-group"
   resource_group_name = "example-rg"
-  name                = "example-dedicated-host-group" 
 }
 
 output "id" {
