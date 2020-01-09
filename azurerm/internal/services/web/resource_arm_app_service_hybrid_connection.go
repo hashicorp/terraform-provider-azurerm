@@ -2,8 +2,11 @@ package web
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
@@ -43,7 +46,7 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 			"relay_arm_uri": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: relay.ValidateHybridConnectionID,
 			},
 			"hostname": {
 				Type:         schema.TypeString,
@@ -100,36 +103,24 @@ func resourceArmAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, m
 	name := d.Get("app_service_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	relayArmURI := d.Get("relay_arm_uri").(string)
-	relayId, err := azure.ParseAzureResourceID(relayArmURI)
-	if err != nil {
-		return fmt.Errorf("Error parsing relay_arm_uri as ID: %s", relayArmURI)
-	}
-
-	namespaceName := relayId.Path["namespaces"]
-	if namespaceName == "" {
-		return fmt.Errorf("Failed to parse relay namespace from ID: %s", relayArmURI)
-	}
-
-	relayName := relayId.Path["hybridConnections"]
-	if relayName == "" {
-		return fmt.Errorf("Failed to parse relay name from ID: %s", relayArmURI)
-	}
+	relayId, err := relay.ParseHybridConnectionID(relayArmURI)
+	namespaceName := relayId.NamespaceName
+	relayName := relayId.Name
 
 	port := int32(d.Get("port").(int))
 
-	hybridConnectionProperties := web.HybridConnectionProperties{
-		ServiceBusNamespace: utils.String(d.Get("service_bus_namespace").(string)),
-		RelayName:           &relayName,
-		RelayArmURI:         &relayArmURI,
-		Hostname:            utils.String(d.Get("hostname").(string)),
-		Port:                &port,
-		SendKeyName:         utils.String(d.Get("send_key_name").(string)),
-		SendKeyValue:        utils.String(d.Get("send_key_value").(string)),
-		ServiceBusSuffix:    utils.String(d.Get("service_bus_suffix").(string)),
+	connectionEnvelope := web.HybridConnection{
+		HybridConnectionProperties: &web.HybridConnectionProperties{
+			ServiceBusNamespace: utils.String(d.Get("service_bus_namespace").(string)),
+			RelayName:           &relayName,
+			RelayArmURI:         &relayArmURI,
+			Hostname:            utils.String(d.Get("hostname").(string)),
+			Port:                &port,
+			SendKeyName:         utils.String(d.Get("send_key_name").(string)),
+			SendKeyValue:        utils.String(d.Get("send_key_value").(string)),
+			ServiceBusSuffix:    utils.String(d.Get("service_bus_suffix").(string)),
+		},
 	}
-
-	connectionEnvelope := web.HybridConnection{}
-	connectionEnvelope.HybridConnectionProperties = &hybridConnectionProperties
 
 	hybridConnection, err := client.CreateOrUpdateHybridConnection(ctx, resourceGroup, name, namespaceName, relayName, connectionEnvelope)
 	if err != nil {
@@ -171,10 +162,18 @@ func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta inte
 		d.Set("port", resp.Port)
 		d.Set("service_bus_namespace", resp.ServiceBusNamespace)
 		d.Set("send_key_name", resp.SendKeyName)
-		d.Set("send_key_value", resp.SendKeyValue)
 		d.Set("service_bus_suffix", resp.ServiceBusSuffix)
 		d.Set("relay_arm_uri", resp.RelayArmURI)
 		d.Set("hostname", resp.Hostname)
+	}
+	// key values are not returned in the response, so we get the primary key from the Service Bus ListKeys func
+	serviceBusNSClient := meta.(*clients.Client).ServiceBus.NamespacesClient
+	serviceBusNSctx := meta.(*clients.Client).StopContext
+	accessKeys, err := serviceBusNSClient.ListKeys(serviceBusNSctx, resourceGroup, *resp.ServiceBusNamespace, *resp.SendKeyName)
+	if err != nil {
+		log.Printf("[WARN] Unable to List default keys for Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
+	} else {
+		d.Set("send_key_value", accessKeys.PrimaryKey)
 	}
 
 	return nil
