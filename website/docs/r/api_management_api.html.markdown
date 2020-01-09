@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api"
-sidebar_current: "docs-azurerm-resource-api-management-api-x"
 description: |-
   Manages an API within an API Management Service.
 ---

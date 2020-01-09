@@ -17,7 +17,6 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, data.RandomInteger, data.RandomString)
-	config := testAccAzureRMBatchCertificatePfx(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,7 +24,7 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBatchCertificatePfx(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "id", certificateID),
 					resource.TestCheckResourceAttr(data.ResourceName, "format", "Pfx"),
@@ -45,7 +44,6 @@ func TestAccAzureRMBatchCertificate_Pfx(t *testing.T) {
 
 func TestAccAzureRMBatchCertificate_PfxWithoutPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
-	config := testAccAzureRMBatchCertificatePfxWithoutPassword(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -53,7 +51,7 @@ func TestAccAzureRMBatchCertificate_PfxWithoutPassword(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      config,
+				Config:      testAccAzureRMBatchCertificatePfxWithoutPassword(data),
 				ExpectError: regexp.MustCompile("Password is required"),
 			},
 		},
@@ -65,15 +63,13 @@ func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	certificateID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-312d31a79fa0cef49c00f769afc2b73e9f4edf34", subscriptionID, data.RandomInteger, data.RandomString)
 
-	config := testAccAzureRMBatchCertificateCer(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMBatchCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBatchCertificateCer(data),
 				Check: resource.ComposeTestCheckFunc(
 
 					resource.TestCheckResourceAttr(data.ResourceName, "id", certificateID),
@@ -89,7 +85,6 @@ func TestAccAzureRMBatchCertificate_Cer(t *testing.T) {
 
 func TestAccAzureRMBatchCertificate_CerWithPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_certificate", "test")
-	config := testAccAzureRMBatchCertificateCerWithPassword(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -97,7 +92,7 @@ func TestAccAzureRMBatchCertificate_CerWithPassword(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBatchCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      config,
+				Config:      testAccAzureRMBatchCertificateCerWithPassword(data),
 				ExpectError: regexp.MustCompile("Password must not be specified"),
 			},
 		},

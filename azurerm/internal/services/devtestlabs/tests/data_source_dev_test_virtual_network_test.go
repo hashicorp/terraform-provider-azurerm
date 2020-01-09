@@ -18,14 +18,12 @@ func TestAccDataSourceArmDevTestVirtualNetwork_basic(t *testing.T) {
 	subnetName := name + "Subnet"
 	subnetResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, name, subnetName)
 
-	config := testAccDataSourceArmDevTestVirtualNetwork_basic(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceArmDevTestVirtualNetwork_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", name),
 					resource.TestCheckResourceAttr(data.ResourceName, "lab_name", labName),

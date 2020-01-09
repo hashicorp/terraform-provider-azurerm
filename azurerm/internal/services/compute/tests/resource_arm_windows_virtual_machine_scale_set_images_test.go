@@ -709,7 +709,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     publisher = "plesk"
   }
 
-  depends_on = ["azurerm_marketplace_agreement", "test")]
+  depends_on = ["azurerm_marketplace_agreement.test"]
 }
 `, template)
 }

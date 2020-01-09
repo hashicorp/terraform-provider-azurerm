@@ -63,6 +63,8 @@ resource "azurerm_recovery_services_protection_container" "test" {
 
 func testCheckAzureRMRecoveryProtectionContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -74,7 +76,6 @@ func testCheckAzureRMRecoveryProtectionContainerExists(resourceName string) reso
 		protectionContainerName := state.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName)
 		if err != nil {
@@ -90,6 +91,8 @@ func testCheckAzureRMRecoveryProtectionContainerExists(resourceName string) reso
 }
 
 func testCheckAzureRMRecoveryProtectionContainerDestroy(s *terraform.State) error {
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_recovery_services_protection_container" {
 			continue
@@ -101,7 +104,6 @@ func testCheckAzureRMRecoveryProtectionContainerDestroy(s *terraform.State) erro
 		protectionContainerName := rs.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName)
 		if err != nil {

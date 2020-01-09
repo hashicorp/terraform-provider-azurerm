@@ -1512,6 +1512,10 @@ func expandAzureRmVirtualMachineOsProfileSecrets(d *schema.ResourceData) *[]comp
 	secrets := make([]compute.VaultSecretGroup, 0, len(secretsConfig))
 
 	for _, secretConfig := range secretsConfig {
+		if secretConfig == nil {
+			continue
+		}
+
 		config := secretConfig.(map[string]interface{})
 		sourceVaultId := config["source_vault_id"].(string)
 
@@ -1525,6 +1529,9 @@ func expandAzureRmVirtualMachineOsProfileSecrets(d *schema.ResourceData) *[]comp
 			certsConfig := v.([]interface{})
 			certs := make([]compute.VaultCertificate, 0, len(certsConfig))
 			for _, certConfig := range certsConfig {
+				if certConfig == nil {
+					continue
+				}
 				config := certConfig.(map[string]interface{})
 
 				certUrl := config["certificate_url"].(string)

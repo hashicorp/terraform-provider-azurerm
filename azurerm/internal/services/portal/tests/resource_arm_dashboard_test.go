@@ -31,6 +31,9 @@ func TestAccResourceArmDashboard_basic(t *testing.T) {
 
 func testCheckAzureRMDashboardExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Portal.DashboardsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -42,9 +45,6 @@ func testCheckAzureRMDashboardExists(resourceName string) resource.TestCheckFunc
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Dashboard: %s", dashboardName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Portal.DashboardsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dashboardName)
 		if err != nil {

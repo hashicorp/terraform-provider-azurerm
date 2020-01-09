@@ -108,8 +108,6 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(t *tes
 
 func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data)
-	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -117,14 +115,14 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sql_filter", "2=2"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sql_filter", "3=3"),
@@ -136,8 +134,6 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 
 func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	config := testAccAzureRMServiceBusSubscriptionRule_correlationFilter(data)
-	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -145,7 +141,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testin
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusSubscriptionRule_correlationFilter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "correlation_filter.0.message_id", "test_message_id"),
@@ -153,7 +149,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testin
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "correlation_filter.0.message_id", "test_message_id_updated"),
@@ -166,8 +162,6 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testin
 
 func TestAccAzureRMServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
-	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data)
-	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -175,13 +169,13 @@ func TestAccAzureRMServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionRuleExists(data.ResourceName),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionRuleExists(data.ResourceName),
 				),
@@ -192,6 +186,9 @@ func TestAccAzureRMServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter
 
 func testCheckAzureRMServiceBusSubscriptionRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.SubscriptionRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -205,9 +202,6 @@ func testCheckAzureRMServiceBusSubscriptionRuleExists(resourceName string) resou
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Subscription Rule: %q", ruleName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.SubscriptionRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, ruleName)
 		if err != nil {

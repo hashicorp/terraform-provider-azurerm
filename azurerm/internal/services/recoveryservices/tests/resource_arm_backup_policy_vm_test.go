@@ -22,7 +22,12 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.frequency", "Daily"),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.time", "23:00"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_daily.0.count", "10"),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -44,7 +49,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_requiresImport(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMBackupProtectionPolicyVM_requiresImport),
 		},
@@ -61,7 +68,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicWeekly(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -78,7 +87,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_completeDaily(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeDaily(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeDaily(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -95,7 +106,21 @@ func TestAccAzureRMBackupProtectionPolicyVM_completeWeekly(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.frequency", "Weekly"),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.time", "23:00"),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.weekdays.#", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_weekly.0.count", "42"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_weekly.0.weekdays.#", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.count", "7"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.weekdays.#", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.weeks.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.count", "77"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.weekdays.#", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.weeks.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.months.#", "2"),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -112,11 +137,27 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateDaily(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
 			},
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeDaily(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeDaily(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.frequency", "Daily"),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.time", "23:00"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_daily.0.count", "10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_weekly.0.count", "42"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_weekly.0.weekdays.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.count", "7"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.weekdays.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.weeks.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.count", "77"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.weekdays.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.weeks.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.months.#", "2"),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -133,11 +174,27 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeekly(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
 			},
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.frequency", "Weekly"),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.time", "23:00"),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.weekdays.#", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_weekly.0.count", "42"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_weekly.0.weekdays.#", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.count", "7"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.weekdays.#", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.weeks.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.count", "77"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.weekdays.#", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.weeks.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.months.#", "2"),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -154,11 +211,16 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateDailyToWeekly(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -175,11 +237,16 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToDaily(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_basicDaily(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -196,11 +263,28 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) 
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(data),
-				Check:  checkAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(data.ResourceName, data.RandomInteger),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.frequency", "Weekly"),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.time", "23:00"),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.weekdays.#", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_weekly.0.count", "42"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_weekly.0.weekdays.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.count", "7"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.weekdays.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.weeks.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.count", "77"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.weekdays.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.weeks.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.months.#", "1"),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -266,7 +350,7 @@ func testCheckAzureRMBackupProtectionPolicyVmExists(resourceName string) resourc
 	}
 }
 
-func testAccAzureRMBackupProtectionPolicyVM_base(data acceptance.TestData) string {
+func testAccAzureRMBackupProtectionPolicyVM_template(data acceptance.TestData) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -283,7 +367,7 @@ resource "azurerm_recovery_services_vault" "test" {
 }
 
 func testAccAzureRMBackupProtectionPolicyVM_basicDaily(data acceptance.TestData) string {
-	template := testAccAzureRMBackupProtectionPolicyVM_base(data)
+	template := testAccAzureRMBackupProtectionPolicyVM_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -326,20 +410,8 @@ resource "azurerm_backup_policy_vm" "import" {
 `, template)
 }
 
-func checkAccAzureRMBackupProtectionPolicyVM_basicDaily(resourceName string, ri int) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMBackupProtectionPolicyVmExists(resourceName),
-		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.frequency", "Daily"),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.time", "23:00"),
-		resource.TestCheckResourceAttr(resourceName, "retention_daily.0.count", "10"),
-	)
-}
-
 func testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data acceptance.TestData) string {
-	template := testAccAzureRMBackupProtectionPolicyVM_base(data)
+	template := testAccAzureRMBackupProtectionPolicyVM_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -362,21 +434,8 @@ resource "azurerm_backup_policy_vm" "test" {
 `, template, data.RandomInteger)
 }
 
-func checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(resourceName string, ri int) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMBackupProtectionPolicyVmExists(resourceName),
-		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.frequency", "Weekly"),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.time", "23:00"),
-		resource.TestCheckResourceAttr(resourceName, "retention_weekly.0.count", "42"),
-		resource.TestCheckResourceAttr(resourceName, "retention_weekly.0.weekdays.#", "2"),
-	)
-}
-
 func testAccAzureRMBackupProtectionPolicyVM_completeDaily(data acceptance.TestData) string {
-	template := testAccAzureRMBackupProtectionPolicyVM_base(data)
+	template := testAccAzureRMBackupProtectionPolicyVM_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -415,29 +474,8 @@ resource "azurerm_backup_policy_vm" "test" {
 `, template, data.RandomInteger)
 }
 
-func checkAccAzureRMBackupProtectionPolicyVM_completeDaily(resourceName string, ri int) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMBackupProtectionPolicyVmExists(resourceName),
-		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.frequency", "Daily"),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.time", "23:00"),
-		resource.TestCheckResourceAttr(resourceName, "retention_daily.0.count", "10"),
-		resource.TestCheckResourceAttr(resourceName, "retention_weekly.0.count", "42"),
-		resource.TestCheckResourceAttr(resourceName, "retention_weekly.0.weekdays.#", "2"),
-		resource.TestCheckResourceAttr(resourceName, "retention_monthly.0.count", "7"),
-		resource.TestCheckResourceAttr(resourceName, "retention_monthly.0.weekdays.#", "2"),
-		resource.TestCheckResourceAttr(resourceName, "retention_monthly.0.weeks.#", "2"),
-		resource.TestCheckResourceAttr(resourceName, "retention_yearly.0.count", "77"),
-		resource.TestCheckResourceAttr(resourceName, "retention_yearly.0.weekdays.#", "2"),
-		resource.TestCheckResourceAttr(resourceName, "retention_yearly.0.weeks.#", "2"),
-		resource.TestCheckResourceAttr(resourceName, "retention_yearly.0.months.#", "2"),
-	)
-}
-
 func testAccAzureRMBackupProtectionPolicyVM_completeWeekly(data acceptance.TestData) string {
-	template := testAccAzureRMBackupProtectionPolicyVM_base(data)
+	template := testAccAzureRMBackupProtectionPolicyVM_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -473,29 +511,8 @@ resource "azurerm_backup_policy_vm" "test" {
 `, template, data.RandomInteger)
 }
 
-func checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(resourceName string, ri int) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMBackupProtectionPolicyVmExists(resourceName),
-		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.frequency", "Weekly"),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.time", "23:00"),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.weekdays.#", "4"),
-		resource.TestCheckResourceAttr(resourceName, "retention_weekly.0.count", "42"),
-		resource.TestCheckResourceAttr(resourceName, "retention_weekly.0.weekdays.#", "4"),
-		resource.TestCheckResourceAttr(resourceName, "retention_monthly.0.count", "7"),
-		resource.TestCheckResourceAttr(resourceName, "retention_monthly.0.weekdays.#", "4"),
-		resource.TestCheckResourceAttr(resourceName, "retention_monthly.0.weeks.#", "2"),
-		resource.TestCheckResourceAttr(resourceName, "retention_yearly.0.count", "77"),
-		resource.TestCheckResourceAttr(resourceName, "retention_yearly.0.weekdays.#", "4"),
-		resource.TestCheckResourceAttr(resourceName, "retention_yearly.0.weeks.#", "2"),
-		resource.TestCheckResourceAttr(resourceName, "retention_yearly.0.months.#", "2"),
-	)
-}
-
 func testAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(data acceptance.TestData) string {
-	template := testAccAzureRMBackupProtectionPolicyVM_base(data)
+	template := testAccAzureRMBackupProtectionPolicyVM_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -529,25 +546,4 @@ resource "azurerm_backup_policy_vm" "test" {
   }
 }
 `, template, data.RandomInteger)
-}
-
-func checkAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(resourceName string, ri int) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMBackupProtectionPolicyVmExists(resourceName),
-		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-%d", ri)),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.frequency", "Weekly"),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.time", "23:00"),
-		resource.TestCheckResourceAttr(resourceName, "backup.0.weekdays.#", "4"),
-		resource.TestCheckResourceAttr(resourceName, "retention_weekly.0.count", "42"),
-		resource.TestCheckResourceAttr(resourceName, "retention_weekly.0.weekdays.#", "3"),
-		resource.TestCheckResourceAttr(resourceName, "retention_monthly.0.count", "7"),
-		resource.TestCheckResourceAttr(resourceName, "retention_monthly.0.weekdays.#", "2"),
-		resource.TestCheckResourceAttr(resourceName, "retention_monthly.0.weeks.#", "2"),
-		resource.TestCheckResourceAttr(resourceName, "retention_yearly.0.count", "77"),
-		resource.TestCheckResourceAttr(resourceName, "retention_yearly.0.weekdays.#", "1"),
-		resource.TestCheckResourceAttr(resourceName, "retention_yearly.0.weeks.#", "1"),
-		resource.TestCheckResourceAttr(resourceName, "retention_yearly.0.months.#", "1"),
-	)
 }

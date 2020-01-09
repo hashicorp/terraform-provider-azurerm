@@ -266,11 +266,11 @@ resource "azurerm_automation_job_schedule" "test" {
   runbook_name            = "${azurerm_automation_runbook.test.name}"
 
   parameters = {
-    output                = "Earth"
-    case                  = "MATTERS"
-    keepcount             = 20
-    webhookuri            = "http://www.example.com/hook"
-    url                   = "https://www.Example.com"
+    output     = "Earth"
+    case       = "MATTERS"
+    keepcount  = 20
+    webhookuri = "http://www.example.com/hook"
+    url        = "https://www.Example.com"
   }
 }
 `, template)

@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_wan"
-sidebar_current: "docs-azurerm-resource-network-virtual-wan"
 description: |-
   Manages a Virtual WAN.
 

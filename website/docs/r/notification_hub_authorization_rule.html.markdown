@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_notification_hub_authorization_rule"
-sidebar_current: "docs-azurerm-resource-messaging-notification-hub-authorization-rule"
 description: |-
   Manages an Authorization Rule associated with a Notification Hub within a Notification Hub Namespace.
 

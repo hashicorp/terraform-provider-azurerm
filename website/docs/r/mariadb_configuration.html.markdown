@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mariadb_configuration"
-sidebar_current: "docs-azurerm-resource-database-mariadb-configuration"
 description: |-
   Sets a MariaDB Configuration value on a MariaDB Server.
 ---

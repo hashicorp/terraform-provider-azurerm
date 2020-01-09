@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_backend"
-sidebar_current: "docs-azurerm-resource-api-management-backend-x"
 description: |-
   Manages a backend within an API Management Service.
 ---

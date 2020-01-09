@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_subscription_rule"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-subscription-rule"
 description: |-
   Manages a ServiceBus Subscription Rule.
 ---

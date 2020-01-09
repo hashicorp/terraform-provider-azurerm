@@ -2,7 +2,6 @@
 subcategory: "Portal"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dashboard"
-sidebar_current: "docs-azurerm-resource-portal-dashboards"
 description: |-
   Manages a shared dashboard in the Azure Portal.
 ---
@@ -205,7 +204,7 @@ data "template_file" "dash-template" {
   }
 }
 
-...
+#...
 
 resource "azurerm_dashboard" "my-board" {
   name                = "my-cool-dashboard"
@@ -222,8 +221,6 @@ resource "azurerm_dashboard" "my-board" {
 `main.tf` (terraform 0.12+)
 
 ```hcl
-...
-
 resource "azurerm_dashboard" "my-board" {
   name                = "my-cool-dashboard"
   resource_group_name = azurerm_resource_group.my-group.name

@@ -2,7 +2,6 @@
 subcategory: "Private DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_dns_zone"
-sidebar_current: "docs-azurerm-resource-private-dns-zone"
 description: |-
   Manages a Private DNS Zone.
 ---

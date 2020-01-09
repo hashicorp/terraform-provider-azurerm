@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -73,9 +74,9 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 		testData.Locations = availableLocations()
 	} else {
 		testData.Locations = Regions{
-			Primary:   Location(),
-			Secondary: AltLocation(),
-			Ternary:   AltLocation2(),
+			Primary:   os.Getenv("ARM_TEST_LOCATION"),
+			Secondary: os.Getenv("ARM_TEST_LOCATION_ALT"),
+			Ternary:   os.Getenv("ARM_TEST_LOCATION_ALT2"),
 		}
 	}
 

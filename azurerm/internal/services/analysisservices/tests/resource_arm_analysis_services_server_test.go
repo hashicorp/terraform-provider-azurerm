@@ -34,8 +34,6 @@ func TestAccAzureRMAnalysisServicesServer_basic(t *testing.T) {
 
 func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
-	preConfig := testAccAzureRMAnalysisServicesServer_withTags(data)
-	postConfig := testAccAzureRMAnalysisServicesServer_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -43,7 +41,7 @@ func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMAnalysisServicesServer_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -51,7 +49,7 @@ func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMAnalysisServicesServer_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -65,8 +63,6 @@ func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
 
 func TestAccAzureRMAnalysisServicesServer_querypoolConnectionMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
-	preConfig := testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data, "All")
-	postConfig := testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data, "ReadOnly")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -74,14 +70,14 @@ func TestAccAzureRMAnalysisServicesServer_querypoolConnectionMode(t *testing.T) 
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data, "All"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "querypool_connection_mode", "All"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data, "ReadOnly"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "querypool_connection_mode", "ReadOnly"),
@@ -155,8 +151,6 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 	email2 := os.Getenv(ArmAccAdminEmail2)
 	preAdminUsers := []string{email1}
 	postAdminUsers := []string{email1, email2}
-	preConfig := testAccAzureRMAnalysisServicesServer_adminUsers(data, preAdminUsers)
-	postConfig := testAccAzureRMAnalysisServicesServer_adminUsers(data, postAdminUsers)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -164,11 +158,11 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMAnalysisServicesServer_adminUsers(data, preAdminUsers),
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMAnalysisServicesServer_adminUsers(data, postAdminUsers),
 			},
 			data.ImportStep(),
 		},
@@ -443,6 +437,7 @@ resource "azurerm_analysis_services_server" "test" {
 
 func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_analysis_services_server" {
@@ -452,7 +447,6 @@ func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetDetails(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -470,6 +464,8 @@ func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAnalysisServicesServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -482,8 +478,6 @@ func testCheckAzureRMAnalysisServicesServerExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for Analysis Services Server: %s", analysisServicesServerName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetDetails(ctx, resourceGroup, analysisServicesServerName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

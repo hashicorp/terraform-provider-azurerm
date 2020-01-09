@@ -12,14 +12,13 @@ import (
 func TestAccAzureRMLogicAppActionCustom_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_custom", "test")
 
-	config := testAccAzureRMLogicAppActionCustom_basic(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogicAppActionCustom_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppActionExists(data.ResourceName),
 				),

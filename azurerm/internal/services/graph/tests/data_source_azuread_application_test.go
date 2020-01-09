@@ -12,7 +12,6 @@ import (
 func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_azuread_application", "test")
 	id := uuid.New().String()
-	config := testAccDataSourceAzureRMAzureADApplication_objectId(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +22,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 				Config: testAccAzureRMActiveDirectoryApplication_basic(id),
 			},
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMAzureADApplication_objectId(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest%s", id)),
@@ -68,7 +67,6 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectIdComplete(t *testing.T)
 func TestAccDataSourceAzureRMAzureADApplication_byName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_azuread_application", "test")
 	id := uuid.New().String()
-	config := testAccDataSourceAzureRMAzureADApplication_name(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -79,7 +77,7 @@ func TestAccDataSourceAzureRMAzureADApplication_byName(t *testing.T) {
 				Config: testAccAzureRMActiveDirectoryApplication_basic(id),
 			},
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMAzureADApplication_name(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest%s", id)),

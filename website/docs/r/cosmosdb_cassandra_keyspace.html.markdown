@@ -2,7 +2,6 @@
 subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_cassandra_keyspace"
-sidebar_current: "docs-azurerm-resource-cosmosdb-cassandra-keyspace"
 description: |-
   Manages a Cassandra KeySpace within a Cosmos DB Account.
 ---

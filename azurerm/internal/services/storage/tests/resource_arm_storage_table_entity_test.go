@@ -86,6 +86,9 @@ func TestAccAzureRMTableEntity_update(t *testing.T) {
 
 func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -96,9 +99,6 @@ func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFu
 		accountName := rs.Primary.Attributes["storage_account_name"]
 		partitionKey := rs.Primary.Attributes["partition_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
@@ -132,6 +132,9 @@ func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMTableEntityDestroy(s *terraform.State) error {
+	storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_table_entity" {
 			continue
@@ -141,9 +144,6 @@ func testCheckAzureRMTableEntityDestroy(s *terraform.State) error {
 		accountName := rs.Primary.Attributes["storage_account_name"]
 		partitionKey := rs.Primary.Attributes["parititon_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {

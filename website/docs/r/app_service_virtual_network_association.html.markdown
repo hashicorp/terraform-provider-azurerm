@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_virtual_network_swift_connection"
-sidebar_current: "docs-azurerm-resource-app-service-virtual-network-association"
 description: |-
   Manages an App Service Virtual Network Association.
 
@@ -16,7 +15,7 @@ Manages an App Service Virtual Network Association (this is for the [Regional VN
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "uksouth"
 }
 
@@ -62,8 +61,8 @@ resource "azurerm_app_service" "test" {
 }
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id       = "${azurerm_app_service.test.id}"
-  subnet_id            = "${azurerm_subnet.test1.id}"
+  app_service_id = "${azurerm_app_service.test.id}"
+  subnet_id      = "${azurerm_subnet.test1.id}"
 }
 ```
 

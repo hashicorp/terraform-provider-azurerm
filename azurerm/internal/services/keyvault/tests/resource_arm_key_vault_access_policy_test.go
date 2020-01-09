@@ -17,7 +17,6 @@ import (
 
 func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
-	config := testAccAzureRMKeyVaultAccessPolicy_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,7 +24,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultAccessPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "get"),
@@ -40,7 +39,6 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 
 func TestAccAzureRMKeyVaultAccessPolicy_basicClassic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
-	config := testAccAzureRMKeyVaultAccessPolicy_basicClassic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -48,7 +46,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_basicClassic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultAccessPolicy_basicClassic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "get"),
@@ -132,8 +130,6 @@ func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 
 func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
-	preConfig := testAccAzureRMKeyVaultAccessPolicy_basic(data)
-	postConfig := testAccAzureRMKeyVaultAccessPolicy_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -141,7 +137,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMKeyVaultAccessPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "get"),
@@ -150,7 +146,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMKeyVaultAccessPolicy_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultAccessPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "key_permissions.0", "list"),
@@ -386,7 +382,7 @@ func testAccAzureRMKeyVaultAccessPolicy_template(data acceptance.TestData) strin
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -402,7 +398,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Production"
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(data acceptance.TestData) string {
@@ -410,7 +406,7 @@ func testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(data acceptance.TestDat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -442,5 +438,5 @@ resource "azurerm_key_vault_access_policy" "test" {
     "get",
   ]
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

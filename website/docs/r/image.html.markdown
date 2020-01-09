@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_image"
-sidebar_current: "docs-azurerm-resource-compute-image"
 description: |-
   Manages a custom virtual machine image that can be used to create virtual machines.
 ---
@@ -15,7 +14,7 @@ Manages a custom virtual machine image that can be used to create virtual machin
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctest"
+  name     = "example-resources"
   location = "West US"
 }
 
@@ -37,7 +36,7 @@ resource "azurerm_image" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctest"
+  name     = "example-resources"
   location = "West US"
 }
 

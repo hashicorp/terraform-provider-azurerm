@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventgrid_event_subscription"
-sidebar_current: "docs-azurerm-resource-messaging-eventgrid-event-subscription"
 description: |-
   Manages an EventGrid Event Subscription
 

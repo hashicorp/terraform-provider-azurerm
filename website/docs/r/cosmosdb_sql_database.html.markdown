@@ -2,7 +2,6 @@
 subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_sql_database"
-sidebar_current: "docs-azurerm-resource-cosmosdb-sql-database"
 description: |-
   Manages a SQL Database within a Cosmos DB Account.
 ---

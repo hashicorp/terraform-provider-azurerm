@@ -2,7 +2,6 @@
 subcategory: "Log Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_workspace"
-sidebar_current: "docs-azurerm-log-analytics-workspace-x"
 description: |-
   Manages a Log Analytics (formally Operational Insights) Workspace.
 ---
@@ -15,7 +14,7 @@ Manages a Log Analytics (formally Operational Insights) Workspace.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG-01"
+  name     = "example-resources"
   location = "East US"
 }
 

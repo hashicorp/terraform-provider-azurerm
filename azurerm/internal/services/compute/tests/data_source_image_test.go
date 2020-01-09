@@ -37,7 +37,7 @@ func TestAccDataSourceAzureRMImage_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMImage_localFilter(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_image", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_image", "test1")
 	descDataSourceName := "data.azurerm_image.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -337,8 +337,5 @@ data "azurerm_image" "test2" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-output "location" {
-  value = "${data.azurerm_image.test1.location}"
-}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

@@ -46,7 +46,9 @@ func resourceArmDevTestLabSchedules() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// There's a bug in the Azure API where this is returned in lower-case
+			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"lab_name": {
 				Type:         schema.TypeString,

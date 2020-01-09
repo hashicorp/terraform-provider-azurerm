@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_connection_monitor"
-sidebar_current: "docs-azurerm-resource-connection-monitor"
 description: |-
   Configures a Connection Monitor to monitor communication between a Virtual Machine and an endpoint using a Network Watcher.
 

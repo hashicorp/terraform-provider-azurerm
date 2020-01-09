@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_source_control_token"
-sidebar_current: "docs-azurerm-resource-app-service-source-control-token"
 description: |-
   Manages an App Service source control token.
 

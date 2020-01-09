@@ -156,7 +156,7 @@ resource "azurerm_cosmosdb_cassandra_keyspace" "test" {
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
 
-  throughput          = %[3]d
+  throughput = %[3]d
 }
 `, testAccAzureRMCosmosDBAccount_capabilityCassandra(data), data.RandomInteger, throughput)
 }
