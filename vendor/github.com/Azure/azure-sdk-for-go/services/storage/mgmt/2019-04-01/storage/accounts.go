@@ -18,6 +18,7 @@ package storage
 // Changes may cause incorrect behavior and will be lost if the code is regenerated.
 
 import (
+	//"fmt"
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -187,6 +188,7 @@ func (client AccountsClient) Create(ctx context.Context, resourceGroupName strin
 	}
 
 	result, err = client.CreateSender(req)
+	//fmt.Printf("response:%s",result.Response())
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.AccountsClient", "Create", result.Response(), "Failure sending request")
 		return
@@ -207,6 +209,7 @@ func (client AccountsClient) CreatePreparer(ctx context.Context, resourceGroupNa
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
+	//fmt.Printf("autorest :%s",parameters)
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),

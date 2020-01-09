@@ -15,8 +15,8 @@ Use this data source to access information about an existing MS Sql Virtual Mach
 
 ```hcl
 data "azurerm_mssql_virtual_machine" "example" {
-  resource_group_name      = "example-resource-group-name"
-  name                     = "example-sql-virtual-machine"
+  resource_group_name = "example-resource-group-name"
+  name                = "example-sql-virtual-machine"
 }
 
 output "mssql_virtual_machine_id" {
