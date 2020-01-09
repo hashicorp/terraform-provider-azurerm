@@ -147,7 +147,11 @@ func resourceArmDedicatedHostGroupRead(d *schema.ResourceData, meta interface{})
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if props := resp.DedicatedHostGroupProperties; props != nil {
-		d.Set("platform_fault_domain_count", int(*props.PlatformFaultDomainCount))
+		platformFaultDomainCount := 0
+		if props.PlatformFaultDomainCount != nil {
+			platformFaultDomainCount = int(*props.PlatformFaultDomainCount)
+		}
+		d.Set("platform_fault_domain_count", platformFaultDomainCount)
 	}
 	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 
