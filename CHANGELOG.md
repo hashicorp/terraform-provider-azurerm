@@ -3,9 +3,11 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_iothub_dps` [GH-5336]
+* **New Data Source:** `azurerm_dedicated_host_group` [GH-5307]
 * **New Resource:** `azurerm_api_management_identity_provider_facebook` [GH-5346]
 * **New Resource:** `azurerm_api_management_identity_provider_twitter` [GH-5306]
 * **New Resource:** `azurerm_cosmosdb_gremlin_graph` [GH-5301]
+* **New Resource:** `azurerm_dedicated_host_group` [GH-5307]
 
 IMPROVEMENTS:
 
