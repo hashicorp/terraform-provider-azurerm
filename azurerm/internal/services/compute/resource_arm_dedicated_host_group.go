@@ -59,18 +59,9 @@ func resourceArmDedicatedHostGroup() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 3),
 			},
 
-			"zones": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[1-9]\d*$`), ""),
-				},
-				// Currently only one endpoint is allowed.
-				// we'll leave this open to enhancement when they add multiple zones support.
-				MaxItems: 1,
-			},
+			// Currently only one endpoint is allowed.
+			// we'll leave this open to enhancement when they add multiple zones support.
+			"zones": azure.SchemaSingleZone(),
 
 			"tags": tags.Schema(),
 		},

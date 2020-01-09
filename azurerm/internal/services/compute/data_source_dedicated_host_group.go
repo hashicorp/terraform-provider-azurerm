@@ -30,14 +30,6 @@ func dataSourceArmDedicatedHostGroup() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"host_ids": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
 			"platform_fault_domain_count": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -80,19 +72,10 @@ func dataSourceArmDedicatedHostGroupRead(d *schema.ResourceData, meta interface{
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if props := resp.DedicatedHostGroupProperties; props != nil {
-		if props.Hosts != nil {
-			var hostIds []string
-			for _, item := range *props.Hosts {
-				hostIds = append(hostIds, *item.ID)
-			}
-			if err := d.Set("host_ids", hostIds); err != nil {
-				return fmt.Errorf("Error setting `hosts`: %+v", err)
-			}
-		}
 		d.Set("platform_fault_domain_count", int(*props.PlatformFaultDomainCount))
 	}
 
 	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
