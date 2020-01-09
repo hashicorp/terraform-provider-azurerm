@@ -15,30 +15,24 @@ import (
 
 func TestAccAzureRMDiskEncryptionSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
-	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	vaultName := fmt.Sprintf("vault%d", data.RandomInteger)
-	keyName := fmt.Sprintf("key-%s", data.RandomString)
-	desName := fmt.Sprintf("acctestdes-%d", data.RandomInteger)
-	location := data.Locations.Primary
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
-			// This test step is temporary due to freezing of functions in keyVault.
-			// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
 			{
-				Config: testAccPrepareKeyvaultAndKey(resourceGroup, location, vaultName, keyName),
+				// This test step is temporary due to freezing of functions in keyVault.
+				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
+				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
 				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyvault(resourceGroup, vaultName),
+					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
 				),
 			},
 			{
-				Config: testAccAzureRMDiskEncryptionSet_basic(resourceGroup, location, vaultName, keyName, desName),
+				Config: testAccAzureRMDiskEncryptionSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "key_vault_key_uri"),
 				),
 			},
 			data.ImportStep(),
@@ -94,11 +88,19 @@ func testCheckAzureRMDiskEncryptionSetDestroy(s *terraform.State) error {
 	return nil
 }
 
-func enableSoftDeleteAndPurgeProtectionForKeyvault(resourceGroup, vaultName string) resource.TestCheckFunc {
+func enableSoftDeleteAndPurgeProtectionForKeyVault(resourceName string) resource.TestCheckFunc {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	return func(s *terraform.State) error {
-		armClient := acceptance.AzureProvider.Meta().(*clients.Client)
-		client := armClient.KeyVault.VaultsClient
-		ctx := armClient.StopContext
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		vaultName := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
 		vaultPatch := keyvault.VaultPatchParameters{
 			Properties: &keyvault.VaultPatchProperties{
 				EnableSoftDelete:      utils.Bool(true),
@@ -108,81 +110,28 @@ func enableSoftDeleteAndPurgeProtectionForKeyvault(resourceGroup, vaultName stri
 		log.Printf("[DEBUG] Enabling Soft Delete & Purge Protection on Key Vault %q (Resource Group %q)..", vaultName, resourceGroup)
 		_, err := client.Update(ctx, resourceGroup, vaultName, vaultPatch)
 		if err != nil {
-			return fmt.Errorf("Bad: error when updating Keyvault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+			return fmt.Errorf("Bad: error updating KeyVault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
 		}
+		log.Printf("[DEBUG] Enabled Soft Delete & Purge Protection on Key Vault %q (Resource Group %q)..", vaultName, resourceGroup)
+
 		return nil
 	}
 }
 
-func testAccPrepareKeyvaultAndKey(resourceGroup, location, vaultName, keyName string) string {
+func testAccAzureRMDiskEncryptionSet_dependencies(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "%s"
+  name                = "acctestkv-%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name                = "premium"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.service_principal_object_id
-
-    key_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
-}
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "%s"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-}
-`, resourceGroup, location, vaultName, keyName)
-}
-
-func testAccAzureRMDiskEncryptionSet_basic(resourceGroup, location, vaultName, keyName, desName string) string {
-	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "%s"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
   sku_name            = "premium"
 
   access_policy {
@@ -205,7 +154,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "%s"
+  name         = "examplekey"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -219,13 +168,19 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMDiskEncryptionSet_basic(data acceptance.TestData) string {
+	template := testAccAzureRMDiskEncryptionSet_dependencies(data)
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_disk_encryption_set" "test" {
-  name                = "%s"
+  name                = "acctestDES-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-
-  key_vault_key_uri = azurerm_key_vault_key.test.id
+  key_vault_key_uri   = azurerm_key_vault_key.test.id
 }
-`, resourceGroup, location, vaultName, keyName, desName)
+`, template, data.RandomInteger)
 }
