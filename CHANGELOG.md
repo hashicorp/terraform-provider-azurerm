@@ -15,7 +15,10 @@ IMPROVEMENTS:
 
 * `azurerm_api_management_operation` - will no longer panic on missing values in `request` [GH-5318]
 * `azurerm_batch_pool` - support for the `metadata` property [GH-5309]
-* `azurerm_function_app` - convert `connection_string`s from a `TypList` to a `TypeSet` [GH-5319]
+* `azurerm_function_app` - convert `connection_string`s from a `TypeList` to a `TypeSet` [GH-5319]
+
+BUG FIXES:
+
 * `azurerm_storage_account` - fix performance issue for accounts that don't support queues [GH-5316]
 
 ## 1.40.0 (January 08, 2020)
