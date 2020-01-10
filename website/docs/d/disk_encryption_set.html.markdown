@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_disk_encryption_set"
-sidebar_current: "docs-azurerm-datasource-disk-encryption-set"
 description: |-
   Gets information about an existing Disk Encryption Set
 ---
