@@ -113,13 +113,13 @@ func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta inter
 	keyVaultKeyId := d.Get("key_vault_key_id").(string)
 	keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, vaultClient, keyVaultKeyId)
 	if err != nil {
-		return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: %+v", err)
+		return fmt.Errorf("Error validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKeyId, err)
 	}
 	if !keyVaultDetails.softDeleteEnabled {
-		return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", err)
+		return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 	}
 	if !keyVaultDetails.purgeProtectionEnabled {
-		return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", err)
+		return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", keyVaultDetails.keyVaultName, keyVaultDetails.resourceGroupName)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -260,6 +260,8 @@ func flattenArmDiskEncryptionSetIdentity(input *compute.EncryptionSetIdentity) [
 
 type diskEncryptionSetKeyVault struct {
 	keyVaultId             string
+	resourceGroupName      string
+	keyVaultName           string
 	purgeProtectionEnabled bool
 	softDeleteEnabled      bool
 }
@@ -304,6 +306,8 @@ func diskEncryptionSetRetrieveKeyVault(ctx context.Context, client *keyvault.Vau
 
 	return &diskEncryptionSetKeyVault{
 		keyVaultId:             *keyVaultID,
+		resourceGroupName:      resourceGroup,
+		keyVaultName:           vaultName,
 		purgeProtectionEnabled: purgeProtectionEnabled,
 		softDeleteEnabled:      softDeleteEnabled,
 	}, nil
