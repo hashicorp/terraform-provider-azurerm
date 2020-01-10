@@ -330,6 +330,78 @@ func TestAccAzureRMManagedDisk_import_withUltraSSD(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMManagedDisk_diskEncryptionSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk_test", "test")
+	var d compute.Disk
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
+		Steps: []resource.TestStep{
+			{
+				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
+				Config: testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data),
+				Check: resource.ComposeTestCheckFunc(
+					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
+				),
+			},
+			{
+				// then add the disk encryption set
+				Config: testAccAzureRMManagedDisk_diskEncryptionSetResource(data),
+			},
+			{
+				// then create a disk in that set
+				Config: testAccAzureRMManagedDisk_diskEncryptionSet(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMManagedDisk_diskEncryptionSetUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk_test", "test")
+	var d compute.Disk
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
+		Steps: []resource.TestStep{
+			{
+				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
+				Config: testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data),
+				Check: resource.ComposeTestCheckFunc(
+					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
+				),
+			},
+			{
+				// then add the disk encryption set
+				Config: testAccAzureRMManagedDisk_diskEncryptionSetResource(data),
+			},
+			{
+				// then create a disk in that set
+				Config: testAccAzureRMManagedDisk_diskEncryptionSet(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
+				),
+			},
+			data.ImportStep(),
+			{
+				// then update the set
+				Config: testAccAzureRMManagedDisk_diskEncryptionSetUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
@@ -829,4 +901,140 @@ resource "azurerm_managed_disk" "import" {
   }
 }
 `, template)
+}
+
+func testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
+	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
+	// TODO: switch back to default location
+	location := "northeurope"
+
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+}
+
+resource "azurerm_key_vault_access_policy" "service-principal" {
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.service_principal_object_id
+
+  key_permissions = [
+    "create",
+    "delete",
+    "get",
+    "update",
+  ]
+
+  secret_permissions = [
+    "get",
+    "delete",
+    "set",
+  ]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "examplekey"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
+}
+`, data.RandomInteger, location, data.RandomString)
+}
+
+func testAccAzureRMManagedDisk_diskEncryptionSetResource(data acceptance.TestData) string {
+	template := testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                = "acctestDES-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "get",
+    "wrapkey",
+    "unwrapkey",
+  ]
+
+  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMManagedDisk_diskEncryptionSet(data acceptance.TestData) string {
+	template := testAccAzureRMManagedDisk_diskEncryptionSetResource(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_disk" "test" {
+  name                   = "acctestd-%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  storage_account_type   = "Standard_LRS"
+  create_option          = "Empty"
+  disk_size_gb           = 1
+  disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMManagedDisk_diskEncryptionSetUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMManagedDisk_diskEncryptionSetResource(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_disk_encryption_set" "updated" {
+  name                = "acctestDES-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                   = "acctestd-%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  storage_account_type   = "Standard_LRS"
+  create_option          = "Empty"
+  disk_size_gb           = 1
+  disk_encryption_set_id = azurerm_disk_encryption_set.second.id
+}
+`, template, data.RandomInteger, data.RandomInteger)
 }
