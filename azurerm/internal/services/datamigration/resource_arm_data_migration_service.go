@@ -210,10 +210,8 @@ func resourceArmDataMigrationServiceDelete(d *schema.ResourceData, meta interfac
 	resourceGroup := id.ResourceGroup
 	name := id.Path["services"]
 
-	// For dms tasks created via terraform, the deletion order has already handled the dependency between dms task and dms service. In which case, dms service will not start to delete until
-	// dms tasks have been deleted.
-	// For dms tasks created outside of terraform, it is user's responsibility to ensure the deletion order. And for dms service, it makes sense to just force delete outstanding tasks.
-	toDeleteRunningTasks := true
+	// Always leave outstanding migration tasks untouched when deleting DMS. This is to avoid unexpectedly delete any tasks managed out of terraform.
+	toDeleteRunningTasks := false
 	future, err := client.Delete(ctx, resourceGroup, name, &toDeleteRunningTasks)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {

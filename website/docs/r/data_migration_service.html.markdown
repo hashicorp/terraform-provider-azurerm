@@ -11,7 +11,7 @@ description: |-
 
 Manages a Azure Data Migration Service.
 
-~> **NOTE on destroy behavior of Data Migration Service:** Destroy a Data Migration Service will always cancel and delete the including outstanding tasks first.
+~> **NOTE on destroy behavior of Data Migration Service:** Destroy a Data Migration Service will leave any outstanding tasks untouched. This is to avoid unexpectedly delete any tasks managed out of terraform.
 
 ## Example Usage
 
