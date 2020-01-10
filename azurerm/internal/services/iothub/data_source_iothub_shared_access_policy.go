@@ -30,7 +30,7 @@ func dataSourceArmIotHubSharedAccessPolicy() *schema.Resource {
 					"The shared access policy key name must not be empty, and must not exceed 64 characters in length.  The shared access policy key name can only contain alphanumeric characters, exclamation marks, periods, underscores and hyphens."),
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"iothub_name": {
 				Type:         schema.TypeString,
