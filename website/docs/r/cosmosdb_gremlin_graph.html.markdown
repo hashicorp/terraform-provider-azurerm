@@ -2,7 +2,6 @@
 subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_gremlin_graph"
-sidebar_current: "docs-azurerm-resource-cosmosdb-gremlin-graph"
 description: |-
   Manages a Gremlin Graph within a Cosmos DB Account.
 ---
