@@ -65,7 +65,6 @@ func TestParseHybridConnectionID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
-
 }
 
 func TestValidateHybridConnectionID(t *testing.T) {

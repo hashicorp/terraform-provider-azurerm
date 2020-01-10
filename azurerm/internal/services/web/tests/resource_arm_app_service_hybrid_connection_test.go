@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -25,6 +27,30 @@ func TestAccAzureRMAppServiceHybridConnection_basic(t *testing.T) {
 					testCheckAzureRMAppServiceHybridConnectionExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceHybridConnection_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceHybridConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppService_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceHybridConnectionExists(data.ResourceName),
+				),
+			},
+			data.RequiresImportErrorStep(testAccAzureRMAppServiceHybridConnection_requiresImport),
 		},
 	})
 }
@@ -134,7 +160,7 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_app_service_hybrid_connection" "test" {
   app_service_name      = azurerm_app_service.test.name
   resource_group_name   = azurerm_resource_group.test.name
-  relay_arm_uri         = azurerm_relay_hybrid_connection.test.id
+  relay_id              = azurerm_relay_hybrid_connection.test.id
   hostname              = "testhostname.azuretest"
   port                  = 80
   service_bus_namespace = azurerm_servicebus_namespace.test.name
@@ -142,4 +168,22 @@ resource "azurerm_app_service_hybrid_connection" "test" {
   send_key_value        = azurerm_servicebus_namespace.test.default_primary_key	
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMAppServiceHybridConnection_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceHybridConnection_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_hybrid_connection" "import" {
+  app_service_name      = azurerm_app_service_hybrid_connection.test.app_service_name
+  resource_group_name   = azurerm_app_service_hybrid_connection.test.resource_group_name
+  relay_id              = azurerm_app_service_hybrid_connection.test.relay_id
+  hostname              = azurerm_app_service_hybrid_connection.test.hostname
+  port                  = azurerm_app_service_hybrid_connection.test.port
+  service_bus_namespace = azurerm_app_service_hybrid_connection.test.service_bus_namespace
+  send_key_name         = azurerm_app_service_hybrid_connection.test.send_key_name
+  send_key_value        = azurerm_app_service_hybrid_connection.test.send_key_value
+}
+`, template)
 }

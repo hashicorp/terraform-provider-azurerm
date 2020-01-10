@@ -6,17 +6,18 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -27,6 +28,11 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 		Read:   resourceArmAppServiceHybridConnectionRead,
 		Update: resourceArmAppServiceHybridConnectionCreateUpdate,
 		Delete: resourceArmAppServiceHybridConnectionDelete,
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := ParseAppServiceHybridConnectionID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -43,7 +49,7 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 				ValidateFunc: validateAppServiceName,
 			},
 			"resource_group_name": azure.SchemaResourceGroupName(),
-			"relay_arm_uri": {
+			"relay_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: relay.ValidateHybridConnectionID,
@@ -102,10 +108,26 @@ func resourceArmAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, m
 
 	name := d.Get("app_service_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	relayArmURI := d.Get("relay_arm_uri").(string)
+	relayArmURI := d.Get("relay_id").(string)
 	relayId, err := relay.ParseHybridConnectionID(relayArmURI)
+	if err != nil {
+		return fmt.Errorf("Error parsing relay ID %q: %s", relayArmURI, err)
+	}
 	namespaceName := relayId.NamespaceName
 	relayName := relayId.Name
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.GetHybridConnection(ctx, resourceGroup, name, namespaceName, relayName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing App Service Hybrid Connection %q (Resource Group %q, Namespace %q, Relay Name %q): %s", name, resourceGroup, namespaceName, relayName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_app_service_hybrid_connection", *existing.ID)
+		}
+	}
 
 	port := int32(d.Get("port").(int))
 
@@ -163,12 +185,14 @@ func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta inte
 		d.Set("service_bus_namespace", resp.ServiceBusNamespace)
 		d.Set("send_key_name", resp.SendKeyName)
 		d.Set("service_bus_suffix", resp.ServiceBusSuffix)
-		d.Set("relay_arm_uri", resp.RelayArmURI)
+		d.Set("relay_id", resp.RelayArmURI)
 		d.Set("hostname", resp.Hostname)
 	}
 	// key values are not returned in the response, so we get the primary key from the Service Bus ListKeys func
 	serviceBusNSClient := meta.(*clients.Client).ServiceBus.NamespacesClient
-	serviceBusNSctx := meta.(*clients.Client).StopContext
+	serviceBusNSctx, serviceBusNSCancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer serviceBusNSCancel()
+
 	accessKeys, err := serviceBusNSClient.ListKeys(serviceBusNSctx, resourceGroup, *resp.ServiceBusNamespace, *resp.SendKeyName)
 	if err != nil {
 		log.Printf("[WARN] Unable to List default keys for Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
