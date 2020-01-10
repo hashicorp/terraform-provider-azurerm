@@ -2,7 +2,6 @@ package eventgrid
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -64,9 +63,7 @@ func dataSourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] EventGrid Topic '%s' was not found (resource group '%s')", name, resourceGroup)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: EventGrid Topic %s (Resource Group %s) was not found: %+v", name, resourceGroup, err)
 		}
 
 		return fmt.Errorf("Error making Read request on EventGrid Topic '%s': %+v", name, err)
