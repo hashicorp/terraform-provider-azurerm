@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -50,27 +49,28 @@ func resourceArmDiskEncryptionSet() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"key_vault_key_uri": {
+			"key_vault_key_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: azure.ValidateKeyVaultChildId,
 			},
 
 			"identity": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
+				Type: schema.TypeList,
+				// whilst the API Documentation shows optional - attempting to send nothing returns:
+				// `Required parameter 'ResourceIdentity' is missing (null)`
+				// hence this is required
+				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.SystemAssigned),
 							}, false),
-							Default: string(compute.SystemAssigned),
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -91,6 +91,7 @@ func resourceArmDiskEncryptionSet() *schema.Resource {
 
 func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
+	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -109,45 +110,37 @@ func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
+	keyVaultKeyId := d.Get("key_vault_key_id").(string)
+	keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, vaultClient, keyVaultKeyId)
+	if err != nil {
+		return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: %+v", err)
+	}
+	if !keyVaultDetails.softDeleteEnabled {
+		return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Soft Delete must be enabled but it isn't!", err)
+	}
+	if !keyVaultDetails.purgeProtectionEnabled {
+		return fmt.Errorf("Error validating Key Vault %q (Resource Group %q) for Disk Encryption Set: Purge Protection must be enabled but it isn't!", err)
+	}
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	//activeKey := d.Get("active_key").([]interface{})
+	identityRaw := d.Get("identity").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
-	keyURL := d.Get("key_vault_key_uri").(string)
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
-	keyID, err := azure.ParseKeyVaultChildID(keyURL)
-	if err != nil {
-		return fmt.Errorf("Error creating Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	keyVaultID, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyID.KeyVaultBaseUrl)
-	if err != nil {
-		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", keyID.KeyVaultBaseUrl, err)
-	}
-	if keyVaultID == nil {
-		return fmt.Errorf("Error creating Disk Encryption Set %q (Resource Group %q): Unable to determine the Resource ID for the Key Vault at URL %q", name, resourceGroup, keyID.KeyVaultBaseUrl)
-	}
-
-	diskEncryptionSet := compute.DiskEncryptionSet{
+	params := compute.DiskEncryptionSet{
 		Location: utils.String(location),
 		EncryptionSetProperties: &compute.EncryptionSetProperties{
 			ActiveKey: &compute.KeyVaultAndKeyReference{
-				KeyURL: &keyURL,
+				KeyURL: utils.String(keyVaultKeyId),
 				SourceVault: &compute.SourceVault{
-					ID: keyVaultID,
+					ID: utils.String(keyVaultDetails.keyVaultId),
 				},
 			},
 		},
-		Tags: tags.Expand(t),
+		Identity: expandArmDiskEncryptionSetIdentity(identityRaw),
+		Tags:     tags.Expand(t),
 	}
 
-	diskEncryptionSet.Identity = expandArmDiskEncryptionSetIdentity(d)
-
-	// validate whether the keyvault has soft-delete and purge-protection enabled
-	if err := validateKeyVault(ctx, meta.(*clients.Client).KeyVault.VaultsClient, resourceGroup, *keyVaultID); err != nil {
-		return fmt.Errorf("Error creating Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, diskEncryptionSet)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
 	if err != nil {
 		return fmt.Errorf("Error creating Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -165,32 +158,6 @@ func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta inter
 	d.SetId(*resp.ID)
 
 	return resourceArmDiskEncryptionSetRead(d, meta)
-}
-
-func validateKeyVault(ctx context.Context, client *keyvault.VaultsClient, resourceGroup string, keyVaultID string) error {
-	parsedId, err := azure.ParseAzureResourceID(keyVaultID)
-	if err != nil {
-		return fmt.Errorf("Error parsing ID for keyvault in Disk Encryption Set: %+v", err)
-	}
-	keyVaultName := parsedId.Path["vaults"]
-	log.Printf("[INFO] Keyvault name input in Disk Encryption Set: %s", keyVaultName)
-	resp, err := client.Get(ctx, resourceGroup, keyVaultName)
-	if err != nil {
-		return fmt.Errorf("Error reading keyvault %q (Resource Group %q): %+v", keyVaultName, resourceGroup, err)
-	}
-	if props := resp.Properties; props != nil {
-		if softDelete := props.EnableSoftDelete; softDelete != nil {
-			if !*softDelete {
-				return fmt.Errorf("the keyvault in Disk Encryption Set must enable soft delete")
-			}
-		}
-		if purgeProtection := props.EnablePurgeProtection; purgeProtection != nil {
-			if !*purgeProtection {
-				return fmt.Errorf("the keyvault in Disk Encryption Set must enable purge protection")
-			}
-		}
-	}
-	return nil
 }
 
 func resourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) error {
@@ -220,15 +187,17 @@ func resourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	if encryptionSetProperties := resp.EncryptionSetProperties; encryptionSetProperties != nil {
-		if err := d.Set("key_vault_key_uri", encryptionSetProperties.ActiveKey.KeyURL); err != nil {
-			return fmt.Errorf("Error setting `active_key`: %+v", err)
+
+	if props := resp.EncryptionSetProperties; props != nil {
+		keyVaultKeyId := ""
+		if props.ActiveKey != nil && props.ActiveKey.KeyURL != nil {
+			keyVaultKeyId = *props.ActiveKey.KeyURL
 		}
+		d.Set("key_vault_key_id", keyVaultKeyId)
 	}
-	if identity := resp.Identity; identity != nil {
-		if err := d.Set("identity", flattenArmDiskEncryptionSetIdentity(identity)); err != nil {
-			return fmt.Errorf("Error setting `identity`: %+v", err)
-		}
+
+	if err := d.Set("identity", flattenArmDiskEncryptionSetIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -258,16 +227,10 @@ func resourceArmDiskEncryptionSetDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func expandArmDiskEncryptionSetIdentity(d *schema.ResourceData) *compute.EncryptionSetIdentity {
-	if v, ok := d.GetOk("identity"); ok {
-		input := v.([]interface{})[0].(map[string]interface{})
-		t := input["type"].(string)
-		return &compute.EncryptionSetIdentity{
-			Type: compute.DiskEncryptionSetIdentityType(t),
-		}
-	}
+func expandArmDiskEncryptionSetIdentity(input []interface{}) *compute.EncryptionSetIdentity {
+	val := input[0].(map[string]interface{})
 	return &compute.EncryptionSetIdentity{
-		Type: compute.SystemAssigned,
+		Type: compute.DiskEncryptionSetIdentityType(val["type"].(string)),
 	}
 }
 
@@ -276,7 +239,7 @@ func flattenArmDiskEncryptionSetIdentity(input *compute.EncryptionSetIdentity) [
 		return make([]interface{}, 0)
 	}
 
-	t := string(input.Type)
+	identityType := string(input.Type)
 	principalId := ""
 	if input.PrincipalID != nil {
 		principalId = *input.PrincipalID
@@ -285,11 +248,63 @@ func flattenArmDiskEncryptionSetIdentity(input *compute.EncryptionSetIdentity) [
 	if input.TenantID != nil {
 		tenantId = *input.TenantID
 	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"type":         t,
+			"type":         identityType,
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
 		},
 	}
+}
+
+type diskEncryptionSetKeyVault struct {
+	keyVaultId             string
+	purgeProtectionEnabled bool
+	softDeleteEnabled      bool
+}
+
+func diskEncryptionSetRetrieveKeyVault(ctx context.Context, client *keyvault.VaultsClient, id string) (*diskEncryptionSetKeyVault, error) {
+	keyVaultKeyId, err := azure.ParseKeyVaultChildID(id)
+	if err != nil {
+		return nil, err
+	}
+	keyVaultID, err := azure.GetKeyVaultIDFromBaseUrl(ctx, client, keyVaultKeyId.KeyVaultBaseUrl)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
+	}
+	if keyVaultID == nil {
+		return nil, fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultKeyId.KeyVaultBaseUrl)
+	}
+
+	parsedKeyVaultID, err := azure.ParseAzureResourceID(*keyVaultID)
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing ID for keyvault in Disk Encryption Set: %+v", err)
+	}
+	resourceGroup := parsedKeyVaultID.ResourceGroup
+	vaultName := parsedKeyVaultID.Path["vaults"]
+
+	resp, err := client.Get(ctx, resourceGroup, vaultName)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving KeyVault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+	}
+
+	purgeProtectionEnabled := false
+	softDeleteEnabled := false
+
+	if props := resp.Properties; props != nil {
+		if props.EnableSoftDelete != nil {
+			softDeleteEnabled = *props.EnableSoftDelete
+		}
+
+		if props.EnablePurgeProtection != nil {
+			purgeProtectionEnabled = *props.EnablePurgeProtection
+		}
+	}
+
+	return &diskEncryptionSetKeyVault{
+		keyVaultId:             *keyVaultID,
+		purgeProtectionEnabled: purgeProtectionEnabled,
+		softDeleteEnabled:      softDeleteEnabled,
+	}, nil
 }

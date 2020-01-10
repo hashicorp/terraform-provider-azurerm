@@ -61,5 +61,5 @@ func dataSourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

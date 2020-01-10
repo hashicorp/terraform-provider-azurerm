@@ -11,8 +11,6 @@ description: |-
 
 Use this data source to access information about an existing Disk Encryption Set.
 
-
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -20,7 +18,6 @@ The following arguments are supported:
 * `name` - (Required) The name of the Disk Encryption Set exists.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Disk Encryption Set exists.
-
 
 ## Attributes Reference
 

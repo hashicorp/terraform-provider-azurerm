@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,7 +23,6 @@ func TestAccAzureRMDiskEncryptionSet_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				// This test step is temporary due to freezing of functions in keyVault.
 				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
 				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -31,6 +31,96 @@ func TestAccAzureRMDiskEncryptionSet_basic(t *testing.T) {
 			},
 			{
 				Config: testAccAzureRMDiskEncryptionSet_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMDiskEncryptionSet_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
+				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
+				Check: resource.ComposeTestCheckFunc(
+					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
+				),
+			},
+			{
+				Config: testAccAzureRMDiskEncryptionSet_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
+				),
+			},
+			data.RequiresImportErrorStep(testAccAzureRMDiskEncryptionSet_requiresImport),
+		},
+	})
+}
+
+func TestAccAzureRMDiskEncryptionSet_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
+				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
+				Check: resource.ComposeTestCheckFunc(
+					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
+				),
+			},
+			{
+				Config: testAccAzureRMDiskEncryptionSet_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMDiskEncryptionSet_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
+				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
+				Check: resource.ComposeTestCheckFunc(
+					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
+				),
+			},
+			{
+				Config: testAccAzureRMDiskEncryptionSet_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDiskEncryptionSet_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
 				),
@@ -89,10 +179,10 @@ func testCheckAzureRMDiskEncryptionSetDestroy(s *terraform.State) error {
 }
 
 func enableSoftDeleteAndPurgeProtectionForKeyVault(resourceName string) resource.TestCheckFunc {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -119,6 +209,10 @@ func enableSoftDeleteAndPurgeProtectionForKeyVault(resourceName string) resource
 }
 
 func testAccAzureRMDiskEncryptionSet_dependencies(data acceptance.TestData) string {
+	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
+	// TODO: switch back to default location
+	location := "northeurope"
+
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -168,7 +262,7 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, location, data.RandomString)
 }
 
 func testAccAzureRMDiskEncryptionSet_basic(data acceptance.TestData) string {
@@ -180,7 +274,51 @@ resource "azurerm_disk_encryption_set" "test" {
   name                = "acctestDES-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  key_vault_key_uri   = azurerm_key_vault_key.test.id
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMDiskEncryptionSet_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDiskEncryptionSet_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_disk_encryption_set" "import" {
+  name                = azurerm_disk_encryption_set.test.name
+  resource_group_name = azurerm_disk_encryption_set.test.resource_group_name
+  location            = azurerm_disk_encryption_set.test.location
+  key_vault_key_id    = azurerm_disk_encryption_set.test.key_vault_key_id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMDiskEncryptionSet_complete(data acceptance.TestData) string {
+	template := testAccAzureRMDiskEncryptionSet_dependencies(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                = "acctestDES-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    Hello = "woRld"
+  }
 }
 `, template, data.RandomInteger)
 }
