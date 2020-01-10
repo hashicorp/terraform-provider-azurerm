@@ -29,34 +29,12 @@ func dataSourceArmManagedDisk() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"zones": azure.SchemaZonesComputed(),
-
-			"storage_account_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"source_uri": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"source_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"os_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"disk_size_gb": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-
 			"create_option": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"disk_encryption_set_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -71,17 +49,39 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Computed: true,
 			},
 
+			"disk_size_gb": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"encryption_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"managed_disk_encryption_set_id": {
+			"os_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"source_resource_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"source_uri": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"storage_account_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"tags": tags.Schema(),
+
+			"zones": azure.SchemaZonesComputed(),
 		},
 	}
 }
@@ -117,15 +117,24 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 
 	if props := resp.DiskProperties; props != nil {
 		if creationData := props.CreationData; creationData != nil {
-			flattenAzureRmManagedDiskCreationData(d, creationData)
+			d.Set("create_option", string(creationData.CreateOption))
+
+			imageReferenceID := ""
+			if creationData.ImageReference != nil && creationData.ImageReference.ID != nil {
+				imageReferenceID = *creationData.ImageReference.ID
+			}
+			d.Set("image_reference_id", imageReferenceID)
+
+			d.Set("source_resource_id", creationData.SourceResourceID)
+			d.Set("source_uri", creationData.SourceURI)
 		}
 		d.Set("disk_size_gb", props.DiskSizeGB)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 		d.Set("os_type", props.OsType)
 		if encryption := props.Encryption; encryption != nil {
+			d.Set("disk_encryption_set_id", encryption.DiskEncryptionSetID)
 			d.Set("encryption_type", string(encryption.Type))
-			d.Set("managed_disk_encryption_set_id", encryption.DiskEncryptionSetID)
 		}
 	}
 
