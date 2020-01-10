@@ -81,6 +81,18 @@ func dataSourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface
 		d.Set("sql_license_type", string(properties.SQLServerLicenseType))
 		d.Set("virtual_machine_resource_id", properties.VirtualMachineResourceID)
 	}
+	if v := flattenArmSqlVirtualMachineAutoPatching(d); v != nil {
+		d.Set("auto_patching", v)
+	}
+	if v := flattenArmSqlVirtualMachineKeyVaultCredential(d); v != nil {
+		d.Set("key_vault_credential", v)
+	}
+	if v := flattenArmSqlVirtualMachineServerConfigurationsManagement(d); v != nil {
+		d.Set("server_configuration", v)
+	}
+	if v := flattenArmSqlVirtualMachineStorageConfiguration(d); v != nil {
+		d.Set("storage_configuration", v)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

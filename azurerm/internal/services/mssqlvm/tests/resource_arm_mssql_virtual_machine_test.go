@@ -96,25 +96,30 @@ func TestAccAzureRMMsSqlVirtualMachine_update(t *testing.T) {
 					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
+			//{
+			//	ResourceName:            data.ResourceName,
+			//	ImportState:             true,
+			//	ImportStateVerify:       true,
+			//	ImportStateVerifyIgnore: []string{"auto_patching.#","key_vault_credential.#","server_configuration.#"},
+			//},
 			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"auto_patching.#","key_vault_credential.#","server_configuration.#"},
-			},
-			{
-				Config: testAccAzureRMMsSqlVirtualMachine_update(data),
+				Config: testAccAzureRMMsSqlVirtualMachine_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sql_license_type", "PAYG"),
 				),
 			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"auto_patching.#","key_vault_credential.#","server_configuration.#"},
-			},
+			data.ImportStep(),
+			//{
+			//	ResourceName:            data.ResourceName,
+			//	ImportState:             true,
+			//	ImportStateVerify:       true,
+			//	ImportStateVerifyIgnore: []string{"auto_patching.#","auto_patching.0.day_of_week","auto_patching.0.enable","auto_patching.0.maintenance_window_duration_in_minutes","auto_patching.0.maintenance_window_starting_hour",
+			//		"key_vault_credential.#","key_vault_credential.0.azure_key_vault_url","key_vault_credential.0.credential_name","key_vault_credential.0.enable","key_vault_credential.0.service_principal_name","key_vault_credential.0.service_principal_secret",
+			//		"server_configuration.#","server_configuration.0.is_r_services_enabled","server_configuration.0.sql_connectivity_port","server_configuration.0.sql_connectivity_type","server_configuration.0.sql_connectivity_update_password","server_configuration.0.sql_connectivity_update_user_name"},
+			//
+			//},
 		},
 	})
 }
@@ -134,12 +139,15 @@ func TestAccAzureRMMsSqlVirtualMachine_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "sql_license_type", "PAYG"),
 				),
 			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"auto_patching.#","key_vault_credential.#","server_configuration.#"},
-			},
+			data.ImportStep(),
+			//{
+			//	ResourceName:            data.ResourceName,
+			//	ImportState:             true,
+			//	ImportStateVerify:       true,
+			//	ImportStateVerifyIgnore: []string{"auto_patching.#","auto_patching.0.day_of_week","auto_patching.0.enable","auto_patching.0.maintenance_window_duration_in_minutes","auto_patching.0.maintenance_window_starting_hour",
+			//	                                  "key_vault_credential.#","key_vault_credential.0.azure_key_vault_url","key_vault_credential.0.credential_name","key_vault_credential.0.enable","key_vault_credential.0.service_principal_name","key_vault_credential.0.service_principal_secret",
+			//	                                  "server_configuration.#","server_configuration.0.is_r_services_enabled","server_configuration.0.sql_connectivity_port","server_configuration.0.sql_connectivity_type","server_configuration.0.sql_connectivity_update_password","server_configuration.0.sql_connectivity_update_user_name"},
+			//},
 		},
 	})
 }
@@ -159,12 +167,14 @@ func TestAccAzureRMMsSqlVirtualMachine_withStorage(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "sql_license_type", "PAYG"),
 				),
 			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"storage_configuration.#"},
-			},
+			data.ImportStep(),
+			//{
+			//	ResourceName:            data.ResourceName,
+			//	ImportState:             true,
+			//	ImportStateVerify:       true,
+			//	ImportStateVerifyIgnore: []string{"storage_configuration.#","storage_configuration.0.sql_data_default_file_path","storage_configuration.0.sql_data_luns.#","storage_configuration.0.sql_data_luns.798281000",
+			//		"storage_configuration.0.sql_log_default_file_path","storage_configuration.0.sql_temp_db_default_file_path","storage_configuration.0.storage_workload_type"},
+			//},
 		},
 	})
 }
@@ -311,36 +321,6 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type     = "PAYG"
 }
 `, vmconfig)
-}
-
-func testAccAzureRMMsSqlVirtualMachine_update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_mssql_virtual_machine" "test" {
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  virtual_machine_resource_id = azurerm_virtual_machine.test.id
-  sql_license_type     = "PAYG"
-  sql_sku               = "Developer"
-
-  auto_patching {
-    day_of_week                      = "Sunday"
-    enable                           = true
-    maintenance_window_duration_in_minutes      = 60
-    maintenance_window_starting_hour = 2
-  }
-
-  key_vault_credential {
-    enable = false
-  }
-  server_configuration {
-    is_r_services_enabled                  = false
-    sql_connectivity_type                  = "PRIVATE"
-    sql_connectivity_port                  = 1433
-    sql_connectivity_update_password  = "<password>"
-    sql_connectivity_update_user_name = "sqllogin"
-  }
-}
-`)
 }
 
 func testAccAzureRMMsSqlVirtualMachine_complete(data acceptance.TestData) string {

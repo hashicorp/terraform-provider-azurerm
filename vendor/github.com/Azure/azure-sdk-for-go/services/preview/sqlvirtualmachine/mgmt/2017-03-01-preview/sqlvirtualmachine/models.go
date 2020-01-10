@@ -231,13 +231,15 @@ type SQLServerLicenseType string
 const (
 	// AHUB ...
 	AHUB SQLServerLicenseType = "AHUB"
+	// DR ...
+	DR SQLServerLicenseType = "DR"
 	// PAYG ...
 	PAYG SQLServerLicenseType = "PAYG"
 )
 
 // PossibleSQLServerLicenseTypeValues returns an array of possible values for the SQLServerLicenseType const type.
 func PossibleSQLServerLicenseTypeValues() []SQLServerLicenseType {
-	return []SQLServerLicenseType{AHUB, PAYG}
+	return []SQLServerLicenseType{AHUB, DR, PAYG}
 }
 
 // SQLVMGroupImageSku enumerates the values for sqlvm group image sku.
@@ -1347,7 +1349,7 @@ type Properties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// SQLImageOffer - SQL image offer. Examples include SQL2016-WS2016, SQL2017-WS2016.
 	SQLImageOffer *string `json:"sqlImageOffer,omitempty"`
-	// SQLServerLicenseType - SQL Server license type. Possible values include: 'PAYG', 'AHUB'
+	// SQLServerLicenseType - SQL Server license type. Possible values include: 'PAYG', 'AHUB', 'DR'
 	SQLServerLicenseType SQLServerLicenseType `json:"sqlServerLicenseType,omitempty"`
 	// SQLManagement - SQL Server Management type. Possible values include: 'Full', 'LightWeight', 'NoAgent'
 	SQLManagement SQLManagementMode `json:"sqlManagement,omitempty"`
