@@ -36,17 +36,17 @@ func TestParseRelayNamespaceID(t *testing.T) {
 			Expected: nil,
 		},
 		{
+			Name:     "Wrong Casing",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/Namespaces/mynamespace",
+			Expected: nil,
+		},
+		{
 			Name:  "Relay Namespace Resource ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/namespaces/mynamespace",
 			Expected: &NamespaceResourceID{
 				ResourceGroup: "mygroup1",
 				Name:          "mynamespace",
 			},
-		},
-		{
-			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/Namespaces/mynamespace",
-			Expected: nil,
 		},
 	}
 	for _, v := range testData {
@@ -67,6 +67,56 @@ func TestParseRelayNamespaceID(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+	}
+}
+
+func TestValidateNamespaceID(t *testing.T) {
+	cases := []struct {
+		ID    string
+		Valid bool
+	}{
+		{
+			ID:    "",
+			Valid: false,
+		},
+		{
+			ID:    "nonsense",
+			Valid: false,
+		},
+		{
+			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000",
+			Valid: false,
+		},
+		{
+			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups",
+			Valid: false,
+		},
+		{
+			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
+			Valid: false,
+		},
+		{
+			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Relay/namespaces",
+			Valid: false,
+		},
+		{
+			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Relay/Namespaces/relay1",
+			Valid: false,
+		},
+		{
+			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Relay/namespaces/relay1",
+			Valid: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing value %s", tc.ID)
+		_, errors := ValidateNamespaceID(tc.ID, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t", tc.Valid, valid)
 		}
 	}
 }
