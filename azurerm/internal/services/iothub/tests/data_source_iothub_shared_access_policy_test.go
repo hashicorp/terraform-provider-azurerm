@@ -36,7 +36,7 @@ func testAccDataSourceAzureRMIotHubSharedAccessPolicy_basic(data acceptance.Test
 %s
 
 data "azurerm_iothub_shared_access_policy" "test" {
-  name                = "acctest"
+  name                = "${azurerm_iothub_shared_access_policy.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
 }
