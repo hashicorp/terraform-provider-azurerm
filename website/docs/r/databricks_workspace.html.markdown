@@ -46,7 +46,21 @@ The following arguments are supported:
 
 ~> **NOTE** Azure requires that this Resource Group does not exist in this Subscription (and that the Azure API creates it) - otherwise the deployment will fail.
 
+* `workspace_custom_parameters` - (Optional) A `workspace_custom_parameters` block as documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+`workspace_custom_parameters` supports the following:
+
+* `public_subnet_name` - (Optional) The name of the Public Subnet within the Virtual Network. Required if `virtual_network_id` is set.
+
+* `private_subnet_name` - (Optional) The name of the Private Subnet within the Virtual Network. Required if `virtual_network_id` is set.
+
+* `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created.
+
+~> **NOTE** Databricks requires that a network security group is associated with public and private subnets when `virtual_network_id` is set.
 
 ## Attributes Reference
 
