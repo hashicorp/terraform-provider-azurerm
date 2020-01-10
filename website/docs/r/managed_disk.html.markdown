@@ -103,20 +103,17 @@ The following arguments are supported:
 * `os_type` - (Optional) Specify a value when the source of an `Import` or `Copy`
     operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`
 
-* `disk_size_gb` - (Optional, Required for a new managed disk) Specifies the size of the managed disk to create in gigabytes.
-    If `create_option` is `Copy` or `FromImage`, then the value must be equal to or greater than the source's size.
+* `disk_encryption_set_id` - (Optional) The ID of a Disk Encryption Set which should be used to encrypt this Managed Disk.
+
+~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
 * `disk_iops_read_write` - (Optional) The number of IOPS allowed for this disk; only settable for UltraSSD disks. One operation can transfer between 4k and 256k bytes.
 
 * `disk_mbps_read_write` - (Optional) The bandwidth allowed for this disk; only settable for UltraSSD disks. MBps means millions of bytes per second.
 
-* `encryption_settings` - (Optional) an `encryption_settings` block as defined below.
+* `disk_size_gb` - (Optional, Required for a new managed disk) Specifies the size of the managed disk to create in gigabytes. If `create_option` is `Copy` or `FromImage`, then the value must be equal to or greater than the source's size.
 
-* `encryption_type` - (Optional) The type of key used to encrypt the data of the disk. Valid values are `EncryptionAtRestWithPlatformKey` or `EncryptionAtRestWithCustomerKey`. Default value is `EncryptionAtRestWithPlatformKey`. When set to `EncryptionAtRestWithPlatformKey`, the disk is encrypted with XStore managed key at rest. When set to `EncryptionAtRestWithCustomerKey`, the disk is encrypted with Customer managed key at rest, and the `managed_disk_encryption_set_id` must be set to a valid `azurerm_disk_encryption_set` ID.
-
-* `managed_disk_encryption_set_id` - (Optional) ID of the disk encryption set to use for enabling encryption at rest.
-
--> **NOTE** To associate a custom Disk Encryption Set to a managed disk, you must grant access of the KeyVault for the Disk Encryption Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption).
+* `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -124,29 +121,33 @@ The following arguments are supported:
 
 -> **Note**: Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
-For more information on managed disks, such as sizing options and pricing, please check out the
-[azure documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).
+For more information on managed disks, such as sizing options and pricing, please check out the [Azure Documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).
 
 ---
 
-`encryption_settings` supports:
-
-* `enabled` - (Required) Is Encryption enabled on this Managed Disk? Changing this forces a new resource to be created.
-* `disk_encryption_key` - (Optional) A `disk_encryption_key` block as defined below.
-* `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
-
-`disk_encryption_key` supports:
+The `disk_encryption_key` block supports:
 
 * `secret_url` - (Required) The URL to the Key Vault Secret used as the Disk Encryption Key. This can be found as `id` on the `azurerm_key_vault_secret` resource.
 
 * `source_vault_id` - (Required) The URL of the Key Vault. This can be found as `vault_uri` on the `azurerm_key_vault` resource.
 
-`key_encryption_key` supports:
+---
+
+The `encryption_settings` supports:
+
+* `enabled` - (Required) Is Encryption enabled on this Managed Disk? Changing this forces a new resource to be created.
+
+* `disk_encryption_key` - (Optional) A `disk_encryption_key` block as defined above.
+
+* `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
+
+---
+
+The `key_encryption_key` block supports:
 
 * `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key. This can be found as `id` on the `azurerm_key_vault_key` resource.
 
 * `source_vault_id` - (Required) The URL of the Key Vault. This can be found as `vault_uri` on the `azurerm_key_vault` resource.
-
 
 ## Attributes Reference
 

@@ -59,6 +59,7 @@ func resourceArmManagedDisk() *schema.Resource {
 					string(compute.PremiumLRS),
 					string(compute.StandardSSDLRS),
 					string(compute.UltraSSDLRS),
+					// TODO: make this case-sensitive in 2.0
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -73,6 +74,7 @@ func resourceArmManagedDisk() *schema.Resource {
 					string(compute.FromImage),
 					string(compute.Import),
 					string(compute.Restore),
+					// TODO: make this case-sensitive in 2.0
 				}, true),
 			},
 
@@ -123,36 +125,17 @@ func resourceArmManagedDisk() *schema.Resource {
 				Computed: true,
 			},
 
-			"encryption_settings": encryptionSettingsSchema(),
-
-			"encryption_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.EncryptionAtRestWithPlatformKey),
-					string(compute.EncryptionAtRestWithCustomerKey),
-				}, false),
-				Default: string(compute.EncryptionAtRestWithPlatformKey),
-			},
-
-			"managed_disk_encryption_set_id": {
+			"disk_encryption_set_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"encryption_settings": encryptionSettingsSchema(),
+
 			"tags": tags.Schema(),
 		},
 	}
-}
-
-func validateDiskSizeGB(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(int)
-	if value < 0 || value > 32767 {
-		errors = append(errors, fmt.Errorf(
-			"The `disk_size_gb` can only be between 0 and 32767"))
-	}
-	return warnings, errors
 }
 
 func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -179,41 +162,47 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	createOption := compute.DiskCreateOption(d.Get("create_option").(string))
 	storageAccountType := d.Get("storage_account_type").(string)
 	osType := d.Get("os_type").(string)
 	t := d.Get("tags").(map[string]interface{})
-	expandedTags := tags.Expand(t)
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
-	createDisk := compute.Disk{
-		Name:     &name,
-		Location: &location,
-		DiskProperties: &compute.DiskProperties{
-			OsType: compute.OperatingSystemTypes(osType),
+	// TODO: simplify this to a cast in 2.0 once this becomes case-insensitive
+	var skuName compute.DiskStorageAccountTypes
+	for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
+		if strings.EqualFold(storageAccountType, string(v)) {
+			skuName = v
+		}
+	}
+
+	props := &compute.DiskProperties{
+		CreationData: &compute.CreationData{
+			CreateOption: createOption,
 		},
-		Sku: &compute.DiskSku{
-			Name: compute.DiskStorageAccountTypes(storageAccountType),
+		OsType: compute.OperatingSystemTypes(osType),
+		Encryption: &compute.Encryption{
+			Type: compute.EncryptionAtRestWithPlatformKey,
 		},
-		Tags:  expandedTags,
-		Zones: zones,
 	}
 
 	if v := d.Get("disk_size_gb"); v != 0 {
 		diskSize := int32(v.(int))
-		createDisk.DiskProperties.DiskSizeGB = &diskSize
+		props.DiskSizeGB = &diskSize
 	}
 
+	// TODO: make this case-sensitive in 2.0
 	if strings.EqualFold(storageAccountType, string(compute.UltraSSDLRS)) {
 		if d.HasChange("disk_iops_read_write") {
 			v := d.Get("disk_iops_read_write")
 			diskIOPS := int64(v.(int))
-			createDisk.DiskProperties.DiskIOPSReadWrite = &diskIOPS
+			props.DiskIOPSReadWrite = &diskIOPS
 		}
 
 		if d.HasChange("disk_mbps_read_write") {
 			v := d.Get("disk_mbps_read_write")
 			diskMBps := int32(v.(int))
-			createDisk.DiskProperties.DiskMBpsReadWrite = &diskMBps
+			props.DiskMBpsReadWrite = &diskMBps
 		}
 	} else {
 		if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
@@ -221,73 +210,72 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	createOption := d.Get("create_option").(string)
-	createDisk.CreationData = &compute.CreationData{
-		CreateOption: compute.DiskCreateOption(createOption),
-	}
+	if createOption == compute.Import {
+		sourceUri := d.Get("source_uri").(string)
+		if sourceUri == "" {
+			return fmt.Errorf("`source_uri` must be specified when `create_option` is set to `Import`")
+		}
 
-	if strings.EqualFold(createOption, string(compute.Import)) {
-		if sourceUri := d.Get("source_uri").(string); sourceUri != "" {
-			createDisk.CreationData.SourceURI = &sourceUri
-		} else {
-			return fmt.Errorf("[ERROR] source_uri must be specified when create_option is `%s`", compute.Import)
+		props.CreationData.SourceURI = utils.String(sourceUri)
+	}
+	if createOption == compute.Copy || createOption == compute.Restore {
+		sourceResourceId := d.Get("source_resource_id").(string)
+		if sourceResourceId == "" {
+			return fmt.Errorf("`source_resource_id` must be specified when `create_option` is set to `Copy` or `Restore`")
 		}
-	} else if strings.EqualFold(createOption, string(compute.Copy)) || strings.EqualFold(createOption, string(compute.Restore)) {
-		if sourceResourceId := d.Get("source_resource_id").(string); sourceResourceId != "" {
-			createDisk.CreationData.SourceResourceID = &sourceResourceId
-		} else {
-			return fmt.Errorf("[ERROR] source_resource_id must be specified when create_option is `%s`", compute.Copy)
+
+		props.CreationData.SourceResourceID = utils.String(sourceResourceId)
+	}
+	if createOption == compute.FromImage {
+		imageReferenceId := d.Get("image_reference_id").(string)
+		if imageReferenceId == "" {
+			return fmt.Errorf("`image_reference_id` must be specified when `create_option` is set to `Import`")
 		}
-	} else if strings.EqualFold(createOption, string(compute.FromImage)) {
-		if imageReferenceId := d.Get("image_reference_id").(string); imageReferenceId != "" {
-			createDisk.CreationData.ImageReference = &compute.ImageDiskReference{
-				ID: utils.String(imageReferenceId),
-			}
-		} else {
-			return fmt.Errorf("[ERROR] image_reference_id must be specified when create_option is `%s`", compute.FromImage)
+
+		props.CreationData.ImageReference = &compute.ImageDiskReference{
+			ID: utils.String(imageReferenceId),
 		}
 	}
 
 	if v, ok := d.GetOk("encryption_settings"); ok {
 		encryptionSettings := v.([]interface{})
 		settings := encryptionSettings[0].(map[string]interface{})
-		createDisk.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
+		props.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
 	}
 
-	encryption := compute.Encryption{}
-
-	if v, ok := d.GetOk("encryption_type"); ok {
-		encryption.Type = compute.EncryptionType(v.(string))
-		if strings.EqualFold(v.(string), string(compute.EncryptionAtRestWithPlatformKey)) {
-			if _, ok := d.GetOk("managed_disk_encryption_set_id"); ok {
-				return fmt.Errorf("[Error] `managed_disk_encryption_set_id` should not be set when `encryption_type` is `%s`", compute.EncryptionAtRestWithPlatformKey)
-			}
-		} else if strings.EqualFold(v.(string), string(compute.EncryptionAtRestWithCustomerKey)) {
-			if v, ok := d.GetOk("managed_disk_encryption_set_id"); ok {
-				encryption.DiskEncryptionSetID = utils.String(v.(string))
-			} else {
-				return fmt.Errorf("[Error] `managed_disk_encryption_set_id` must be set when `encryption_type` is `%s`", compute.EncryptionAtRestWithCustomerKey)
-			}
+	if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+		props.Encryption = &compute.Encryption{
+			Type:                compute.EncryptionAtRestWithCustomerKey,
+			DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 		}
 	}
 
-	createDisk.Encryption = &encryption
+	createDisk := compute.Disk{
+		Name:           &name,
+		Location:       &location,
+		DiskProperties: props,
+		Sku: &compute.DiskSku{
+			Name: skuName,
+		},
+		Tags:  tags.Expand(t),
+		Zones: zones,
+	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, createDisk)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating Managed Disk %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return err
+		return fmt.Errorf("Error waiting for create/update of Managed Disk %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Managed Disk %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("[ERROR] Cannot read Managed Disk %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Error reading Managed Disk %s (Resource Group %q): ID was nil", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -331,16 +319,25 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 
 	if props := resp.DiskProperties; props != nil {
 		if creationData := props.CreationData; creationData != nil {
-			flattenAzureRmManagedDiskCreationData(d, creationData)
+			d.Set("create_option", string(creationData.CreateOption))
+
+			imageReferenceID := ""
+			if creationData.ImageReference != nil && creationData.ImageReference.ID != nil {
+				imageReferenceID = *creationData.ImageReference.ID
+			}
+			d.Set("image_reference_id", imageReferenceID)
+
+			d.Set("source_resource_id", creationData.SourceResourceID)
+			d.Set("source_uri", creationData.SourceURI)
 		}
+
 		d.Set("disk_size_gb", props.DiskSizeGB)
-		d.Set("os_type", props.OsType)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
+		d.Set("os_type", props.OsType)
 
 		if encryption := props.Encryption; encryption != nil {
-			d.Set("encryption_type", string(encryption.Type))
-			d.Set("managed_disk_encryption_set_id", encryption.DiskEncryptionSetID)
+			d.Set("disk_encryption_set_id", encryption.DiskEncryptionSetID)
 		}
 
 		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
@@ -366,24 +363,15 @@ func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) erro
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return err
+			return fmt.Errorf("Error deleting Managed Disk %q (Resource Group %q): %+v", name, resGroup, err)
 		}
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return err
+			return fmt.Errorf("Error waiting for deletion of Managed Disk %q (Resource Group %q): %+v", name, resGroup, err)
 		}
 	}
 
 	return nil
-}
-
-func flattenAzureRmManagedDiskCreationData(d *schema.ResourceData, creationData *compute.CreationData) {
-	d.Set("create_option", string(creationData.CreateOption))
-	d.Set("source_resource_id", creationData.SourceResourceID)
-	d.Set("source_uri", creationData.SourceURI)
-	if ref := creationData.ImageReference; ref != nil {
-		d.Set("image_reference_id", ref.ID)
-	}
 }

@@ -54,11 +54,6 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Computed: true,
 			},
 
-			"encryption_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"os_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -134,7 +129,6 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("os_type", props.OsType)
 		if encryption := props.Encryption; encryption != nil {
 			d.Set("disk_encryption_set_id", encryption.DiskEncryptionSetID)
-			d.Set("encryption_type", string(encryption.Type))
 		}
 	}
 
