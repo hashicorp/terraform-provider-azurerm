@@ -2,18 +2,23 @@
 
 FEATURES:
 
-* **New Data Source:** `azurerm_iothub_dps` [GH-5336]
 * **New Data Source:** `azurerm_dedicated_host_group` [GH-5307]
+* **New Data Source:** `azurerm_disk_encryption_set` [GH-5249]
+* **New Data Source:** `azurerm_iothub_dps` [GH-5336]
 * **New Resource:** `azurerm_api_management_identity_provider_facebook` [GH-5346]
 * **New Resource:** `azurerm_api_management_identity_provider_twitter` [GH-5306]
 * **New Resource:** `azurerm_cosmosdb_gremlin_graph` [GH-5301]
 * **New Resource:** `azurerm_dedicated_host_group` [GH-5307]
+* **New Resource:** `azurerm_disk_encryption_set` [GH-5249]
 
 IMPROVEMENTS:
 
-* `azurerm_api_management_operation` - will no longer panic on missing values in `request` [GH-5318]
 * `azurerm_batch_pool` - support for the `metadata` property [GH-5309]
-* `azurerm_function_app` - convert `connection_string`s from a `TypList` to a `TypeSet` [GH-5319]
+* `azurerm_function_app` - convert `connection_string`s from a `TypeList` to a `TypeSet` [GH-5319]
+
+BUG FIXES:
+
+* `azurerm_api_management_operation` - will no longer panic on missing values in `request` [GH-5318]
 * `azurerm_storage_account` - fix performance issue for accounts that don't support queues [GH-5316]
 
 ## 1.40.0 (January 08, 2020)
