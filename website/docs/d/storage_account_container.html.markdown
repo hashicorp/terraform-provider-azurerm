@@ -22,11 +22,11 @@ resource "azurerm_storage_container" "test" {
   metadata = {
     key1 = "value1"
     key2 = "value2"
-   }
+  }
 }
 
 data "azurerm_storage_container" "example" {
-	storage_container_id = "${azurerm_storage_container.test.id}"
+  storage_container_id = "${azurerm_storage_container.test.id}"
 }
 ```
 
