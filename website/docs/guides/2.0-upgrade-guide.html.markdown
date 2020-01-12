@@ -339,6 +339,10 @@ This resource has been renamed to `azurerm_log_analytics_linked_service` which i
 
 The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
 
+### Resource: `azurerm_mysql_server`
+
+The deprecated `sku` block has been simplified and replaced by the `sku_name` block and will be removed.
+
 ### Resource: `azurerm_mssql_elasticpool`
 
 The deprecated `elastic_pool_properties` block will be removed. The fields inside this block have been moved to the top-level.

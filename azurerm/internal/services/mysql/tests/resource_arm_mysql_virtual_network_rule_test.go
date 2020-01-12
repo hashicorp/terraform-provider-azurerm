@@ -257,12 +257,7 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -332,12 +327,7 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -394,12 +384,7 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -471,12 +456,7 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
