@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -92,8 +93,6 @@ func (td *TestData) RandomIntOfLength(len int) int {
 		panic(fmt.Sprintf("Invalid Test: RandomIntOfLength: len is not between 8 or 18 inclusive"))
 	}
 
-	r := td.RandomInteger % 100
-
 	// 18 - just return the int
 	if len >= 18 {
 		return td.RandomInteger
@@ -104,9 +103,11 @@ func (td *TestData) RandomIntOfLength(len int) int {
 		return td.RandomInteger / int(math.Pow10(18-len))
 	}
 
-	// 8-15 remove the last x digits
-	a := td.RandomInteger / int(math.Pow10(18-len+2))
-
-	// multiply by 100 and add last two digits of randomness back in
-	return (a * 100) + r
+	// 8-15 remove the last len +2 digits and add 2 characters of randomness on
+	s := strconv.Itoa(td.RandomInteger)
+	r := s[16:18]
+	v := s[0 : len-2]
+	i, _ := strconv.Atoi(v + r)
+	
+	return i
 }
