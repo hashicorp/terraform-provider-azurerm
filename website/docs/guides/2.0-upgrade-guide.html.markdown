@@ -231,6 +231,10 @@ The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provi
 
 A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
 
+### Resource: `azurerm_cognitive_account`
+
+The deprecated `sku` block has been simplified and replaced by the `sku_name` property and will be removed.
+
 ### Resource: `azurerm_connection_monitor`
 
 The `azurerm_connection_monitor` resource will be deprecated in favour of a new resources `azurerm_network_connection_monitor`.
