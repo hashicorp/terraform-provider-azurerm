@@ -5,6 +5,7 @@ FEATURES:
 * **New Data Source:** `azurerm_dedicated_host_group` [GH-5307]
 * **New Data Source:** `azurerm_disk_encryption_set` [GH-5249]
 * **New Data Source:** `azurerm_iothub_dps` [GH-5336]
+* **New data source:** `azurerm_iothub_shared_access_policy` [GH-5368]
 * **New Resource:** `azurerm_api_management_identity_provider_facebook` [GH-5346]
 * **New Resource:** `azurerm_api_management_identity_provider_twitter` [GH-5306]
 * **New Resource:** `azurerm_cosmosdb_gremlin_graph` [GH-5301]
