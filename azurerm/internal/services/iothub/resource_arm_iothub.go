@@ -94,12 +94,14 @@ func resourceArmIotHub() *schema.Resource {
 								string(devices.S1),
 								string(devices.S2),
 								string(devices.S3),
-							}, true),
+							}, true), // todo 2.0 make this case sensitive (all constants?)
 						},
 
 						"tier": {
 							Type:             schema.TypeString,
-							Required:         true,
+							Optional:         true,
+							Computed:         true,
+							Deprecated:       "This property is no longer required and will be removed in version 2.0 of the provider",
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.Basic),
@@ -469,8 +471,6 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	skuInfo := expandIoTHubSku(d)
-	t := d.Get("tags").(map[string]interface{})
 
 	routingProperties := devices.RoutingProperties{}
 
@@ -500,7 +500,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	properties := devices.IotHubDescription{
 		Name:     utils.String(name),
 		Location: utils.String(location),
-		Sku:      skuInfo,
+		Sku:      expandIoTHubSku(d),
 		Properties: &devices.IotHubProperties{
 			IPFilterRules:                 ipFilterRules,
 			Routing:                       &routingProperties,
@@ -508,7 +508,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			MessagingEndpoints:            messagingEndpoints,
 			EnableFileUploadNotifications: &enableFileUploadNotifications,
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, "")
@@ -847,15 +847,10 @@ func expandIoTHubFallbackRoute(d *schema.ResourceData) *devices.FallbackRoutePro
 func expandIoTHubSku(d *schema.ResourceData) *devices.IotHubSkuInfo {
 	skuList := d.Get("sku").([]interface{})
 	skuMap := skuList[0].(map[string]interface{})
-	capacity := int64(skuMap["capacity"].(int))
-
-	name := skuMap["name"].(string)
-	tier := skuMap["tier"].(string)
 
 	return &devices.IotHubSkuInfo{
-		Name:     devices.IotHubSku(name),
-		Tier:     devices.IotHubSkuTier(tier),
-		Capacity: utils.Int64(capacity),
+		Name:     devices.IotHubSku(skuMap["name"].(string)),
+		Capacity: utils.Int64(int64(skuMap["capacity"].(int))),
 	}
 }
 
