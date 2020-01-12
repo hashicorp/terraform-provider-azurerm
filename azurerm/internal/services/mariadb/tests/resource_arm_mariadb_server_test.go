@@ -359,7 +359,7 @@ resource "azurerm_mariadb_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen5_21"
+    name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
     family   = "Gen5"
