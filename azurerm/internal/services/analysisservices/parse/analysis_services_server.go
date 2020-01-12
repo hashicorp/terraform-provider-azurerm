@@ -31,4 +31,3 @@ func AnalysisServicesServerID(input string) (*AnalysisServicesServerId, error) {
 
 	return &server, nil
 }
-

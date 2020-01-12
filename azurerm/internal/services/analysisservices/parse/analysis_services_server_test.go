@@ -37,7 +37,7 @@ func TestAnalysisServicesServerId(t *testing.T) {
 		},
 		{
 			Name:  "Analysis Service Server ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Web/servers/Server1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Web/servers/Server1",
 			Expected: &AnalysisServicesServerId{
 				Name:          "Server1",
 				ResourceGroup: "resGroup1",
