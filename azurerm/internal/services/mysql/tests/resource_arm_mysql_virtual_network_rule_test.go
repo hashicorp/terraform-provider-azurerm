@@ -110,7 +110,7 @@ func TestAccAzureRMMySqlVirtualNetworkRule_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "rule1")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "rule1")
 
 	resourceName2 := "azurerm_mysql_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_mysql_virtual_network_rule.rule3"
