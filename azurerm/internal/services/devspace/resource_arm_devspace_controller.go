@@ -47,11 +47,25 @@ func resourceArmDevSpaceController() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"sku_name": {
+				Type:          schema.TypeString,
+				Optional:      true, // required in 2.0
+				Computed:      true, // remove in 2.0
+				ForceNew:      true,
+				ConflictsWith: []string{"sku"},
+				ValidateFunc: validation.StringInSlice([]string{
+					"S1",
+				}, false),
+			},
+
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				ConflictsWith: []string{"sku_name"},
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -112,13 +126,13 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 	log.Printf("[INFO] preparing arguments for DevSpace Controller creation")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing DevSpace Controller %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing DevSpace Controller %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -130,37 +144,72 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	sku := expandDevSpaceControllerSku(d)
-
-	tarCHResId := d.Get("target_container_host_resource_id").(string)
-	tarCHCredBase64 := d.Get("target_container_host_credentials_base64").(string)
+	var sku *devspaces.Sku
+	if b, ok := d.GetOk("sku_name"); ok {
+		var err error
+		sku, err = expandControllerSkuName(b.(string))
+		if err != nil {
+			return fmt.Errorf("error expanding sku_name for DevSpace Controller %s (Resource Group %q): %v", name, resourceGroup, err)
+		}
+	} else if _, ok := d.GetOk("sku"); ok {
+		sku = expandDevSpaceControllerSku(d)
+	} else {
+		return fmt.Errorf("One of `sku` or `sku_name` must be set for DevSpace Controller %q (Resource Group %q)", name, resourceGroup)
+	}
 
 	controller := devspaces.Controller{
 		Location: &location,
-		Tags:     tags.Expand(t),
 		Sku:      sku,
 		ControllerProperties: &devspaces.ControllerProperties{
-			TargetContainerHostResourceID:        &tarCHResId,
-			TargetContainerHostCredentialsBase64: &tarCHCredBase64,
+			TargetContainerHostResourceID:        utils.String(d.Get("target_container_host_resource_id").(string)),
+			TargetContainerHostCredentialsBase64: utils.String(d.Get("target_container_host_credentials_base64").(string)),
 		},
+		Tags: tags.Expand(t),
 	}
 
-	future, err := client.Create(ctx, resGroup, name, controller)
+	future, err := client.Create(ctx, resourceGroup, name, controller)
 	if err != nil {
-		return fmt.Errorf("Error creating DevSpace Controller %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error creating DevSpace Controller %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of DevSpace Controller %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for creation of DevSpace Controller %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	result, err := client.Get(ctx, resGroup, name)
+	result, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving DevSpace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error retrieving DevSpace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if result.ID == nil {
-		return fmt.Errorf("Cannot read DevSpace Controller %q (Resource Group %q) ID", name, resGroup)
+		return fmt.Errorf("Cannot read DevSpace Controller %q (Resource Group %q) ID", name, resourceGroup)
+	}
+	d.SetId(*result.ID)
+
+	return resourceArmDevSpaceControllerRead(d, meta)
+}
+
+func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).DevSpace.ControllersClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for DevSpace Controller updating")
+
+	name := d.Get("name").(string)
+	resGroupName := d.Get("resource_group_name").(string)
+
+	params := devspaces.ControllerUpdateParameters{
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	result, err := client.Update(ctx, resGroupName, name, params)
+	if err != nil {
+		return fmt.Errorf("Error updating DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+	}
+
+	if result.ID == nil {
+		return fmt.Errorf("Cannot read DevSpace Controller %q (Resource Group %q) ID", name, resGroupName)
 	}
 	d.SetId(*result.ID)
 
@@ -209,34 +258,6 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, result.Tags)
 }
 
-func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DevSpace.ControllersClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for DevSpace Controller updating")
-
-	name := d.Get("name").(string)
-	resGroupName := d.Get("resource_group_name").(string)
-	t := d.Get("tags").(map[string]interface{})
-
-	params := devspaces.ControllerUpdateParameters{
-		Tags: tags.Expand(t),
-	}
-
-	result, err := client.Update(ctx, resGroupName, name, params)
-	if err != nil {
-		return fmt.Errorf("Error updating DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
-	}
-
-	if result.ID == nil {
-		return fmt.Errorf("Cannot read DevSpace Controller %q (Resource Group %q) ID", name, resGroupName)
-	}
-	d.SetId(*result.ID)
-
-	return resourceArmDevSpaceControllerRead(d, meta)
-}
-
 func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevSpace.ControllersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -259,6 +280,21 @@ func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+func expandControllerSkuName(skuName string) (*devspaces.Sku, error) {
+	var tier devspaces.SkuTier
+	switch skuName[0:1] {
+	case "S":
+		tier = devspaces.Standard
+	default:
+		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, skuName[0:1])
+	}
+
+	return &devspaces.Sku{
+		Name: utils.String(skuName),
+		Tier: tier,
+	}, nil
 }
 
 func expandDevSpaceControllerSku(d *schema.ResourceData) *devspaces.Sku {
