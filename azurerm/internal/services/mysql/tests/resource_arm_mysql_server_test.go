@@ -396,7 +396,7 @@ func testAccAzureRMMySQLServer_requiresImport(data acceptance.TestData) string {
 resource "azurerm_mysql_server" "import" {
   name                = "${azurerm_mysql_server.test.name}"
   location            = "${azurerm_mysql_server.test.location}"
-  resource_group_name = "${azurerm_mysql_server.test.name}"
+  resource_group_name = "${azurerm_mysql_server.test.resource_group_name}"
 
   sku {
     name     = "GP_Gen5_2"
