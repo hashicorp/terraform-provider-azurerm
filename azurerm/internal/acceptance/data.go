@@ -103,11 +103,11 @@ func (td *TestData) RandomIntOfLength(len int) int {
 		return td.RandomInteger / int(math.Pow10(18-len))
 	}
 
-	// 8-15 remove the last len +2 digits and add 2 characters of randomness on
+	// 8-15 keep len - 2 digits and add 2 characters of randomness on
 	s := strconv.Itoa(td.RandomInteger)
 	r := s[16:18]
 	v := s[0 : len-2]
 	i, _ := strconv.Atoi(v + r)
-	
+
 	return i
 }
