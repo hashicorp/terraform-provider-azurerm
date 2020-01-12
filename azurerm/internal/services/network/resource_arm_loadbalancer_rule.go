@@ -109,6 +109,11 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				Default:  false,
 			},
 
+			"enable_tcp_reset": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"disable_outbound_snat": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -241,14 +246,9 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("frontend_port", properties.FrontendPort)
 		d.Set("backend_port", properties.BackendPort)
 		d.Set("disable_outbound_snat", properties.DisableOutboundSnat)
-
-		if properties.EnableFloatingIP != nil {
-			d.Set("enable_floating_ip", properties.EnableFloatingIP)
-		}
-
-		if properties.IdleTimeoutInMinutes != nil {
-			d.Set("idle_timeout_in_minutes", properties.IdleTimeoutInMinutes)
-		}
+		d.Set("enable_floating_ip", properties.EnableFloatingIP)
+		d.Set("enable_tcp_reset", properties.EnableTCPReset)
+		d.Set("idle_timeout_in_minutes", properties.IdleTimeoutInMinutes)
 
 		if properties.FrontendIPConfiguration != nil {
 			fipID, err := azure.ParseAzureResourceID(*properties.FrontendIPConfiguration.ID)
@@ -334,6 +334,7 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 		FrontendPort:        utils.Int32(int32(d.Get("frontend_port").(int))),
 		BackendPort:         utils.Int32(int32(d.Get("backend_port").(int))),
 		EnableFloatingIP:    utils.Bool(d.Get("enable_floating_ip").(bool)),
+		EnableTCPReset:      utils.Bool(d.Get("enable_tcp_reset").(bool)),
 		DisableOutboundSnat: utils.Bool(d.Get("disable_outbound_snat").(bool)),
 	}
 
