@@ -85,6 +85,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"sku_name"},
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
 				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
