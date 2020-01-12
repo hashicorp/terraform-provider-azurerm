@@ -365,6 +365,10 @@ This resource has been renamed to `azurerm_private_endpoint` which is available 
 
 The deprecated `network_interface_ids` field will be removed.
 
+### Resource: `azurerm_postgresql_server`
+
+The deprecated `sku` block has been simplified down to the `sku_name` block and will be removed.
+
 ### Resource: `azurerm_public_ip`
 
 The deprecated `public_ip_address_allocation` field will be removed. This field has been replaced by `allocation_method`.
