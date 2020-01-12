@@ -281,7 +281,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 		var err error
 		sku, err = expandServerSkuName(b.(string))
 		if err != nil {
-			fmt.Errorf("error expanding sku_name for PostgreSQL Server % (Resource Group %q): %v", name, resourceGroup, err)
+			return fmt.Errorf("error expanding sku_name for PostgreSQL Server %s (Resource Group %q): %v", name, resourceGroup, err)
 		}
 	} else if _, ok := d.GetOk("sku"); ok {
 		sku = expandAzureRmPostgreSQLServerSku(d)
@@ -341,7 +341,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 		var err error
 		sku, err = expandServerSkuName(b.(string))
 		if err != nil {
-			fmt.Errorf("error expanding sku_name for PostgreSQL Server % (Resource Group %q): %v", name, resourceGroup, err)
+			return fmt.Errorf("error expanding sku_name for PostgreSQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
 		}
 	} else if _, ok := d.GetOk("sku"); ok {
 		sku = expandAzureRmPostgreSQLServerSku(d)
@@ -466,7 +466,6 @@ func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{})
 }
 
 func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
-
 	parts := strings.Split(skuName, "_")
 	if len(parts) != 3 {
 		return nil, fmt.Errorf("sku_name (%s) has the worng numberof parts (%d) after splitting on _", skuName, len(parts))
@@ -481,7 +480,7 @@ func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
 	case "MO":
 		tier = postgresql.MemoryOptimized
 	default:
-
+		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
 	}
 
 	capacity, err := strconv.Atoi(parts[2])
