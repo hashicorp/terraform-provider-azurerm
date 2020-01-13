@@ -235,7 +235,7 @@ func TestAccAzureRMLoadBalancerRule_removal(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerRule_removal(data),
+				Config: testAccAzureRMLoadBalancerRule_template(data, "Basic"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerRuleNotExists(lbRuleName, &lb),
@@ -401,10 +401,10 @@ func testCheckAzureRMLoadBalancerRuleDisappears(ruleName string, lb *network.Loa
 	}
 }
 
-func testAccAzureRMLoadBalancerRule_basic(data acceptance.TestData, lbRuleName, sku string) string {
+func testAccAzureRMLoadBalancerRule_template(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-lb-%[1]d"
   location = "%[2]s"
 }
 
@@ -427,49 +427,32 @@ resource "azurerm_lb" "test" {
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 }
+`, data.RandomInteger, data.Locations.Primary, sku)
+}
+
+func testAccAzureRMLoadBalancerRule_basic(data acceptance.TestData, lbRuleName, sku string) string {
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_lb_rule" "test" {
   location                       = "${azurerm_resource_group.test.location}"
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "%[4]s"
+  name                           = "%s"
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  frontend_ip_configuration_name = "one-%[1]d"
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, data.RandomInteger, data.Locations.Primary, sku, lbRuleName)
+`, testAccAzureRMLoadBalancerRule_template(data, sku), lbRuleName)
 }
 
 func testAccAzureRMLoadBalancerRule_complete(data acceptance.TestData, lbRuleName string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-
-  frontend_ip_configuration {
-    name                 = "one-%[1]d"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
-  }
-}
+%s
 
 resource "azurerm_lb_rule" "test" {
-  name                = "%[3]s"
+  name                = "%s"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.test.id}"
@@ -483,9 +466,9 @@ resource "azurerm_lb_rule" "test" {
   enable_tcp_reset         = true
   idle_timeout_in_minutes  = 10
 
-  frontend_ip_configuration_name = "one-%[1]d"
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, data.RandomInteger, data.Locations.Primary, lbRuleName)
+`, testAccAzureRMLoadBalancerRule_template(data, "Standard"), lbRuleName)
 }
 
 func testAccAzureRMLoadBalancerRule_requiresImport(data acceptance.TestData, name string) string {
@@ -506,58 +489,10 @@ resource "azurerm_lb_rule" "import" {
 `, template)
 }
 
-func testAccAzureRMLoadBalancerRule_removal(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  allocation_method   = "Static"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  frontend_ip_configuration {
-    name                 = "one-%d"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
 // https://github.com/hashicorp/terraform/issues/9424
 func testAccAzureRMLoadBalancerRule_inconsistentRead(data acceptance.TestData, backendPoolName, probeName, lbRuleName string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  allocation_method   = "Static"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  frontend_ip_configuration {
-    name                 = "one-%d"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
-  }
-}
+%s
 
 resource "azurerm_lb_backend_address_pool" "teset" {
   name                = "%s"
@@ -583,35 +518,14 @@ resource "azurerm_lb_rule" "test" {
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  frontend_ip_configuration_name = "one-%d"
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, backendPoolName, probeName, lbRuleName, data.RandomInteger)
+`, testAccAzureRMLoadBalancerRule_template(data, "Basic"), backendPoolName, probeName, lbRuleName)
 }
 
 func testAccAzureRMLoadBalancerRule_multipleRules(data acceptance.TestData, lbRuleName, lbRule2Name string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  allocation_method   = "Static"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  frontend_ip_configuration {
-    name                 = "one-%d"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
-  }
-}
+%s
 
 resource "azurerm_lb_rule" "test" {
   location                       = "${azurerm_resource_group.test.location}"
@@ -621,7 +535,7 @@ resource "azurerm_lb_rule" "test" {
   protocol                       = "Udp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  frontend_ip_configuration_name = "one-%d"
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
 
 resource "azurerm_lb_rule" "test2" {
@@ -632,35 +546,14 @@ resource "azurerm_lb_rule" "test2" {
   protocol                       = "Udp"
   frontend_port                  = 3390
   backend_port                   = 3390
-  frontend_ip_configuration_name = "one-%d"
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, lbRuleName, data.RandomInteger, lbRule2Name, data.RandomInteger)
+`, testAccAzureRMLoadBalancerRule_template(data, "Basic"), lbRuleName, lbRule2Name)
 }
 
 func testAccAzureRMLoadBalancerRule_multipleRulesUpdate(data acceptance.TestData, lbRuleName, lbRule2Name string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  allocation_method   = "Static"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  frontend_ip_configuration {
-    name                 = "one-%d"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
-  }
-}
+%s
 
 resource "azurerm_lb_rule" "test" {
   location                       = "${azurerm_resource_group.test.location}"
@@ -670,7 +563,7 @@ resource "azurerm_lb_rule" "test" {
   protocol                       = "Udp"
   frontend_port                  = 3389
   backend_port                   = 3389
-  frontend_ip_configuration_name = "one-%d"
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
 
 resource "azurerm_lb_rule" "test2" {
@@ -681,7 +574,7 @@ resource "azurerm_lb_rule" "test2" {
   protocol                       = "Udp"
   frontend_port                  = 3391
   backend_port                   = 3391
-  frontend_ip_configuration_name = "one-%d"
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, lbRuleName, data.RandomInteger, lbRule2Name, data.RandomInteger)
+`, testAccAzureRMLoadBalancerRule_template(data, "Basic"), lbRuleName, lbRule2Name)
 }
