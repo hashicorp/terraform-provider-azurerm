@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `load_balancer_enabled` - (Optional) Operational status of the `Front Door` load balancer. Permitted values are `true` or `false` Defaults to `true`.
 
-* `friendly_name` - (Optional) A friendly name for the `Front Door` service.
+* `friendly_name` - (Optional) A friendly name for the Front Door service.
 
 * `frontend_endpoint` - (Required) A `frontend_endpoint` block as defined below.
 
