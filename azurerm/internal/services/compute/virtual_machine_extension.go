@@ -22,11 +22,11 @@ func ParseVirtualMachineExtensionID(input string) (*VirtualMachineExtensionID, e
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if virtualMachineExtension.Name, err = id.PopSegment("extensions"); err != nil {
+	if virtualMachineExtension.VirtualMachine, err = id.PopSegment("virtualMachines"); err != nil {
 		return nil, err
 	}
 
-	if virtualMachineExtension.VirtualMachine, err = id.PopSegment("virtualMachines"); err != nil {
+	if virtualMachineExtension.Name, err = id.PopSegment("extensions"); err != nil {
 		return nil, err
 	}
 
