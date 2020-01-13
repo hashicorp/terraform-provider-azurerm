@@ -228,9 +228,9 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 	resGroupName := id.ResourceGroup
 	name := id.Path["controllers"]
 
-	result, err := client.Get(ctx, resGroupName, name)
+	resp, err := client.Get(ctx, resGroupName, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(result.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] DevSpace Controller %q was not found in Resource Group %q - removing from state!", name, resGroupName)
 			d.SetId("")
 			return nil
@@ -239,23 +239,27 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error making Read request on DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
 	}
 
-	d.Set("name", result.Name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroupName)
-	if location := result.Location; location != nil {
+	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("sku", flattenDevSpaceControllerSku(result.Sku)); err != nil {
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+	}
+
+	if err := d.Set("sku", flattenDevSpaceControllerSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error flattenning `sku`: %+v", err)
 	}
 
-	if props := result.ControllerProperties; props != nil {
+	if props := resp.ControllerProperties; props != nil {
 		d.Set("host_suffix", props.HostSuffix)
 		d.Set("data_plane_fqdn", props.DataPlaneFqdn)
 		d.Set("target_container_host_resource_id", props.TargetContainerHostResourceID)
 	}
 
-	return tags.FlattenAndSet(d, result.Tags)
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
