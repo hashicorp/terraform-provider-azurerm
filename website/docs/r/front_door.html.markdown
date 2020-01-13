@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Front Door service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group in which the `Front Door` service should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
