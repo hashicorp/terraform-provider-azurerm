@@ -70,6 +70,7 @@ tflint:
         -R001 -R002 -R003 -R004\
         -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019\
         ./$(PKG_NAME)
+	@sh -c "'$(CURDIR)/scripts/terrafmt-acctests.sh'"
 
 whitespace:
 	@echo "==> Fixing source code with whitespace linter..."
@@ -103,7 +104,7 @@ website-lint:
 	@echo "==> Checking documentation for errors..."
 	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
 		-allowed-resource-subcategories-file website/allowed-subcategories
-	@sh -c "'$(CURDIR)/scripts/website-tf-formatcheck.sh'"
+	@sh -c "'$(CURDIR)/scripts/terrafmt-website.sh'"
 
 website:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))

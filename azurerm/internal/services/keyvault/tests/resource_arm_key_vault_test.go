@@ -923,7 +923,7 @@ func testAccAzureRMKeyVault_generateAccessPolicyConfigs(accountNum int) string {
 	return fmt.Sprintf(`
 access_policy {
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "%s"
+  object_id  = "%s"
 
   key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
