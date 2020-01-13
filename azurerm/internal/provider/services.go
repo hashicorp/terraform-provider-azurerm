@@ -33,6 +33,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementpartner"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
@@ -98,6 +99,7 @@ func SupportedServices() []common.ServiceRegistration {
 		loganalytics.Registration{},
 		logic.Registration{},
 		managementgroup.Registration{},
+		managementpartner.Registration{},
 		maps.Registration{},
 		mariadb.Registration{},
 		media.Registration{},
