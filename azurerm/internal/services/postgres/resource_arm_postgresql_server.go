@@ -468,7 +468,7 @@ func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{})
 func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
 	parts := strings.Split(skuName, "_")
 	if len(parts) != 3 {
-		return nil, fmt.Errorf("sku_name (%s) has the worng numberof parts (%d) after splitting on _", skuName, len(parts))
+		return nil, fmt.Errorf("sku_name (%s) has the wrong number of parts (%d) after splitting on _", skuName, len(parts))
 	}
 
 	var tier postgresql.SkuTier
