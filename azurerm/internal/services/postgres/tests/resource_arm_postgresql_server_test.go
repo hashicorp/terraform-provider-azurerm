@@ -33,7 +33,7 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 	})
 }
 
-// remove in 2.0
+// TODO: remove in 2.0
 func TestAccAzureRMPostgreSQLServer_basicNinePointFiveOldSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	resource.ParallelTest(t, resource.TestCase{
