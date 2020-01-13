@@ -46,7 +46,8 @@ func New(subscriptionID string) BaseClient {
 	return NewWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWithBaseURI creates an instance of the BaseClient client.
+// NewWithBaseURI creates an instance of the BaseClient client using a custom endpoint.  Use this when interacting with
+// an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWithBaseURI(baseURI string, subscriptionID string) BaseClient {
 	return BaseClient{
 		Client:         autorest.NewClientWithUserAgent(UserAgent()),
@@ -98,7 +99,7 @@ func (client BaseClient) CheckFrontDoorNameAvailability(ctx context.Context, che
 
 // CheckFrontDoorNameAvailabilityPreparer prepares the CheckFrontDoorNameAvailability request.
 func (client BaseClient) CheckFrontDoorNameAvailabilityPreparer(ctx context.Context, checkFrontDoorNameAvailabilityInput CheckNameAvailabilityInput) (*http.Request, error) {
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -180,7 +181,7 @@ func (client BaseClient) CheckFrontDoorNameAvailabilityWithSubscriptionPreparer(
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
