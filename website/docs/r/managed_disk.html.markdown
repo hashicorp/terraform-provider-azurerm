@@ -103,7 +103,9 @@ The following arguments are supported:
 * `os_type` - (Optional) Specify a value when the source of an `Import` or `Copy`
     operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`
 
-* `disk_encryption_set_id` - (Optional) The ID of a Disk Encryption Set which should be used to encrypt this Managed Disk.
+* `disk_encryption_set_id` - (Optional) The ID of a Disk Encryption Set which should be used to encrypt this Managed Disk. Changing this forces a new resource to be created.
+
+-> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
 
 ~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 

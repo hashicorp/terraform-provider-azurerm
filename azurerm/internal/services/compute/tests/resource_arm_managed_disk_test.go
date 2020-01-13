@@ -331,7 +331,7 @@ func TestAccAzureRMManagedDisk_import_withUltraSSD(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_diskEncryptionSet(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_disk_test", "test")
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	var d compute.Disk
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -347,52 +347,7 @@ func TestAccAzureRMManagedDisk_diskEncryptionSet(t *testing.T) {
 				),
 			},
 			{
-				// then add the disk encryption set
-				Config: testAccAzureRMManagedDisk_diskEncryptionSetResource(data),
-			},
-			{
-				// then create a disk in that set
 				Config: testAccAzureRMManagedDisk_diskEncryptionSet(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMManagedDisk_diskEncryptionSetUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_disk_test", "test")
-	var d compute.Disk
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
-			{
-				// then add the disk encryption set
-				Config: testAccAzureRMManagedDisk_diskEncryptionSetResource(data),
-			},
-			{
-				// then create a disk in that set
-				Config: testAccAzureRMManagedDisk_diskEncryptionSet(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
-				),
-			},
-			data.ImportStep(),
-			{
-				// then update the set
-				Config: testAccAzureRMManagedDisk_diskEncryptionSetUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
 				),
@@ -906,26 +861,27 @@ resource "azurerm_managed_disk" "import" {
 func testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
 	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
 	// TODO: switch back to default location
-	location := "northeurope"
+	location := "westus2"
 
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                        = "acctestkv%s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "premium"
+  enabled_for_disk_encryption = true
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = azurerm_key_vault.test.id
   tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = data.azurerm_client_config.current.service_principal_object_id
 
@@ -964,12 +920,16 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 func testAccAzureRMManagedDisk_diskEncryptionSetResource(data acceptance.TestData) string {
+
+}
+
+func testAccAzureRMManagedDisk_diskEncryptionSet(data acceptance.TestData) string {
 	template := testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_disk_encryption_set" "test" {
-  name                = "acctestDES-%d"
+  name                = "acctestdes-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   key_vault_key_id    = azurerm_key_vault_key.test.id
@@ -979,7 +939,7 @@ resource "azurerm_disk_encryption_set" "test" {
   }
 }
 
-resource "azurerm_key_vault_access_policy" "test" {
+resource "azurerm_key_vault_access_policy" "disk-encryption" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
@@ -988,16 +948,15 @@ resource "azurerm_key_vault_access_policy" "test" {
     "unwrapkey",
   ]
 
-  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
-}
-`, template, data.RandomInteger)
+  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
 
-func testAccAzureRMManagedDisk_diskEncryptionSet(data acceptance.TestData) string {
-	template := testAccAzureRMManagedDisk_diskEncryptionSetResource(data)
-	return fmt.Sprintf(`
-%s
+resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
+}
 
 resource "azurerm_managed_disk" "test" {
   name                   = "acctestd-%d"
@@ -1007,34 +966,11 @@ resource "azurerm_managed_disk" "test" {
   create_option          = "Empty"
   disk_size_gb           = 1
   disk_encryption_set_id = azurerm_disk_encryption_set.test.id
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMManagedDisk_diskEncryptionSetUpdated(data acceptance.TestData) string {
-	template := testAccAzureRMManagedDisk_diskEncryptionSetResource(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_disk_encryption_set" "updated" {
-  name                = "acctestDES-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  key_vault_key_id    = azurerm_key_vault_key.test.id
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_managed_disk" "test" {
-  name                   = "acctestd-%d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  storage_account_type   = "Standard_LRS"
-  create_option          = "Empty"
-  disk_size_gb           = 1
-  disk_encryption_set_id = azurerm_disk_encryption_set.second.id
+ 
+  depends_on = [
+    "azurerm_role_assignment.disk-encryption-read-keyvault",
+    "azurerm_key_vault_access_policy.disk-encryption",
+  ]
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }

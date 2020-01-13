@@ -126,9 +126,15 @@ func resourceArmManagedDisk() *schema.Resource {
 			},
 
 			"disk_encryption_set_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				Type:     schema.TypeString,
+				Optional: true,
+				// Support for rotating the Disk Encryption Set is (apparently) coming a few months following GA
+				// Code="PropertyChangeNotAllowed" Message="Changing property 'encryption.diskEncryptionSetId' is not allowed."
+				ForceNew: true,
+				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
+				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     azure.ValidateResourceID,
 			},
 
 			"encryption_settings": encryptionSettingsSchema(),
