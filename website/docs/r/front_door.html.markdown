@@ -186,7 +186,7 @@ The `routing_rule` block supports the following:
 
 The `forwarding_configuration` block supports the following:
 
-* `backend_pool_name` - (Required) Specifies the name of the `backend_pool` to forward the incoming traffic to. 
+* `backend_pool_name` - (Required) Specifies the name of the Backend Pool to forward the incoming traffic to. 
 
 * `cache_use_dynamic_compression` - (Optional) Whether to use dynamic compression when caching. Valid options are `true` or `false`. Defaults to `false`.
 
