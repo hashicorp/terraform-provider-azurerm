@@ -58,7 +58,6 @@ func TestParseVirtualMachineExtensionID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
-
 }
 
 func TestValidateVirtualMachineExtensionID(t *testing.T) {

@@ -57,7 +57,6 @@ func TestParseVirtualMachineID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
-
 }
 
 func TestValidateVirtualMachineID(t *testing.T) {
