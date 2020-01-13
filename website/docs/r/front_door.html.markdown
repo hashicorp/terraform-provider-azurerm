@@ -168,7 +168,7 @@ The `backend_pool_load_balancing` block supports the following:
 
 The `routing_rule` block supports the following:
 
-* `name` - (Required) Specifies the name of the `routing_rule`.
+* `name` - (Required) Specifies the name of the Routing Rule.
 
 * `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks whithin this resource to associate with this `routing_rule`.
 
