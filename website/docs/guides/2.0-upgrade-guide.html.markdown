@@ -367,7 +367,9 @@ The deprecated `network_interface_ids` field will be removed.
 
 ### Resource: `azurerm_postgresql_server`
 
-The deprecated `sku` block has been simplified and replaced by the `sku_name` property and will be removed.
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
+The `sku_name` field will become Required.
 
 ### Resource: `azurerm_public_ip`
 
