@@ -134,7 +134,7 @@ The `frontend_endpoint` block supports the following:
 
 * `session_affinity_ttl_seconds` - (Optional) The TTL to use in seconds for session affinity, if applicable. Defaults to `0`.
 
-* `custom_https_provisioning_enabled` - (Required) Whether to allow HTTPS protocol for a custom domain that's associated with Front Door to ensure sensitive data is delivered securely via TLS/SSL encryption when sent across the internet. Valid options are `true` or `false`.
+* `custom_https_provisioning_enabled` - (Required) Should the HTTPS protocol be enabled for a custom domain associated with the Front Door?
 
 * `custom_https_configuration` - (Optional) A `custom_https_configuration` block as defined below.
 
