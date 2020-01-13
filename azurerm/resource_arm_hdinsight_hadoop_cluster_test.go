@@ -569,19 +569,19 @@ func testAccAzureRMHDInsightHadoopCluster_scriptActions(rInt int, rString string
 %s
 
 resource "azurerm_storage_blob" "test-install-script-head" {
-	name                   = "test-install-script-head"
-	storage_account_name   = azurerm_storage_account.test.name
-	storage_container_name = azurerm_storage_container.test.name
-	type                   = "Block"
-	source_content         = "echo \"hello world, I'm a head node!'\""
+    name                   = "test-install-script-head"
+    storage_account_name   = azurerm_storage_account.test.name
+    storage_container_name = azurerm_storage_container.test.name
+    type                   = "Block"
+    source_content         = "echo \"hello world, I'm a head node!'\""
 }
 
 resource "azurerm_storage_blob" "test-install-script-worker" {
-	name                   = "test-install-script-worker"
-	storage_account_name   = azurerm_storage_account.test.name
-	storage_container_name = azurerm_storage_container.test.name
-	type                   = "Block"
-	source_content         = "echo \"hello world, I'm a worker node'!\""
+    name                   = "test-install-script-worker"
+    storage_account_name   = azurerm_storage_account.test.name
+    storage_container_name = azurerm_storage_container.test.name
+    type                   = "Block"
+    source_content         = "echo \"hello world, I'm a worker node'!\""
 }
 
 resource "azurerm_hdinsight_hadoop_cluster" "test" {
@@ -613,12 +613,12 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
 
-	  install_script_action {
+      install_script_action {
         name = azurerm_storage_blob.test-install-script-head.name
         uri  = azurerm_storage_blob.test-install-script-head.url
       }
 
-	  install_script_action {
+      install_script_action {
         name = "${azurerm_storage_blob.test-install-script-head.name}-2"
         uri  = azurerm_storage_blob.test-install-script-head.url
       }
@@ -630,7 +630,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
 
-	  install_script_action {
+      install_script_action {
         name = azurerm_storage_blob.test-install-script-worker.name
         uri  = azurerm_storage_blob.test-install-script-worker.url
       }
@@ -652,19 +652,19 @@ func testAccAzureRMHDInsightHadoopCluster_scriptActionsUpdate(rInt int, rString 
 %s
 
 resource "azurerm_storage_blob" "test-install-script-head-2" {
-	name                   = "test-install-script-head-2"
-	storage_account_name   = azurerm_storage_account.test.name
-	storage_container_name = azurerm_storage_container.test.name
-	type                   = "Block"
-	source_content         = "echo \"hello world, I'm an updated head node!'\""
+    name                   = "test-install-script-head-2"
+    storage_account_name   = azurerm_storage_account.test.name
+    storage_container_name = azurerm_storage_container.test.name
+    type                   = "Block"
+    source_content         = "echo \"hello world, I'm an updated head node!'\""
 }
 
 resource "azurerm_storage_blob" "test-install-script-worker-2" {
-	name                   = "test-install-script-worker-2"
-	storage_account_name   = azurerm_storage_account.test.name
-	storage_container_name = azurerm_storage_container.test.name
-	type                   = "Block"
-	source_content         = "echo \"hello world, I'm an updated worker node'!\""
+    name                   = "test-install-script-worker-2"
+    storage_account_name   = azurerm_storage_account.test.name
+    storage_container_name = azurerm_storage_container.test.name
+    type                   = "Block"
+    source_content         = "echo \"hello world, I'm an updated worker node'!\""
 }
 
 resource "azurerm_hdinsight_hadoop_cluster" "test" {
@@ -696,7 +696,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
 
-	  install_script_action {
+      install_script_action {
         name = azurerm_storage_blob.test-install-script-head-2.name
         uri  = azurerm_storage_blob.test-install-script-head-2.url
       }
@@ -708,7 +708,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
 
-	  install_script_action {
+      install_script_action {
         name = azurerm_storage_blob.test-install-script-worker-2.name
         uri  = azurerm_storage_blob.test-install-script-worker-2.url
       }
@@ -1122,17 +1122,17 @@ func testAccAzureRMHDInsightHadoopCluster_gen2AndBlobStorage(rInt int, rString s
 	return fmt.Sprintf(`
 %s
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestsa%s"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	location                 = "${azurerm_resource_group.test.location}"
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
+    name                     = "acctestsa%s"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
-	name                  = "acctest"
-	storage_account_name  = "${azurerm_storage_account.test.name}"
-	container_access_type = "private"
+    name                  = "acctest"
+    storage_account_name  = "${azurerm_storage_account.test.name}"
+    container_access_type = "private"
 }
 
 resource "azurerm_hdinsight_hadoop_cluster" "test" {
