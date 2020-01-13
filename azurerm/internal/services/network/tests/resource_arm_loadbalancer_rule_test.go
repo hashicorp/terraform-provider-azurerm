@@ -79,7 +79,7 @@ func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	lbRule_id := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
+		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
 		subscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -108,7 +108,7 @@ func TestAccAzureRMLoadBalancerRule_complete(t *testing.T) {
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	lbRule_id := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
+		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
 		subscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -137,7 +137,7 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	lbRule_id := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
+		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
 		subscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -192,7 +192,7 @@ func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	lbRule_id := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
+		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
 		subscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -280,11 +280,11 @@ func TestAccAzureRMLoadBalancerRule_updateMultipleRules(t *testing.T) {
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	lbRuleID := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
+		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
 		subscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
 
 	lbRule2ID := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
+		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
 		subscriptionID, data.RandomInteger, data.RandomInteger, lbRule2Name)
 
 	resource.ParallelTest(t, resource.TestCase{
