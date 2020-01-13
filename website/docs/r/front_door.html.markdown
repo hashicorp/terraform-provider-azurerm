@@ -156,7 +156,7 @@ The `backend_pool_health_probe` block supports the following:
 
 The `backend_pool_load_balancing` block supports the following:
 
-* `name` - (Required) Specifies the name of the `backend_pool_load_balancing`.
+* `name` - (Required) Specifies the name of the Load Balancer.
 
 * `sample_size` - (Optional) The number of samples to consider for load balancing decisions. Defaults to `4`.
 
