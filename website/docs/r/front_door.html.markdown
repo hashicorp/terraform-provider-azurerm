@@ -150,7 +150,7 @@ The `backend_pool_health_probe` block supports the following:
 
 * `path` - (Optional) The path to use for the `backend_pool_health_probe`. Default is `/`.
 
-* `protocol` - (Optional) Protocol scheme to use for the `backend_pool_health_probe`. Defaults to `Http`.
+* `protocol` - (Optional) Protocol scheme to use for the Health Probe. Defaults to `Http`.
 
 * `interval_in_seconds` - (Optional) The number of seconds between each Health Probe. Defaults to `120`.
 
