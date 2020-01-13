@@ -136,7 +136,9 @@ The `frontend_endpoint` block supports the following:
 
 * `custom_https_provisioning_enabled` - (Required) Whether to allow HTTPS protocol for a custom domain that's associated with Front Door to ensure sensitive data is delivered securely via TLS/SSL encryption when sent across the internet. Valid options are `true` or `false`.
 
-* `custom_https_configuration` - (Optional) A `custom_https_configuration` block as defined below. This block is required if the `custom_https_provisioning_enabled` is set to `true`.
+* `custom_https_configuration` - (Optional) A `custom_https_configuration` block as defined below.
+
+-> **NOTE:** This block is required when `custom_https_provisioning_enabled` is set to `true`.
 
 * `web_application_firewall_policy_link_id` - (Optional) Defines the Web Application Firewall policy `ID` for each host.
 
