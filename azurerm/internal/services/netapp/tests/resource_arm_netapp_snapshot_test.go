@@ -184,7 +184,7 @@ func testAccAzureRMNetAppSnapshot_requiresImport(data acceptance.TestData) strin
 resource "azurerm_netapp_snapshot" "import" {
   name                = "${azurerm_netapp_snapshot.test.name}"
   location            = "${azurerm_netapp_snapshot.test.location}"
-  resource_group_name = "${azurerm_netapp_snapshot.test.name}"
+  resource_group_name = "${azurerm_netapp_snapshot.test.resource_group_name}"
 }
 `, testAccAzureRMNetAppSnapshot_basic(data))
 }
