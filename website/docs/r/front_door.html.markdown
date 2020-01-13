@@ -146,7 +146,7 @@ The `frontend_endpoint` block supports the following:
 
 The `backend_pool_health_probe` block supports the following:
 
-* `name` - (Required) Specifies the name of the `backend_pool_health_probe`.
+* `name` - (Required) Specifies the name of the Health Probe.
 
 * `path` - (Optional) The path to use for the `backend_pool_health_probe`. Default is `/`.
 
