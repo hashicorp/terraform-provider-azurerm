@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_client_config"
-sidebar_current: "docs-azurerm-datasource-client-config"
 description: |-
   Gets information about the configuration of the azurerm provider.
 ---

@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_image"
-sidebar_current: "docs-azurerm-resource-compute-image"
 description: |-
   Manages a custom virtual machine image that can be used to create virtual machines.
 ---
@@ -15,7 +14,7 @@ Manages a custom virtual machine image that can be used to create virtual machin
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctest"
+  name     = "example-resources"
   location = "West US"
 }
 
@@ -37,7 +36,7 @@ resource "azurerm_image" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctest"
+  name     = "example-resources"
   location = "West US"
 }
 
@@ -64,6 +63,7 @@ The following arguments are supported:
 * `data_disk` - (Optional) One or more `data_disk` elements as defined below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 * `zone_resilient` - (Optional) Is zone resiliency enabled?  Defaults to `false`.  Changing this forces a new resource to be created.
+* `hyper_v_generation` - (Optional) The HyperVGenerationType of the VirtualMachine created from the image as `V1`, `V2`. The default is `V1`.
 
 ~> **Note**: `zone_resilient` can only be set to `true` if the image is stored in a region that supports availability zones.
 

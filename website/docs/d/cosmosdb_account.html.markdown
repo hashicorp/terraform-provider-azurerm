@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_account"
-sidebar_current: "docs-azurerm-datasource-cosmosdb-account"
 description: |-
   Gets information about the specified CosmosDB (formally DocumentDB) Account.
 ---

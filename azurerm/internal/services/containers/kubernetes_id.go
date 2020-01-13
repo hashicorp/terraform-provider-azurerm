@@ -10,8 +10,6 @@ import (
 type KubernetesClusterID struct {
 	Name          string
 	ResourceGroup string
-
-	ID azure.ResourceID
 }
 
 func KubernetesClusterIDSchema() *schema.Schema {
@@ -23,28 +21,25 @@ func KubernetesClusterIDSchema() *schema.Schema {
 	}
 }
 
-func ParseKubernetesClusterID(id string) (*KubernetesClusterID, error) {
-	clusterId, err := azure.ParseAzureResourceID(id)
+func ParseKubernetesClusterID(input string) (*KubernetesClusterID, error) {
+	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceGroup := clusterId.ResourceGroup
-	if resourceGroup == "" {
-		return nil, fmt.Errorf("%q is missing a Resource Group", id)
+	cluster := KubernetesClusterID{
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	clusterName := clusterId.Path["managedClusters"]
-	if clusterName == "" {
-		return nil, fmt.Errorf("%q is missing the `managedClusters` segment", id)
+	if cluster.Name, err = id.PopSegment("managedClusters"); err != nil {
+		return nil, err
 	}
 
-	output := KubernetesClusterID{
-		Name:          clusterName,
-		ResourceGroup: resourceGroup,
-		ID:            *clusterId,
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
-	return &output, nil
+
+	return &cluster, nil
 }
 
 func ValidateKubernetesClusterID(i interface{}, k string) (warnings []string, errors []error) {
@@ -54,15 +49,8 @@ func ValidateKubernetesClusterID(i interface{}, k string) (warnings []string, er
 		return
 	}
 
-	id, err := azure.ParseAzureResourceID(v)
-	if err != nil {
+	if _, err := ParseKubernetesClusterID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a Resource Id: %v", v, err))
-	}
-
-	if id != nil {
-		if id.Path["managedClusters"] == "" {
-			errors = append(errors, fmt.Errorf("The 'managedClusters' segment is missing from Resource ID %q", v))
-		}
 	}
 
 	return warnings, errors

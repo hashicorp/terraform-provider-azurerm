@@ -2,7 +2,6 @@
 subcategory: "DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_mx_record"
-sidebar_current: "docs-azurerm-resource-dns-mx-record"
 description: |-
   Manages a DNS MX Record.
 ---
@@ -49,7 +48,7 @@ resource "azurerm_dns_mx_record" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS MX Record.
+* `name` - (Optional) The name of the DNS MX Record. Defaults to `@` (root). Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 

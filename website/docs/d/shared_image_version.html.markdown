@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image_version"
-sidebar_current: "docs-azurerm-datasource-shared-image-version"
 description: |-
   Gets information about an existing Version of a Shared Image within a Shared Image Gallery.
 
@@ -58,3 +57,5 @@ The `target_region` block exports the following:
 * `name` - The Azure Region in which this Image Version exists.
 
 * `regional_replica_count` - The number of replicas of the Image Version to be created per region.
+
+* `storage_account_type` - The storage account type for the image version.

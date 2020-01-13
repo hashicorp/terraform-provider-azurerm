@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_image"
-sidebar_current: "docs-azurerm-datasource-image"
 description: |-
   Gets information about an existing Image
 

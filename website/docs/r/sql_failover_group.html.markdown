@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_failover_group"
-sidebar_current: "docs-azurerm-resource-database-sql-fail_over_group"
 description: |-
   Manages a SQL Failover Group.
 ---
@@ -15,7 +14,7 @@ Create a failover group of databases on a collection of Azure SQL servers.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "uksouth"
 }
 

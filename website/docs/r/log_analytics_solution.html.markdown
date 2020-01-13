@@ -2,7 +2,6 @@
 subcategory: "Log Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_solution"
-sidebar_current: "docs-azurerm-log-analytics-solution"
 description: |-
   Manages a Log Analytics (formally Operational Insights) Solution.
 ---

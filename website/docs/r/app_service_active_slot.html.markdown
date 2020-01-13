@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_active_slot"
-sidebar_current: "docs-azurerm-resource-app-service-active-slot"
 description: |-
   Promotes an App Service Slot to Production within an App Service
 

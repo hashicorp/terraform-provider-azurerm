@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Azure Active Directory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_azuread_application"
-sidebar_current: "docs-azurerm-datasource-azuread-application"
 description: |-
   Gets information about an existing Application within Azure Active Directory.
 ---

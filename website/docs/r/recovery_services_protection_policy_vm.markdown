@@ -2,12 +2,13 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy_vm"
-sidebar_current: "docs-azurerm-recovery-services-protection-policy-vm"
 description: |-
   Manages an Recovery Services VM Protection Policy.
 ---
 
 # azurerm_recovery_services_protection_policy_vm
+
+~> **NOTE:** This resource has been deprecated in favour of the `azurerm_backup_policy_vm` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
 
 Manages an Recovery Services VM Protection Policy.
 

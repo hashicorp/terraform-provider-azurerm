@@ -2,7 +2,6 @@
 subcategory: "Logic App"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_logic_app_trigger_recurrence"
-sidebar_current: "docs-azurerm-resource-logic-app-trigger-recurrence"
 description: |-
   Manages a Recurrence Trigger within a Logic App Workflow
 ---
@@ -46,6 +45,8 @@ The following arguments are supported:
 * `frequency` - (Required) Specifies the Frequency at which this Trigger should be run. Possible values include `Month`, `Week`, `Day`, `Hour`, `Minute` and `Second`.
 
 * `interval` - (Required) Specifies interval used for the Frequency, for example a value of `4` for `interval` and `hour` for `frequency` would run the Trigger every 4 hours.
+
+* `start_time` - (Optional) Specifies the start date and time for this trigger in RFC3339 format: `2000-01-02T03:04:05Z`.
 
 ## Attributes Reference
 

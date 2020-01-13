@@ -2,7 +2,6 @@
 subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_stream_input_blob"
-sidebar_current: "docs-azurerm-resource-stream-analytics-stream-input-blob"
 description: |-
   Manages a Stream Analytics Stream Input Blob.
 ---
@@ -39,7 +38,7 @@ resource "azurerm_storage_container" "example" {
 }
 
 resource "azurerm_stream_analytics_stream_input_blob" "example" {
-  name                      = "eventhub-stream-input"
+  name                      = "blob-stream-input"
   stream_analytics_job_name = "${data.azurerm_stream_analytics_job.example.name}"
   resource_group_name       = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
   storage_account_name      = "${azurerm_storage_account.example.name}"

@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_gateway_connection"
-sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-connection"
 description: |-
   Manages a connection in an existing Virtual Network Gateway.
 ---
@@ -245,6 +244,11 @@ The following arguments are supported:
     Site-to-Site or VNet-to-VNet connection is created whereas ExpressRoute
     connections do not need a shared key.
 
+* `connection_protocol` - (Optional) The IKE protocol version to use. Possible
+    values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`. 
+    Changing this value will force a resource to be created. 
+-> **Note**: Only valid for `IPSec` connections on virtual network gateways with SKU `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw1AZ`, `VpnGw2AZ` or `VpnGw3AZ`. 
+    
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled
     for this connection. Defaults to `false`.
 

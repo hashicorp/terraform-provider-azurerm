@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Redis"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_redis_cache"
-sidebar_current: "docs-azurerm-datasource-redis-cache"
 description: |-
   Gets information about an existing Azure Redis Cache.
 

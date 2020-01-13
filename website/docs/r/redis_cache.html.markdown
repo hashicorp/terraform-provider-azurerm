@@ -2,7 +2,6 @@
 subcategory: "Redis"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_redis_cache"
-sidebar_current: "docs-azurerm-redis-cache"
 description: |-
   Manages a Redis Cache
 

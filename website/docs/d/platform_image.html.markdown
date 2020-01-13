@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_platform_image"
-sidebar_current: "docs-azurerm-datasource-platform-image"
 description: |-
   Gets information about a Platform Image.
 ---

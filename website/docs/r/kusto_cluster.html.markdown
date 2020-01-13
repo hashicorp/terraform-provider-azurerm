@@ -2,7 +2,6 @@
 subcategory: "Data Explorer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kusto_cluster"
-sidebar_current: "docs-azurerm-resource-kusto-cluster"
 description: |-
   Manages Kusto (also known as Azure Data Explorer) Cluster
 ---

@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_proximity_placement_group"
-sidebar_current: "docs-azurerm-datasource-proximity-placement-group"
 description: |-
   Gets information about an existing Proximity Placement Group.
 ---

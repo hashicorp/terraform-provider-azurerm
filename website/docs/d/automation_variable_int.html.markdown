@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_variable_int"
-sidebar_current: "docs-azurerm-datasource-automation-variable-int"
 description: |-
   Gets information about an existing Automation Int Variable
 ---

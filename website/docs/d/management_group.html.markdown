@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_management_group"
-sidebar_current: "docs-azurerm-datasource-management-group"
 description: |-
   Gets information about an existing Management Group.
 ---

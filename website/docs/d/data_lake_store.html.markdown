@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Data Lake"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store"
-sidebar_current: "docs-azurerm-datasource-data-lake-store"
 description: |-
   Gets information about an existing Data Lake Store
 

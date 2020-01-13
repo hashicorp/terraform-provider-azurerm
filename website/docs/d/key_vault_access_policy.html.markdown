@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_access_policy"
-sidebar_current: "docs-azurerm-datasource-key-vault-access-policy"
 description: |-
   Get information about the templated Access Policies for Key Vault.
 ---

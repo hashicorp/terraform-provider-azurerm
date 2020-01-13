@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_database"
-sidebar_current: "docs-azurerm-datasource-sql-database"
 description: |-
   Gets information about an existing SQL Azure Database.
 ---

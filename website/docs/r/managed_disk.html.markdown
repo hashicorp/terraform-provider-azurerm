@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_disk"
-sidebar_current: "docs-azurerm-resource-compute-managed-disk"
 description: |-
   Manages a Managed Disk.
 ---
@@ -15,7 +14,7 @@ Manages a managed disk.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "West US 2"
 }
 
@@ -37,7 +36,7 @@ resource "azurerm_managed_disk" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "West US 2"
 }
 

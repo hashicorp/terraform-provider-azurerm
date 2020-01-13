@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resources"
-sidebar_current: "docs-azurerm-datasource-resources"
 description: |-
   Gets information about an existing Resources.
 ---
@@ -23,10 +22,29 @@ data "azurerm_resources" "example" {
 data "azurerm_resources" "example" {
   resource_group_name = "example-resources"
 
-  required_tags {
+  required_tags = {
     environment = "production"
     role        = "webserver"
   }
+}
+
+# Get resources by type, create spoke vNet peerings
+data "azurerm_resources" "spokes" {
+  type = "Microsoft.Network/virtualNetworks"
+
+  required_tags = {
+    environment = "production"
+    role        = "spokeNetwork"
+  }
+}
+
+resource "azurerm_virtual_network_peering" "spoke_peers" {
+  count = length(data.azurerm_resources.spokes.resources)
+
+  name                      = "hub2${data.azurerm_resources.spokes.resources[count.index].name}"
+  resource_group_name       = azurerm_resource_group.hub.name
+  virtual_network_name      = azurerm_virtual_network.hub.name
+  remote_virtual_network_id = data.azurerm_resources.spokes.resources[count.index].id
 }
 ```
 
@@ -48,14 +66,14 @@ data "azurerm_resources" "example" {
 
 ---
 
-The `resource` block contains:
+The `resource` block exports the following:
 
-* `name` - The name of this resource.
+* `name` - The name of this Resource.
 
-* `id` - The Resource ID of this resource.
+* `id` - The ID of this Resource.
 
-* `type` - The type of this resoource.
+* `type` - The type of this Resource. (e.g. `Microsoft.Network/virtualNetworks`).
 
-* `location` - The location of this resource.
+* `location` - The Azure Region in which this Resource exists.
 
-* `tags` - The type of resource that this is, such as `Microsoft.Network/virtualNetworks`.
+* `tags` - A map of tags assigned to this Resource.

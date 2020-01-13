@@ -2,7 +2,6 @@
 subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_secret"
-sidebar_current: "docs-azurerm-resource-key-vault-secret"
 description: |-
   Manages a Key Vault Secret.
 

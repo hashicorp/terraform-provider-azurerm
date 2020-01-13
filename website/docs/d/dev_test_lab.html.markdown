@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_lab"
-sidebar_current: "docs-azurerm-datasource-dev-test-lab"
 description: |-
   Gets information about an existing Dev Test Lab.
 ---

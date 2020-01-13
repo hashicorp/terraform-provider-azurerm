@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_gateway"
-sidebar_current: "docs-azurerm-datasource-virtual-network-gateway"
 description: |-
   Gets information about an existing Virtual Network Gateway.
 ---
@@ -50,6 +49,8 @@ output "virtual_network_gateway_id" {
     [Azure documentation on forced tunneling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
 
 * `sku` - Configuration of the size and capacity of the Virtual Network Gateway.
+
+* `generation` - The Generation of the Virtual Network Gateway.
 
 * `ip_configuration` - One or two `ip_configuration` blocks documented below.
 

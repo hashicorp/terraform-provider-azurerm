@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_firewall_network_rule_collection"
-sidebar_current: "docs-azurerm-resource-network-firewall-network-rule-collection"
 description: |-
   Manages a Network Rule Collection within an Azure Firewall.
 

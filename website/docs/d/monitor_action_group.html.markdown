@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_action_group"
-sidebar_current: "docs-azurerm-datasource-monitor-action-group"
 description: |-
   Get information about the specified Action Group.
 ---

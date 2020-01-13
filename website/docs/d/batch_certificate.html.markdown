@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Batch"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_certificate"
-sidebar_current: "docs-azurerm-datasource-batch-certificate"
 description: |-
   Get information about an existing certificate in a Batch Account
 

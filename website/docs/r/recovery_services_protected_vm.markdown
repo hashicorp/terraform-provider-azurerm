@@ -2,12 +2,13 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_protected_vm"
-sidebar_current: "docs-azurerm-recovery-services-protected-vm"
 description: |-
   Manages an Recovery Services Protected VM.
 ---
 
 # azurerm_recovery_services_protected_vm
+
+~> **NOTE:** This resource has been deprecated in favour of the `azurerm_backup_protected_vm` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
 
 Manages an Recovery Protected VM.
 

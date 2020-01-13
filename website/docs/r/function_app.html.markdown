@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_function_app"
-sidebar_current: "docs-azurerm-resource-app-service-function-app"
 description: |-
   Manages a Function App.
 
@@ -149,6 +148,10 @@ The following arguments are supported:
 
 * `http2_enabled` - (Optional) Specifies whether or not the http2 protocol should be enabled. Defaults to `false`.
 
+* `min_tls_version` - (Optional) The minimum supported TLS version for the function app. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new function apps.
+
+* `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
+
 * `cors` - (Optional) A `cors` block as defined below.
 
 ---
@@ -179,7 +182,7 @@ An `auth_settings` block supports the following:
 
 * `default_provider` - (Optional) The default provider to use when multiple providers have been set up. Possible values are `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount` and `Twitter`.
 
-~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work. 
+~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work.
 
 * `facebook` - (Optional) A `facebook` block as defined below.
 

@@ -2,7 +2,6 @@
 subcategory: "Search"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_search_service"
-sidebar_current: "docs-azurerm-resource-search-service"
 description: |-
   Manages a Search Service.
 ---
@@ -58,6 +57,18 @@ The following attributes are exported:
 * `primary_key` - The Search Service Administration primary key.
 
 * `secondary_key` - The Search Service Administration secondary key.
+
+* `query_keys` - A `query_keys` block as defined below.
+
+---
+
+A `query_keys` block exports the following:
+
+* `name` - The name of the query key.
+
+* `key` - The value of the query key.
+
+---
 
 ## Import
 

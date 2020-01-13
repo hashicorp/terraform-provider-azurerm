@@ -2,12 +2,13 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_network_mapping"
-sidebar_current: "docs-azurerm-recovery-network-mapping"
 description: |-
     Manages a site recovery network mapping on Azure.
 ---
 
 # azurerm_recovery_network_mapping
+
+~> **NOTE:** This resource has been deprecated in favour of the `azurerm_site_recovery_network_mapping` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
 
 Manages a site recovery network mapping on Azure. A network mapping decides how to translate connected netwroks when a VM is migrated from one region to another.
 

@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_snapshot"
-sidebar_current: "docs-azurerm-datasource-snapshot"
 description: |-
   Get information about an existing Snapshot
 ---

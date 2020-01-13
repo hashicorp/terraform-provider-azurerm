@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet"
-sidebar_current: "docs-azurerm-resource-network-subnet-x"
 description: |-
   Manages a subnet. Subnets represent network segments within the IP space defined by the virtual network.
 
@@ -60,10 +59,6 @@ The following arguments are supported:
 
 * `address_prefix` - (Required) The address prefix to use for the subnet.
 
-* `enforce_private_link_service_network_policies` - (Optional) Enable or Disable network policies on the `private link service` in the subnet. Default is `false`.
-
--> **NOTE:** Network policies like network security groups (NSG) are not supported for the private link service. In order to deploy a private link service on a given subnet, an explicit disable setting is required on that subnet(e.g. `enforce_private_link_service_network_policies` = `true`). This setting is only applicable for the private link service. For other resources in the subnet, access is controlled based on Network Security Groups (NSG) security rules definition.
-
 * `network_security_group_id` - (Optional / **Deprecated**) The ID of the Network Security Group to associate with the subnet.
 
 -> **NOTE:** At this time Subnet `<->` Network Security Group associations need to be configured both using this field (which is now Deprecated) and using the `azurerm_subnet_network_security_group_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
@@ -75,6 +70,14 @@ The following arguments are supported:
 * `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage` and `Microsoft.Web`.
 
 * `delegation` - (Optional) One or more `delegation` blocks as defined below.
+
+* `enforce_private_link_endpoint_network_policies` - (Optional) Enable or Disable network policies for the private link endpoint on the subnet. Default valule is `false`. Conflicts with enforce_private_link_service_network_policies.
+
+-> **NOTE:** Network policies, like network security groups (NSG), are not supported for Private Link Endpoints or Private Link Services. In order to deploy a Private Link Endpoint on a given subnet, you must set the `enforce_private_link_endpoint_network_policies` attribute to `true`. This setting is only applicable for the Private Link Endpoint, for all other resources in the subnet access is controlled based on the `network_security_group_id`.
+
+* `enforce_private_link_service_network_policies` - (Optional) Enable or Disable network policies for the private link service on the subnet. Default valule is `false`. Conflicts with enforce_private_link_endpoint_network_policies.
+
+-> **NOTE:** In order to deploy a Private Link Service on a given subnet, you must set the `enforce_private_link_service_network_policies` attribute to `true`. This setting is only applicable for the Private Link Service, for all other resources in the subnet access is controlled based on the `network_security_group_id`. 
 
 ---
 

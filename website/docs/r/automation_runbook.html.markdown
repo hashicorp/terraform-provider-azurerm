@@ -2,7 +2,6 @@
 subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_runbook"
-sidebar_current: "docs-azurerm-resource-automation-runbook"
 description: |-
   Manages a Automation Runbook.
 ---

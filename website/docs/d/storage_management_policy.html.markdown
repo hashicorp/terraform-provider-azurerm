@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_management_policy"
-sidebar_current: "docs-azurerm-datasource-storage-management-policy"
 description: |-
   Gets information about an existing Storage Management Policy.
 ---

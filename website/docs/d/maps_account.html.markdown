@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Maps"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_maps_account"
-sidebar_current: "docs-azurerm-datasource-maps-account"
 description: |-
   Gets information about an existing Azure Maps Account.
 ---

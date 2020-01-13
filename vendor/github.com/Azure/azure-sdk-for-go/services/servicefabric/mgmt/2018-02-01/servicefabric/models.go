@@ -1578,7 +1578,7 @@ type ClusterProperties struct {
 	NodeTypes *[]NodeTypeDescription `json:"nodeTypes,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state of the cluster resource. Possible values include: 'Updating', 'Succeeded', 'Failed', 'Canceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// ReliabilityLevel - The reliability level sets the replica set size of system services. Learn about [ReliabilityLevel](https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-cluster-capacity).
+	// ReliabilityLevel - The reliability level sets the replica set size of system services. Learn about [ReliabilityLevel](https://docs.microsoft.com/azure/service-fabric/service-fabric-cluster-capacity).
 	//   - None - Run the System services with a target replica set count of 1. This should only be used for test clusters.
 	//   - Bronze - Run the System services with a target replica set count of 3. This should only be used for test clusters.
 	//   - Silver - Run the System services with a target replica set count of 5.
@@ -1620,7 +1620,7 @@ type ClusterPropertiesUpdateParameters struct {
 	FabricSettings *[]SettingsSectionDescription `json:"fabricSettings,omitempty"`
 	// NodeTypes - The list of node types in the cluster. This will overwrite the existing list.
 	NodeTypes *[]NodeTypeDescription `json:"nodeTypes,omitempty"`
-	// ReliabilityLevel - The reliability level sets the replica set size of system services. Learn about [ReliabilityLevel](https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-cluster-capacity).
+	// ReliabilityLevel - The reliability level sets the replica set size of system services. Learn about [ReliabilityLevel](https://docs.microsoft.com/azure/service-fabric/service-fabric-cluster-capacity).
 	//   - None - Run the System services with a target replica set count of 1. This should only be used for test clusters.
 	//   - Bronze - Run the System services with a target replica set count of 3. This should only be used for test clusters.
 	//   - Silver - Run the System services with a target replica set count of 5.
@@ -1919,7 +1919,7 @@ type NodeTypeDescription struct {
 	ClientConnectionEndpointPort *int32 `json:"clientConnectionEndpointPort,omitempty"`
 	// HTTPGatewayEndpointPort - The HTTP cluster management endpoint port.
 	HTTPGatewayEndpointPort *int32 `json:"httpGatewayEndpointPort,omitempty"`
-	// DurabilityLevel - The durability level of the node type. Learn about [DurabilityLevel](https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-cluster-capacity).
+	// DurabilityLevel - The durability level of the node type. Learn about [DurabilityLevel](https://docs.microsoft.com/azure/service-fabric/service-fabric-cluster-capacity).
 	//   - Bronze - No privileges. This is the default.
 	//   - Silver - The infrastructure jobs can be paused for a duration of 10 minutes per UD.
 	//   - Gold - The infrastructure jobs can be paused for a duration of 2 hours per UD. Gold durability can be enabled only on full node VM SKUs like D15_V2, G5 etc.

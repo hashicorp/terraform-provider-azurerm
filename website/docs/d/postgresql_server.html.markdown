@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_server"
-sidebar_current: "docs-azurerm-datasource-postgresql-server"
 description: |-
   Gets information about an existing PostgreSQL Azure Database Server.
 ---
