@@ -104,7 +104,7 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
 		if as := props.AddressSpace; as != nil {
-			if err := d.Set("address_spaces", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil { //todo remove in 2.0
+			if err := d.Set("address_spaces", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil { // todo remove in 2.0
 				return fmt.Errorf("error setting `address_spaces`: %v", err)
 			}
 			if err := d.Set("address_space", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil {

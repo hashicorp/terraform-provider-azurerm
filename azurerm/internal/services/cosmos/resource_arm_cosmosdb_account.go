@@ -894,7 +894,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 	return locations, nil
 }
 
-//todo remove when deprecated field `failover_policy` is
+// todo remove when deprecated field `failover_policy` is
 func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
 	input := d.Get("failover_policy").(*schema.Set).List()
 	locations := make([]documentdb.Location, 0, len(input))
@@ -978,7 +978,7 @@ func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.Consisten
 	return []interface{}{result}
 }
 
-//todo remove when failover_policy field is removed
+// todo remove when failover_policy field is removed
 func flattenAzureRmCosmosDBAccountFailoverPolicy(list *[]documentdb.FailoverPolicy) *schema.Set {
 	results := schema.Set{
 		F: resourceAzureRMCosmosDBAccountFailoverPolicyHash,
@@ -1064,7 +1064,7 @@ func flattenAzureRmCosmosDBAccountVirtualNetworkRules(rules *[]documentdb.Virtua
 	return &results
 }
 
-//todo remove once deprecated field `failover_policy` is removed
+// todo remove once deprecated field `failover_policy` is removed
 func resourceAzureRMCosmosDBAccountFailoverPolicyHash(v interface{}) int {
 	var buf bytes.Buffer
 

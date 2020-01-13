@@ -53,7 +53,7 @@ func resourceArmKeyVaultKey() *schema.Resource {
 				ConflictsWith: []string{"vault_uri"},
 			},
 
-			//todo remove in 2.0
+			// todo remove in 2.0
 			"vault_uri": {
 				Type:          schema.TypeString,
 				Optional:      true,
