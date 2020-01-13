@@ -48,10 +48,10 @@ func resourceArmDevSpaceController() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku_name": {
-				Type:          schema.TypeString,
-				Optional:      true, // required in 2.0
-				Computed:      true, // remove in 2.0
-				ForceNew:      true,
+				Type:     schema.TypeString,
+				Optional: true, // required in 2.0
+				Computed: true, // remove in 2.0
+				//ForceNew:      true, // uncomment in 2.0 - this should be fine as there is only 1 valid value
 				ConflictsWith: []string{"sku"},
 				ValidateFunc: validation.StringInSlice([]string{
 					"S1",
@@ -59,9 +59,9 @@ func resourceArmDevSpaceController() *schema.Resource {
 			},
 
 			"sku": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				ForceNew:      true,
+				Type:     schema.TypeList,
+				Optional: true,
+				//ForceNew:      true, // uncomment in 2.0 - this should be fine as there is only 1 valid value
 				Computed:      true,
 				ConflictsWith: []string{"sku_name"},
 				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
@@ -71,7 +71,6 @@ func resourceArmDevSpaceController() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"S1",
 							}, false),
@@ -79,7 +78,6 @@ func resourceArmDevSpaceController() *schema.Resource {
 						"tier": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devspaces.Standard),
 							}, false),
