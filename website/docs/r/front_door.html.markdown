@@ -98,7 +98,7 @@ The following arguments are supported:
 
 The `backend_pool` block supports the following:
 
-* `name` - (Required) Specifies the name of the name of the `Backend Pool`.
+* `name` - (Required) Specifies the name of the name of the Backend Pool.
 
 * `backend` - (Required) A `backend` block as defined below.
 
