@@ -380,6 +380,105 @@ func resourceArmBatchPool() *schema.Resource {
 					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
+			"network_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"subnet_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"endpoint_configuration": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"inbound_nat_pools": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"name": {
+													Type:         schema.TypeString,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: validate.NoEmptyStrings,
+												},
+												"protocol": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ForceNew: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(batch.TCP),
+														string(batch.UDP),
+													}, true),
+												},
+												"backend_port": {
+													Type:     schema.TypeInt,
+													Optional: true,
+													ForceNew: true,
+													// 1 and 65535 except for 29876, 29877 as these are reserved.
+												},
+												"frontend_port_range_start": {
+													Type:     schema.TypeInt,
+													Optional: true,
+													ForceNew: true,
+													//en 1 and 65534 except ports from 50000 to 55000 which are reserved by the Batch service.
+												},
+												"frontend_port_range_end": {
+													Type:     schema.TypeInt,
+													Optional: true,
+													ForceNew: true,
+													//en 1 and 65534 except ports from 50000 to 55000 which are reserved by the Batch service.
+													//start to end minimum 100 nodes
+												},
+												"network_security_group_rules": {
+													Type:     schema.TypeList,
+													Optional: true,
+													ForceNew: true,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"priority": {
+																Type:         schema.TypeInt,
+																Optional:     true,
+																ForceNew:     true,
+																ValidateFunc: validation.IntAtLeast(150),
+															},
+															"access": {
+																Type:     schema.TypeString,
+																Optional: true,
+																ForceNew: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(batch.Allow),
+																	string(batch.Deny),
+																}, true),
+															},
+															"source_address_prefix": {
+																Type:         schema.TypeString,
+																Optional:     true,
+																ForceNew:     true,
+																ValidateFunc: validate.NoEmptyStrings,
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -489,6 +588,12 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	parameters.PoolProperties.Metadata = azure.ExpandBatchMetaData(metaDataRaw)
+
+	networkConfiguration := d.Get("network_configuration").([]interface{})
+	parameters.PoolProperties.NetworkConfiguration, err = azure.ExpandBatchPoolNetworkConfiguration(networkConfiguration)
+	if err != nil {
+		return fmt.Errorf("Error expanding `network_configuration`: %+v", err)
+	}
 
 	future, err := client.Create(ctx, resourceGroup, accountName, poolName, parameters, "", "")
 	if err != nil {
@@ -601,6 +706,12 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		parameters.PoolProperties.Metadata = azure.ExpandBatchMetaData(metaDataRaw)
 	}
 
+	networkConfiguration := d.Get("network_configuration").([]interface{})
+	parameters.PoolProperties.NetworkConfiguration, err = azure.ExpandBatchPoolNetworkConfiguration(networkConfiguration)
+	if err != nil {
+		return fmt.Errorf("Error expanding `network_configuration`: %+v", err)
+	}
+
 	result, err := client.Update(ctx, resourceGroup, accountName, poolName, parameters, "")
 	if err != nil {
 		return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
@@ -674,6 +785,12 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
 		d.Set("metadata", azure.FlattenBatchMetaData(props.Metadata))
+
+		if props.NetworkConfiguration != nil {
+			if err := d.Set("network_configuration", azure.FlattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+				return fmt.Errorf("error setting `network_configuration`: %v", err)
+			}
+		}
 	}
 
 	return nil

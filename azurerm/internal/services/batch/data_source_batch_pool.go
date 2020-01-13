@@ -285,6 +285,89 @@ func dataSourceArmBatchPool() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"network_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"subnet_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"endpoint_configuration": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"inbound_nat_pools": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"name": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Computed: true,
+												},
+												"protocol": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Computed: true,
+												},
+												"backend_port": {
+													Type:     schema.TypeInt,
+													Optional: true,
+													Computed: true,
+												},
+												"frontend_port_range_start": {
+													Type:     schema.TypeInt,
+													Optional: true,
+													Computed: true,
+												},
+												"frontend_port_range_end": {
+													Type:     schema.TypeInt,
+													Optional: true,
+													Computed: true,
+												},
+												"network_security_group_rules": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Computed: true,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"priority": {
+																Type:     schema.TypeInt,
+																Optional: true,
+																Computed: true,
+															},
+															"access": {
+																Type:     schema.TypeString,
+																Optional: true,
+																Computed: true,
+															},
+															"source_address_prefix": {
+																Type:     schema.TypeString,
+																Optional: true,
+																Computed: true,
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -347,6 +430,10 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
 		d.Set("metadata", azure.FlattenBatchMetaData(props.Metadata))
+
+		if err := d.Set("network_configuration", azure.FlattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+			return fmt.Errorf("error setting `network_configuration`: %v", err)
+		}
 	}
 
 	return nil

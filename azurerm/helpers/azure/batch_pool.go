@@ -553,3 +553,162 @@ func FlattenBatchMetaData(metadatas *[]batch.MetadataItem) map[string]interface{
 
 	return output
 }
+
+// ExpandBatchPoolNetworkConfiguration expands Batch pool network configuration
+func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConfiguration, error) {
+	if len(list) == 0 {
+		return nil, nil
+	}
+
+	networkConfigValue := list[0].(map[string]interface{})
+
+	networkConfiguration := &batch.NetworkConfiguration{}
+
+	if v, ok := networkConfigValue["subnet_id"]; ok {
+		value := v.(string)
+		if value != "" {
+			networkConfiguration.SubnetID = &value
+		}
+	}
+
+	if v, ok := networkConfigValue["endpoint_configuration"]; ok {
+		endpoint, err := ExpandBatchPoolEndpointConfiguration(v.([]interface{}))
+		if err != nil {
+			return nil, err
+		}
+		networkConfiguration.EndpointConfiguration = endpoint
+	}
+
+	return networkConfiguration, nil
+}
+
+//ExpandBatchPoolEndpointConfiguration expands Batch pool endpoint configuration
+func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpointConfiguration, error) {
+	if len(list) == 0 {
+		return nil, nil
+	}
+
+	endpointConfigurationValue := list[0].(map[string]interface{})
+
+	endpointConfiguration := &batch.PoolEndpointConfiguration{}
+
+	inboundNatPoolsValues := endpointConfigurationValue["inbound_nat_pools"].([]interface{})
+	inboundNatPools := make([]batch.InboundNatPool, len(inboundNatPoolsValues))
+
+	for i, inboundNatPoolsValue := range inboundNatPoolsValues {
+		inboundNatPool := inboundNatPoolsValue.(map[string]interface{})
+
+		name := inboundNatPool["name"].(string)
+		protocol := batch.InboundEndpointProtocol(inboundNatPool["protocol"].(string))
+		backendPort := int32(inboundNatPool["backend_port"].(int))
+		frontendPortRangeStart := int32(inboundNatPool["frontend_port_range_start"].(int))
+		frontendPortRangeEnd := int32(inboundNatPool["frontend_port_range_end"].(int))
+
+		networkSecurityGroupRules, err := ExpandBatchPoolNetworkSecurityGroupRule(inboundNatPool["network_security_group_rules"].([]interface{}))
+		if err != nil {
+			return nil, err
+		}
+
+		inboundNatPools[i] = batch.InboundNatPool{
+			Name:                      &name,
+			Protocol:                  protocol,
+			BackendPort:               &backendPort,
+			FrontendPortRangeStart:    &frontendPortRangeStart,
+			FrontendPortRangeEnd:      &frontendPortRangeEnd,
+			NetworkSecurityGroupRules: &networkSecurityGroupRules,
+		}
+	}
+
+	endpointConfiguration.InboundNatPools = &inboundNatPools
+
+	return endpointConfiguration, nil
+}
+
+//ExpandBatchPoolNetworkSecurityGroupRule expands Batch pool network security group rule
+func ExpandBatchPoolNetworkSecurityGroupRule(list []interface{}) ([]batch.NetworkSecurityGroupRule, error) {
+	if len(list) == 0 {
+		return nil, nil
+	}
+
+	networkSecurityGroupRule := make([]batch.NetworkSecurityGroupRule, len(list))
+
+	for i, groupRule := range list {
+		groupRuleMap := groupRule.(map[string]interface{})
+
+		priority := int32(groupRuleMap["priority"].(int))
+		sourceAddressPrefix := groupRuleMap["source_address_prefix"].(string)
+		access := batch.NetworkSecurityGroupRuleAccess(groupRuleMap["access"].(string))
+
+		networkSecurityGroupRule[i] = batch.NetworkSecurityGroupRule{
+			Priority:            &priority,
+			SourceAddressPrefix: &sourceAddressPrefix,
+			Access:              access,
+		}
+	}
+
+	return networkSecurityGroupRule, nil
+}
+
+// FlattenBatchPoolNetworkConfiguration flattens the network configuration for a Batch pool
+func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfiguration) []interface{} {
+	results := make([]interface{}, 0)
+
+	if networkConfig == nil {
+		log.Printf("[DEBUG] networkConfgiuration is nil")
+		return nil
+	}
+
+	result := make(map[string]interface{})
+
+	if networkConfig.SubnetID != nil {
+		result["subnet_id"] = *networkConfig.SubnetID
+	}
+
+	if networkConfig.EndpointConfiguration != nil {
+		endpointConfigs := make([]interface{}, 1)
+
+		if networkConfig.EndpointConfiguration.InboundNatPools != nil && len(*networkConfig.EndpointConfiguration.InboundNatPools) != 0 {
+			inboundNatPools := make([]interface{}, len(*networkConfig.EndpointConfiguration.InboundNatPools))
+			for i, inboundNatPool := range *networkConfig.EndpointConfiguration.InboundNatPools {
+				inboundNatPoolMap := make(map[string]interface{})
+				if inboundNatPool.Name != nil {
+					inboundNatPoolMap["name"] = *inboundNatPool.Name
+				}
+				if inboundNatPool.BackendPort != nil {
+					inboundNatPoolMap["backend_port"] = *inboundNatPool.BackendPort
+				}
+				if inboundNatPool.FrontendPortRangeStart != nil {
+					inboundNatPoolMap["frontend_port_range_start"] = *inboundNatPool.FrontendPortRangeStart
+				}
+				if inboundNatPool.FrontendPortRangeEnd != nil {
+					inboundNatPoolMap["frontend_port_range_end"] = *inboundNatPool.FrontendPortRangeEnd
+				}
+				inboundNatPoolMap["protocol"] = inboundNatPool.Protocol
+
+				if inboundNatPool.NetworkSecurityGroupRules != nil && len(*inboundNatPool.NetworkSecurityGroupRules) != 0 {
+					networkSecurities := make([]interface{}, len(*inboundNatPool.NetworkSecurityGroupRules))
+					for j, networkSecurity := range *inboundNatPool.NetworkSecurityGroupRules {
+						networkSecurityMap := make(map[string]interface{})
+
+						if networkSecurity.Priority != nil {
+							networkSecurityMap["priority"] = *networkSecurity.Priority
+						}
+						if networkSecurity.SourceAddressPrefix != nil {
+							networkSecurityMap["source_address_prefix"] = *networkSecurity.SourceAddressPrefix
+						}
+						networkSecurityMap["access"] = networkSecurity.Access
+						networkSecurities[j] = networkSecurityMap
+					}
+					inboundNatPoolMap["network_security_group_rules"] = networkSecurities
+				}
+				inboundNatPools[i] = inboundNatPoolMap
+			}
+			endpointConfig := make(map[string]interface{})
+			endpointConfig["inbound_nat_pools"] = inboundNatPools
+			endpointConfigs[0] = endpointConfig
+		}
+		result["endpoint_configuration"] = endpointConfigs
+	}
+
+	return append(results, result)
+}
