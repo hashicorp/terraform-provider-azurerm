@@ -152,7 +152,7 @@ The `backend_pool_health_probe` block supports the following:
 
 * `protocol` - (Optional) Protocol scheme to use for the `backend_pool_health_probe`. Defaults to `Http`.
 
-* `interval_in_seconds` - (Optional) The number of seconds between the `backend_pool_health_probe` probes. Defaults to `120`.
+* `interval_in_seconds` - (Optional) The number of seconds between each Health Probe. Defaults to `120`.
 
 ---
 
