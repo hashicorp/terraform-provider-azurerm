@@ -17,6 +17,7 @@ IMPROVEMENTS:
 
 * `azurerm_batch_pool` - support for the `metadata` property [GH-5309]
 * `azurerm_function_app` - convert `connection_string`s from a `TypeList` to a `TypeSet` [GH-5319]
+* `azurerm_postgresql_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5376]
 
 BUG FIXES:
 
