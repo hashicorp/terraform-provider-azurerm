@@ -69,7 +69,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"workspace_custom_parameters": {
+			"custom_parameters": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -220,7 +220,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
-		d.Set("workspace_custom_parameters", flattenWorkspaceCustomParameters(props.Parameters))
+		d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -260,22 +260,28 @@ func flattenWorkspaceCustomParameters(p *databricks.WorkspaceCustomParameters) [
 
 	parameters := make(map[string]interface{})
 	if privateSubnet := p.CustomPrivateSubnetName; privateSubnet != nil {
-		parameters["private_subnet_name"] = *privateSubnet.Value
+		if privateSubnet.Value != nil {
+			parameters["private_subnet_name"] = *privateSubnet.Value
+		}
 	}
 
 	if publicSubnet := p.CustomPublicSubnetName; publicSubnet != nil {
-		parameters["public_subnet_name"] = *publicSubnet.Value
+		if publicSubnet.Value != nil {
+			parameters["public_subnet_name"] = *publicSubnet.Value
+		}
 	}
 
 	if vnetID := p.CustomVirtualNetworkID; vnetID != nil {
-		parameters["virtual_network_id"] = *vnetID.Value
+		if vnetID.Value != nil {
+			parameters["virtual_network_id"] = *vnetID.Value
+		}
 	}
 
 	return []interface{}{parameters}
 }
 
 func expandWorkspaceCustomParameters(d *schema.ResourceData) *databricks.WorkspaceCustomParameters {
-	configList, ok := d.GetOkExists("workspace_custom_parameters")
+	configList, ok := d.GetOkExists("custom_parameters")
 	if !ok {
 		return nil
 	}

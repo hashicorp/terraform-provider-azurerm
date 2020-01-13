@@ -46,13 +46,13 @@ The following arguments are supported:
 
 ~> **NOTE** Azure requires that this Resource Group does not exist in this Subscription (and that the Azure API creates it) - otherwise the deployment will fail.
 
-* `workspace_custom_parameters` - (Optional) A `workspace_custom_parameters` block as documented below.
+* `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-`workspace_custom_parameters` supports the following:
+`custom_parameters` supports the following:
 
 * `public_subnet_name` - (Optional) The name of the Public Subnet within the Virtual Network. Required if `virtual_network_id` is set.
 
