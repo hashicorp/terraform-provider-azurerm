@@ -919,10 +919,6 @@ resource "azurerm_key_vault_key" "test" {
 `, data.RandomInteger, location, data.RandomString)
 }
 
-func testAccAzureRMManagedDisk_diskEncryptionSetResource(data acceptance.TestData) string {
-
-}
-
 func testAccAzureRMManagedDisk_diskEncryptionSet(data acceptance.TestData) string {
 	template := testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data)
 	return fmt.Sprintf(`
