@@ -257,9 +257,13 @@ Azure Container Service (ACS) is being Deprecated in favour of Azure Kubernetes 
 
 The deprecated `failover_policy` block will be removed. This has been replaced by the `geo_location` block.
 
+### Resource: `azurerm_devspace_controller`
+
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
 ### Resource: `azurerm_ddos_protection_plan`
 
-The `azurerm_ddos_protection_planr` resource will be deprecated in favour of a new resources `azurerm_network_ddos_protection_plan`.
+The `azurerm_ddos_protection_plan` resource will be deprecated in favour of a new resources `azurerm_network_ddos_protection_plan`.
 
 ### Resource: `azurerm_dns_mx_record`
 
