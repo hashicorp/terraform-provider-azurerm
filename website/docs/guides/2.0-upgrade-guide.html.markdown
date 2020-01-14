@@ -259,7 +259,7 @@ The deprecated `sku` block has been simplified and replaced by the `sku_name` pr
 
 ### Resource: `azurerm_ddos_protection_plan`
 
-The `azurerm_ddos_protection_planr` resource will be deprecated in favour of a new resources `azurerm_network_ddos_protection_plan`.
+The `azurerm_ddos_protection_plan` resource will be deprecated in favour of a new resources `azurerm_network_ddos_protection_plan`.
 
 ### Resource: `azurerm_dns_mx_record`
 
