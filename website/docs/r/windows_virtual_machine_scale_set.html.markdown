@@ -230,13 +230,15 @@ A `data_disk` block supports the following:
 
 -> **NOTE:** `UltraSSD_LRS` is only supported when `ultra_ssd_enabled` within the `additional_capabilities` block is enabled.
 
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this Data Disk.
+
+-> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
+
+~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
+
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be enabled for this Data Disk? Defaults to `false`.
 
 -> **NOTE:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
-
-* `managed_disk_encryption_set_id` - (Optional) ID of the disk encryption set to use for enabling encryption at rest.
-
--> **NOTE** To associate a custom Disk Encryption Set to a data disk in VMSS, you must grant access of the KeyVault for the Disk Encryption Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption).
 
 ---
 
@@ -322,6 +324,12 @@ A `os_disk` block supports the following:
 
 * `diff_disk_settings` - (Optional) A `diff_disk_settings` block as defined above. Changing this forces a new resource to be created.
 
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this OS Disk.
+
+-> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
+
+~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
+
 * `disk_size_gb` - (Optional) The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine Scale Set is sourced from.
 
 -> **NOTE:** If specified this must be equal to or larger than the size of the Image the VM Scale Set is based on. When creating a larger disk than exists in the image you'll need to repartition the disk to use the remaining space.
@@ -329,10 +337,6 @@ A `os_disk` block supports the following:
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 
 -> **NOTE:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
-
-* `managed_disk_encryption_set_id` - (Optional) ID of the disk encryption set to use for enabling encryption at rest.
-
--> **NOTE** To associate a custom Disk Encryption Set to a OS disk in VMSS, you must grant access of the KeyVault for the Disk Encryption Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption).
 
 ---
 
