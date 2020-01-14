@@ -53,8 +53,17 @@ func resourceArmSubnet() *schema.Resource {
 			},
 
 			"address_prefix": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Deprecated:    "Use the `address_prefixes` property instead.",
+				ConflictsWith: []string{"address_prefixes"},
+			},
+
+			"address_prefixes": {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				ConflictsWith: []string{"address_prefix"},
 			},
 
 			"network_security_group_id": {
@@ -179,13 +188,27 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	addressPrefix := d.Get("address_prefix").(string)
-
-	locks.ByName(vnetName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(vnetName, VirtualNetworkResourceName)
-
-	properties := network.SubnetPropertiesFormat{
-		AddressPrefix: &addressPrefix,
+	var prefixSet bool
+	properties := network.SubnetPropertiesFormat{}
+	if value, ok := d.GetOk("address_prefixes"); ok {
+		var addressPrefixes []string
+		for _, item := range value.([]interface{}) {
+			addressPrefixes = append(addressPrefixes, item.(string))
+		}
+		properties.AddressPrefixes = &addressPrefixes
+		prefixSet = len(addressPrefixes) > 0
+	}
+	if value, ok := d.GetOk("address_prefix"); ok {
+		addressPrefix := value.(string)
+		properties.AddressPrefix = &addressPrefix
+		prefixSet = len(addressPrefix) > 0
+	}
+	if properties.AddressPrefixes != nil && len(*properties.AddressPrefixes) == 1 {
+		properties.AddressPrefix = &(*properties.AddressPrefixes)[0]
+		properties.AddressPrefixes = nil
+	}
+	if !prefixSet {
+		return fmt.Errorf("[ERROR] either address_prefix or address_prefixes is required")
 	}
 
 	if v, ok := d.GetOk("enforce_private_link_service_network_policies"); ok {
@@ -305,7 +328,18 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("virtual_network_name", vnetName)
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
-		d.Set("address_prefix", props.AddressPrefix)
+		if props.AddressPrefix != nil {
+			d.Set("address_prefix", props.AddressPrefix)
+		}
+		if props.AddressPrefixes == nil {
+			if props.AddressPrefix != nil && len(*props.AddressPrefix) > 0 {
+				d.Set("address_prefixes", []string{*props.AddressPrefix})
+			} else {
+				d.Set("address_prefixes", []string{})
+			}
+		} else {
+			d.Set("address_prefixes", props.AddressPrefixes)
+		}
 
 		if p := props.PrivateLinkServiceNetworkPolicies; p != nil {
 			// To enable private endpoints you must disable the network policies for the
