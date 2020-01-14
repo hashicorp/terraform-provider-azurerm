@@ -75,6 +75,7 @@ func TestAccAzureRMManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
 				),
+				ExpectNonEmptyPlan: true, // since the `disk_size_gb` will have changed
 			},
 		},
 	})

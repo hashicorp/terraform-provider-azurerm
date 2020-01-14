@@ -107,9 +107,11 @@ func resourceArmManagedDisk() *schema.Resource {
 			},
 
 			"disk_size_gb": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+				// TODO: update this in 2.0 so that the minimum size is 1
+				// since users looking to use `0` should be using `null` instead
 				ValidateFunc: validateDiskSizeGB,
 			},
 
