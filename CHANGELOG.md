@@ -1,5 +1,9 @@
 ## 1.41.0 (Unreleased)
 
+NOTES:
+
+* `azurerm_managed_disk` - the Azure API now requires that the `storage_account_id` field is specified during import, as such this field is now required during when importing a VHD to a Managed Disk [GH-5250]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_dedicated_host_group` [GH-5307]
@@ -15,10 +19,14 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* Data Source: `azurerm_managed_disk` - exposing `disk_encryption_set_id` [GH-5250]
+* Data Source: `azurerm_managed_disk` - exposing `storage_account_id` [GH-5250]
 * `azurerm_cognitive_account` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5380]
 * `azurerm_devspace_controller` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5379]
 * `azurerm_batch_pool` - support for the `metadata` property [GH-5309]
 * `azurerm_function_app` - convert `connection_string`s from a `TypeList` to a `TypeSet` [GH-5319]
+* `azurerm_managed_disk` - support for configuring `disk_encryption_set_id` [GH-5250]
+* `azurerm_managed_disk` - support for configuring `storage_account_id` which is now required by the Azure API during an import [GH-5250]
 * `azurerm_mariadb_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5378]
 * `azurerm_postgresql_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5376]
 * `azurerm_lb_rule` - support for the `enable_tcp_reset` property [GH-5373]
