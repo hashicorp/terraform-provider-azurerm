@@ -91,7 +91,7 @@ func resourceArmIotHubDPS() *schema.Resource {
 						"capacity": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntBetween(1, 200),
 						},
 					},
 				},
