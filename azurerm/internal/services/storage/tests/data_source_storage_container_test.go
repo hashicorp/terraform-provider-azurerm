@@ -18,12 +18,9 @@ func TestAccDataSourceArmStorageContainer_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMStorageContainer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "containerdstest-"+data.RandomString),
 					resource.TestCheckResourceAttr(data.ResourceName, "container_access_type", "private"),
 					resource.TestCheckResourceAttr(data.ResourceName, "has_immutability_policy", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", "containerdstest-"+data.RandomString),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_account_name", "acctestsadsc"+data.RandomString),
-					resource.TestCheckResourceAttr(data.ResourceName, "properties.%", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "metadata.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "metadata.k1", "v1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "metadata.k2", "v2"),
@@ -61,7 +58,8 @@ resource "azurerm_storage_container" "test" {
 }
 
 data "azurerm_storage_container" "test" {
-	storage_container_id = "${azurerm_storage_container.test.id}"
+  name                 = azurerm_storage_container.test.name
+  storage_account_name = azurerm_storage_container.test.storage_account_name
 }
 
 `, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)

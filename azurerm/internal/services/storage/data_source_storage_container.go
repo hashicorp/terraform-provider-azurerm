@@ -2,15 +2,12 @@ package storage
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
 )
 
 func dataSourceArmStorageContainer() *schema.Resource {
@@ -22,19 +19,14 @@ func dataSourceArmStorageContainer() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"storage_container_id": {
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"storage_account_name": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 
 			"container_access_type": {
@@ -54,17 +46,6 @@ func dataSourceArmStorageContainer() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
-
-			"properties": {
-				Type:       schema.TypeMap,
-				Computed:   true,
-				Deprecated: "This field will be removed in version 2.0 of the Azure Provider",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
 		},
 	}
 }
@@ -74,54 +55,41 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := containers.ParseResourceID(d.Get("storage_container_id").(string))
+	containerName := d.Get("name").(string)
+	accountName := d.Get("storage_account_name").(string)
 
+	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return err
-	}
-
-	account, err := storageClient.FindAccount(ctx, id.AccountName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", id.AccountName, id.ContainerName, err)
+		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", accountName, containerName, err)
 	}
 	if account == nil {
-		log.Printf("[DEBUG] Unable to locate Account %q for Storage Container %q - assuming removed & removing from state", id.AccountName, id.ContainerName)
-		d.SetId("")
-		return nil
+		return fmt.Errorf("Unable to locate Account %q for Storage Container %q", accountName, containerName)
 	}
 
 	client, err := storageClient.ContainersClient(ctx, *account)
-	d.SetId(client.GetResourceID(id.AccountName, id.ContainerName))
-
 	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", accountName, account.ResourceGroup, err)
 	}
 
-	props, err := client.GetProperties(ctx, id.AccountName, id.ContainerName)
+	d.SetId(client.GetResourceID(accountName, containerName))
+
+	props, err := client.GetProperties(ctx, accountName, containerName)
 	if err != nil {
 		if utils.ResponseWasNotFound(props.Response) {
-			log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ContainerName, id.AccountName, account.ResourceGroup)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Container %q was not found in Account %q / Resource Group %q", containerName, accountName, account.ResourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
 	}
 
-	d.Set("name", id.ContainerName)
+	d.Set("name", containerName)
 
-	d.Set("storage_account_name", id.AccountName)
-
-	d.Set("resource_group_name", account.ResourceGroup)
+	d.Set("storage_account_name", accountName)
 
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %+v", err)
-	}
-
-	if err := d.Set("properties", flattenStorageContainerProperties(props)); err != nil {
-		return fmt.Errorf("Error setting `properties`: %+v", err)
 	}
 
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
