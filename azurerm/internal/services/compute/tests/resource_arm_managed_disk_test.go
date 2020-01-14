@@ -219,13 +219,13 @@ func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMManagedDiskNonStandardCasing(data),
+				Config: testAccAzureRMManagedDisk_nonStandardCasing(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
 				),
 			},
 			{
-				Config:             testAccAzureRMManagedDiskNonStandardCasing(data),
+				Config:             testAccAzureRMManagedDisk_nonStandardCasing(data),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -616,7 +616,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDiskNonStandardCasing(data acceptance.TestData) string {
+func testAccAzureRMManagedDisk_nonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

@@ -342,9 +342,11 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 		d.Set("os_type", props.OsType)
 
-		if encryption := props.Encryption; encryption != nil {
-			d.Set("disk_encryption_set_id", encryption.DiskEncryptionSetID)
+		diskEncryptionSetId := ""
+		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {
+			diskEncryptionSetId = *props.Encryption.DiskEncryptionSetID
 		}
+		d.Set("disk_encryption_set_id", diskEncryptionSetId)
 
 		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 			return fmt.Errorf("Error setting `encryption_settings`: %+v", err)
