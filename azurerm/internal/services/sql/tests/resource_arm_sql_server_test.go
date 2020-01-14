@@ -189,37 +189,7 @@ func TestAccAzureRMSqlServer_withBlobAuditingPolices(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.state", "Enabled"),
 				),
 			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key"},
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSqlServer_withoutBlobAuditingPolices(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.state", "Disabled"),
-				),
-			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key"},
-			},
+			data.ImportStep("administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key"),
 		},
 	})
 }
@@ -406,12 +376,12 @@ resource "azurerm_sql_server" "test" {
 func testAccAzureRMSqlServer_withBlobAuditingPolices(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+	name     = "acctestRG-%[1]d"
+	location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
- name                     = "accstr%d"
+ name                     = "accstr%[1]d"
  resource_group_name      = "${azurerm_resource_group.test.name}"
  location                 = "${azurerm_resource_group.test.location}"
  account_tier             = "Standard"
@@ -419,7 +389,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_sql_server" "test" {
-	name                         = "acctestsqlserver%d"
+	name                         = "acctestsqlserver%[1]d"
 	resource_group_name          = "${azurerm_resource_group.test.name}"
 	location                     = "${azurerm_resource_group.test.location}"
 	version                      = "12.0"
@@ -432,5 +402,5 @@ resource "azurerm_sql_server" "test" {
         storage_account_access_key    = "${azurerm_storage_account.test.primary_access_key}"
 	}
 }	
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

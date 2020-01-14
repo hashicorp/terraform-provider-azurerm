@@ -24,11 +24,11 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
- name                     = "accstr"
- resource_group_name      = "${azurerm_resource_group.example.name}"
- location                 = "${azurerm_resource_group.example.location}"
- account_tier             = "Standard"
- account_replication_type = "GRS"
+  name                     = "accstr"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
 }
 
 
@@ -39,12 +39,12 @@ resource "azurerm_sql_server" "example" {
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
-  
+
   blob_extended_auditing_policy {
-		state                         = "Enabled"
-		storage_endpoint              = "${azurerm_storage_account.example.primary_blob_endpoint}"
-        storage_account_access_key    = "${azurerm_storage_account.example.primary_access_key}"
-	}
+    state                      = "Enabled"
+    storage_endpoint           = "${azurerm_storage_account.example.primary_blob_endpoint}"
+    storage_account_access_key = "${azurerm_storage_account.example.primary_access_key}"
+  }
 
 
   tags = {

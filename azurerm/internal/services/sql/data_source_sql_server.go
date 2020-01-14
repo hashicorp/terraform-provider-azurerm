@@ -2,6 +2,7 @@ package sql
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -149,6 +150,18 @@ func dataSourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	if err := d.Set("identity", flattenAzureRmSqlServerIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
+
+	auditingClient := meta.(*clients.Client).Sql.ExtendedServerBlobAuditingPoliciesClient
+	auditingResp, err := auditingClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Error reading SQL Server %q Blob Auditing Policies - removing from state", d.Id())
+		}
+
+		return fmt.Errorf("Error reading SQL Server %s: %v Blob Auditing Policies", name, err)
+	}
+
+	d.Set("blob_extended_auditing_policy", flattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
