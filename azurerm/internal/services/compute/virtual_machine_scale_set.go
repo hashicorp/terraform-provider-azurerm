@@ -2,6 +2,7 @@ package compute
 
 import (
 	"fmt"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
@@ -918,7 +919,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			"disk_size_gb":              diskSizeGb,
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
-			"disk_encryption_set_id": diskEncryptionSetId,
+			"disk_encryption_set_id":    diskEncryptionSetId,
 		})
 	}
 
@@ -987,15 +988,15 @@ func VirtualMachineScaleSetOSDiskSchema() *schema.Schema {
 				},
 
 				"disk_encryption_set_id": {
-					Type:         schema.TypeString,
-					Optional:     true,
+					Type:     schema.TypeString,
+					Optional: true,
 					// Support for rotating the Disk Encryption Set is (apparently) coming a few months following GA
 					// Code="PropertyChangeNotAllowed" Message="Changing property 'encryption.diskEncryptionSetId' is not allowed."
 					ForceNew: true,
 					// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 					//       https://github.com/Azure/azure-rest-api-specs/issues/8132
 					DiffSuppressFunc: suppress.CaseDifference,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc:     azure.ValidateResourceID,
 				},
 			},
 		},
