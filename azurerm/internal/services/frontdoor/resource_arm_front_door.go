@@ -3,7 +3,6 @@ package frontdoor
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-04-01/frontdoor"
@@ -173,12 +172,16 @@ func resourceArmFrontDoor() *schema.Resource {
 										Required:     true,
 										ValidateFunc: ValidateBackendPoolRoutingRuleName,
 									},
-									// Remove default value for #4461
+									"cache_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										Default:  false,
 									},
-									// Remove default value for #4461
 									"cache_query_parameter_strip_directive": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -186,6 +189,7 @@ func resourceArmFrontDoor() *schema.Resource {
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
 										}, false),
+										Default: string(frontdoor.StripNone),
 									},
 									"custom_forwarding_path": {
 										Type:     schema.TypeString,
@@ -200,7 +204,7 @@ func resourceArmFrontDoor() *schema.Resource {
 											string(frontdoor.HTTPSOnly),
 											string(frontdoor.MatchRequest),
 										}, false),
-										Default: string(frontdoor.HTTPSOnly),
+										Default: string(frontdoor.MatchRequest),
 									},
 								},
 							},
@@ -598,12 +602,16 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAzureResourceIDLowerPath(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["frontdoors"]
+	// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+	if name == "" {
+		name = id.Path["Frontdoors"]
+	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -670,12 +678,16 @@ func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAzureResourceIDLowerPath(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["frontdoors"]
+	// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+	if name == "" {
+		name = id.Path["Frontdoors"]
+	}
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -1055,6 +1067,7 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorPat
 	backendPoolName := v["backend_pool_name"].(string)
 	cacheUseDynamicCompression := v["cache_use_dynamic_compression"].(bool)
 	cacheQueryParameterStripDirective := v["cache_query_parameter_strip_directive"].(string)
+	cacheEnabled := v["cache_enabled"].(bool)
 
 	backend := &frontdoor.SubResource{
 		ID: utils.String(frontDoorPath + "/BackendPools/" + backendPoolName),
@@ -1068,9 +1081,14 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorPat
 
 	// Per the portal, if you enable the cache the cache_query_parameter_strip_directive
 	// is then a required attribute else the CacheConfiguration type is null
-	if cacheUseDynamicCompression {
+	if cacheEnabled {
+		dynamicCompression := frontdoor.DynamicCompressionEnabledEnabled
+		if !cacheUseDynamicCompression {
+			dynamicCompression = frontdoor.DynamicCompressionEnabledDisabled
+		}
+
 		forwardingConfiguration.CacheConfiguration = &frontdoor.CacheConfiguration{
-			DynamicCompression:           frontdoor.DynamicCompressionEnabledEnabled,
+			DynamicCompression:           dynamicCompression,
 			QueryParameterStripDirective: frontdoor.Query(cacheQueryParameterStripDirective),
 		}
 	}
@@ -1103,7 +1121,16 @@ func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) []map[strin
 		if properties := v.BackendPoolProperties; properties != nil {
 			result["backend"] = flattenArmFrontDoorBackend(properties.Backends)
 			result["health_probe_name"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings, "HealthProbeSettings")
+			// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+			if result["health_probe_name"] == "" {
+				result["health_probe_name"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings, "healthProbeSettings")
+			}
+
 			result["load_balancing_name"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings, "LoadBalancingSettings")
+			// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+			if result["load_balancing_name"] == "" {
+				result["load_balancing_name"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings, "loadBalancingSettings")
+			}
 		}
 		output = append(output, result)
 	}
@@ -1345,22 +1372,20 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 					v := brc.(frontdoor.ForwardingConfiguration)
 
 					c["backend_pool_name"] = flattenArmFrontDoorSubResource(v.BackendPool, "BackendPools")
+					// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+					if c["backend_pool_name"] == "" {
+						c["backend_pool_name"] = flattenArmFrontDoorSubResource(v.BackendPool, "backendPools")
+					}
 					c["custom_forwarding_path"] = v.CustomForwardingPath
 					c["forwarding_protocol"] = string(v.ForwardingProtocol)
 
 					if cacheConfiguration := v.CacheConfiguration; cacheConfiguration != nil {
-						if queryParameter := cacheConfiguration.QueryParameterStripDirective; queryParameter != "" {
-							c["cache_query_parameter_strip_directive"] = string(queryParameter)
-						} else {
-							c["cache_query_parameter_strip_directive"] = string(frontdoor.StripNone)
+						if stripDirective := cacheConfiguration.QueryParameterStripDirective; stripDirective != "" {
+							c["cache_query_parameter_strip_directive"] = string(stripDirective)
 						}
 
-						c["cache_use_dynamic_compression"] = false
-
 						if dynamicCompression := cacheConfiguration.DynamicCompression; dynamicCompression != "" {
-							if dynamicCompression == frontdoor.DynamicCompressionEnabledEnabled {
-								c["cache_use_dynamic_compression"] = true
-							}
+							c["cache_use_dynamic_compression"] = (dynamicCompression == frontdoor.DynamicCompressionEnabledEnabled)
 						}
 					}
 
@@ -1408,11 +1433,11 @@ func flattenArmFrontDoorSubResource(input *frontdoor.SubResource, resourceType s
 	name := ""
 
 	if id := input.ID; id != nil {
-		aid, err := ParseAzureResourceIDLowerPath(*id)
+		aid, err := azure.ParseAzureResourceID(*id)
 		if err != nil {
 			return ""
 		}
-		name = aid.Path[strings.ToLower(resourceType)]
+		name = aid.Path[resourceType]
 	}
 
 	return name
@@ -1427,6 +1452,10 @@ func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubReso
 
 	for _, v := range *input {
 		name := flattenArmFrontDoorSubResource(&v, "FrontendEndpoints")
+		// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+		if name == "" {
+			name = flattenArmFrontDoorSubResource(&v, "frontendEndpoints")
+		}
 		output = append(output, name)
 	}
 
