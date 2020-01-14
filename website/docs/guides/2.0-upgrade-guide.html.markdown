@@ -341,7 +341,7 @@ The deprecated field `linked_service_properties` will be removed. This has been 
 
 ### Resource: `azurerm_mysql_server`
 
-The deprecated `sku` block has been simplified and replaced by the `sku_name` property and will be removed.
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
 
 ### Resource: `azurerm_mssql_elasticpool`
 
