@@ -405,6 +405,63 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_updateHealthProbe(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherScaleInPolicy(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "scale_in_policy", "Default"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+				"terraform_should_roll_instances_when_required",
+			),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherTerminateNotification(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			// turn terminate notification on
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherTerminateNotification(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "terminate_notification.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "terminate_notification.0.enabled", "true"),
+				),
+			},
+			// turn terminate notification off
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherTerminateNotification(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "terminate_notification.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "terminate_notification.0.enabled", "false"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+				"terraform_should_roll_instances_when_required",
+			),
+		},
+	})
+}
+
 func testAccAzureRMLinuxVirtualMachineScaleSet_otherBootDiagnostics(data acceptance.TestData) string {
 	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
@@ -1454,4 +1511,96 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherScaleInPolicy(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    disk_size_gb         = 30
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  scale_in_policy = "Default"
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherTerminateNotification(data acceptance.TestData, enabled bool) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    disk_size_gb         = 30
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  terminate_notification {
+    enabled = %t
+  }
+}
+`, template, data.RandomInteger, enabled)
 }
