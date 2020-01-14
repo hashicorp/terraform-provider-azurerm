@@ -24,10 +24,7 @@ resource "azurerm_cognitive_account" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   kind                = "Face"
 
-  sku {
-    name = "S0"
-    tier = "Standard"
-  }
+  sku_name = "S0"
 
   tags = {
     Acceptance = "Test"
@@ -47,17 +44,10 @@ The following arguments are supported:
 
 * `kind` - (Required) Specifies the type of Cognitive Service Account that should be created. Possible values are `Academic`, `Bing.Autosuggest`, `Bing.Autosuggest.v7`, `Bing.CustomSearch`, `Bing.Search`, `Bing.Search.v7`, `Bing.Speech`, `Bing.SpellCheck`, `Bing.SpellCheck.v7`, `CognitiveServices`, `ComputerVision`, `ContentModerator`, `CustomSpeech`, `CustomVision.Prediction`, `CustomVision.Training`, `Emotion`, `Face`, `LUIS`, `LUIS.Authoring`, `QnAMaker`, `Recommendations`, `SpeakerRecognition`, `Speech`, `SpeechServices`, `SpeechTranslation`, `TextAnalytics`, `TextTranslation` and `WebLM`. Changing this forces a new resource to be created.
 
-* `sku` - (Required) A `sku` block as defined below.
+* `sku_name` - (Required) Specifies the SKU Name for this Cognitive Service Account. Possible values are `F0`, `F1`, `S0`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1`, and `P2`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
----
-
-A `sku` block supports the following:
-
-* `name` - (Required) Specifies the Name of the Sku. Possible values are `F0`, `F1`, `S0`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1` and `P2`.
-
-* `tier` - (Required) Specifies the Tier of the Sku. Possible values include `Free`, `Standard` and `Premium`.
 
 ## Attributes Reference
 

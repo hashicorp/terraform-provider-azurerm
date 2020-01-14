@@ -84,10 +84,23 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				}, false),
 			},
 
+			"sku_name": {
+				Type:          schema.TypeString,
+				Optional:      true, // required in 2.0
+				Computed:      true, // remove in 2.0
+				ConflictsWith: []string{"sku"},
+				ValidateFunc: validation.StringInSlice([]string{
+					"F0", "F1", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2",
+				}, false),
+			},
+
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"sku_name"},
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -154,17 +167,25 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	kind := d.Get("kind").(string)
-	t := d.Get("tags").(map[string]interface{})
-	sku := expandCognitiveAccountSku(d)
+	var sku *cognitiveservices.Sku
+	if b, ok := d.GetOk("sku_name"); ok {
+		var err error
+		sku, err = expandAccountSkuName(b.(string))
+		if err != nil {
+			return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
+		}
+	} else if _, ok := d.GetOk("sku"); ok {
+		sku = expandCognitiveAccountSku(d)
+	} else {
+		return fmt.Errorf("One of `sku` or `sku_name` must be set for Cognitive Account %q (Resource Group %q)", name, resourceGroup)
+	}
 
 	properties := cognitiveservices.Account{
-		Kind:       utils.String(kind),
-		Location:   utils.String(location),
+		Kind:       utils.String(d.Get("kind").(string)),
+		Location:   utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Sku:        sku,
 		Properties: &cognitiveservices.AccountProperties{},
-		Tags:       tags.Expand(t),
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, name, properties); err != nil {
@@ -194,16 +215,25 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 	resourceGroup := id.ResourceGroup
 	name := id.Path["accounts"]
 
-	t := d.Get("tags").(map[string]interface{})
-	sku := expandCognitiveAccountSku(d)
+	var sku *cognitiveservices.Sku
+	if b, ok := d.GetOk("sku_name"); ok {
+		var err error
+		sku, err = expandAccountSkuName(b.(string))
+		if err != nil {
+			return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
+		}
+	} else if _, ok := d.GetOk("sku"); ok {
+		sku = expandCognitiveAccountSku(d)
+	} else {
+		return fmt.Errorf("One of `sku` or `sku_name` must be set for Cognitive Account %q (Resource Group %q)", name, resourceGroup)
+	}
 
 	properties := cognitiveservices.Account{
 		Sku:  sku,
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	_, err = client.Update(ctx, resourceGroup, name, properties)
-	if err != nil {
+	if _, err = client.Update(ctx, resourceGroup, name, properties); err != nil {
 		return fmt.Errorf("Error updating Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -242,6 +272,10 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+	}
+
 	if err = d.Set("sku", flattenCognitiveAccountSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
@@ -262,7 +296,6 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Set("primary_access_key", keys.Key1)
-
 	d.Set("secondary_access_key", keys.Key2)
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -289,6 +322,25 @@ func resourceArmCognitiveAccountDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
+	var tier cognitiveservices.SkuTier
+	switch skuName[0:1] {
+	case "F":
+		tier = cognitiveservices.Free
+	case "S":
+		tier = cognitiveservices.Standard
+	case "P":
+		tier = cognitiveservices.Premium
+	default:
+		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, skuName[0:1])
+	}
+
+	return &cognitiveservices.Sku{
+		Name: utils.String(skuName),
+		Tier: tier,
+	}, nil
 }
 
 func expandCognitiveAccountSku(d *schema.ResourceData) *cognitiveservices.Sku {
