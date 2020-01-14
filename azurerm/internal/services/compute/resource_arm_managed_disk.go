@@ -91,6 +91,12 @@ func resourceArmManagedDisk() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"storage_account_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"image_reference_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -224,6 +230,12 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("`source_uri` must be specified when `create_option` is set to `Import`")
 		}
 
+		storageAccountId := d.Get("storage_account_id").(string)
+		if storageAccountId == "" {
+			return fmt.Errorf("`storage_account_id` must be specified when `create_option` is set to `Import`")
+		}
+
+		props.CreationData.StorageAccountID = utils.String(storageAccountId)
 		props.CreationData.SourceURI = utils.String(sourceUri)
 	}
 	if createOption == compute.Copy || createOption == compute.Restore {
@@ -337,6 +349,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 
 			d.Set("source_resource_id", creationData.SourceResourceID)
 			d.Set("source_uri", creationData.SourceURI)
+			d.Set("storage_account_id", creationData.StorageAccountID)
 		}
 
 		d.Set("disk_size_gb", props.DiskSizeGB)

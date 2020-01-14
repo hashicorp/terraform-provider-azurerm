@@ -47,6 +47,8 @@ output "id" {
 
 * `source_resource_id` - The ID of an existing Managed Disk which this Disk was created from.
 
+* `storage_account_id` - The ID of the Storage Account where the `source_uri` is located.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 * `zones` - A list of Availability Zones where the Managed Disk exists.

@@ -548,6 +548,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "Standard_LRS"
   create_option        = "Import"
   source_uri           = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+  storage_account_id   = azurerm_storage_account.test.id
   disk_size_gb         = "45"
 
   tags = {

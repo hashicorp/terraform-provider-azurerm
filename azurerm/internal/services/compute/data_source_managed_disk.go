@@ -69,6 +69,11 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Computed: true,
 			},
 
+			"storage_account_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"storage_account_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -122,14 +127,19 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 
 			d.Set("source_resource_id", creationData.SourceResourceID)
 			d.Set("source_uri", creationData.SourceURI)
+			d.Set("storage_account_id", creationData.StorageAccountID)
 		}
+
 		d.Set("disk_size_gb", props.DiskSizeGB)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 		d.Set("os_type", props.OsType)
-		if encryption := props.Encryption; encryption != nil {
-			d.Set("disk_encryption_set_id", encryption.DiskEncryptionSetID)
+
+		diskEncryptionSetId := ""
+		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {
+			diskEncryptionSetId = *props.Encryption.DiskEncryptionSetID
 		}
+		d.Set("disk_encryption_set_id", diskEncryptionSetId)
 	}
 
 	d.Set("zones", utils.FlattenStringSlice(resp.Zones))

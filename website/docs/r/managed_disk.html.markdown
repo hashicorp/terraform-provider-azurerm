@@ -72,17 +72,13 @@ resource "azurerm_managed_disk" "copy" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the managed disk. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the Managed Disk. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create
-    the managed disk.
+* `resource_group_name` - (Required) The name of the Resource Group where the Managed Disk should exist.
 
-* `location` - (Required) Specified the supported Azure location where the resource exists.
-    Changing this forces a new resource to be created.
+* `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `storage_account_type` - (Required) The type of storage to use for the managed disk.
-    Allowable values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` or `UltraSSD_LRS`.
+* `storage_account_type` - (Required) The type of storage to use for the managed disk. Possible values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` or `UltraSSD_LRS`.
 
 -> **Note**: A `storage_account_type` of type `UltraSSD_LRS` and the arguments `disk_iops_read_write` and `disk_mbps_read_write` are currently in private preview and are not available to subscriptions that have not requested onboarding to `Azure Ultra Disk Storage` private preview. `Azure Ultra Disk Storage` is only available in `East US 2`, `North Europe`, and `Southeast Asia` regions. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd), [product blog](https://azure.microsoft.com/en-us/blog/announcing-the-general-availability-of-azure-ultra-disk-storage/) and [FAQ](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq-for-disks#ultra-disks).
 
@@ -93,15 +89,7 @@ The following arguments are supported:
  * `FromImage` - Copy a Platform Image (specified with `image_reference_id`)
  * `Restore` - Set by Azure Backup or Site Recovery on a restored disk (specified with `source_resource_id`).
 
-* `source_uri` - (Optional) URI to a valid VHD file to be used when `create_option` is `Import`.
-
-* `source_resource_id` - (Optional) ID of an existing managed disk to copy `create_option` is `Copy`
-    or the recovery point to restore when `create_option` is `Restore`
-
-* `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`.
-
-* `os_type` - (Optional) Specify a value when the source of an `Import` or `Copy`
-    operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`
+---
 
 * `disk_encryption_set_id` - (Optional) The ID of a Disk Encryption Set which should be used to encrypt this Managed Disk. Changing this forces a new resource to be created.
 
@@ -116,6 +104,16 @@ The following arguments are supported:
 * `disk_size_gb` - (Optional, Required for a new managed disk) Specifies the size of the managed disk to create in gigabytes. If `create_option` is `Copy` or `FromImage`, then the value must be equal to or greater than the source's size.
 
 * `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
+
+* `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`.
+
+* `os_type` - (Optional) Specify a value when the source of an `Import` or `Copy` operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`.
+
+* `source_resource_id` - (Optional) The ID of an existing Managed Disk to copy `create_option` is `Copy` or the recovery point to restore when `create_option` is `Restore`
+
+* `source_uri` - (Optional) URI to a valid VHD file to be used when `create_option` is `Import`.
+
+* `storage_account_id` - (Optional) The ID of the Storage Account where the `source_uri` is located. Required when `create_option` is set to `Import`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -135,7 +133,7 @@ The `disk_encryption_key` block supports:
 
 ---
 
-The `encryption_settings` supports:
+The `encryption_settings` block supports:
 
 * `enabled` - (Required) Is Encryption enabled on this Managed Disk? Changing this forces a new resource to be created.
 
@@ -155,7 +153,7 @@ The `key_encryption_key` block supports:
 
 The following attributes are exported:
 
-* `id` - The managed disk ID.
+* `id` - The ID of the Managed Disk.
 
 ## Import
 
