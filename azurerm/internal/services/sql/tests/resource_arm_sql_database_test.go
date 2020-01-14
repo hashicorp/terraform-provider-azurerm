@@ -420,37 +420,7 @@ func TestAccAzureRMSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.state", "Enabled"),
 				),
 			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key", "create_mode"},
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSqlDatabase_withoutBlobAuditingPolices(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSqlDatabase_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.state", "Disabled"),
-				),
-			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key", "create_mode"},
-			},
+			data.ImportStep("administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key", "create_mode"),
 		},
 	})
 }

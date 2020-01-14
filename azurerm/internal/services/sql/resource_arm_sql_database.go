@@ -323,7 +323,6 @@ func resourceArmSqlDatabase() *schema.Resource {
 			"blob_extended_auditing_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -335,7 +334,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 						"storage_endpoint": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validate.URLIsHTTPS,
 						},
 						"storage_account_access_key": {
 							Type:         schema.TypeString,
@@ -344,8 +343,9 @@ func resourceArmSqlDatabase() *schema.Resource {
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"retention_days": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 3285),
 						},
 						"audit_actions_and_groups": {
 							Type:     schema.TypeSet,
@@ -357,17 +357,10 @@ func resourceArmSqlDatabase() *schema.Resource {
 							},
 						},
 						"storage_account_subscription_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-								v := val.(string)
-								_, err := uuid.FromString(v)
-								if err != nil {
-									errs = append(errs, fmt.Errorf("%q is not in correct format:%+v", key, err))
-								}
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.UUID,
 						},
 						"is_storage_secondary_key_in_use": {
 							Type:     schema.TypeBool,
@@ -559,11 +552,10 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error setting database threat detection policy: %+v", err)
 	}
 
+	auditingClient := meta.(*clients.Client).Sql.ExtendedDatabaseBlobAuditingPoliciesClient
 	if _, ok := d.GetOk("blob_extended_auditing_policy"); ok {
-		auditingClient := meta.(*clients.Client).Sql.ExtendedDatabaseBlobAuditingPoliciesClient
-		extendedDBBlobAuditingPolicyProperties := expandAzureRmSqlDBBlobAuditingPolicies(d)
 		auditingParameters := sql.ExtendedDatabaseBlobAuditingPolicy{
-			ExtendedDatabaseBlobAuditingPolicyProperties: extendedDBBlobAuditingPolicyProperties,
+			ExtendedDatabaseBlobAuditingPolicyProperties: expandAzureRmSqlDBBlobAuditingPolicies(d),
 		}
 		_, err := auditingClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, auditingParameters)
 		if err != nil {
@@ -833,29 +825,19 @@ func expandAzureRmSqlDBBlobAuditingPolicies(d *schema.ResourceData) *sql.Extende
 		return &sql.ExtendedDatabaseBlobAuditingPolicyProperties{}
 	}
 	dbBlobAuditingPolicies := dbBlobAuditingPoliciesList[0].(map[string]interface{})
-	state := sql.BlobAuditingPolicyState(dbBlobAuditingPolicies["state"].(string))
-	storageEndpoint := dbBlobAuditingPolicies["storage_endpoint"].(string)
-	storageAccountAccessKey := dbBlobAuditingPolicies["storage_account_access_key"].(string)
 
 	ExtendedDatabaseBlobAuditingPolicyProperties := sql.ExtendedDatabaseBlobAuditingPolicyProperties{
-		State:                   state,
-		StorageEndpoint:         &storageEndpoint,
-		StorageAccountAccessKey: &storageAccountAccessKey,
+		State:                   sql.BlobAuditingPolicyState(dbBlobAuditingPolicies["state"].(string)),
+		StorageEndpoint:         utils.String(dbBlobAuditingPolicies["storage_endpoint"].(string)),
+		StorageAccountAccessKey: utils.String(dbBlobAuditingPolicies["storage_account_access_key"].(string)),
 	}
 	//retention_days
 	if retentionDays, ok := dbBlobAuditingPolicies["retention_days"]; ok {
-		retentionDays := int32(retentionDays.(int))
-		ExtendedDatabaseBlobAuditingPolicyProperties.RetentionDays = &retentionDays
+		ExtendedDatabaseBlobAuditingPolicyProperties.RetentionDays = utils.Int32(int32(retentionDays.(int)))
 	}
 	//audit_actions_and_groups
-	if r, ok := d.Get("audit_actions_and_groups").(*schema.Set); ok && r.Len() > 0 {
-		var auditActionsAndGroups []string
-		for _, v := range r.List() {
-			s := v.(string)
-			auditActionsAndGroups = append(auditActionsAndGroups, s)
-		}
-
-		ExtendedDatabaseBlobAuditingPolicyProperties.AuditActionsAndGroups = &auditActionsAndGroups
+	if r, ok := d.GetOk("audit_actions_and_groups"); ok {
+		ExtendedDatabaseBlobAuditingPolicyProperties.AuditActionsAndGroups = utils.ExpandStringSlice(r.([]interface{}))
 	}
 	//storage_account_subscription_id
 	if storageAccountSubscriptionID, ok := dbBlobAuditingPolicies["storage_account_subscription_id"]; ok && storageAccountSubscriptionID != "" {
@@ -864,8 +846,7 @@ func expandAzureRmSqlDBBlobAuditingPolicies(d *schema.ResourceData) *sql.Extende
 	}
 	//is_storage_secondary_key_in_use
 	if isStorageSecondaryKeyInUse, ok := dbBlobAuditingPolicies["is_storage_secondary_key_in_use"]; ok {
-		isStorageSecondaryKeyInUse := isStorageSecondaryKeyInUse.(bool)
-		ExtendedDatabaseBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = &isStorageSecondaryKeyInUse
+		ExtendedDatabaseBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = utils.Bool(isStorageSecondaryKeyInUse.(bool))
 	}
 	return &ExtendedDatabaseBlobAuditingPolicyProperties
 }
@@ -891,20 +872,8 @@ func flattenAzureRmSqlDBBlobAuditingPolicies(extendedDatabaseBlobAuditingPolicy 
 	}
 
 	// storage_account_access_key will not be returned, so we transfer the schema value
-	if blobExtendedAuditing, ok := d.GetOk("blob_extended_auditing_policy"); ok {
-		var val []interface{}
-
-		// prior to 1.34 this was a *schema.Set, now it's a List - try both
-		if v, ok := blobExtendedAuditing.([]interface{}); ok {
-			val = v
-		} else if v, ok := blobExtendedAuditing.(*schema.Set); ok {
-			val = v.List()
-		}
-
-		if len(val) > 0 && val[0] != nil {
-			raw := val[0].(map[string]interface{})
-			result["storage_account_access_key"] = raw["storage_account_access_key"].(string)
-		}
+	if blobExtendedAuditing, ok := d.GetOk("blob_extended_auditing_policy.0.storage_account_access_key"); ok {
+		result["storage_account_access_key"] = blobExtendedAuditing.(string)
 	}
 
 	return []interface{}{result}
