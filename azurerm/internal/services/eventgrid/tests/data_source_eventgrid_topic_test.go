@@ -29,12 +29,12 @@ func TestAccDataSourceAzureRMEventGridTopic_basic(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMEventGridTopic_basic(data acceptance.TestData) string {
-	template := testAccAzureRMEventGridDomain_basic(data)
+	template := testAccAzureRMEventGridTopic_basic(data)
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_eventgrid_topic" "test" {
-  name                = "${azurerm_event_grid_topic.test.name}"
+  name                = "${azurerm_eventgrid_topic.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, template)

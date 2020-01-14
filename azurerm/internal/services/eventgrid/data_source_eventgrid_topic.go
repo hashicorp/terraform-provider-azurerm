@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -22,15 +23,14 @@ func dataSourceArmEventGridTopic() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-
-			"tags": tags.Schema(),
 
 			"endpoint": {
 				Type:     schema.TypeString,
@@ -48,6 +48,8 @@ func dataSourceArmEventGridTopic() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -75,7 +77,7 @@ func dataSourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(*resp.ID)
-	d.Set("name", resp.Name)
+	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
