@@ -162,8 +162,6 @@ The following arguments are supported:
 
 * `server_configuration` - (Optional) The `server_configurations_management_setting` block defined below.
 
-* `storage_configuration` - (Optional) The `storage_configuration_setting` block defined below.Customize performance, size, and workload type to optimize storage for this virtual machine. For optimal performance, separate drives will be created for data and log storage by default. [Learn more about SQL Server best performance practices](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/sql/virtual-machines-windows-sql-performance).
-
 * `tags` - (Optional) The Resource tags. Changing this forces a new resource to be created.
 
 
@@ -205,26 +203,6 @@ The `server_configurations_management_setting` block supports the following:
 * `sql_connectivity_update_password` - (Optional) The SQL Server sysadmin login password.
 
 * `is_r_services_enabled` - (Optional) Enable or disable R services (SQL 2016 onwards).Enables SQL Server Machine Learning Services (In-Database), allowing you to utilize advanced analytics within your SQL Server. SQL Server Machine Learning Services (In-Database) is only supported with SQL Server 2017 Enterprise.
-
----
-
-The `storage_configuration_setting` block supports the following:
-
-* `storage_workload_type` - (Optional) The storage workload type. Possible values include: 'GENERAL', 'OLTP'(Transactional processing), 'DW'(Data warehousing). Defaults to `GENERAL`.
-
-* `sql_data_luns` - (Optional) Set of logical Unit Numbers for the disks.
-
-* `sql_data_default_file_path` - (Optional) The SQL Server default file path
-
-* `sql_log_luns` - (Optional) Set of logical Unit Numbers for the disks.
-
-* `sql_log_default_file_path` - (Optional) The SQL Server default file path
-
-* `sql_temp_db_luns` - (Optional) Set of Logical Unit Numbers for the disks.
-
-* `sql_temp_db_default_file_path` - (Optional) The SQL Server default file path
-
-
 
 ## Attributes Reference
 

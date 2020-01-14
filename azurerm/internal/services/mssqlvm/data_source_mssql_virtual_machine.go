@@ -48,6 +48,89 @@ func dataSourceArmMsSqlVirtualMachine() *schema.Resource {
 				Computed: true,
 			},
 
+			"auto_patching": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"day_of_week": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"enable": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"maintenance_window_duration_in_minutes": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"maintenance_window_starting_hour": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"key_vault_credential": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enable": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"credential_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"azure_key_vault_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"service_principal_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"service_principal_secret": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"server_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"is_r_services_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"sql_connectivity_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"sql_connectivity_port": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"sql_connectivity_update_password": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"sql_connectivity_update_user_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -61,7 +144,8 @@ func dataSourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface
 	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroupName, name, "")
+	expandSettings := "autoPatchingSettings,keyVaultCredentialSettings,serverConfigurationsManagementSettings"
+	resp, err := client.Get(ctx, resourceGroupName, name, expandSettings)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q) was not found", name, resourceGroupName)
@@ -80,18 +164,9 @@ func dataSourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface
 		d.Set("sql_sku", string(properties.SQLImageSku))
 		d.Set("sql_license_type", string(properties.SQLServerLicenseType))
 		d.Set("virtual_machine_resource_id", properties.VirtualMachineResourceID)
-	}
-	if v := flattenArmSqlVirtualMachineAutoPatching(d); v != nil {
-		d.Set("auto_patching", v)
-	}
-	if v := flattenArmSqlVirtualMachineKeyVaultCredential(d); v != nil {
-		d.Set("key_vault_credential", v)
-	}
-	if v := flattenArmSqlVirtualMachineServerConfigurationsManagement(d); v != nil {
-		d.Set("server_configuration", v)
-	}
-	if v := flattenArmSqlVirtualMachineStorageConfiguration(d); v != nil {
-		d.Set("storage_configuration", v)
+		d.Set("auto_patching", flattenArmSqlVirtualMachineAutoPatching(properties.AutoPatchingSettings))
+		d.Set("key_vault_credential", flattenArmSqlVirtualMachineKeyVaultCredential(properties.KeyVaultCredentialSettings, d))
+		d.Set("server_configuration", flattenArmSqlVirtualMachineServerConfigurationsManagement(properties.ServerConfigurationsManagementSettings, d))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
