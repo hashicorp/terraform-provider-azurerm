@@ -29,34 +29,12 @@ func dataSourceArmManagedDisk() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"zones": azure.SchemaZonesComputed(),
-
-			"storage_account_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"source_uri": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"source_resource_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"os_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"disk_size_gb": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-
 			"create_option": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"disk_encryption_set_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -71,7 +49,39 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Computed: true,
 			},
 
+			"disk_size_gb": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"os_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"source_resource_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"source_uri": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"storage_account_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"storage_account_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
+
+			"zones": azure.SchemaZonesComputed(),
 		},
 	}
 }
@@ -94,22 +104,45 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.SetId(*resp.ID)
 
+	d.Set("name", name)
+	d.Set("resource_group_name", resGroup)
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
 	if sku := resp.Sku; sku != nil {
 		d.Set("storage_account_type", string(sku.Name))
 	}
 
 	if props := resp.DiskProperties; props != nil {
+		if creationData := props.CreationData; creationData != nil {
+			d.Set("create_option", string(creationData.CreateOption))
+
+			imageReferenceID := ""
+			if creationData.ImageReference != nil && creationData.ImageReference.ID != nil {
+				imageReferenceID = *creationData.ImageReference.ID
+			}
+			d.Set("image_reference_id", imageReferenceID)
+
+			d.Set("source_resource_id", creationData.SourceResourceID)
+			d.Set("source_uri", creationData.SourceURI)
+			d.Set("storage_account_id", creationData.StorageAccountID)
+		}
+
 		d.Set("disk_size_gb", props.DiskSizeGB)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 		d.Set("os_type", props.OsType)
+
+		diskEncryptionSetId := ""
+		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {
+			diskEncryptionSetId = *props.Encryption.DiskEncryptionSetID
+		}
+		d.Set("disk_encryption_set_id", diskEncryptionSetId)
 	}
 
-	if resp.CreationData != nil {
-		flattenAzureRmManagedDiskCreationData(d, resp.CreationData)
-	}
-
-	d.Set("zones", resp.Zones)
+	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
