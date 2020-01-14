@@ -3,7 +3,6 @@ package compute
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -43,7 +42,7 @@ func resourceArmDedicatedHostGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[^_\W][\w-.]{0,78}[\w]$`), ""),
+				ValidateFunc: validateDedicatedHostGroupName(),
 			},
 
 			"location": azure.SchemaLocation(),
