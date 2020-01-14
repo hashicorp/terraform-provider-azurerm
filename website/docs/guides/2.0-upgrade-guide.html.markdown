@@ -299,6 +299,14 @@ The deprecated `location` field will be removed, since this is no longer used.
 
 The deprecated `internal_public_ip_address_id` field in the `ip_configuration` block will be removed. This field has been replaced by the `public_ip_address_id` field in the `ip_configuration` block.
 
+### Resource: `azurerm_iothub`
+
+The deprecated `sku.tier` property will be remove.
+
+### Resource: `azurerm_iothub_dps`
+
+The deprecated `sku.tier` property will be remove.
+
 ### Resource: `azurerm_iot_dps`
 
 This resource has been renamed to `azurerm_iothub_dps` which is available from v1.37 of the AzureRM Provider - instructions on [how to migrate are available in this guide](https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html). As such this resource will be removed.
