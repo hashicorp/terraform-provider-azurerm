@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_endpoint"
-sidebar_current: "docs-azurerm-resource-private-endpoint"
 description: |-
   Manages an Private Endpoint.
 ---
@@ -36,7 +35,7 @@ resource "azurerm_subnet" "service" {
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.1.0/24"
 
-  disable_private_link_service_network_policy_enforcement  = true
+  disable_private_link_service_network_policy_enforcement = true
 }
 
 resource "azurerm_subnet" "endpoint" {

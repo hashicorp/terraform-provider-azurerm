@@ -2,7 +2,6 @@
 subcategory: "Bot"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_web_app"
-sidebar_current: "docs-azurerm-resource-bot-web-app"
 description: |-
   Manages a Web App Bot.
 ---
@@ -17,7 +16,7 @@ Manages a Web App Bot.
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

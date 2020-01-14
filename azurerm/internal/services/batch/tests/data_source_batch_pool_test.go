@@ -11,14 +11,13 @@ import (
 
 func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
-	config := testAccDataSourceAzureRMBatchPool_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMBatchPool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testaccpool%s", data.RandomString)),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
@@ -52,6 +51,7 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_registries.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_registries.0.registry_server", "myContainerRegistry.azurecr.io"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_registries.0.user_name", "myUserName"),
+					resource.TestCheckResourceAttr(data.ResourceName, "metadata.tagName", "Example tag"),
 				),
 			},
 		},
@@ -148,6 +148,10 @@ resource "azurerm_batch_pool" "test" {
         scope           = "Task"
       }
     }
+  }
+
+  metadata = {
+    tagName = "Example tag"
   }
 }
 

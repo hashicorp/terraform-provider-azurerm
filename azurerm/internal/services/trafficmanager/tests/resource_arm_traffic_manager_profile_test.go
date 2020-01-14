@@ -310,6 +310,9 @@ func TestAccAzureRMTrafficManagerProfile_fastEndpointFailoverSettingsError(t *te
 
 func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.ProfilesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -323,8 +326,6 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.ProfilesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerProfilesClient: %+v", err)
@@ -340,6 +341,7 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 
 func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.ProfilesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_profile" {
@@ -350,7 +352,6 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return nil

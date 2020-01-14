@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account_network_rules"
-sidebar_current: "docs-azurerm-resource-storage-account-network-rules"
 description: |-
   Manages network rules inside of a Azure Storage Account.
 ---
@@ -53,13 +52,13 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_account_network_rules" "test" {
-  resource_group_name  = "${azurerm_resource_group.testrg.name}"
-  storage_account_name = "${azurerm_storage_account.testsa.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
 
   default_action             = "Allow"
   ip_rules                   = ["127.0.0.1"]
   virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
-  bypass = ["Metrics"]
+  bypass                     = ["Metrics"]
 }
 ```
 

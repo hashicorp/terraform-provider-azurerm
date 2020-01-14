@@ -2,7 +2,6 @@
 subcategory: "Data Lake"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store"
-sidebar_current: "docs-azurerm-resource-data-lake-store-x"
 description: |-
   Manages an Azure Data Lake Store.
 ---
@@ -15,7 +14,7 @@ Manages an Azure Data Lake Store.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

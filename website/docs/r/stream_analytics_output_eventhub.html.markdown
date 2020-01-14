@@ -2,7 +2,6 @@
 subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_output_eventhub"
-sidebar_current: "docs-azurerm-resource-stream-analytics-output-eventhub"
 description: |-
   Manages a Stream Analytics Output to an EventHub.
 ---

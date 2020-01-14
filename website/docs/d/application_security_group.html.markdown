@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_security_group"
-sidebar_current: "docs-azurerm-datasource-network-application-security-group"
 description: |-
   Gets information about an existing Application Security Group.
 ---

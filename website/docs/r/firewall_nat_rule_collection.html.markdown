@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_firewall_nat_rule_collection"
-sidebar_current: "docs-azurerm-resource-network-firewall-nat-rule-collection"
 description: |-
   Manages a NAT Rule Collection within an Azure Firewall.
 

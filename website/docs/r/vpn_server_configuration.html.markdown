@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_vpn_server_configuration"
-sidebar_current: "docs-azurerm-network-vpn-server-configuration"
 description: |-
     Manages a VPN Server Configuration.
 ---

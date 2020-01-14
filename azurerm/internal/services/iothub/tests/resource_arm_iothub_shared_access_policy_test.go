@@ -167,6 +167,7 @@ resource "azurerm_iothub_shared_access_policy" "test" {
 
 func testCheckAzureRMIotHubSharedAccessPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -180,8 +181,6 @@ func testCheckAzureRMIotHubSharedAccessPolicyExists(resourceName string) resourc
 		iothubName := parsedIothubId.Path["IotHubs"]
 		keyName := parsedIothubId.Path["IotHubKeys"]
 		resourceGroup := parsedIothubId.ResourceGroup
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 
 		for accessPolicyIterator, err := client.ListKeysComplete(ctx, resourceGroup, iothubName); accessPolicyIterator.NotDone(); err = accessPolicyIterator.NextWithContext(ctx) {
 			if err != nil {

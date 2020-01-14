@@ -126,6 +126,9 @@ func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
 
 func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.StoreFilesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -134,9 +137,6 @@ func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestC
 
 		remoteFilePath := rs.Primary.Attributes["remote_file_path"]
 		accountName := rs.Primary.Attributes["account_name"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Datalake.StoreFilesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
 		if err != nil {

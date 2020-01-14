@@ -13,15 +13,14 @@ import (
 
 func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
-	preConfig := testAccAzureRMDevTestLabSchedule_autoShutdownBasic(data)
-	postConfig := testAccAzureRMDevTestLabSchedule_autoShutdownBasicUpdate(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDevTestLabSchedule_autoShutdownBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDevTestLabScheduleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "status", "Disabled"),
@@ -33,7 +32,7 @@ func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDevTestLabSchedule_autoShutdownBasicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDevTestLabScheduleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "status", "Enabled"),
@@ -51,15 +50,14 @@ func TestAccAzureRMDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 
 func TestAccAzureRMDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
-	preConfig := testAccAzureRMDevTestLabSchedule_autoStartupBasic(data)
-	postConfig := testAccAzureRMDevTestLabSchedule_autoStartupBasicUpdate(data)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDevTestLabScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDevTestLabSchedule_autoStartupBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDevTestLabScheduleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "status", "Disabled"),
@@ -71,7 +69,7 @@ func TestAccAzureRMDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 			},
 			data.ImportStep("task_type"),
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDevTestLabSchedule_autoStartupBasicUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDevTestLabScheduleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "status", "Enabled"),
@@ -107,6 +105,9 @@ func TestAccAzureRMDevTestLabSchedule_concurrent(t *testing.T) {
 
 func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabSchedulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -115,9 +116,6 @@ func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.Test
 		name := rs.Primary.Attributes["name"]
 		devTestLabName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabSchedulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, devTestLabName, name, "")
 		if err != nil {

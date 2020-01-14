@@ -15,6 +15,9 @@ var olderKubernetesVersion = "1.14.8"
 var currentKubernetesVersion = "1.15.5"
 
 func TestAccAzureRMKubernetes_all(t *testing.T) {
+	// we can conditionally run tests tests individually, or combined
+	checkIfShouldRunTestsCombined(t)
+
 	// NOTE: this is a combined test rather than separate split out tests to
 	// ease the load on the kubernetes api
 	testCases := map[string]map[string]func(t *testing.T){
@@ -28,10 +31,11 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"addonProfileRouting":                   testAccAzureRMKubernetesCluster_addonProfileRouting,
 		},
 		"auth": {
-			"apiServerAuthorizedIPRanges": testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges,
-			"enablePodSecurityPolicy":     testAccAzureRMKubernetesCluster_enablePodSecurityPolicy,
-			"roleBasedAccessControl":      testAccAzureRMKubernetesCluster_roleBasedAccessControl,
-			"roleBasedAccessControlAAD":   testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,
+			"apiServerAuthorizedIPRanges":                testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges,
+			"enablePodSecurityPolicy":                    testAccAzureRMKubernetesCluster_enablePodSecurityPolicy,
+			"managedClusterIdentityWithServicePrincipal": testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal,
+			"roleBasedAccessControl":                     testAccAzureRMKubernetesCluster_roleBasedAccessControl,
+			"roleBasedAccessControlAAD":                  testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,
 		},
 		"legacy": {
 			"legacyAgentPoolProfileAvailabilitySet": testAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet,
@@ -72,18 +76,17 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"windowsAndLinux":                testAccAzureRMKubernetesClusterNodePool_windowsAndLinux,
 		},
 		"other": {
-			"basicAvailabilitySet":   testAccAzureRMKubernetesCluster_basicAvailabilitySet,
-			"basicVMSS":              testAccAzureRMKubernetesCluster_basicVMSS,
-			"requiresImport":         testAccAzureRMKubernetesCluster_requiresImport,
-			"linuxProfile":           testAccAzureRMKubernetesCluster_linuxProfile,
-			"nodeTaints":             testAccAzureRMKubernetesCluster_nodeTaints,
-			"nodeResourceGroup":      testAccAzureRMKubernetesCluster_nodeResourceGroup,
-			"upgradeConfig":          testAccAzureRMKubernetesCluster_upgrade,
-			"tags":                   testAccAzureRMKubernetesCluster_tags,
-			"windowsProfile":         testAccAzureRMKubernetesCluster_windowsProfile,
-			"privateLinkOn":          testAccAzureRMKubernetesCluster_privateLinkOn,
-			"updatePublicRangesOff":  testAccAzureRMKubernetesCluster_privateLinkOff,
-			"managedClusterIdentity": testAccAzureRMKubernetesCluster_managedClusterIdentiy,
+			"basicAvailabilitySet":  testAccAzureRMKubernetesCluster_basicAvailabilitySet,
+			"basicVMSS":             testAccAzureRMKubernetesCluster_basicVMSS,
+			"requiresImport":        testAccAzureRMKubernetesCluster_requiresImport,
+			"linuxProfile":          testAccAzureRMKubernetesCluster_linuxProfile,
+			"nodeTaints":            testAccAzureRMKubernetesCluster_nodeTaints,
+			"nodeResourceGroup":     testAccAzureRMKubernetesCluster_nodeResourceGroup,
+			"upgradeConfig":         testAccAzureRMKubernetesCluster_upgrade,
+			"tags":                  testAccAzureRMKubernetesCluster_tags,
+			"windowsProfile":        testAccAzureRMKubernetesCluster_windowsProfile,
+			"privateLinkOn":         testAccAzureRMKubernetesCluster_privateLinkOn,
+			"updatePublicRangesOff": testAccAzureRMKubernetesCluster_privateLinkOff,
 		},
 		"scaling": {
 			"addAgent":                         testAccAzureRMKubernetesCluster_addAgent,
@@ -122,6 +125,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 		t.Run(group, func(t *testing.T) {
 			for name, tc := range m {
 				tc := tc
+
 				t.Run(name, func(t *testing.T) {
 					tc(t)
 				})
@@ -132,6 +136,9 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 
 func testCheckAzureRMKubernetesClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.KubernetesClustersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -143,9 +150,6 @@ func testCheckAzureRMKubernetesClusterExists(resourceName string) resource.TestC
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Managed Kubernetes Cluster: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.KubernetesClustersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		aks, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -162,6 +166,7 @@ func testCheckAzureRMKubernetesClusterExists(resourceName string) resource.TestC
 
 func testCheckAzureRMKubernetesClusterDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.KubernetesClustersClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_kubernetes_cluster" {
@@ -171,7 +176,6 @@ func testCheckAzureRMKubernetesClusterDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {

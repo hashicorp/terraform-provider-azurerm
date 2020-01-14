@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMApplicationInsightsWebTests_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
-	config := testAccAzureRMApplicationInsightsWebTests_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMApplicationInsightsWebTests_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsightsWebTests_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsWebTestExists(data.ResourceName),
 				),
@@ -96,7 +95,6 @@ func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
 		return
 	}
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
-	config := testAccAzureRMApplicationInsightsWebTests_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -104,7 +102,7 @@ func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsightsWebTests_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsWebTestExists(data.ResourceName),
 				),
@@ -142,6 +140,9 @@ func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) erro
 
 func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.WebTestsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up a WebTest
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -150,8 +151,6 @@ func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resou
 
 		name := rs.Primary.Attributes["name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.WebTestsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, name)
 		if err != nil {

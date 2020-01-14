@@ -77,7 +77,7 @@ func (client PipelinesClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 		{TargetValue: pipeline,
 			Constraints: []validation.Constraint{{Target: "pipeline.Pipeline", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "pipeline.Pipeline.Concurrency", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "pipeline.Pipeline.Concurrency", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+					Chain: []validation.Constraint{{Target: "pipeline.Pipeline.Concurrency", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 				}}}}}); err != nil {
 		return result, validation.NewError("datafactory.PipelinesClient", "CreateOrUpdate", err.Error())
 	}

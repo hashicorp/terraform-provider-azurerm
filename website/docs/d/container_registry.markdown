@@ -2,7 +2,6 @@
 subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_registry"
-sidebar_current: "docs-azurerm-datasource-container-registry"
 description: |-
   Get information about an existing Container Registry
 

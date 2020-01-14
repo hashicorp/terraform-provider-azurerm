@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mysql_database"
-sidebar_current: "docs-azurerm-resource-database-mysql-database"
 description: |-
   Manages a MySQL Database within a MySQL Server.
 ---

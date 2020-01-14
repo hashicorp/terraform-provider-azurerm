@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_group_user"
-sidebar_current: "docs-azurerm-resource-api-management-group-user"
 description: |-
   Manages an API Management User Assignment to a Group.
 ---

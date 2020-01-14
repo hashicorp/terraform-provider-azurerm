@@ -208,15 +208,15 @@ func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
 
 func testCheckAzureRMManagementGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ManagementGroups.GroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		groupName := rs.Primary.Attributes["group_id"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ManagementGroups.GroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		recurse := false
 		resp, err := client.Get(ctx, groupName, "", &recurse, "", "no-cache")

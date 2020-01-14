@@ -17,7 +17,6 @@ import (
 
 func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicImportPFX(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,7 +24,7 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicImportPFX(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
@@ -38,7 +37,6 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_basicImportPFXClassic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -46,7 +44,7 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFXClassic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
@@ -87,7 +85,6 @@ func TestAccAzureRMKeyVaultCertificate_requiresImport(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicGenerate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -95,7 +92,7 @@ func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicGenerate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					testCheckAzureRMKeyVaultCertificateDisappears(data.ResourceName),
@@ -108,7 +105,6 @@ func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicGenerate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -116,7 +112,7 @@ func TestAccAzureRMKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *te
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicGenerate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists("azurerm_key_vault_certificate.test"),
 					testCheckAzureRMKeyVaultDisappears("azurerm_key_vault.test"),
@@ -129,7 +125,6 @@ func TestAccAzureRMKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *te
 
 func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicGenerate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -137,7 +132,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicGenerate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secret_id"),
@@ -151,7 +146,6 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicGenerateSans(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -159,7 +153,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicGenerateSans(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
@@ -174,7 +168,6 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicGenerateTags(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -182,7 +175,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicGenerateTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
@@ -197,7 +190,6 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -205,7 +197,7 @@ func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
@@ -221,7 +213,6 @@ func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 
 func TestAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
-	config := testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -229,7 +220,7 @@ func TestAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
@@ -355,7 +346,7 @@ func testAccAzureRMKeyVaultCertificate_basicImportPFX(data acceptance.TestData) 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -413,7 +404,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(data acceptance.TestData) string {
@@ -421,7 +412,7 @@ func testAccAzureRMKeyVaultCertificate_basicImportPFXClassic(data acceptance.Tes
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -483,7 +474,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_requiresImport(data acceptance.TestData) string {
@@ -525,7 +516,7 @@ func testAccAzureRMKeyVaultCertificate_basicGenerate(data acceptance.TestData) s
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -607,7 +598,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicGenerateSans(data acceptance.TestData) string {
@@ -615,7 +606,7 @@ func testAccAzureRMKeyVaultCertificate_basicGenerateSans(data acceptance.TestDat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -704,7 +695,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicGenerateTags(data acceptance.TestData) string {
@@ -712,7 +703,7 @@ func testAccAzureRMKeyVaultCertificate_basicGenerateTags(data acceptance.TestDat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -794,7 +785,7 @@ resource "azurerm_key_vault_certificate" "test" {
     "hello" = "world"
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data acceptance.TestData) string {
@@ -802,7 +793,7 @@ func testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data acceptance.Tes
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -890,7 +881,7 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data acceptance.TestData) string {
@@ -898,7 +889,7 @@ func testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data acceptance.Tes
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -982,5 +973,5 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

@@ -2,7 +2,6 @@
 subcategory: "Data Lake"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store_file"
-sidebar_current: "docs-azurerm-resource-data-lake-store-file"
 description: |-
   Manages a Azure Data Lake Store File.
 ---
@@ -18,7 +17,7 @@ taint the resource so the `azurerm_data_lake_store_file` gets recreated with the
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

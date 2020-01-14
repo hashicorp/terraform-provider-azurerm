@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_authorization_rule"
-sidebar_current: "docs-azurerm-resource-messaging-eventhub-authorization-rule"
 description: |-
   Manages a Event Hubs authorization Rule within an Event Hub.
 ---

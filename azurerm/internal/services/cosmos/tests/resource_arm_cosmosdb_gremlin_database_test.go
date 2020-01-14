@@ -161,8 +161,8 @@ func testAccAzureRMCosmosDatabase_requiresImport(data acceptance.TestData) strin
 
 	resource "azurerm_cosmosdb_gremlin_database" "import" {
 		name                = "${azurerm_cosmosdb_database.test.name}"
-		resource_group_name = "${azurerm_cosmosdb_database.test.name"
-		account_name        = "${azurerm_cosmosdb_database.test.name}"
+		resource_group_name = "${azurerm_cosmosdb_database.test.resource_group_name"
+		account_name        = "${azurerm_cosmosdb_database.test.account_name}"
 	}
 	`, testAccAzureRMCosmosGremlinDatabase_basic(data))
 }

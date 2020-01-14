@@ -13,7 +13,6 @@ import (
 func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
-	config := testAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -21,7 +20,7 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testi
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "shared_key", sharedKey),
@@ -61,7 +60,6 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testi
 func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
-	config := testAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,7 +67,7 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *test
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "shared_key", sharedKey),

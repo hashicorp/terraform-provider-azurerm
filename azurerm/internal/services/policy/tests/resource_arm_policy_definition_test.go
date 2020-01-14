@@ -91,6 +91,9 @@ func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 
 func testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(policyName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.DefinitionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[policyName]
 		if !ok {
 			return fmt.Errorf("not found: %s", policyName)
@@ -98,9 +101,6 @@ func testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(policyName string) resour
 
 		policyName := rs.Primary.Attributes["name"]
 		managementGroupID := rs.Primary.Attributes["management_group_id"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.DefinitionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.GetAtManagementGroup(ctx, policyName, managementGroupID)
 		if err != nil {
@@ -117,15 +117,15 @@ func testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(policyName string) resour
 
 func testCheckAzureRMPolicyDefinitionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.DefinitionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
 		policyName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.DefinitionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, policyName)
 		if err != nil {

@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_configuration"
-sidebar_current: "docs-azurerm-resource-database-postgresql-configuration"
 description: |-
   Sets a PostgreSQL Configuration value on a PostgreSQL Server.
 ---
@@ -24,12 +23,7 @@ resource "azurerm_postgresql_server" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 
-  sku {
-    name     = "B_Gen5_2"
-    capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
-  }
+  sku_name = "B_Gen5_2"
 
   storage_profile {
     storage_mb            = 5120

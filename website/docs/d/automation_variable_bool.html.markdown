@@ -2,7 +2,6 @@
 subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_variable_bool"
-sidebar_current: "docs-azurerm-datasource-automation-variable-bool"
 description: |-
   Gets information about an existing Automation Bool Variable
 ---

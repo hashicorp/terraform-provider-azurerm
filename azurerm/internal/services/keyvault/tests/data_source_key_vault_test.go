@@ -10,7 +10,6 @@ import (
 
 func TestAccDataSourceAzureRMKeyVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")
-	config := testAccDataSourceAzureRMKeyVault_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -18,7 +17,7 @@ func TestAccDataSourceAzureRMKeyVault_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMKeyVault_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "tenant_id"),
@@ -36,7 +35,6 @@ func TestAccDataSourceAzureRMKeyVault_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMKeyVault_basicClassic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")
-	config := testAccDataSourceAzureRMKeyVault_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -44,7 +42,7 @@ func TestAccDataSourceAzureRMKeyVault_basicClassic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMKeyVault_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "tenant_id"),
@@ -62,7 +60,6 @@ func TestAccDataSourceAzureRMKeyVault_basicClassic(t *testing.T) {
 
 func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")
-	config := testAccDataSourceAzureRMKeyVault_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -70,7 +67,7 @@ func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMKeyVault_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "tenant_id"),
@@ -89,7 +86,6 @@ func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 
 func TestAccDataSourceAzureRMKeyVault_networkAcls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")
-	config := testAccDataSourceAzureRMKeyVault_networkAcls(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -97,7 +93,7 @@ func TestAccDataSourceAzureRMKeyVault_networkAcls(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMKeyVault_networkAcls(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "tenant_id"),
