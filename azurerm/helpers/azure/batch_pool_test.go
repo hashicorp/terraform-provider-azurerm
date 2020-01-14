@@ -10,36 +10,35 @@ import (
 
 func TestExpandBatchPoolNetworkConfiguration(t *testing.T) {
 
-	var jsonBlob = []byte(`[
-  {
-    "subnet_id": "test",
-    "endpoint_configuration": [
-      {
-        "inbound_nat_pools": [
-          {
-            "name": "Name",
-            "protocol": "tcp",
-            "backend_port": 2,
-            "frontend_port_range_start": 3,
-            "frontend_port_range_end": 6,
-            "network_security_group_rules": [
-              {
-                "priority": 5,
-                "access": "allow",
-                "source_address_prefix": "prefix"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-]`)
-	var input []interface{}
-	err := json.Unmarshal(jsonBlob, &input)
-	if err != nil {
-		t.Fatalf("Got error when unmarshaling %+v", err)
-	}
+	networkSecurityGroupRule := make(map[string]interface{})
+	networkSecurityGroupRule["priority"] = 150
+	networkSecurityGroupRule["access"] = "Allow"
+	networkSecurityGroupRule["source_address_prefix"] = "prefix"
+
+	networkSecurityGroupRules := make([]interface{}, 1)
+	networkSecurityGroupRules[0] = networkSecurityGroupRule
+
+	inboundNatPool := make(map[string]interface{})
+	inboundNatPool["name"] = "Name"
+	inboundNatPool["protocol"] = "TCP"
+	inboundNatPool["backend_port"] = 2
+	inboundNatPool["frontend_port_range_start"] = 3
+	inboundNatPool["frontend_port_range_end"] = 6
+	inboundNatPool["network_security_group_rules"] = networkSecurityGroupRules
+
+	inboundNatPools := make([]interface{}, 1)
+	inboundNatPools[0] = inboundNatPool
+
+	endpointConfig := make(map[string]interface{})
+	endpointConfig["inbound_nat_pools"] = inboundNatPools
+
+	networkConfig := make(map[string]interface{})
+	networkConfig["subnet_id"] = "test"
+	networkConfig["endpoint_configuration"] = make([]interface{}, 1)
+	networkConfig["endpoint_configuration"].([]interface{})[0] = endpointConfig
+
+	input := make([]interface{}, 1)
+	input[0] = networkConfig
 
 	cases := []struct {
 		Input       []interface{}
@@ -47,7 +46,7 @@ func TestExpandBatchPoolNetworkConfiguration(t *testing.T) {
 	}{
 		{
 			Input:       input,
-			ExpectError: true,
+			ExpectError: false,
 		},
 	}
 
@@ -57,7 +56,6 @@ func TestExpandBatchPoolNetworkConfiguration(t *testing.T) {
 			if !tc.ExpectError {
 				t.Fatalf("Got error for input %q: %+v", tc.Input, err)
 			}
-
 			return
 		}
 
@@ -76,7 +74,7 @@ func TestExpandBatchPoolNetworkConfiguration(t *testing.T) {
 		groupRules := (*inboundNatPools.NetworkSecurityGroupRules)[0]
 
 		assert.EqualValues(t, batch.Allow, groupRules.Access)
-		assert.EqualValues(t, 5, *groupRules.Priority)
+		assert.EqualValues(t, 150, *groupRules.Priority)
 		assert.EqualValues(t, "prefix", *groupRules.SourceAddressPrefix)
 
 	}
@@ -150,7 +148,7 @@ func TestFlattenBatchPoolNetworkConfiguration(t *testing.T) {
 
 	flatten := FlattenBatchPoolNetworkConfiguration(networkConfiguration)
 
-	assert.EqualValues(t, "[map[endpointConfiguration:map[inboundNatPools:[map[backend_port:1 frontend_port_range_end:3 frontend_port_range_start:2 network_security_group_rules:[map[access:Allow priority:99 source_address_prefix:prefix]] protocol:UDP]]] subnet_id:subnetId]]",
+	assert.EqualValues(t, "[map[endpoint_configuration:[map[inbound_nat_pools:[map[backend_port:1 frontend_port_range_end:3 frontend_port_range_start:2 network_security_group_rules:[map[access:Allow priority:99 source_address_prefix:prefix]] protocol:UDP]]]] subnet_id:subnetId]]",
 		fmt.Sprintf("%v", flatten))
 }
 
@@ -169,6 +167,6 @@ func TestFlattenBatchPoolNetworkConfigurationEmpty(t *testing.T) {
 
 	flatten := FlattenBatchPoolNetworkConfiguration(networkConfiguration)
 
-	assert.EqualValues(t, "[map[endpointConfiguration:map[inboundNatPools:[map[network_security_group_rules:[map[access:]] protocol:]]]]]",
+	assert.EqualValues(t, "[map[endpoint_configuration:[map[inbound_nat_pools:[map[network_security_group_rules:[map[access:]] protocol:]]]]]]",
 		fmt.Sprintf("%v", flatten))
 }

@@ -419,26 +419,26 @@ func resourceArmBatchPool() *schema.Resource {
 													ValidateFunc: validation.StringInSlice([]string{
 														string(batch.TCP),
 														string(batch.UDP),
-													}, true),
+													}, false),
 												},
 												"backend_port": {
-													Type:     schema.TypeInt,
-													Optional: true,
-													ForceNew: true,
+													Type:         schema.TypeInt,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 29876, 29877),
 													// 1 and 65535 except for 29876, 29877 as these are reserved.
 												},
 												"frontend_port_range_start": {
-													Type:     schema.TypeInt,
-													Optional: true,
-													ForceNew: true,
-													//en 1 and 65534 except ports from 50000 to 55000 which are reserved by the Batch service.
+													Type:         schema.TypeInt,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 50000, 55000),
 												},
 												"frontend_port_range_end": {
-													Type:     schema.TypeInt,
-													Optional: true,
-													ForceNew: true,
-													//en 1 and 65534 except ports from 50000 to 55000 which are reserved by the Batch service.
-													//start to end minimum 100 nodes
+													Type:         schema.TypeInt,
+													Optional:     true,
+													ForceNew:     true,
+													ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 50000, 55000),
 												},
 												"network_security_group_rules": {
 													Type:     schema.TypeList,
@@ -459,7 +459,7 @@ func resourceArmBatchPool() *schema.Resource {
 																ValidateFunc: validation.StringInSlice([]string{
 																	string(batch.Allow),
 																	string(batch.Deny),
-																}, true),
+																}, false),
 															},
 															"source_address_prefix": {
 																Type:         schema.TypeString,
