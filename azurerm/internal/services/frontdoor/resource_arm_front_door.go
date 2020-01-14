@@ -833,7 +833,6 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorPath strin
 func expandArmFrontDoorCustomHTTPSConfiguration(input []interface{}) *frontdoor.CustomHTTPSConfiguration {
 	if len(input) == 0 {
 		defaultHttpsConfiguration := frontdoor.CustomHTTPSConfiguration{
-			ProtocolType:      frontdoor.ServerNameIndication,
 			CertificateSource: frontdoor.CertificateSourceFrontDoor,
 			CertificateSourceParameters: &frontdoor.CertificateSourceParameters{
 				CertificateType: frontdoor.Dedicated,
@@ -1435,9 +1434,7 @@ func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubReso
 }
 
 func makeCustomHttpsConfiguration(customHttpsConfiguration map[string]interface{}) frontdoor.CustomHTTPSConfiguration {
-	customHTTPSConfigurationUpdate := frontdoor.CustomHTTPSConfiguration{
-		ProtocolType: frontdoor.ServerNameIndication,
-	}
+	customHTTPSConfigurationUpdate := frontdoor.CustomHTTPSConfiguration{}
 
 	if customHttpsConfiguration["certificate_source"].(string) == "AzureKeyVault" {
 		vaultSecret := customHttpsConfiguration["azure_key_vault_certificate_secret_name"].(string)
