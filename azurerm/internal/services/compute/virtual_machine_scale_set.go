@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -812,16 +811,28 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 						string(compute.CachingTypesReadWrite),
 					}, false),
 				},
+
+				"disk_encryption_set_id": {
+					Type:     schema.TypeString,
+					Optional: true,
+					// Support for rotating the Disk Encryption Set is (apparently) coming a few months following GA
+					// Code="PropertyChangeNotAllowed" Message="Changing property 'encryption.diskEncryptionSetId' is not allowed."
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(0, 1023),
 				},
+
 				"lun": {
 					Type:         schema.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(0, 2000), // TODO: confirm upper bounds
 				},
+
 				"storage_account_type": {
 					Type:     schema.TypeString,
 					Required: true,
@@ -837,12 +848,6 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
-				},
-
-				"disk_encryption_set_id": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					ValidateFunc: azure.ValidateResourceID,
 				},
 			},
 		},
@@ -915,10 +920,10 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 		output = append(output, map[string]interface{}{
 			"caching":                   string(v.Caching),
 			"lun":                       lun,
+			"disk_encryption_set_id":    diskEncryptionSetId,
 			"disk_size_gb":              diskSizeGb,
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
-			"disk_encryption_set_id":    diskEncryptionSetId,
 		})
 	}
 
@@ -974,9 +979,20 @@ func VirtualMachineScaleSetOSDiskSchema() *schema.Schema {
 					},
 				},
 
+				"disk_encryption_set_id": {
+					Type:     schema.TypeString,
+					Optional: true,
+					// whilst the API allows updating this value, it's never actually set at Azure's end
+					// presumably this'll take effect once key rotation is supported a few months post-GA?
+					// however for now let's make this ForceNew since it can't be (successfully) updated
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
 					Optional:     true,
+					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 1023),
 				},
 
@@ -984,18 +1000,6 @@ func VirtualMachineScaleSetOSDiskSchema() *schema.Schema {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
-				},
-
-				"disk_encryption_set_id": {
-					Type:     schema.TypeString,
-					Optional: true,
-					// Support for rotating the Disk Encryption Set is (apparently) coming a few months following GA
-					// Code="PropertyChangeNotAllowed" Message="Changing property 'encryption.diskEncryptionSetId' is not allowed."
-					ForceNew: true,
-					// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
-					//       https://github.com/Azure/azure-rest-api-specs/issues/8132
-					DiffSuppressFunc: suppress.CaseDifference,
-					ValidateFunc:     azure.ValidateResourceID,
 				},
 			},
 		},
