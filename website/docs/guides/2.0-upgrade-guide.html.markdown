@@ -233,7 +233,7 @@ A guide on how to migrate to using the new Provider [can be found here](https://
 
 ### Resource: `azurerm_cognitive_account`
 
-The deprecated `sku` block has been simplified and replaced by the `sku_name` property and will be removed.
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
 
 ### Resource: `azurerm_connection_monitor`
 
