@@ -296,7 +296,6 @@ func TestAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectU
 func TestAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	config := testAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(data, tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -304,7 +303,7 @@ func TestAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(data, tenantID),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "auth_settings.0.enabled", "true"),
@@ -1393,6 +1392,7 @@ func TestAccAzureRMAppServiceSlot_autoSwap(t *testing.T) {
 
 func testCheckAzureRMAppServiceSlotDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_slot" {
@@ -1403,7 +1403,6 @@ func testCheckAzureRMAppServiceSlotDestroy(s *terraform.State) error {
 		appServiceName := rs.Primary.Attributes["app_service_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
 
 		if err != nil {
@@ -1421,6 +1420,9 @@ func testCheckAzureRMAppServiceSlotDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAppServiceSlotExists(slot string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[slot]
 		if !ok {
@@ -1433,8 +1435,6 @@ func testCheckAzureRMAppServiceSlotExists(slot string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for App Service Slot: %q/%q", appServiceName, slot)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

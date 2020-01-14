@@ -366,7 +366,7 @@ func (client Client) GetDescendantsPreparer(ctx context.Context, groupID string,
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsPost(),
+		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/providers/Microsoft.Management/managementGroups/{groupId}/descendants", pathParameters),
 		autorest.WithQueryParameters(queryParameters))

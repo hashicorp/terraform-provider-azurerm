@@ -2,7 +2,6 @@
 subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_pipeline"
-sidebar_current: "docs-azurerm-resource-data-factory-pipeline"
 description: |-
   Manages a Pipeline inside a Azure Data Factory.
 ---
@@ -15,7 +14,7 @@ Manages a Pipeline inside a Azure Data Factory.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

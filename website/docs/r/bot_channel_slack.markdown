@@ -2,7 +2,6 @@
 subcategory: "Bot"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_channel_slack"
-sidebar_current: "docs-azurerm-resource-bot-channel-slack"
 description: |-
   Manages a Slack integration for a Bot Channel
 ---
@@ -19,7 +18,7 @@ Manages a Slack integration for a Bot Channel
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

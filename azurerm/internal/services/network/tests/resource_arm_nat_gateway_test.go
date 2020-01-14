@@ -86,6 +86,9 @@ func TestAccAzureRMNatGateway_update(t *testing.T) {
 
 func testCheckAzureRMNatGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.NatGatewayClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Nat Gateway not found: %s", resourceName)
@@ -93,9 +96,6 @@ func testCheckAzureRMNatGatewayExists(resourceName string) resource.TestCheckFun
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.NatGatewayClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

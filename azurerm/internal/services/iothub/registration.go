@@ -13,7 +13,10 @@ func (r Registration) Name() string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{}
+	return map[string]*schema.Resource{
+		"azurerm_iothub_dps":                  dataSourceArmIotHubDPS(),
+		"azurerm_iothub_shared_access_policy": dataSourceArmIotHubSharedAccessPolicy(),
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service

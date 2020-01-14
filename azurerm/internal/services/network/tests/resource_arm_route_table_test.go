@@ -122,7 +122,6 @@ func TestAccAzureRMRouteTable_update(t *testing.T) {
 
 func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
-	config := testAccAzureRMRouteTable_singleRoute(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -130,7 +129,7 @@ func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRouteTable_singleRoute(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(data.ResourceName),
 				),
@@ -142,9 +141,6 @@ func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
 
 func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
-	config := testAccAzureRMRouteTable_singleRoute(data)
-	noBlocksConfig := testAccAzureRMRouteTable_noRouteBlocks(data)
-	blocksEmptyConfig := testAccAzureRMRouteTable_singleRouteRemoved(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -153,7 +149,7 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// This configuration includes a single explicit route block
-				Config: config,
+				Config: testAccAzureRMRouteTable_singleRoute(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "route.#", "1"),
@@ -161,7 +157,7 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 			},
 			{
 				// This configuration has no route blocks at all.
-				Config: noBlocksConfig,
+				Config: testAccAzureRMRouteTable_noRouteBlocks(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(data.ResourceName),
 					// The route from the first step is preserved because no
@@ -172,7 +168,7 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 			{
 				// This configuration sets route to [] explicitly using the
 				// attribute syntax.
-				Config: blocksEmptyConfig,
+				Config: testAccAzureRMRouteTable_singleRouteRemoved(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(data.ResourceName),
 					// The route from the first step is now removed, leaving us
@@ -186,7 +182,6 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 
 func TestAccAzureRMRouteTable_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
-	config := testAccAzureRMRouteTable_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -194,7 +189,7 @@ func TestAccAzureRMRouteTable_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMRouteTable_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(data.ResourceName),
 					testCheckAzureRMRouteTableDisappears(data.ResourceName),
@@ -207,8 +202,6 @@ func TestAccAzureRMRouteTable_disappears(t *testing.T) {
 
 func TestAccAzureRMRouteTable_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
-	preConfig := testAccAzureRMRouteTable_withTags(data)
-	postConfig := testAccAzureRMRouteTable_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -216,7 +209,7 @@ func TestAccAzureRMRouteTable_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMRouteTable_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -225,7 +218,7 @@ func TestAccAzureRMRouteTable_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMRouteTable_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -238,8 +231,6 @@ func TestAccAzureRMRouteTable_withTags(t *testing.T) {
 
 func TestAccAzureRMRouteTable_multipleRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test")
-	preConfig := testAccAzureRMRouteTable_singleRoute(data)
-	postConfig := testAccAzureRMRouteTable_multipleRoutes(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -247,7 +238,7 @@ func TestAccAzureRMRouteTable_multipleRoutes(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMRouteTable_singleRoute(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "route.#", "1"),
@@ -257,7 +248,7 @@ func TestAccAzureRMRouteTable_multipleRoutes(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMRouteTable_multipleRoutes(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "route.#", "2"),

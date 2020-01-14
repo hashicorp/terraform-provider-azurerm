@@ -77,8 +77,6 @@ func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	config := testAccAzureRMNetworkInterface_basic(data)
-	updatedConfig := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -86,13 +84,13 @@ func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMNetworkInterface_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
@@ -104,8 +102,6 @@ func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	config := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(data)
-	updatedConfig := testAccAzureRMNetworkInterface_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -113,13 +109,13 @@ func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMNetworkInterface_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_security_group_id", ""),
@@ -131,7 +127,6 @@ func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	config := testAccAzureRMNetworkInterface_multipleSubnets(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -139,7 +134,7 @@ func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMNetworkInterface_multipleSubnets(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.#", "2"),
@@ -151,8 +146,6 @@ func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
 
 func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
-	config := testAccAzureRMNetworkInterface_multipleSubnets(data)
-	updatedConfig := testAccAzureRMNetworkInterface_multipleSubnetsUpdatedPrimary(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -160,7 +153,7 @@ func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMNetworkInterface_multipleSubnets(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.0.primary", "true"),
@@ -170,7 +163,7 @@ func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMNetworkInterface_multipleSubnetsUpdatedPrimary(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_configuration.0.primary", "true"),
@@ -387,6 +380,9 @@ func TestAccAzureRMNetworkInterface_importPublicIP(t *testing.T) {
 
 func testCheckAzureRMNetworkInterfaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -398,9 +394,6 @@ func testCheckAzureRMNetworkInterfaceExists(resourceName string) resource.TestCh
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
@@ -417,6 +410,9 @@ func testCheckAzureRMNetworkInterfaceExists(resourceName string) resource.TestCh
 
 func testCheckAzureRMNetworkInterfaceDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -428,9 +424,6 @@ func testCheckAzureRMNetworkInterfaceDisappears(resourceName string) resource.Te
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -475,7 +468,7 @@ func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
 func testAccAzureRMNetworkInterface_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -529,7 +522,7 @@ resource "azurerm_network_interface" "import" {
 func testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -571,7 +564,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_multipleSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -613,7 +606,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_multipleSubnetsUpdatedPrimary(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -655,7 +648,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_ipForwarding(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -691,7 +684,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_acceleratedNetworking(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -728,7 +721,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -768,7 +761,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -807,7 +800,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_withIPAddresses(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -852,7 +845,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_withIPAddressesUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -895,7 +888,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_withIPv6Addresses(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -945,7 +938,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_multipleLoadBalancers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1293,7 +1286,7 @@ resource "azurerm_network_interface" "test2" {
 func testAccAzureRMNetworkInterface_publicIP(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1336,7 +1329,7 @@ resource "azurerm_network_interface" "test" {
 func testAccAzureRMNetworkInterface_applicationSecurityGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

@@ -2,7 +2,6 @@
 subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_policy"
-sidebar_current: "docs-azurerm-resource-dev-test-policy"
 description: |-
   Manages a Policy within a Dev Test Policy Set.
 ---

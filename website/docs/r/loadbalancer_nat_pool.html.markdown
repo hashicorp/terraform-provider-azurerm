@@ -2,7 +2,6 @@
 subcategory: "Load Balancer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_nat_pool"
-sidebar_current: "docs-azurerm-resource-loadbalancer-nat-pool"
 description: |-
   Manages a Load Balancer NAT Pool.
 ---

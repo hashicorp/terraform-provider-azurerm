@@ -15,7 +15,6 @@ import (
 
 func TestAccAzureRMDnsSrvRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_srv_record", "test")
-	config := testAccAzureRMDnsSrvRecord_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +22,7 @@ func TestAccAzureRMDnsSrvRecord_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsSrvRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDnsSrvRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsSrvRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
@@ -63,8 +62,6 @@ func TestAccAzureRMDnsSrvRecord_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDnsSrvRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_srv_record", "test")
-	preConfig := testAccAzureRMDnsSrvRecord_basic(data)
-	postConfig := testAccAzureRMDnsSrvRecord_updateRecords(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -72,14 +69,14 @@ func TestAccAzureRMDnsSrvRecord_updateRecords(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsSrvRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsSrvRecord_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsSrvRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsSrvRecord_updateRecords(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsSrvRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "record.#", "3"),
@@ -91,8 +88,6 @@ func TestAccAzureRMDnsSrvRecord_updateRecords(t *testing.T) {
 
 func TestAccAzureRMDnsSrvRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_srv_record", "test")
-	preConfig := testAccAzureRMDnsSrvRecord_withTags(data)
-	postConfig := testAccAzureRMDnsSrvRecord_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -100,14 +95,14 @@ func TestAccAzureRMDnsSrvRecord_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsSrvRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsSrvRecord_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsSrvRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsSrvRecord_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsSrvRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -120,6 +115,9 @@ func TestAccAzureRMDnsSrvRecord_withTags(t *testing.T) {
 
 func testCheckAzureRMDnsSrvRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -133,8 +131,6 @@ func testCheckAzureRMDnsSrvRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for DNS SRV record: %s", srvName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Dns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, srvName, dns.SRV)
 		if err != nil {
 			return fmt.Errorf("Bad: Get SRV RecordSet: %+v", err)

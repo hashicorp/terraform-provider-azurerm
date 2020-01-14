@@ -85,7 +85,7 @@ data "azurerm_storage_account_sas" "test" {
     process = false
   }
 }
-`, data.RandomInteger, data.Locations, data.RandomString, startDate, endDate)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
 }
 
 func TestAccDataSourceArmStorageAccountSas_resourceTypesString(t *testing.T) {

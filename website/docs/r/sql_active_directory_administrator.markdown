@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource manager: azurerm_sql_active_directory_administrator"
-sidebar_current: "docs-azurerm-resource-database-sql-administrator"
 description: |-
   Manages an Active Directory administrator on a SQL server
 ---

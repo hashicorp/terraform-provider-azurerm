@@ -56,6 +56,8 @@ func TestAccAzureRMAPIManagementProductGroup_requiresImport(t *testing.T) {
 
 func testCheckAzureRMAPIManagementProductGroupDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductGroupsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product_group" {
 			continue
@@ -66,7 +68,6 @@ func testCheckAzureRMAPIManagementProductGroupDestroy(s *terraform.State) error 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
@@ -81,6 +82,9 @@ func testCheckAzureRMAPIManagementProductGroupDestroy(s *terraform.State) error 
 
 func testCheckAzureRMAPIManagementProductGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -91,8 +95,6 @@ func testCheckAzureRMAPIManagementProductGroupExists(resourceName string) resour
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {

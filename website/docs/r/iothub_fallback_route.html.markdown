@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_fallback_route"
-sidebar_current: "docs-azurerm-resource-messaging-iothub-fallback-route-x"
 description: |-
   Manages an IotHub Fallback Route
 ---
@@ -17,7 +16,7 @@ Manages an IotHub Fallback Route
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "West US"
 }
 

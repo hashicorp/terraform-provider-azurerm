@@ -123,6 +123,9 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_requiresImport(t *testing.T)
 
 func testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.InputsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -133,8 +136,6 @@ func testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(resourceName string)
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.InputsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on streamAnalyticsInputsClient: %+v", err)
@@ -150,6 +151,7 @@ func testCheckAzureRMStreamAnalyticsStreamInputIoTHubExists(resourceName string)
 
 func testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.InputsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_stream_input_iothub" {
@@ -159,7 +161,6 @@ func testCheckAzureRMStreamAnalyticsStreamInputIoTHubDestroy(s *terraform.State)
 		name := rs.Primary.Attributes["name"]
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return nil

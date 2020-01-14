@@ -56,14 +56,13 @@ func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(t *testing.T)
 
 func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
-	preConfig := testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -83,6 +82,9 @@ func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_withTags(t *testing.T) {
 
 func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.VirtualNetworkLinksClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -96,9 +98,6 @@ func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName string)
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS zone virtual network link: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.VirtualNetworkLinksClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dnsZoneName, name)
 		if err != nil {

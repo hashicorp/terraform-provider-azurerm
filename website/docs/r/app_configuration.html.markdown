@@ -2,7 +2,6 @@
 subcategory: "App Configuration"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_configuration"
-sidebar_current: "docs-azurerm-resource-app-configuration"
 description: |-
   Manages an Azure App Configuration.
 
@@ -21,9 +20,9 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_app_configuration" "appconf" {
-  name                     = "appConf1"
-  resource_group_name      = "${azurerm_resource_group.rg.name}"
-  location                 = "${azurerm_resource_group.rg.location}"
+  name                = "appConf1"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${azurerm_resource_group.rg.location}"
 }
 ```
 

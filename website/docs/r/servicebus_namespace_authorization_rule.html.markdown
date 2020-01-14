@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace_authorization_rule"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-namespace-authorization-rule"
 description: |-
   Manages a ServiceBus Namespace authorization Rule within a ServiceBus.
 ---

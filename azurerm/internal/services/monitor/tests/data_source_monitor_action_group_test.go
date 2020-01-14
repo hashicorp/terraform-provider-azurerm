@@ -11,14 +11,13 @@ import (
 
 func TestAccDataSourceArmMonitorActionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_action_group", "test")
-	config := testAccDataSourceArmMonitorActionGroup_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceArmMonitorActionGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -41,14 +40,13 @@ func TestAccDataSourceArmMonitorActionGroup_basic(t *testing.T) {
 
 func TestAccDataSourceArmMonitorActionGroup_disabledBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_action_group", "test")
-	config := testAccDataSourceArmMonitorActionGroup_disabledBasic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceArmMonitorActionGroup_disabledBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
@@ -71,7 +69,6 @@ func TestAccDataSourceArmMonitorActionGroup_disabledBasic(t *testing.T) {
 
 func TestAccDataSourceArmMonitorActionGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_action_group", "test")
-	config := testAccDataSourceArmMonitorActionGroup_complete(data)
 
 	aaName := fmt.Sprintf("acctestAA-%d", data.RandomInteger)
 	faName := fmt.Sprintf("acctestFA-%d", data.RandomInteger)
@@ -88,7 +85,7 @@ func TestAccDataSourceArmMonitorActionGroup_complete(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceArmMonitorActionGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),

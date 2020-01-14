@@ -73,7 +73,7 @@ resource "azurerm_servicebus_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
-  
+
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%[1]d"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
@@ -111,7 +111,7 @@ resource "azurerm_iothub_endpoint_servicebus_topic" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
   name                = "acctest"
-  
+
   connection_string = "${azurerm_servicebus_topic_authorization_rule.test.primary_connection_string}"
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -126,7 +126,7 @@ resource "azurerm_iothub_endpoint_servicebus_topic" "import" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_name         = "${azurerm_iothub.test.name}"
   name                = "acctest"
-    
+
   connection_string = "${azurerm_servicebus_topic_authorization_rule.test.primary_connection_string}"
 }
 `, template)
@@ -134,6 +134,7 @@ resource "azurerm_iothub_endpoint_servicebus_topic" "import" {
 
 func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -147,8 +148,6 @@ func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) reso
 		iothubName := parsedIothubId.Path["IotHubs"]
 		endpointName := parsedIothubId.Path["Endpoints"]
 		resourceGroup := parsedIothubId.ResourceGroup
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {

@@ -107,6 +107,9 @@ func TestAccAzureRMPrivateDnsSrvRecord_withTags(t *testing.T) {
 
 func testCheckAzureRMPrivateDnsSrvRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -120,8 +123,6 @@ func testCheckAzureRMPrivateDnsSrvRecordExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS SRV record: %s", srvName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).PrivateDns.RecordSetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.SRV, srvName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get SRV RecordSet: %+v", err)
@@ -227,13 +228,13 @@ resource "azurerm_private_dns_srv_record" "import" {
 func testAccAzureRMPrivateDnsSrvRecord_updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
-	
+
 resource "azurerm_private_dns_zone" "test" {
-	name                = "testzone%d.com"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "testzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_private_dns_srv_record" "test" {
@@ -266,13 +267,13 @@ resource "azurerm_private_dns_srv_record" "test" {
 func testAccAzureRMPrivateDnsSrvRecord_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
-  
+
 resource "azurerm_private_dns_zone" "test" {
-	name                = "testzone%d.com"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "testzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_private_dns_srv_record" "test" {
@@ -304,13 +305,13 @@ resource "azurerm_private_dns_srv_record" "test" {
 func testAccAzureRMPrivateDnsSrvRecord_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_private_dns_zone" "test" {
-	name                = "testzone%d.com"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "testzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_private_dns_srv_record" "test" {

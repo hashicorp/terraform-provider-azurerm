@@ -66,6 +66,9 @@ func TestAccAzureRMDataFactoryLinkedServicePostgreSQL_update(t *testing.T) {
 
 func testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -78,9 +81,6 @@ func testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(name string) resou
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {

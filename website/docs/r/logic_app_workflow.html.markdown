@@ -2,7 +2,6 @@
 subcategory: "Logic App"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_logic_app_workflow"
-sidebar_current: "docs-azurerm-resource-logic-app-workflow"
 description: |-
   Manages a Logic App Workflow.
 ---

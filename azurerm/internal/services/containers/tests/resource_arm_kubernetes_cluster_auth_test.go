@@ -9,6 +9,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+func TestAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t)
+}
+
 func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -43,6 +48,11 @@ func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t)
+}
+
 func testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -63,6 +73,37 @@ func testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
 			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal(t)
+}
+
+func testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipalConfig(data, clientId, clientSecret),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("service_principal.0.client_secret"),
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_roleBasedAccessControl(t)
 }
 
 func testAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
@@ -89,6 +130,11 @@ func testAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t)
 }
 
 func testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
@@ -217,6 +263,38 @@ resource "azurerm_kubernetes_cluster" "test" {
   service_principal {
     client_id     = "%s"
     client_secret = "%s"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipalConfig(data acceptance.TestData, clientId string, clientSecret string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+  	type       = "AvailabilitySet"
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, clientId, clientSecret)

@@ -197,6 +197,9 @@ func testAccAzureRMNetworkWatcher_disappears(t *testing.T) {
 
 func testCheckAzureRMNetworkWatcherExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -207,9 +210,6 @@ func testCheckAzureRMNetworkWatcherExists(resourceName string) resource.TestChec
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -225,6 +225,9 @@ func testCheckAzureRMNetworkWatcherExists(resourceName string) resource.TestChec
 
 func testCheckAzureRMNetworkWatcherDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
@@ -236,8 +239,6 @@ func testCheckAzureRMNetworkWatcherDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
 			if !response.WasNotFound(future.Response()) {
@@ -254,6 +255,9 @@ func testCheckAzureRMNetworkWatcherDisappears(resourceName string) resource.Test
 }
 
 func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_network_watcher" {
 			continue
@@ -262,8 +266,6 @@ func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {

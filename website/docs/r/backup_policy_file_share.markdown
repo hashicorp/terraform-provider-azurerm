@@ -2,7 +2,6 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_backup_policy_file_share"
-sidebar_current: "docs-azurerm-backup-policy-file-share"
 description: |-
   Manages an Azure File Share Backup Policy.
 ---

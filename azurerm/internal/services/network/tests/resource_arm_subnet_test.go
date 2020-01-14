@@ -17,7 +17,6 @@ import (
 
 func TestAccAzureRMSubnet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	config := testAccAzureRMSubnet_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,7 +24,7 @@ func TestAccAzureRMSubnet_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSubnet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(data.ResourceName),
 				),
@@ -65,15 +64,13 @@ func TestAccAzureRMSubnet_requiresImport(t *testing.T) {
 func TestAccAzureRMSubnet_delegation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
-	config := testAccAzureRMSubnet_delegation(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSubnet_delegation(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "delegation.#", "1"),
@@ -85,8 +82,6 @@ func TestAccAzureRMSubnet_delegation(t *testing.T) {
 
 func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	initConfig := testAccAzureRMSubnet_routeTable(data)
-	updatedConfig := testAccAzureRMSubnet_updatedRouteTable(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -94,14 +89,14 @@ func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: initConfig,
+				Config: testAccAzureRMSubnet_routeTable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(data.ResourceName),
 				),
 			},
 
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMSubnet_updatedRouteTable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetRouteTableExists(data.ResourceName, fmt.Sprintf("acctest-%d", data.RandomInteger)),
 				),
@@ -112,8 +107,6 @@ func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 
 func TestAccAzureRMSubnet_routeTableRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	initConfig := testAccAzureRMSubnet_routeTable(data)
-	updatedConfig := testAccAzureRMSubnet_routeTableUnlinked(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -121,14 +114,14 @@ func TestAccAzureRMSubnet_routeTableRemove(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: initConfig,
+				Config: testAccAzureRMSubnet_routeTable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "route_table_id"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMSubnet_routeTableUnlinked(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "route_table_id", ""),
@@ -141,8 +134,6 @@ func TestAccAzureRMSubnet_routeTableRemove(t *testing.T) {
 
 func TestAccAzureRMSubnet_removeNetworkSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	initConfig := testAccAzureRMSubnet_networkSecurityGroup(data)
-	updatedConfig := testAccAzureRMSubnet_networkSecurityGroupDetached(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -150,14 +141,14 @@ func TestAccAzureRMSubnet_removeNetworkSecurityGroup(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: initConfig,
+				Config: testAccAzureRMSubnet_networkSecurityGroup(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "network_security_group_id"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMSubnet_networkSecurityGroupDetached(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_security_group_id", ""),
@@ -170,7 +161,6 @@ func TestAccAzureRMSubnet_removeNetworkSecurityGroup(t *testing.T) {
 
 func TestAccAzureRMSubnet_bug7986(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	initConfig := testAccAzureRMSubnet_bug7986(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -178,7 +168,7 @@ func TestAccAzureRMSubnet_bug7986(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: initConfig,
+				Config: testAccAzureRMSubnet_bug7986(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists("azurerm_subnet.first"),
 					testCheckAzureRMSubnetExists("azurerm_subnet.second"),
@@ -190,7 +180,6 @@ func TestAccAzureRMSubnet_bug7986(t *testing.T) {
 
 func TestAccAzureRMSubnet_bug15204(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	initConfig := testAccAzureRMSubnet_bug15204(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -198,7 +187,7 @@ func TestAccAzureRMSubnet_bug15204(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: initConfig,
+				Config: testAccAzureRMSubnet_bug15204(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(data.ResourceName),
 				),
@@ -209,7 +198,6 @@ func TestAccAzureRMSubnet_bug15204(t *testing.T) {
 
 func TestAccAzureRMSubnet_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	config := testAccAzureRMSubnet_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -217,7 +205,7 @@ func TestAccAzureRMSubnet_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSubnet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(data.ResourceName),
 					testCheckAzureRMSubnetDisappears(data.ResourceName),
@@ -230,7 +218,6 @@ func TestAccAzureRMSubnet_disappears(t *testing.T) {
 
 func TestAccAzureRMSubnet_serviceEndpoints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	config := testAccAzureRMSubnet_serviceEndpoints(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -238,7 +225,7 @@ func TestAccAzureRMSubnet_serviceEndpoints(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSubnet_serviceEndpoints(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_endpoints.#", "2"),
@@ -250,8 +237,6 @@ func TestAccAzureRMSubnet_serviceEndpoints(t *testing.T) {
 
 func TestAccAzureRMSubnet_serviceEndpointsVNetUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	config := testAccAzureRMSubnet_serviceEndpoints(data)
-	updatedConfig := testAccAzureRMSubnet_serviceEndpointsVNetUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -259,14 +244,14 @@ func TestAccAzureRMSubnet_serviceEndpointsVNetUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSubnet_serviceEndpoints(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_endpoints.#", "2"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMSubnet_serviceEndpointsVNetUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_endpoints.#", "2"),
@@ -278,6 +263,9 @@ func TestAccAzureRMSubnet_serviceEndpointsVNetUpdate(t *testing.T) {
 
 func testCheckAzureRMSubnetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -292,9 +280,6 @@ func testCheckAzureRMSubnetExists(resourceName string) resource.TestCheckFunc {
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vnetName, name, "")
 		if err != nil {
@@ -311,6 +296,10 @@ func testCheckAzureRMSubnetExists(resourceName string) resource.TestCheckFunc {
 
 func testCheckAzureRMSubnetRouteTableExists(resourceName string, routeTableId string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		networksClient := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetClient
+		subnetsClient := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -325,10 +314,6 @@ func testCheckAzureRMSubnetRouteTableExists(resourceName string, routeTableId st
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", subnetName)
 		}
-
-		networksClient := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetClient
-		subnetsClient := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		vnetResp, vnetErr := networksClient.Get(ctx, resourceGroup, vnetName, "")
 		if vnetErr != nil {
@@ -362,6 +347,9 @@ func testCheckAzureRMSubnetRouteTableExists(resourceName string, routeTableId st
 
 func testCheckAzureRMSubnetDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -375,8 +363,6 @@ func testCheckAzureRMSubnetDisappears(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
 		if err != nil {
 			if !response.WasNotFound(future.Response()) {

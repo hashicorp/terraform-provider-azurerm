@@ -121,6 +121,9 @@ func TestAccAzureRMFrontDoorFirewallPolicy_complete(t *testing.T) {
 
 func testCheckAzureRMFrontDoorFirewallPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Frontdoor.FrontDoorsPolicyClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Front Door Firewall Policy not found: %s", resourceName)
@@ -128,9 +131,6 @@ func testCheckAzureRMFrontDoorFirewallPolicyExists(resourceName string) resource
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Frontdoor.FrontDoorsPolicyClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

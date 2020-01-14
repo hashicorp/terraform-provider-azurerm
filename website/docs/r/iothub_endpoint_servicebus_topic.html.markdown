@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_endpoint_servicebus_topic"
-sidebar_current: "docs-azurerm-resource-messaging-iothub-servicebus-topic"
 description: |-
   Manages an IotHub ServiceBus Topic Endpoint
 ---
@@ -17,7 +16,7 @@ Manages an IotHub ServiceBus Topic Endpoint
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "East US"
 }
 
@@ -65,7 +64,7 @@ resource "azurerm_iothub_endpoint_servicebus_topic" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   iothub_name         = "${azurerm_iothub.example.name}"
   name                = "example"
-  
+
   connection_string = "${azurerm_servicebus_topic_authorization_rule.example.primary_connection_string}"
 }
 

@@ -12,7 +12,6 @@ import (
 func TestAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_azuread_service_principal", "test")
 	id := uuid.New().String()
-	config := testAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -20,7 +19,7 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(t *testing.
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryServicePrincipalExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "application_id"),
@@ -35,7 +34,6 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byApplicationId(t *testing.
 func TestAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_azuread_service_principal", "test")
 	id := uuid.New().String()
-	config := testAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -43,7 +41,7 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(t *testing.T)
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryServicePrincipalExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "application_id"),
@@ -58,7 +56,6 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byDisplayName(t *testing.T)
 func TestAccDataSourceAzureRMAzureADServicePrincipal_byObjectId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_azuread_service_principal", "test")
 	id := uuid.New().String()
-	config := testAccDataSourceAzureRMAzureADServicePrincipal_byObjectId(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -66,7 +63,7 @@ func TestAccDataSourceAzureRMAzureADServicePrincipal_byObjectId(t *testing.T) {
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMAzureADServicePrincipal_byObjectId(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryServicePrincipalExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "application_id"),

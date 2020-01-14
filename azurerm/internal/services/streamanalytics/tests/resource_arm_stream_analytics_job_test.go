@@ -104,6 +104,9 @@ func TestAccAzureRMStreamAnalyticsJob_update(t *testing.T) {
 
 func testCheckAzureRMStreamAnalyticsJobExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.JobsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -113,8 +116,6 @@ func testCheckAzureRMStreamAnalyticsJobExists(resourceName string) resource.Test
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.JobsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on streamAnalyticsJobsClient: %+v", err)
@@ -130,6 +131,7 @@ func testCheckAzureRMStreamAnalyticsJobExists(resourceName string) resource.Test
 
 func testCheckAzureRMStreamAnalyticsJobDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.JobsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_job" {
@@ -138,7 +140,6 @@ func testCheckAzureRMStreamAnalyticsJobDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			return nil

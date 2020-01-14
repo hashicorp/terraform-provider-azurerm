@@ -92,7 +92,7 @@ func (client ManagedClustersClient) CreateOrUpdate(ctx context.Context, resource
 								Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs", Name: validation.Null, Rule: false,
 									Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs.Count", Name: validation.Null, Rule: false,
 										Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs.Count", Name: validation.InclusiveMaximum, Rule: int64(100), Chain: nil},
-											{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs.Count", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+											{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs.Count", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 										}},
 									}},
 								}},
@@ -829,6 +829,94 @@ func (client ManagedClustersClient) ListClusterAdminCredentialsSender(req *http.
 // ListClusterAdminCredentialsResponder handles the response to the ListClusterAdminCredentials request. The method always
 // closes the http.Response Body.
 func (client ManagedClustersClient) ListClusterAdminCredentialsResponder(resp *http.Response) (result CredentialResults, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListClusterMonitoringUserCredentials gets cluster monitoring user credential of the managed cluster with a specified
+// resource group and name.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the managed cluster resource.
+func (client ManagedClustersClient) ListClusterMonitoringUserCredentials(ctx context.Context, resourceGroupName string, resourceName string) (result CredentialResults, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.ListClusterMonitoringUserCredentials")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceName,
+			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("containerservice.ManagedClustersClient", "ListClusterMonitoringUserCredentials", err.Error())
+	}
+
+	req, err := client.ListClusterMonitoringUserCredentialsPreparer(ctx, resourceGroupName, resourceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "ListClusterMonitoringUserCredentials", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListClusterMonitoringUserCredentialsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "ListClusterMonitoringUserCredentials", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListClusterMonitoringUserCredentialsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "ListClusterMonitoringUserCredentials", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListClusterMonitoringUserCredentialsPreparer prepares the ListClusterMonitoringUserCredentials request.
+func (client ManagedClustersClient) ListClusterMonitoringUserCredentialsPreparer(ctx context.Context, resourceGroupName string, resourceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"resourceName":      autorest.Encode("path", resourceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-10-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}/listClusterMonitoringUserCredential", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListClusterMonitoringUserCredentialsSender sends the ListClusterMonitoringUserCredentials request. The method will close the
+// http.Response Body if it receives an error.
+func (client ManagedClustersClient) ListClusterMonitoringUserCredentialsSender(req *http.Request) (*http.Response, error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
+}
+
+// ListClusterMonitoringUserCredentialsResponder handles the response to the ListClusterMonitoringUserCredentials request. The method always
+// closes the http.Response Body.
+func (client ManagedClustersClient) ListClusterMonitoringUserCredentialsResponder(resp *http.Response) (result CredentialResults, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

@@ -85,6 +85,9 @@ func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_deleted(t *testing.T) {
 
 func testCheckAzureRMSubnetNetworkSecurityGroupAssociationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -101,8 +104,6 @@ func testCheckAzureRMSubnetNetworkSecurityGroupAssociationExists(resourceName st
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -127,6 +128,9 @@ func testCheckAzureRMSubnetNetworkSecurityGroupAssociationExists(resourceName st
 
 func testCheckAzureRMSubnetNetworkSecurityGroupAssociationDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -143,8 +147,6 @@ func testCheckAzureRMSubnetNetworkSecurityGroupAssociationDisappears(resourceNam
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(read.Response) {
@@ -168,6 +170,9 @@ func testCheckAzureRMSubnetNetworkSecurityGroupAssociationDisappears(resourceNam
 
 func testCheckAzureRMSubnetHasNoNetworkSecurityGroup(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -184,8 +189,6 @@ func testCheckAzureRMSubnetHasNoNetworkSecurityGroup(resourceName string) resour
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

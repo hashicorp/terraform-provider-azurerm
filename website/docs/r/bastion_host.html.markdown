@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bastion_host"
-sidebar_current: "docs-azurerm-resource-bastion-host-x"
 description: |-
   Manages a Bastion Host Instance.
 

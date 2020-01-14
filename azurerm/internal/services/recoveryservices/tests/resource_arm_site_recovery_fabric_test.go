@@ -55,6 +55,8 @@ resource "azurerm_site_recovery_fabric" "test" {
 
 func testCheckAzureRMSiteRecoveryFabricExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -66,7 +68,6 @@ func testCheckAzureRMSiteRecoveryFabricExists(resourceName string) resource.Test
 		fabricName := state.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.FabricClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName)
 		if err != nil {
@@ -82,6 +83,8 @@ func testCheckAzureRMSiteRecoveryFabricExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMSiteRecoveryFabricDestroy(s *terraform.State) error {
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_site_recovery_fabric" {
 			continue
@@ -92,7 +95,6 @@ func testCheckAzureRMSiteRecoveryFabricDestroy(s *terraform.State) error {
 		fabricName := rs.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.FabricClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName)
 		if err != nil {

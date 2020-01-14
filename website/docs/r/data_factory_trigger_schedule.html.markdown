@@ -2,7 +2,6 @@
 subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_trigger_schedule"
-sidebar_current: "docs-azurerm-resource-data-factory-trigger-schedule"
 description: |-
   Manages a Trigger Schedule inside a Azure Data Factory.
 ---
@@ -15,7 +14,7 @@ Manages a Trigger Schedule inside a Azure Data Factory.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 
@@ -37,8 +36,8 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   pipeline_name       = "${azurerm_data_factory_pipeline.test.name}"
 
-  interval    = 5
-  frequency   = "Day"
+  interval  = 5
+  frequency = "Day"
 }
 ```
 

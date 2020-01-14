@@ -107,6 +107,9 @@ func testCheckAzureRMVirtualWanDestroy(s *terraform.State) error {
 
 func testCheckAzureRMVirtualWanExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualWanClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -118,9 +121,6 @@ func testCheckAzureRMVirtualWanExists(resourceName string) resource.TestCheckFun
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Virtual WAN: %s", virtualWanName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualWanClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualWanName)
 		if err != nil {

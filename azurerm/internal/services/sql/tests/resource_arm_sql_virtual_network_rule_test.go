@@ -84,9 +84,6 @@ func TestAccAzureRMSqlVirtualNetworkRule_requiresImport(t *testing.T) {
 func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 
-	preConfig := testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(data)
-	postConfig := testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(data)
-
 	// Create regex strings that will ensure that one subnet name exists, but not the other
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", data.RandomInteger, data.RandomInteger))  //subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", data.RandomInteger, data.RandomInteger)) //subnet 2 but not 1
@@ -97,14 +94,14 @@ func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", preConfigRegex),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", postConfigRegex),
@@ -119,7 +116,6 @@ func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 */
 func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
-	config := testAccAzureRMSqlVirtualNetworkRule_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -127,7 +123,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlVirtualNetworkRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
 					testCheckAzureRMSqlVirtualNetworkRuleDisappears(data.ResourceName),
@@ -145,7 +141,6 @@ func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 */
 func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
-	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -153,7 +148,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
 				),
@@ -169,7 +164,6 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 */
 func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
-	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -177,7 +171,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      config,
+				Config:      testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(data),
 				ExpectError: regexp.MustCompile("Code=\"VirtualNetworkRuleBadRequest\""),
 			},
 		},
@@ -193,7 +187,6 @@ func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 	resourceName2 := "azurerm_sql_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_sql_virtual_network_rule.rule3"
-	config := testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -201,7 +194,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkRuleExists(data.ResourceName),
 					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName2),
@@ -343,6 +336,9 @@ func TestResourceAzureRMSqlVirtualNetworkRule_validNameValidation(t *testing.T) 
 */
 func testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -351,9 +347,6 @@ func testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName string) resource.T
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -372,6 +365,9 @@ func testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName string) resource.T
 	Test Check function to delete a rule.
 */
 func testCheckAzureRMSqlVirtualNetworkRuleDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_virtual_network_rule" {
 			continue
@@ -380,9 +376,6 @@ func testCheckAzureRMSqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -404,6 +397,9 @@ func testCheckAzureRMSqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 */
 func testCheckAzureRMSqlVirtualNetworkRuleDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -413,9 +409,6 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(resourceName string) resour
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {

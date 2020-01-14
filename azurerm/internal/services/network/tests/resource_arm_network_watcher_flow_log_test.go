@@ -340,17 +340,17 @@ func testAccAzureRMNetworkWatcherFlowLog_basicConfig(data acceptance.TestData) s
 %s
 
 resource "azurerm_network_watcher_flow_log" "test" {
-    network_watcher_name = "${azurerm_network_watcher.test.name}"
-    resource_group_name  = "${azurerm_resource_group.test.name}"
+  network_watcher_name = "${azurerm_network_watcher.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
 
-    network_security_group_id = "${azurerm_network_security_group.test.id}"
-    storage_account_id        = "${azurerm_storage_account.test.id}"
-    enabled                   = true
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  storage_account_id        = "${azurerm_storage_account.test.id}"
+  enabled                   = true
 
-    retention_policy {
-        enabled = false
-        days    = 0
-    }
+  retention_policy {
+    enabled = false
+    days    = 0
+  }
 }
 `, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data))
 }
@@ -360,17 +360,17 @@ func testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(data acceptance.T
 %s
 
 resource "azurerm_network_watcher_flow_log" "test" {
-    network_watcher_name = "${azurerm_network_watcher.test.name}"
-    resource_group_name  = "${azurerm_resource_group.test.name}"
+  network_watcher_name = "${azurerm_network_watcher.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
 
-    network_security_group_id = "${azurerm_network_security_group.test.id}"
-    storage_account_id        = "${azurerm_storage_account.test.id}"
-    enabled                   = true
-    
-    retention_policy {
-        enabled = true
-        days    = 7
-    }
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  storage_account_id        = "${azurerm_storage_account.test.id}"
+  enabled                   = true
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
 }
 `, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data))
 }
@@ -380,28 +380,28 @@ func testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfigUpdateStorageAccou
 %s
 
 resource "azurerm_storage_account" "testb" {
-    name                = "acctestsab%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
+  name                = "acctestsab%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 
-    account_tier              = "Standard"
-    account_kind              = "StorageV2"
-    account_replication_type  = "LRS"
-    enable_https_traffic_only = true
+  account_tier              = "Standard"
+  account_kind              = "StorageV2"
+  account_replication_type  = "LRS"
+  enable_https_traffic_only = true
 }
 
 resource "azurerm_network_watcher_flow_log" "test" {
-    network_watcher_name = "${azurerm_network_watcher.test.name}"
-    resource_group_name  = "${azurerm_resource_group.test.name}"
+  network_watcher_name = "${azurerm_network_watcher.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
 
-    network_security_group_id = "${azurerm_network_security_group.test.id}"
-    storage_account_id        = "${azurerm_storage_account.testb.id}"
-    enabled                   = true
-    
-    retention_policy {
-        enabled = true
-        days    = 7
-    }
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  storage_account_id        = "${azurerm_storage_account.testb.id}"
+  enabled                   = true
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
 }
 `, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger%1000000+1)
 }
@@ -411,17 +411,17 @@ func testAccAzureRMNetworkWatcherFlowLog_disabledConfig(data acceptance.TestData
 %s
 
 resource "azurerm_network_watcher_flow_log" "test" {
-    network_watcher_name = "${azurerm_network_watcher.test.name}"
-    resource_group_name  = "${azurerm_resource_group.test.name}"
+  network_watcher_name = "${azurerm_network_watcher.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
 
-    network_security_group_id = "${azurerm_network_security_group.test.id}"
-    storage_account_id        = "${azurerm_storage_account.test.id}"
-    enabled                   = false
-    
-    retention_policy {
-        enabled = true
-        days    = 7
-    }
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  storage_account_id        = "${azurerm_storage_account.test.id}"
+  enabled                   = false
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
 }
 `, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data))
 }
@@ -431,31 +431,31 @@ func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsEnabledConfig(data acce
 %s
 
 resource "azurerm_log_analytics_workspace" "test" {
-    name                = "acctestLAW-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku                 = "PerGB2018"
+  name                = "acctestLAW-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_network_watcher_flow_log" "test" {
-    network_watcher_name = "${azurerm_network_watcher.test.name}"
-    resource_group_name  = "${azurerm_resource_group.test.name}"
+  network_watcher_name = "${azurerm_network_watcher.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
 
-    network_security_group_id = "${azurerm_network_security_group.test.id}"
-    storage_account_id        = "${azurerm_storage_account.test.id}"
-    enabled                   = true
-    
-    retention_policy {
-        enabled = true
-        days    = 7
-    }
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  storage_account_id        = "${azurerm_storage_account.test.id}"
+  enabled                   = true
 
-    traffic_analytics {
-        enabled               = true
-        workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
-        workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
-        workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-    }
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+
+  traffic_analytics {
+    enabled               = true
+    workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
+    workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
+    workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  }
 }
 `, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger)
 }
@@ -465,31 +465,31 @@ func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(data acc
 %s
 
 resource "azurerm_log_analytics_workspace" "test" {
-    name                = "acctestLAW-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku                 = "PerGB2018"
+  name                = "acctestLAW-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
 }
 
 resource "azurerm_network_watcher_flow_log" "test" {
-    network_watcher_name = "${azurerm_network_watcher.test.name}"
-    resource_group_name  = "${azurerm_resource_group.test.name}"
+  network_watcher_name = "${azurerm_network_watcher.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
 
-    network_security_group_id = "${azurerm_network_security_group.test.id}"
-    storage_account_id        = "${azurerm_storage_account.test.id}"
-    enabled                   = true
-    
-    retention_policy {
-        enabled = true
-        days    = 7
-    }
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  storage_account_id        = "${azurerm_storage_account.test.id}"
+  enabled                   = true
 
-    traffic_analytics {
-        enabled               = false
-        workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
-        workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
-        workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-    }
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+
+  traffic_analytics {
+    enabled               = false
+    workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
+    workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
+    workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  }
 }
 `, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger)
 }

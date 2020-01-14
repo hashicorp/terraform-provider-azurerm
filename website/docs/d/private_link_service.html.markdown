@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_service"
-sidebar_current: "docs-azurerm-datasource-private-link-service"
 description: |-
   Use this data source to access information about an existing Private Link Service.
 ---

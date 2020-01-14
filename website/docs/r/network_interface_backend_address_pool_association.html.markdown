@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_interface_backend_address_pool_association"
-sidebar_current: "docs-azurerm-resource-network-interface-backend-address-pool-association"
 description: |-
   Manages the association between a Network Interface and a Load Balancer's Backend Address Pool.
 

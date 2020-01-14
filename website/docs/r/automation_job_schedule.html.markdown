@@ -2,7 +2,6 @@
 subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_job_schedule"
-sidebar_current: "docs-azurerm-resource-automation-job-schedule"
 description: |-
   Links an Automation Runbook and Schedule.
 ---
@@ -23,8 +22,8 @@ resource "azurerm_automation_job_schedule" "example" {
   runbook_name            = "Get-VirtualMachine"
 
   parameters = {
-    resourcegroup      = "tf-rgr-vm"
-    vmname             = "TF-VM-01"
+    resourcegroup = "tf-rgr-vm"
+    vmname        = "TF-VM-01"
   }
 }
 ```

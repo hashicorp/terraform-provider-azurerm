@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image"
-sidebar_current: "docs-azurerm-resource-compute-shared-image-x"
 description: |-
   Manages a Shared Image within a Shared Image Gallery.
 

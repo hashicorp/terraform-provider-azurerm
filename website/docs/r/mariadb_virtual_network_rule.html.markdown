@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mariadb_virtual_network_rule"
-sidebar_current: "docs-azurerm-resource-database-mariadb-virtual-network-rule"
 description: |-
   Manages a MariaDB Virtual Network Rule.
 ---
@@ -45,12 +44,7 @@ resource "azurerm_mariadb_server" "example" {
   version                      = "5.7"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 5120

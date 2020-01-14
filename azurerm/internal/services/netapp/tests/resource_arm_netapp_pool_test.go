@@ -111,6 +111,9 @@ func TestAccAzureRMNetAppPool_update(t *testing.T) {
 
 func testCheckAzureRMNetAppPoolExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.PoolClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("NetApp Pool not found: %s", resourceName)
@@ -119,9 +122,6 @@ func testCheckAzureRMNetAppPoolExists(resourceName string) resource.TestCheckFun
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).NetApp.PoolClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -189,7 +189,7 @@ func testAccAzureRMNetAppPool_requiresImport(data acceptance.TestData) string {
 resource "azurerm_netapp_pool" "import" {
   name                = "${azurerm_netapp_pool.test.name}"
   location            = "${azurerm_netapp_pool.test.location}"
-  resource_group_name = "${azurerm_netapp_pool.test.name}"
+  resource_group_name = "${azurerm_netapp_pool.test.resource_group_name}"
 }
 }
 `, testAccAzureRMNetAppPool_basic(data))
