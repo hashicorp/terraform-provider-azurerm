@@ -815,8 +815,9 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 				"disk_encryption_set_id": {
 					Type:     schema.TypeString,
 					Optional: true,
-					// Support for rotating the Disk Encryption Set is (apparently) coming a few months following GA
-					// Code="PropertyChangeNotAllowed" Message="Changing property 'encryption.diskEncryptionSetId' is not allowed."
+					// whilst the API allows updating this value, it's never actually set at Azure's end
+					// presumably this'll take effect once key rotation is supported a few months post-GA?
+					// however for now let's make this ForceNew since it can't be (successfully) updated
 					ForceNew:     true,
 					ValidateFunc: azure.ValidateResourceID,
 				},
