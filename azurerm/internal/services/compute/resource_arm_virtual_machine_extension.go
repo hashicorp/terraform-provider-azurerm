@@ -91,7 +91,16 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 			// TODO: Remove location and resource_group_name in 2.0
-			"location":            azure.SchemaLocationDeprecated(),
+			//"location":            azure.SchemaLocationDeprecated(),
+			"location": {
+				Type:             schema.TypeString,
+				ForceNew:         true,
+				Optional:         true,
+				Computed:         true,
+				StateFunc:        azure.NormalizeLocation,
+				DiffSuppressFunc: azure.SuppressLocationDiff,
+				Deprecated:       "location is no longer used",
+			},
 			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 			"tags":                tags.Schema(),
 		},
@@ -121,7 +130,6 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 		}
 
 		location = *virtualMachine.Location
-
 	} else {
 		if vm, ok := d.GetOk("virtual_machine_name"); !ok {
 			return fmt.Errorf("Error, one of `virtual_machine_name` (deprecated) or `virtual_machine_id` (preferred) required.")
@@ -209,7 +217,8 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMExtensionClient
+	vmExtensionClient := meta.(*clients.Client).Compute.VMExtensionClient
+	vmClient := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -217,12 +226,25 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	vmName := id.VirtualMachine
 	name := id.Name
 
-	resp, err := client.Get(ctx, resGroup, vmName, name, "")
+	virtualMachine, err := vmClient.Get(ctx, resourceGroup, vmName, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(virtualMachine.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error making Read request on Virtual Machine %s: %s", name, err)
+	}
 
+	d.Set("virtual_machine_id", virtualMachine.ID)
+	if location := virtualMachine.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	resp, err := vmExtensionClient.Get(ctx, resourceGroup, vmName, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -232,13 +254,8 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 	}
 
 	d.Set("name", resp.Name)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
 	d.Set("virtual_machine_name", vmName)
-
-	d.Set("virtual_machine_id", "")
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 
 	if props := resp.VirtualMachineExtensionProperties; props != nil {
 		d.Set("publisher", props.Publisher)
