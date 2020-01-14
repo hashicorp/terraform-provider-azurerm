@@ -2,12 +2,12 @@ package azure
 
 import (
 	"encoding/json"
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"testing"
+
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 )
 
 func TestExpandBatchPoolNetworkConfiguration(t *testing.T) {
-
 	networkSecurityGroupRule := make(map[string]interface{})
 	networkSecurityGroupRule["priority"] = 150
 	networkSecurityGroupRule["access"] = "Allow"
@@ -60,7 +60,6 @@ func TestExpandBatchPoolNetworkConfiguration(t *testing.T) {
 }
 
 func TestExpandBatchPoolNetworkConfigurationOnlySubnetId(t *testing.T) {
-
 	var jsonBlob = []byte(`[
   {
     "subnet_id": "test"
@@ -88,15 +87,12 @@ func TestExpandBatchPoolNetworkConfigurationOnlySubnetId(t *testing.T) {
 			if !tc.ExpectError {
 				t.Fatalf("Got error for input %q: %+v", tc.Input, err)
 			}
-
 			return
 		}
-
 	}
 }
 
 func TestFlattenBatchPoolNetworkConfiguration(t *testing.T) {
-
 	subnetId := "subnetId"
 	backendPort := int32(1)
 	frontendPortRangeStart := int32(2)
@@ -127,7 +123,6 @@ func TestFlattenBatchPoolNetworkConfiguration(t *testing.T) {
 }
 
 func TestFlattenBatchPoolNetworkConfigurationEmpty(t *testing.T) {
-
 	inboundNatPool := make([]batch.InboundNatPool, 1)
 	groupRules := make([]batch.NetworkSecurityGroupRule, 1)
 
