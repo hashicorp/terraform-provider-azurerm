@@ -36,6 +36,29 @@ func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCognitiveAccount_basicOldSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCognitiveAccount_basicOldSku(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Face"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 
@@ -208,6 +231,24 @@ resource "azurerm_cognitive_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   kind                = "Face"
 
+  sku_name = "S0"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMCognitiveAccount_basicOldSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "Face"
+
   sku {
     name = "S0"
     tier = "Standard"
@@ -229,10 +270,7 @@ resource "azurerm_cognitive_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   kind                = "SpeechServices"
 
-  sku {
-    name = "S0"
-    tier = "Standard"
-  }
+  sku_name = "S0"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -248,10 +286,7 @@ resource "azurerm_cognitive_account" "import" {
   resource_group_name = "${azurerm_cognitive_account.test.resource_group_name}"
   kind                = "${azurerm_cognitive_account.test.kind}"
 
-  sku {
-    name = "S0"
-    tier = "Standard"
-  }
+  sku_name = "S0"
 }
 `, template)
 }
@@ -269,10 +304,7 @@ resource "azurerm_cognitive_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   kind                = "Face"
 
-  sku {
-    name = "S0"
-    tier = "Standard"
-  }
+  sku_name = "S0"
 
   tags = {
     Acceptance = "Test"

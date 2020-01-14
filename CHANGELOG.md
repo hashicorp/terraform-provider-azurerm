@@ -2,15 +2,31 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_dedicated_host_group` [GH-5307]
+* **New Data Source:** `azurerm_disk_encryption_set` [GH-5249]
 * **New Data Source:** `azurerm_iothub_dps` [GH-5336]
+* **New data source:** `azurerm_iothub_shared_access_policy` [GH-5368]
+* **New Resource:** `azurerm_api_management_identity_provider_facebook` [GH-5346]
 * **New Resource:** `azurerm_api_management_identity_provider_twitter` [GH-5306]
+* **New Resource:** `azurerm_api_management_identity_provider_microsoft` [GH-5369]
 * **New Resource:** `azurerm_cosmosdb_gremlin_graph` [GH-5301]
+* **New Resource:** `azurerm_dedicated_host_group` [GH-5307]
+* **New Resource:** `azurerm_disk_encryption_set` [GH-5249]
 
 IMPROVEMENTS:
 
-* `azurerm_api_management_operation` - will no longer panic on missing values in `request` [GH-5318]
+* `azurerm_cognitive_account` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5380]
+* `azurerm_devspace_controller` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5379]
 * `azurerm_batch_pool` - support for the `metadata` property [GH-5309]
-* `azurerm_function_app` - convert `connection_string`s from a `TypList` to a `TypeSet` [GH-5319]
+* `azurerm_function_app` - convert `connection_string`s from a `TypeList` to a `TypeSet` [GH-5319]
+* `azurerm_mariadb_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5378]
+* `azurerm_postgresql_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5376]
+* `azurerm_lb_rule` - support for the `enable_tcp_reset` property [GH-5373]
+* `azurerm_lb_nat_rule` -  support for the `enable_tcp_reset` and `idle_timeout_in_minutes` properties [GH-5373]
+
+BUG FIXES:
+
+* `azurerm_api_management_operation` - will no longer panic on missing values in `request` [GH-5318]
 * `azurerm_storage_account` - fix performance issue for accounts that don't support queues [GH-5316]
 
 ## 1.40.0 (January 08, 2020)
