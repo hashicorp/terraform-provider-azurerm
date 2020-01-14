@@ -201,7 +201,7 @@ func testAccAzureRMNetAppAccount_requiresImportConfig(data acceptance.TestData) 
 resource "azurerm_netapp_account" "import" {
   name                = "${azurerm_netapp_account.test.name}"
   location            = "${azurerm_netapp_account.test.location}"
-  resource_group_name = "${azurerm_netapp_account.test.name}"
+  resource_group_name = "${azurerm_netapp_account.test.resource_group_name}"
 }
 `, testAccAzureRMNetAppAccount_basicConfig(data))
 }
