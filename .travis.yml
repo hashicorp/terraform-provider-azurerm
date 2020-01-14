@@ -20,7 +20,6 @@ install:
   # packages that live there.
   # See: https://github.com/golang/go/issues/12933
   - bash scripts/gogetcookie.sh
-  - make tools
 
 matrix:
   fast_finish: true
@@ -28,18 +27,23 @@ matrix:
     - go: tip
   include:
     - name: "make lintrest"
-      script: GOGC=5 make lintrest
+      script:
+      - AZTOOLS=lint make tools
+      - GOGC=5 make lintrest
     # results in a OOM error
     #- name: "make lintunused"
     #  script: GOGC=5 make lintunused
     - name: "make tflint"
-      script: make tflint
+      script:
+      - AZTOOLS=tflint make tools
+      - make tflint
     - name: "make test"
       script: make test
     - name: "make depscheck"
       script: make depscheck
     - name: "make website-lint"
       script:
+      - AZTOOLS=tflint make tools
       - curl -sLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.18/terraform_0.12.18_linux_amd64.zip
       - unzip /tmp/terraform.zip -d /tmp
       - mv /tmp/terraform ~/bin
