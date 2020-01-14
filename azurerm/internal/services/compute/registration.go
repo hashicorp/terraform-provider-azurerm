@@ -16,6 +16,7 @@ func (r Registration) Name() string {
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_availability_set":          dataSourceArmAvailabilitySet(),
+		"azurerm_dedicated_host":            dataSourceArmDedicatedHost(),
 		"azurerm_dedicated_host_group":      dataSourceArmDedicatedHostGroup(),
 		"azurerm_disk_encryption_set":       dataSourceArmDiskEncryptionSet(),
 		"azurerm_managed_disk":              dataSourceArmManagedDisk(),
@@ -34,6 +35,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	resources := map[string]*schema.Resource{
 		"azurerm_availability_set":                     resourceArmAvailabilitySet(),
+		"azurerm_dedicated_host":                       resourceArmDedicatedHost(),
 		"azurerm_dedicated_host_group":                 resourceArmDedicatedHostGroup(),
 		"azurerm_disk_encryption_set":                  resourceArmDiskEncryptionSet(),
 		"azurerm_image":                                resourceArmImage(),
