@@ -436,7 +436,7 @@ func resourceArmMariaDbServerDelete(d *schema.ResourceData, meta interface{}) er
 func expandServerSkuName(skuName string) (*mariadb.Sku, error) {
 	parts := strings.Split(skuName, "_")
 	if len(parts) != 3 {
-		return nil, fmt.Errorf("sku_name (%s) has the worng numberof parts (%d) after splitting on _", skuName, len(parts))
+		return nil, fmt.Errorf("sku_name (%s) has the worng number of parts (%d) after splitting on _", skuName, len(parts))
 	}
 
 	var tier mariadb.SkuTier
