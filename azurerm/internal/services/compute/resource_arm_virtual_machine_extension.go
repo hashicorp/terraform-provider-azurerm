@@ -91,7 +91,6 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 			// TODO: Remove location and resource_group_name in 2.0
-			//"location":            azure.SchemaLocationDeprecated(),
 			"location": {
 				Type:             schema.TypeString,
 				ForceNew:         true,
