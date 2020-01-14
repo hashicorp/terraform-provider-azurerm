@@ -97,7 +97,7 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 				Destroy:            false,
 				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
+					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
 					testDeleteAzureRMVirtualMachine("azurerm_virtual_machine.test"),
 				),
 			},
