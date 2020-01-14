@@ -3,14 +3,18 @@ package sql
 import (
 	"fmt"
 	"log"
+	"strings"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
+	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +25,13 @@ func resourceArmSqlMiServer() *schema.Resource {
 		Update: resourceArmSqlMiServerCreateUpdate,
 		Delete: resourceArmSqlMiServerDelete,
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(1440 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(1440 * time.Minute),
+			Delete: schema.DefaultTimeout(1440 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -29,61 +40,40 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"sku": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"GP_Gen4",
-								"GP_Gen5",
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-
-						"capacity": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
-						"tier": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"family": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
+			"sku_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"GP_Gen4",
+					"GP_Gen5",
+					"BC_Gen4",
+					"BC_Gen5",
+				}, false),
 			},
 
 			"administrator_login": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"administrator_login_password": {
-				Type:      schema.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"vcores": {
 				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  8,
+				Required: true,
 				ValidateFunc: validate.IntInSlice([]int{
+					4,
 					8,
 					16,
 					24,
@@ -96,15 +86,13 @@ func resourceArmSqlMiServer() *schema.Resource {
 
 			"storage_size_in_gb": {
 				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      32,
-				ValidateFunc: validate.IntBetweenAndDivisibleBy(32, 8000, 32),
+				Required:     true,
+				ValidateFunc: validate.IntBetweenAndDivisibleBy(32, 8192, 32),
 			},
 
 			"license_type": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "LicenseIncluded",
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"LicenseIncluded",
 					"BasePrice",
@@ -117,30 +105,35 @@ func resourceArmSqlMiServer() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlMiServersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*clients.Client).Sql.ManagedInstancesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	adminUsername := d.Get("administrator_login").(string)
 	licenseType := d.Get("license_type").(string)
 	subnetId := d.Get("subnet_id").(string)
+	metadata := tags.Expand(d.Get("tags").(map[string]interface{}))
 
-	tags := d.Get("tags").(map[string]interface{})
-	metadata := expandTags(tags)
+	sku, err := expandManagedInstanceSkuName(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("error expanding sku_name for SQL Managed Instance Server %q (Resource Group %q): %v", name, resGroup, err)
+	}
 
 	parameters := sql.ManagedInstance{
+		Sku:      sku,
 		Location: utils.String(location),
 		Tags:     metadata,
 		ManagedInstanceProperties: &sql.ManagedInstanceProperties{
-			LicenseType:        utils.String(licenseType),
+			LicenseType:        sql.ManagedInstanceLicenseType(licenseType),
 			AdministratorLogin: utils.String(adminUsername),
 			SubnetID:           utils.String(subnetId),
 		},
@@ -176,10 +169,11 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlMiServersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*clients.Client).Sql.ManagedInstancesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -201,7 +195,7 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if miServerProperties := resp.ManagedInstanceProperties; miServerProperties != nil {
@@ -210,16 +204,15 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("fully_qualified_domain_name", miServerProperties.FullyQualifiedDomainName)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSqlMiServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlMiServersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*clients.Client).Sql.ManagedInstancesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -233,4 +226,27 @@ func resourceArmSqlMiServerDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return future.WaitForCompletionRef(ctx, client.Client)
+}
+
+func expandManagedInstanceSkuName(skuName string) (*sql.Sku, error) {
+	parts := strings.Split(skuName, "_")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("sku_name (%s) has the wrong number of parts (%d) after splitting on _", skuName, len(parts))
+	}
+
+	var tier string
+	switch parts[0] {
+	case "GP":
+		tier = string(sql.GeneralPurpose)
+	case "BC":
+		tier = string(sql.BusinessCritical)
+	default:
+		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
+	}
+
+	return &sql.Sku{
+		Name:   utils.String(skuName),
+		Tier:   utils.String(tier),
+		Family: utils.String(parts[1]),
+	}, nil
 }
