@@ -285,7 +285,7 @@ func expandAzureArmSchedulerJobCollectionQuota(d *schema.ResourceData) *schedule
 		}
 		if v, ok := quotaBlock["max_recurrence_interval"].(int); ok && v > 0 {
 			quota.MaxRecurrence.Interval = utils.Int32(int32(v))
-		} else if v, ok := quotaBlock["max_retry_interval"].(int); ok && v > 0 { //todo remove once max_retry_interval is removed
+		} else if v, ok := quotaBlock["max_retry_interval"].(int); ok && v > 0 { // todo remove once max_retry_interval is removed
 			quota.MaxRecurrence.Interval = utils.Int32(int32(v))
 		}
 
@@ -308,7 +308,7 @@ func flattenAzureArmSchedulerJobCollectionQuota(quota *scheduler.JobCollectionQu
 	if recurrence := quota.MaxRecurrence; recurrence != nil {
 		if v := recurrence.Interval; v != nil {
 			quotaBlock["max_recurrence_interval"] = *v
-			quotaBlock["max_retry_interval"] = *v //todo remove once max_retry_interval is retired
+			quotaBlock["max_retry_interval"] = *v // todo remove once max_retry_interval is retired
 		}
 
 		quotaBlock["max_recurrence_frequency"] = string(recurrence.Frequency)

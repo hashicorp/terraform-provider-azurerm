@@ -322,7 +322,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 		}
 		d.Set("zone_redundant", properties.ZoneRedundant)
 
-		//todo remove in 2.0
+		// todo remove in 2.0
 		if err := d.Set("elastic_pool_properties", flattenAzureRmMsSqlElasticPoolProperties(resp.ElasticPoolProperties)); err != nil {
 			return fmt.Errorf("Error setting `elastic_pool_properties`: %+v", err)
 		}
