@@ -255,7 +255,7 @@ The deprecated `failover_policy` block will be removed. This has been replaced b
 
 ### Resource: `azurerm_devspace_controller`
 
-The deprecated `sku` block has been simplified and replaced by the `sku_name` property and will be removed.
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
 
 ### Resource: `azurerm_ddos_protection_plan`
 
