@@ -28,14 +28,13 @@ matrix:
   include:
     - name: "make lintrest"
       script:
-      - AZTOOLS=lint make tools
       - GOGC=5 make lintrest
     # results in a OOM error
     #- name: "make lintunused"
     #  script: GOGC=5 make lintunused
     - name: "make tflint"
       script:
-      - AZTOOLS=tflint make tools
+      - go get github.com/hashicorp/terraform
       - make tflint
     - name: "make test"
       script: make test
@@ -43,11 +42,7 @@ matrix:
       script: make depscheck
     - name: "make website-lint"
       script:
-      - AZTOOLS=tflint make tools
-      - curl -sLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.18/terraform_0.12.18_linux_amd64.zip
-      - unzip /tmp/terraform.zip -d /tmp
-      - mv /tmp/terraform ~/bin
-      - export PATH="~/bin:$PATH"
+      - go get github.com/hashicorp/terraform
       - make website-lint
     - name: "make website-test"
       script: make website-test
