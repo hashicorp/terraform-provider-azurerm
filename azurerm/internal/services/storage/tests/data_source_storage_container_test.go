@@ -20,7 +20,6 @@ func TestAccDataSourceArmStorageContainer_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "container_access_type", "private"),
 					resource.TestCheckResourceAttr(data.ResourceName, "has_immutability_policy", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "storage_account_name", "acctestsadsc"+data.RandomString),
 					resource.TestCheckResourceAttr(data.ResourceName, "metadata.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "metadata.k1", "v1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "metadata.k2", "v2"),
