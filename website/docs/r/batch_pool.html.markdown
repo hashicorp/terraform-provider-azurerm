@@ -308,7 +308,7 @@ A `network_security_group_rules` block supports the following:
 
 * `priority` - The priority for this rule. The value must be at least 150. Changing this forces a new resource to be created.
 
-* `priority` - The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
+* `source_address_prefix` - The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
