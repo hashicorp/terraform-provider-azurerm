@@ -90,7 +90,7 @@ func TestAccDataSourceAzureRMSqlDatabase_blobExtendedAuditing(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMSqlDatabase_readScale(data, true),
+				Config: testAccDataSourceAzureRMSqlDatabase_blobExtendedAuditing(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
