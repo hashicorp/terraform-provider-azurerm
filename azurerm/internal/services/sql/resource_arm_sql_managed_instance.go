@@ -164,7 +164,7 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSqlServerRead(d, meta)
+	return resourceArmSqlMiServerRead(d, meta)
 }
 
 func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error {
