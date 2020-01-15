@@ -6,8 +6,6 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
@@ -21,10 +19,7 @@ func TestAccDataSourceAzureRMDedicatedHost_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceDedicatedHost_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "DSv3-Type1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "platform_fault_domain", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_replace_on_failure", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "license_type", string(compute.DedicatedHostLicenseTypesNone)),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 				),
 			},
 		},

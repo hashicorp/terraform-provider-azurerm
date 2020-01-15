@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/profiles/latest/compute/mgmt/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
@@ -51,9 +51,7 @@ func TestAccAzureRMDedicatedHost_complete(t *testing.T) {
 				Config: testAccAzureRMDedicatedHost_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDedicatedHostExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "license_type", string(compute.DedicatedHostLicenseTypesNone)),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_replace_on_failure", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "platform_fault_domain", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "platform_fault_domain", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "DSv3-Type1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", string(compute.DedicatedHostLicenseTypesWindowsServerHybrid)),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_replace_on_failure", "false"),
@@ -214,7 +212,7 @@ resource "azurerm_dedicated_host" "test" {
   host_group_name				= azurerm_dedicated_host_group.test.name
   sku							= "DSv3-Type1"
   platform_fault_domain			= 1
-  license_type					= Windows_Server_Hybrid
+  license_type					= "Windows_Server_Hybrid"
   auto_replace_on_failure		= false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
