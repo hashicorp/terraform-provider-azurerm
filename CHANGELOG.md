@@ -11,6 +11,7 @@ FEATURES:
 * **New Data Source:** `azurerm_eventgrid_topic` [GH-5367]
 * **New Data Source:** `azurerm_iothub_dps` [GH-5336]
 * **New Data Source:** `azurerm_iothub_shared_access_policy` [GH-5368]
+* **New Data Source:** `azurerm_storage_container` [GH-5374]
 * **New Resource:** `azurerm_api_management_identity_provider_facebook` [GH-5346]
 * **New Resource:** `azurerm_api_management_identity_provider_twitter` [GH-5306]
 * **New Resource:** `azurerm_api_management_identity_provider_microsoft` [GH-5369]
