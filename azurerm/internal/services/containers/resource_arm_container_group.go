@@ -578,7 +578,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if props := resp.ContainerGroupProperties; props != nil {
-		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.IPAddress.Ports, props.Volumes)
+		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.IPAddress, props.Volumes)
 		if err := d.Set("container", containerConfigs); err != nil {
 			return fmt.Errorf("Error setting `container`: %+v", err)
 		}
@@ -1104,7 +1104,7 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]c
 	return output
 }
 
-func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, containerGroupPorts *[]containerinstance.Port, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, ipAddress *containerinstance.IPAddress, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 	//map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}
 	for i, c := range d.Get("container").([]interface{}) {
@@ -1166,13 +1166,16 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			containerConfig["port"] = containerPort
 			// protocol isn't returned in container config, have to search in container group ports
 			protocol := ""
-			if containerGroupPorts != nil {
-				for _, cgPort := range *containerGroupPorts {
-					if *cgPort.Port == containerPort {
-						protocol = string(cgPort.Protocol)
+			if ipAddress != nil {
+				if containerGroupPorts := ipAddress.Ports; containerGroupPorts != nil {
+					for _, cgPort := range *containerGroupPorts {
+						if *cgPort.Port == containerPort {
+							protocol = string(cgPort.Protocol)
+						}
 					}
 				}
 			}
+
 			if protocol != "" {
 				containerConfig["protocol"] = protocol
 			}
