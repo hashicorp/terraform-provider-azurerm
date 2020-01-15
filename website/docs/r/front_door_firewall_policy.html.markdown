@@ -44,7 +44,7 @@ resource "azurerm_frontdoor_firewall_policy" "example" {
     }
   }
 
-  custom_rules {
+  custom_rule {
     name                           = "Rule2"
     enabled                        = true
     priority                       = 2
@@ -72,22 +72,49 @@ resource "azurerm_frontdoor_firewall_policy" "example" {
 
   managed_rule {
     type    = "DefaultRuleSet"
-    version = "preview-0.1"
+    version = "1.0"
+
+    exclusion {
+      match_variable = "QueryStringArgNames"
+      operator       = "Equals"
+      selector       = "not_suspicious"
+    }
 
     override {
       rule_group_name = "PHP"
 
       rule {
-        rule_id = "933111"
+        rule_id = "933100"
         enabled = false
         action  = "Block"
+      }
+    }
+
+    override {
+      rule_group_name = "SQLI"
+
+      exclusion {
+        match_variable = "QueryStringArgNames"
+        operator       = "Equals"
+        selector       = "really_not_suspicious"
+      }
+
+      rule {
+        rule_id = "942200"
+        action  = "Block"
+
+        exclusion {
+          match_variable = "QueryStringArgNames"
+          operator       = "Equals"
+          selector       = "innocent"
+        }
       }
     }
   }
 
   managed_rule {
-    type    = "BotProtection"
-    version = "preview-0.1"
+    type    = "Microsoft_BotManagerRuleSet"
+    version = "1.0"
   }
 }
 ```
@@ -160,6 +187,8 @@ The `managed_rule` block supports the following:
 
 * `version` - (Required) The version on the managed rule to use with this resource.
 
+* `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
+
 * `override` - (Optional) One or more `override` blocks as defined below.
 
 ---
@@ -167,6 +196,8 @@ The `managed_rule` block supports the following:
 The `override` block supports the following:
 
 * `rule_group_name` - (Required) The managed rule group to override.
+
+* `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
 
 * `rule` - (Optional) One or more `rule` blocks as defined below. If none are specified, all of the rules in the group will be disabled.
 
@@ -179,6 +210,18 @@ The `rule` block supports the following:
 * `action` - (Required) The action to be applied when the rule matches. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
 
 * `enabled` - (Optional) Is the managed rule override enabled or disabled. Defaults to `false`
+
+* `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
+
+---
+
+The `exclusion` block supports the following:
+
+* `match_variable` - (Required) The variable type to be excluded. Possible values are `QueryStringArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`.
+
+* `operator` - (Required) Comparison operator to apply to the selector when specifying which elements in the collection this exclusion applies to. Possible values are: `Equals`, `Contains`, `StartsWith`, `EndsWith`, `EqualsAny`.
+
+* `selector` - (Required) Selector for the value in the `match_variable` attribute this exclusion applies to.
 
 ## Attributes Reference
 

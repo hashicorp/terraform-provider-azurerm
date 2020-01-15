@@ -111,7 +111,10 @@ func TestAccAzureRMFrontDoorFirewallPolicy_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rule.0.name", "Rule1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rule.1.name", "Rule2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "managed_rule.0.type", "DefaultRuleSet"),
-					resource.TestCheckResourceAttr(data.ResourceName, "managed_rule.1.type", "BotProtection"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rule.0.exclusion.0.match_variable", "QueryStringArgNames"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rule.0.override.1.exclusion.0.selector", "really_not_suspicious"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rule.0.override.1.rule.0.exclusion.0.selector", "innocent"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rule.1.type", "Microsoft_BotManagerRuleSet"),
 				),
 			},
 			data.ImportStep(),
@@ -276,22 +279,49 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
 
   managed_rule {
     type    = "DefaultRuleSet"
-    version = "preview-0.1"
+    version = "1.0"
+
+    exclusion {
+      match_variable = "QueryStringArgNames"
+      operator = "Equals"
+      selector = "not_suspicious"
+    }
 
     override {
       rule_group_name = "PHP"
 
       rule {
-        rule_id = "933111"
+        rule_id = "933100"
         enabled = false
         action  = "Block"
       }
     }
-  }
 
+    override {
+      rule_group_name = "SQLI"
+
+      exclusion {
+        match_variable = "QueryStringArgNames"
+        operator = "Equals"
+        selector = "really_not_suspicious"
+      }
+
+      rule {
+        rule_id = "942200"
+        action  = "Block"
+
+        exclusion {
+          match_variable = "QueryStringArgNames"
+          operator = "Equals"
+          selector = "innocent"
+        }
+      }
+    }
+  }
+  
   managed_rule {
-    type    = "BotProtection"
-    version = "preview-0.1"
+    type    = "Microsoft_BotManagerRuleSet"
+    version = "1.0"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, inner)
