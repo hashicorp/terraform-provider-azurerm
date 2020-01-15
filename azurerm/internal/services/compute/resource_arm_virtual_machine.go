@@ -610,6 +610,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
 
