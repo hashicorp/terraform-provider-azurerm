@@ -555,7 +555,7 @@ func TestAccAzureRMFunctionApp_corsSettings(t *testing.T) {
 	})
 }
 
-//TODO: service not return vnetName so accTest won't pass. Disable this test temporary.
+//TODO: service configuration API always return vnetName as empty string. Disable this test temporary.
 //relate issue: https://github.com/Azure/azure-rest-api-specs/issues/8158
 //func TestAccAzureRMFunctionApp_vnetName(t *testing.T) {
 //	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
