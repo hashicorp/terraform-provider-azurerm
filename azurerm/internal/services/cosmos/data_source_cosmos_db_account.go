@@ -93,6 +93,11 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 							Computed: true,
 						},
 
+						"zone_redundant": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+
 						"failover_priority": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -223,12 +228,22 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 		}
 
 		//sort `geo_locations` by fail over priority
+		allLocations := append(*props.ReadLocations, *props.WriteLocations...)
 		locations := make([]map[string]interface{}, len(*props.FailoverPolicies))
 		for _, l := range *props.FailoverPolicies {
+			isZoneRedundant := false
+
+			for _, loc := range allLocations {
+				if loc.ID == l.ID {
+					isZoneRedundant = *loc.IsZoneRedundant
+				}
+			}
+
 			locations[*l.FailoverPriority] = map[string]interface{}{
 				"id":                *l.ID,
 				"location":          azure.NormalizeLocation(*l.LocationName),
 				"failover_priority": int(*l.FailoverPriority),
+				"zone_redundant":    isZoneRedundant,
 			}
 		}
 		if err = d.Set("geo_location", locations); err != nil {

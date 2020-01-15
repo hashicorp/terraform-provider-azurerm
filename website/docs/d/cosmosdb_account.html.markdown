@@ -69,6 +69,7 @@ The following attributes are exported:
 * `id` - The ID of the location.
 * `location` - The name of the Azure region hosting replicated data.
 * `priority` - The locations fail over priority.
+* `zone_redundant` - Whether zone redundancy is enabled for this region.
 
 `virtual_network_rule` The virtual network subnets allowed to access this Cosmos DB account with the following properties:
 

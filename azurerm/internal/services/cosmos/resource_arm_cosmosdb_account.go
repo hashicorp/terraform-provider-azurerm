@@ -188,6 +188,12 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 
 						"location": azure.SchemaLocation(),
 
+						"zone_redundant": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"failover_priority": {
 							Type:         schema.TypeInt,
 							Required:     true,
@@ -363,6 +369,14 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Neither `geo_location` or `failover_policy` is set for CosmosDB Account %s", name)
 	}
 
+	if !enableMultipleWriteLocations {
+		for _, l := range geoLocations {
+			if *l.IsZoneRedundant {
+				return fmt.Errorf("Configuration mismatch: `zone_redundant` is set to true but `enable_multiple_write_locations` is set to false")
+			}
+		}
+	}
+
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
@@ -459,12 +473,21 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Neither `geo_location` or `failover_policy` is set for CosmosDB Account '%s'", name)
 	}
 
+	if !enableMultipleWriteLocations {
+		for _, l := range newLocations {
+			if *l.IsZoneRedundant {
+				return fmt.Errorf("Configuration mismatch: `zone_redundant` is set to true but `enable_multiple_write_locations` is set to false")
+			}
+		}
+	}
+
 	//get existing locations (if exists)
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account '%s': %s", name, err)
 	}
 
+	oldLocationsCombined := append(*resp.WriteLocations, *resp.ReadLocations...)
 	oldLocations := make([]documentdb.Location, 0)
 	oldLocationsMap := map[string]documentdb.Location{}
 	for _, l := range *resp.FailoverPolicies {
@@ -472,6 +495,12 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			ID:               l.ID,
 			LocationName:     l.LocationName,
 			FailoverPriority: l.FailoverPriority,
+		}
+
+		for _, ol := range oldLocationsCombined {
+			if ol.ID == l.ID {
+				location.IsZoneRedundant = ol.IsZoneRedundant
+			}
 		}
 
 		oldLocations = append(oldLocations, location)
@@ -856,6 +885,9 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 			FailoverPriority: utils.Int32(int32(data["failover_priority"].(int))),
 		}
 
+		if v, ok := data["zone_redundant"].(bool); ok {
+			location.IsZoneRedundant = utils.Bool(v)
+		}
 		if v, ok := data["prefix"].(string); ok {
 			data["id"] = v
 		} else {
@@ -875,7 +907,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 		name := *location.LocationName
 
 		if _, ok := byPriorities[priority]; ok {
-			return nil, fmt.Errorf("Each `geo_location` needs to have a unique failover_prioroty. Multiple instances of '%d' found", priority)
+			return nil, fmt.Errorf("Each `geo_location` needs to have a unique failover_priority. Multiple instances of '%d' found", priority)
 		}
 
 		if _, ok := byName[name]; ok {
@@ -910,6 +942,10 @@ func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.R
 			ID:               &id,
 			LocationName:     &locationName,
 			FailoverPriority: &failoverPriority,
+		}
+
+		if v, ok := data["zone_redundant"].(bool); ok {
+			location.IsZoneRedundant = &v
 		}
 
 		locations = append(locations, location)
@@ -1011,12 +1047,20 @@ func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account d
 		}
 	}
 
+	allLocations := append(*account.WriteLocations, *account.ReadLocations...)
+
 	for _, l := range *account.FailoverPolicies {
 		id := *l.ID
 		lb := map[string]interface{}{
 			"id":                id,
 			"location":          azure.NormalizeLocation(*l.LocationName),
 			"failover_priority": int(*l.FailoverPriority),
+		}
+
+		for _, wl := range allLocations {
+			if *wl.ID == id {
+				lb["zone_redundant"] = *wl.IsZoneRedundant
+			}
 		}
 
 		//if id is not the default then it must be set via prefix
@@ -1088,8 +1132,12 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 		}
 		location := azure.NormalizeLocation(m["location"].(string))
 		priority := int32(m["failover_priority"].(int))
+		zoneRedundant := false
+		if v, ok := m["zone_redundant"].(bool); ok {
+			zoneRedundant = v
+		}
 
-		buf.WriteString(fmt.Sprintf("%s-%s-%d", prefix, location, priority))
+		buf.WriteString(fmt.Sprintf("%s-%s-%d-%t", prefix, location, priority, zoneRedundant))
 	}
 
 	return hashcode.String(buf.String())
