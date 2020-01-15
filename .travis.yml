@@ -20,6 +20,7 @@ install:
   # packages that live there.
   # See: https://github.com/golang/go/issues/12933
   - bash scripts/gogetcookie.sh
+  - make tools
 
 matrix:
   fast_finish: true
@@ -34,7 +35,7 @@ matrix:
     #  script: GOGC=5 make lintunused
     - name: "make tflint"
       script:
-      - go get github.com/hashicorp/terraform
+      - GO111MODULE=off go get -u github.com/hashicorp/terraform
       - make tflint
     - name: "make test"
       script: make test
@@ -42,7 +43,7 @@ matrix:
       script: make depscheck
     - name: "make website-lint"
       script:
-      - go get github.com/hashicorp/terraform
+      - GO111MODULE=off go get -u github.com/hashicorp/terraform
       - make website-lint
     - name: "make website-test"
       script: make website-test
