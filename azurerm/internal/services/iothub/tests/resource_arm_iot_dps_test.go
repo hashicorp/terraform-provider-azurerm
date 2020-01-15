@@ -177,7 +177,6 @@ resource "azurerm_iot_dps" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }
@@ -191,12 +190,11 @@ func testAccAzureRMIotDPS_requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_iot_dps" "import" {
   name                = "${azurerm_iot_dps.test.name}"
-  resource_group_name = "${azurerm_iot_dps.test.name}"
+  resource_group_name = "${azurerm_iot_dps.test.resource_group_name}"
   location            = "${azurerm_iot_dps.test.location}"
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }
@@ -217,7 +215,6 @@ resource "azurerm_iot_dps" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
@@ -242,7 +239,6 @@ resource "azurerm_iot_dps" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
@@ -275,7 +271,6 @@ resource "azurerm_iot_dps" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 

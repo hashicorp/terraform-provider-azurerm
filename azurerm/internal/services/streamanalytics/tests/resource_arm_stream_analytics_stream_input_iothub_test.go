@@ -255,7 +255,6 @@ resource "azurerm_iothub" "updated" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }
@@ -310,7 +309,6 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }

@@ -84,7 +84,9 @@ As such the existing 'azurerm_iot_dps' resource is deprecated and will be remove
 
 						"tier": {
 							Type:             schema.TypeString,
-							Required:         true,
+							Optional:         true,
+							Computed:         true,
+							Deprecated:       "This property is no longer required and will be removed in version 2.0 of the provider",
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.Basic),

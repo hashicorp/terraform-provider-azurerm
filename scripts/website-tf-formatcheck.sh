@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "==> Checking website Terraform blocks are formatted..."
+echo "==> Checking documentation Terraform blocks are formatted..."
 
 files=$(find ./website -type f -name "*.html.markdown")
 tofmt=()
@@ -26,7 +26,6 @@ if $error; then
   echo ""
   echo "on windows:"
   echo "$ Get-ChildItem -Path $path -Recurse -Filter \"*html.markdown\" | foreach {terrafmt fmt $.name}"
-  echo ""
   echo ""
   exit 1
 fi
