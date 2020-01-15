@@ -193,7 +193,6 @@ func testAccAzureRMKubernetesCluster_updateRoleBaseAccessControlAAD(t *testing.T
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	tenantId := os.Getenv("ARM_TENANT_ID")
-	// Currently this only tests a change of password on the aadProfile
 	// TODO: find or create a suitable replacement client_id to use to extend the test and set ARM_CLIENT_ID_ALT in the CI job
 	updateClientId := os.Getenv("ARM_CLIENT_ID_ALT")
 	updateClientSecret := os.Getenv("ARM_CLIENT_SECRET_ALT")
