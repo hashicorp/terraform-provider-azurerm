@@ -253,6 +253,12 @@ resource "azurerm_route_table" "test" {
   resource_group_name           = "${azurerm_resource_group.test.name}"
   disable_bgp_route_propagation = false
   
+
+  route {
+    name           = "subnet-to-vnetlocal"
+    address_prefix = "10.0.0.0/24"
+    next_hop_type  = "VnetLocal"
+  }
   route {
     name           = "mi-13-64-11-nexthop-internet"
     address_prefix = "13.64.0.0/11"
