@@ -609,7 +609,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
 					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
