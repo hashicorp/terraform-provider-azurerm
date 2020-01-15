@@ -26,10 +26,10 @@ func resourceArmSqlMiServer() *schema.Resource {
 		Delete: resourceArmSqlMiServerDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1440 * time.Minute),
+			Create: schema.DefaultTimeout(24 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(1440 * time.Minute),
-			Delete: schema.DefaultTimeout(1440 * time.Minute),
+			Update: schema.DefaultTimeout(24 * time.Hour),
+			Delete: schema.DefaultTimeout(24 * time.Hour),
 		},
 
 		Schema: map[string]*schema.Schema{
