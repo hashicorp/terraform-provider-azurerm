@@ -16,7 +16,7 @@ Use this data source to access information about an existing EventGrid Topic
 ```hcl
 data "azurerm_eventgrid_topic" "example" {
   name                = "my-eventgrid-topic"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = "example-resources"
 }
 ```
 
