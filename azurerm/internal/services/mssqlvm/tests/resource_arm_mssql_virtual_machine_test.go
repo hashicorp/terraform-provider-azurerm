@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -125,6 +126,33 @@ func TestAccAzureRMMsSqlVirtualMachine_complete(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlVirtualMachine_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlVirtualMachine_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMMsSqlVirtualMachine_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_mssql_virtual_machine"),
+			},
 		},
 	})
 }
@@ -260,6 +288,21 @@ resource "azurerm_virtual_machine" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
+func testAccAzureRMMsSqlVirtualMachine_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlVirtualMachine_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_virtual_machine" "import" {
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_mssql_virtual_machine.test.location
+  virtual_machine_resource_id = azurerm_mssql_virtual_machine.test.virtual_machine_resource_id
+  sql_license_type            = azurerm_mssql_virtual_machine.test.sql_license_type
+}
+`, template)
+}
+
+
 func testAccAzureRMMsSqlVirtualMachine_basic(data acceptance.TestData) string {
 	vmconfig := testAccAzureRMVirtualMachine_template(data)
 	return fmt.Sprintf(`
@@ -268,7 +311,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   virtual_machine_resource_id = azurerm_virtual_machine.test.id
-  sql_license_type     = "PAYG"
+  sql_license_type            = "PAYG"
 }
 `, vmconfig)
 }
@@ -281,7 +324,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   virtual_machine_resource_id = azurerm_virtual_machine.test.id
-  sql_license_type            = "PAYG"
+  sql_license_type            = "AHUB"
   sql_sku                     = "Developer"
 
    auto_patching {
