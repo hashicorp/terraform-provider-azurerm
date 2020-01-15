@@ -312,27 +312,22 @@ func dataSourceArmBatchPool() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"name": {
 													Type:     schema.TypeString,
-													Optional: true,
 													Computed: true,
 												},
 												"protocol": {
 													Type:     schema.TypeString,
-													Optional: true,
 													Computed: true,
 												},
 												"backend_port": {
 													Type:     schema.TypeInt,
-													Optional: true,
 													Computed: true,
 												},
 												"frontend_port_range_start": {
 													Type:     schema.TypeInt,
-													Optional: true,
 													Computed: true,
 												},
 												"frontend_port_range_end": {
 													Type:     schema.TypeInt,
-													Optional: true,
 													Computed: true,
 												},
 												"network_security_group_rules": {
@@ -343,17 +338,14 @@ func dataSourceArmBatchPool() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"priority": {
 																Type:     schema.TypeInt,
-																Optional: true,
 																Computed: true,
 															},
 															"access": {
 																Type:     schema.TypeString,
-																Optional: true,
 																Computed: true,
 															},
 															"source_address_prefix": {
 																Type:     schema.TypeString,
-																Optional: true,
 																Computed: true,
 															},
 														},

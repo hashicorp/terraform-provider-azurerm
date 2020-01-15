@@ -144,6 +144,8 @@ The following arguments are supported:
 
 * `metadata` - (Optional) A map of custom batch pool metadata.
 
+* `network_configuration` - (Optional) A `network_configuration` block that describes the network configurations for the Batch pool.
+
 -> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
 ~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
@@ -267,6 +269,46 @@ A `container_registries` block supports the following:
 * `user_name` - (Optional) The user name to log into the registry server. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The password to log into the registry server. Changing this forces a new resource to be created.
+
+---
+
+A `network_configuration` block supports the following:
+
+* `subnet_id` - (Optional) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
+
+* `endpoint_configuration` - (Optional) The configuration for endpoints on compute nodes in the Batch pool. Set as documented in the endpoint_configuration block below. Changing this forces a new resource to be created.
+
+---
+
+A `endpoint_configuration` block supports the following:
+
+* `inbound_nat_pools` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
+
+---
+
+A `inbound_nat_pools` block supports the following:
+
+* `name` - The name of the endpoint. The name must be unique within a Batch pool, can contain letters, numbers, underscores, periods, and hyphens. Names must start with a letter or number, must end with a letter, number, or underscore, and cannot exceed 77 characters. Changing this forces a new resource to be created.
+
+* `backend_port` - The port number on the compute node. Acceptable values are between 1 and 65535 except for 29876, 29877 as these are reserved. Changing this forces a new resource to be created.
+
+* `protocol` - The protocol of the endpoint. Acceptable values are `TCP` and `UDP`. Changing this forces a new resource to be created.
+
+* `frontend_port_range_start` - The first port number in the range of external ports that will be used to provide inbound access to the backendPort on individual compute nodes. Acceptable values range between 1 and 65534 except ports from 50000 to 55000 which are reserved by the Batch service. All ranges within a pool must be distinct and cannot overlap. Values must be a range of at least 100 nodes. Changing this forces a new resource to be created.
+
+* `frontend_port_range_end` - The last port number in the range of external ports that will be used to provide inbound access to the backendPort on individual compute nodes. Acceptable values range between 1 and 65534 except ports from 50000 to 55000 which are reserved by the Batch service. All ranges within a pool must be distinct and cannot overlap. Values must be a range of at least 100 nodes. Changing this forces a new resource to be created.
+
+* `network_security_group_rules` - (Optional) A list of network security group rules that will be applied to the endpoint. The maximum number of rules that can be specified across all the endpoints on a Batch pool is 25. If no network security group rules are specified, a default rule will be created to allow inbound access to the specified backendPort. Set as documented in the network_security_group_rules block below. Changing this forces a new resource to be created.
+
+---
+
+A `network_security_group_rules` block supports the following:
+
+* `access` - The action that should be taken for a specified IP address, subnet range or tag. Acceptable values are `Allow` and `Deny`. Changing this forces a new resource to be created.
+
+* `priority` - The priority for this rule. The value must be at least 150. Changing this forces a new resource to be created.
+
+* `priority` - The source address prefix or tag to match for the rule. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

@@ -408,13 +408,11 @@ func resourceArmBatchPool() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"name": {
 													Type:         schema.TypeString,
-													Optional:     true,
 													ForceNew:     true,
 													ValidateFunc: validate.NoEmptyStrings,
 												},
 												"protocol": {
 													Type:     schema.TypeString,
-													Optional: true,
 													ForceNew: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(batch.TCP),
@@ -423,20 +421,17 @@ func resourceArmBatchPool() *schema.Resource {
 												},
 												"backend_port": {
 													Type:         schema.TypeInt,
-													Optional:     true,
 													ForceNew:     true,
 													ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 29876, 29877),
 													// 1 and 65535 except for 29876, 29877 as these are reserved.
 												},
 												"frontend_port_range_start": {
 													Type:         schema.TypeInt,
-													Optional:     true,
 													ForceNew:     true,
 													ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 50000, 55000),
 												},
 												"frontend_port_range_end": {
 													Type:         schema.TypeInt,
-													Optional:     true,
 													ForceNew:     true,
 													ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 50000, 55000),
 												},
@@ -448,13 +443,11 @@ func resourceArmBatchPool() *schema.Resource {
 														Schema: map[string]*schema.Schema{
 															"priority": {
 																Type:         schema.TypeInt,
-																Optional:     true,
 																ForceNew:     true,
 																ValidateFunc: validation.IntAtLeast(150),
 															},
 															"access": {
 																Type:     schema.TypeString,
-																Optional: true,
 																ForceNew: true,
 																ValidateFunc: validation.StringInSlice([]string{
 																	string(batch.Allow),
@@ -463,7 +456,6 @@ func resourceArmBatchPool() *schema.Resource {
 															},
 															"source_address_prefix": {
 																Type:         schema.TypeString,
-																Optional:     true,
 																ForceNew:     true,
 																ValidateFunc: validate.NoEmptyStrings,
 															},
