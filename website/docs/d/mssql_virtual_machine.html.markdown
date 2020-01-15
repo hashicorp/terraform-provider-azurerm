@@ -1,7 +1,6 @@
 subcategory: "MSSQLVM"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_virtual_machine"
-sidebar_current: "docs-azurerm-datasource-mssql-virtual-machine"
 description: |-
   Gets information about an existing MsSql Virtual Machine
 ---
