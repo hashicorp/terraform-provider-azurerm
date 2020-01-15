@@ -8,6 +8,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_dedicated_host_group` [GH-5307]
 * **New Data Source:** `azurerm_disk_encryption_set` [GH-5249]
+* **New Data Source:** `azurerm_eventgrid_topic` [GH-5367]
 * **New Data Source:** `azurerm_iothub_dps` [GH-5336]
 * **New Data Source:** `azurerm_iothub_shared_access_policy` [GH-5368]
 * **New Resource:** `azurerm_api_management_identity_provider_facebook` [GH-5346]
