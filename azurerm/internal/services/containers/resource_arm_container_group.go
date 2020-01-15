@@ -1175,7 +1175,6 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 					}
 				}
 			}
-
 			if protocol != "" {
 				containerConfig["protocol"] = protocol
 			}
