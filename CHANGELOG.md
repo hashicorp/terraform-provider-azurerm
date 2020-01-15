@@ -1,11 +1,17 @@
 ## 1.41.0 (Unreleased)
 
+NOTES:
+
+* `azurerm_managed_disk` - the Azure API now requires that the `storage_account_id` field is specified during import, as such this field is now required during when importing a VHD to a Managed Disk [GH-5250]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_dedicated_host_group` [GH-5307]
 * **New Data Source:** `azurerm_disk_encryption_set` [GH-5249]
+* **New Data Source:** `azurerm_eventgrid_topic` [GH-5367]
 * **New Data Source:** `azurerm_iothub_dps` [GH-5336]
-* **New data source:** `azurerm_iothub_shared_access_policy` [GH-5368]
+* **New Data Source:** `azurerm_iothub_shared_access_policy` [GH-5368]
+* **New Data Source:** `azurerm_storage_container` [GH-5374]
 * **New Resource:** `azurerm_api_management_identity_provider_facebook` [GH-5346]
 * **New Resource:** `azurerm_api_management_identity_provider_twitter` [GH-5306]
 * **New Resource:** `azurerm_api_management_identity_provider_microsoft` [GH-5369]
@@ -15,8 +21,23 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* Data Source: `azurerm_managed_disk` - exposing `disk_encryption_set_id` [GH-5250]
+* Data Source: `azurerm_managed_disk` - exposing `storage_account_id` [GH-5250]
+* `azurerm_cognitive_account` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5380]
+* `azurerm_devspace_controller` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5379]
 * `azurerm_batch_pool` - support for the `metadata` property [GH-5309]
 * `azurerm_function_app` - convert `connection_string`s from a `TypeList` to a `TypeSet` [GH-5319]
+* `azurerm_iothub` - deprecate the `sku.tier` property as it is no longer required [GH-5382]
+* `azurerm_iothub` - add an upper range of `200` to the `sku.capacify` validation [GH-5382]
+* `azurerm_iothub_dps` - deprecate the `sku.tier` property as it is no longer required [GH-5382]
+* `azurerm_iothub_dps` - add an upper range of `200` to the `sku.capacify` validation [GH-5382]
+* `azurerm_managed_disk` - support for configuring `disk_encryption_set_id` [GH-5250]
+* `azurerm_managed_disk` - support for configuring `storage_account_id` which is now required by the Azure API during an import [GH-5250]
+* `azurerm_mariadb_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5378]
+* `azurerm_mysql_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5377]
+* `azurerm_postgresql_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5376]
+* `azurerm_lb_rule` - support for the `enable_tcp_reset` property [GH-5373]
+* `azurerm_lb_nat_rule` -  support for the `enable_tcp_reset` and `idle_timeout_in_minutes` properties [GH-5373]
 
 BUG FIXES:
 

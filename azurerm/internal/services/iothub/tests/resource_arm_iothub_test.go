@@ -229,7 +229,6 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "B1"
-    tier     = "Basic"
     capacity = "1"
   }
 
@@ -247,7 +246,7 @@ func testAccAzureRMIotHub_requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_iothub" "import" {
   name                = "${azurerm_iothub.test.name}"
-  resource_group_name = "${azurerm_iothub.test.name}"
+  resource_group_name = "${azurerm_iothub.test.resource_group_name}"
   location            = "${azurerm_iothub.test.location}"
 
   sku {
@@ -277,7 +276,6 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
@@ -302,7 +300,6 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
@@ -371,7 +368,6 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
@@ -429,7 +425,6 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
@@ -475,7 +470,6 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 

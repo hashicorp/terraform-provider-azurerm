@@ -33,6 +33,28 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 	})
 }
 
+// TODO: remove in 2.0
+func TestAccAzureRMPostgreSQLServer_basicNinePointFiveOldSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLServer_basicNinePointFiveOldSku(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
+					resource.TestCheckResourceAttr(data.ResourceName, "version", "9.5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ssl_enforcement", "Enabled"),
+				),
+			},
+			data.ImportStep("administrator_login_password"),
+		},
+	})
+}
+
 func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -342,12 +364,7 @@ resource "azurerm_postgresql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name     = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -362,6 +379,35 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
+}
+
+func testAccAzureRMPostgreSQLServer_basicNinePointFiveOldSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku_name     = "GP_Gen5_2"
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+    auto_grow             = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "%s"
+  ssl_enforcement              = "Enabled"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, "9.5")
 }
 
 func testAccAzureRMPostgreSQLServer_basicNinePointFive(data acceptance.TestData) string {
@@ -390,12 +436,7 @@ resource "azurerm_postgresql_server" "import" {
   location            = "${azurerm_postgresql_server.test.location}"
   resource_group_name = "${azurerm_postgresql_server.test.resource_group_name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name     = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -423,12 +464,7 @@ resource "azurerm_postgresql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name     = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -456,12 +492,7 @@ resource "azurerm_postgresql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_4"
-    capacity = 4
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_4"
 
   storage_profile {
     storage_mb            = 640000
@@ -489,12 +520,7 @@ resource "azurerm_postgresql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 947200
@@ -523,13 +549,8 @@ resource "azurerm_postgresql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_32"
-    capacity = 32
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
-
+  sku_name = "GP_Gen5_32"
+    
   storage_profile {
     storage_mb            = 640000
     backup_retention_days = 7
@@ -556,12 +577,7 @@ resource "azurerm_postgresql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "MO_Gen5_16"
-    capacity = 16
-    tier     = "MemoryOptimized"
-    family   = "Gen5"
-  }
+  sku_name = "MO_Gen5_16"
 
   storage_profile {
     storage_mb            = 4194304
