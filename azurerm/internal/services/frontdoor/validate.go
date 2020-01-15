@@ -62,15 +62,20 @@ func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
 		// Check 2. routing rule is a forwarding_configuration type make sure the backend_pool_name exists in the configuration file
 		if len(forwardConfig) > 0 {
 			fc := forwardConfig[0].(map[string]interface{})
+			cacheEnabled := fc["cache_enabled"].(bool)
+
 			if err := VerifyBackendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
 				return fmt.Errorf(`"routing_rule":%q is invalid. %+v`, routingRuleName, err)
 			}
 
 			// Check 3. validate if the cache_query_parameter_strip_directive is defined
 			//          that the cache_use_dynamic_compression is set to true
-			if cacheQueryParameterStripDirective := fc["cache_query_parameter_strip_directive"].(string); cacheQueryParameterStripDirective != "" {
-				if !fc["cache_use_dynamic_compression"].(bool) {
-					return fmt.Errorf(`"routing_rule": %q is invalid. "cache_use_dynamic_compression" must be set to "true" if the "cache_query_parameter_strip_directive" attribute is defined`, routingRuleName)
+			//          !!! DO NOT VALIDATE IF CACHE IS DISABLED AS THE VALUES WILL BE IGNORED !!!
+			if cacheEnabled {
+				if cacheQueryParameterStripDirective := fc["cache_query_parameter_strip_directive"].(string); cacheQueryParameterStripDirective != "" {
+					if !fc["cache_use_dynamic_compression"].(bool) {
+						return fmt.Errorf(`"routing_rule": %q is invalid. "cache_use_dynamic_compression" must be set to "true" if the "cache_query_parameter_strip_directive" attribute is defined`, routingRuleName)
+					}
 				}
 			}
 		}

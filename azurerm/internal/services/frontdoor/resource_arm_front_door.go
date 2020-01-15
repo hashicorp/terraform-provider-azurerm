@@ -180,7 +180,6 @@ func resourceArmFrontDoor() *schema.Resource {
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  false,
 									},
 									"cache_query_parameter_strip_directive": {
 										Type:     schema.TypeString,
@@ -189,7 +188,6 @@ func resourceArmFrontDoor() *schema.Resource {
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
 										}, false),
-										Default: string(frontdoor.StripNone),
 									},
 									"custom_forwarding_path": {
 										Type:     schema.TypeString,
