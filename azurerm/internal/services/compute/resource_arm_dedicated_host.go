@@ -1,9 +1,12 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/hashicorp/go-azure-helpers/response"
 
@@ -248,5 +251,42 @@ func resourceArmDedicatedHostDelete(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
+	// API has bug, which appears to be eventually consistent. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/8137
+	log.Printf("[DEBUG] Waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to disappear", name, hostGroupName, resourceGroupName)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"Exists"},
+		Target:                    []string{"NotFound"},
+		Refresh:                   dedicatedHostDeletedRefreshFunc(ctx, client, id),
+		MinTimeout:                5 * time.Second,
+		ContinuousTargetOccurence: 5,
+	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		stateConf.Timeout = 10 * time.Minute
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to become available: %+v", name, hostGroupName, resourceGroupName, err)
+	}
+
 	return nil
+}
+
+func dedicatedHostDeletedRefreshFunc(ctx context.Context, client *compute.DedicatedHostsClient, id *azure.ResourceID) resource.StateRefreshFunc {
+	resourceGroupName := id.ResourceGroup
+	hostGroupName := id.Path["hostGroups"]
+	name := id.Path["hosts"]
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return "NotFound", "NotFound", nil
+			}
+			return nil, "", fmt.Errorf("Error issuing read request in  dedicatedHostDeletedRefreshFunc: %+v", err)
+		}
+
+		return res, "Exists", nil
+	}
 }
