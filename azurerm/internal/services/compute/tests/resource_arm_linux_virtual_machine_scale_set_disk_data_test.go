@@ -607,6 +607,11 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
     }
   }
+
+  depends_on = [
+    "azurerm_role_assignment.disk-encryption-read-keyvault",
+    "azurerm_key_vault_access_policy.disk-encryption",
+  ]
 }
 `, template, data.RandomInteger)
 }
