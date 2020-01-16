@@ -540,7 +540,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
   network_security_group_id = "${azurerm_network_security_group.test.id}"
   storage_account_id        = "${azurerm_storage_account.test.id}"
   enabled                   = true
-  version					= %d
+  version                   = %d
 
   retention_policy {
     enabled = true
@@ -548,7 +548,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
   }
 
   traffic_analytics {
-    enabled               = false
+    enabled               = true
     workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
     workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
     workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
