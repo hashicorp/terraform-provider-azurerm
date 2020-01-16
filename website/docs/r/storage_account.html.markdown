@@ -125,6 +125,8 @@ The following arguments are supported:
 
 A `blob_properties` block supports the following:
 
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
+
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
 ---
@@ -221,7 +223,7 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 A `queue_properties` block supports the following:
 
-* `cors_rule` - (Optional) A `cors_rule` block as defined below.
+* `cors_rule` - (Optional) A `cors_rule` block as defined above.
 
 * `logging` - (Optional) A `logging` block as defined below.
 
