@@ -1,7 +1,6 @@
 package web
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -661,28 +660,6 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData) []web.NameValuePair 
 	//}
 
 	return basicSettings
-}
-
-func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
-	id, err := ParseAppServicePlanID(appServicePlanId)
-	if err != nil {
-		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanId, err)
-	}
-
-	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.Name, id.ResourceGroup)
-
-	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClient
-	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
-	}
-
-	if sku := appServicePlan.Sku; sku != nil {
-		if tier := sku.Tier; tier != nil {
-			return *tier, nil
-		}
-	}
-	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
 }
 
 func expandFunctionAppAppSettings(d *schema.ResourceData) map[string]*string {
