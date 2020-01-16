@@ -1391,7 +1391,7 @@ func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.Del
 		Enabled: utils.Bool(false),
 	}
 
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &deleteRetentionPolicy
 	}
 
@@ -1406,7 +1406,7 @@ func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.Del
 func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
 	blobCorsRules := storage.CorsRules{}
 
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &blobCorsRules
 	}
 
