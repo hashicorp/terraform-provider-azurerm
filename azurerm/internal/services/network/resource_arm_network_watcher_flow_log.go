@@ -145,6 +145,13 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 					},
 				},
 			},
+
+			"version": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntBetween(1, 2),
+			},
 		},
 	}
 }
@@ -171,6 +178,7 @@ func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta i
 	networkSecurityGroupID := d.Get("network_security_group_id").(string)
 	storageAccountID := d.Get("storage_account_id").(string)
 	enabled := d.Get("enabled").(bool)
+	version := d.Get("version").(int)
 
 	parameters := network.FlowLogInformation{
 		TargetResourceID: &networkSecurityGroupID,
@@ -178,6 +186,9 @@ func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta i
 			StorageID:       &storageAccountID,
 			Enabled:         &enabled,
 			RetentionPolicy: expandAzureRmNetworkWatcherFlowLogRetentionPolicy(d),
+			Format: &network.FlowLogFormatParameters{
+				Version: utils.Int32(int32(version)),
+			},
 		},
 	}
 
@@ -253,6 +264,7 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 
 	if props := fli.FlowLogProperties; props != nil {
 		d.Set("enabled", props.Enabled)
+		d.Set("version", props.Format.Version)
 
 		// Azure API returns "" when flow log is disabled
 		// Don't overwrite to prevent storage account ID diff when that is the case

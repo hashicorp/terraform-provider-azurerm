@@ -88,6 +88,8 @@ The following arguments are supported:
 
 * `traffic_analytics` - (Optional) A `traffic_analytics` block as documented below.
 
+* `version` - (Optional) The version (revision) of the flow log.
+
 ---
 
 * `retention_policy` supports the following:
