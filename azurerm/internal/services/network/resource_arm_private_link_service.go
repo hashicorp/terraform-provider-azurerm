@@ -279,16 +279,20 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 		d.Set("alias", props.Alias)
 		d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
 
+		var autoApprovalSub []interface{}
 		if autoApproval := props.AutoApproval; autoApproval != nil {
-			if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(autoApproval.Subscriptions)); err != nil {
-				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
-			}
+			autoApprovalSub = utils.FlattenStringSlice(autoApproval.Subscriptions)
+		}
+		if err := d.Set("auto_approval_subscription_ids", autoApprovalSub); err != nil {
+			return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
 		}
 
+		var subscriptions []interface{}
 		if visibility := props.Visibility; visibility != nil {
-			if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(visibility.Subscriptions)); err != nil {
-				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
-			}
+			subscriptions = utils.FlattenStringSlice(visibility.Subscriptions)
+		}
+		if err := d.Set("visibility_subscription_ids", subscriptions); err != nil {
+			return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 		}
 
 		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
