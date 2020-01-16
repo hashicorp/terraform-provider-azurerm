@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dedicated_host"
-sidebar_current: "docs-azurerm-resource-dedicated-host"
 description: |-
   Manage an Dedicated Host.
 ---
