@@ -884,8 +884,8 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.service_principal_object_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.service_principal_object_id
 
   key_permissions = [
     "create",
@@ -964,7 +964,7 @@ resource "azurerm_managed_disk" "test" {
   create_option          = "Empty"
   disk_size_gb           = 1
   disk_encryption_set_id = azurerm_disk_encryption_set.test.id
- 
+
   depends_on = [
     "azurerm_role_assignment.disk-encryption-read-keyvault",
     "azurerm_key_vault_access_policy.disk-encryption",

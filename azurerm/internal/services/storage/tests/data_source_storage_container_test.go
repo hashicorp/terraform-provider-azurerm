@@ -53,7 +53,7 @@ resource "azurerm_storage_container" "test" {
   metadata = {
     k1 = "v1"
     k2 = "v2"
-   }
+  }
 }
 
 data "azurerm_storage_container" "test" {
