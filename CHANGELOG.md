@@ -31,13 +31,13 @@ IMPROVEMENTS:
 * `azurerm_iothub` - add an upper range of `200` to the `sku.capacify` validation [GH-5382]
 * `azurerm_iothub_dps` - deprecate the `sku.tier` property as it is no longer required [GH-5382]
 * `azurerm_iothub_dps` - add an upper range of `200` to the `sku.capacify` validation [GH-5382]
+* `azurerm_lb_rule` - support for the `enable_tcp_reset` property [GH-5373]
+* `azurerm_lb_nat_rule` -  support for the `enable_tcp_reset` and `idle_timeout_in_minutes` properties [GH-5373]
 * `azurerm_managed_disk` - support for configuring `disk_encryption_set_id` [GH-5250]
 * `azurerm_managed_disk` - support for configuring `storage_account_id` which is now required by the Azure API during an import [GH-5250]
 * `azurerm_mariadb_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5378]
 * `azurerm_mysql_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5377]
 * `azurerm_postgresql_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5376]
-* `azurerm_lb_rule` - support for the `enable_tcp_reset` property [GH-5373]
-* `azurerm_lb_nat_rule` -  support for the `enable_tcp_reset` and `idle_timeout_in_minutes` properties [GH-5373]
 
 BUG FIXES:
 
