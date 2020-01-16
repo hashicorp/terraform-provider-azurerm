@@ -167,25 +167,25 @@ func testCheckAzureRMDedicatedHostDestroy(s *terraform.State) error {
 func testAccAzureRMDedicatedHost_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name		= "acctestRG-compute-%d"
-  location	= "%s"
+  name     = "acctestRG-compute-%d"
+  location = "%s"
 }
 
 resource "azurerm_dedicated_host_group" "test" {
-  name 								= "acctestDHG-compute-%s"
-  resource_group_name 				= azurerm_resource_group.test.name
-  location							= azurerm_resource_group.test.location
-  platform_fault_domain_count 		= 2
+  name                        = "acctestDHG-compute-%s"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  platform_fault_domain_count = 2
 }
 
 
 resource "azurerm_dedicated_host" "test" {
-  name							= "acctestDH-compute-%s"
-  location						= azurerm_resource_group.test.location
-  resource_group_name 			= azurerm_resource_group.test.name
-  host_group_name				= azurerm_dedicated_host_group.test.name
-  sku							= "DSv3-Type1"
-  platform_fault_domain			= 1
+  name                  = "acctestDH-compute-%s"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  host_group_name       = azurerm_dedicated_host_group.test.name
+  sku                   = "DSv3-Type1"
+  platform_fault_domain = 1
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
@@ -198,22 +198,22 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_dedicated_host_group" "test" {
-  name								= "acctestDHG-compute-%s"
-  resource_group_name				= azurerm_resource_group.test.name
-  location							= azurerm_resource_group.test.location
-  platform_fault_domain_count		= 2
+  name                        = "acctestDHG-compute-%s"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  platform_fault_domain_count = 2
 }
 
 
 resource "azurerm_dedicated_host" "test" {
-  name							= "acctestDH-compute-%s"
-  location						= azurerm_resource_group.test.location
-  resource_group_name 			= azurerm_resource_group.test.name
-  host_group_name				= azurerm_dedicated_host_group.test.name
-  sku							= "DSv3-Type1"
-  platform_fault_domain			= 1
-  license_type					= "Windows_Server_Hybrid"
-  auto_replace_on_failure		= false
+  name                    = "acctestDH-compute-%s"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  host_group_name         = azurerm_dedicated_host_group.test.name
+  sku                     = "DSv3-Type1"
+  platform_fault_domain   = 1
+  license_type            = "Windows_Server_Hybrid"
+  auto_replace_on_failure = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
@@ -222,11 +222,11 @@ func testAccAzureRMDedicatedHost_requiresImport(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 resource "azurerm_dedicated_host" "import" {
-  name                = azurerm_dedicated_host.test.name
-  resource_group_name = azurerm_dedicated_host.test.resource_group_name
-  location            = azurerm_dedicated_host.test.location
-  host_group_name     = azurerm_dedicated_host.test.host_group_name
-  sku                 = azurerm_dedicated_host.test.sku
+  name                  = azurerm_dedicated_host.test.name
+  resource_group_name   = azurerm_dedicated_host.test.resource_group_name
+  location              = azurerm_dedicated_host.test.location
+  host_group_name       = azurerm_dedicated_host.test.host_group_name
+  sku                   = azurerm_dedicated_host.test.sku
   platform_fault_domain = azurerm_dedicated_host.test.platform_fault_domain
 }
 `, testAccAzureRMDedicatedHost_basic(data))
