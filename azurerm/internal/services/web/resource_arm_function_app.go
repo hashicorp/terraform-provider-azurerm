@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
@@ -317,12 +316,11 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
-	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
 	if err != nil {
 		return err
 	}
 
-	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+	basicAppSettings := getBasicFunctionAppAppSettings(d)
 
 	siteConfig := expandFunctionAppSiteConfig(d)
 	siteConfig.AppSettings = &basicAppSettings
@@ -401,12 +399,10 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
-
 	if err != nil {
 		return err
 	}
-	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+	basicAppSettings := getBasicFunctionAppAppSettings(d)
 	siteConfig := expandFunctionAppSiteConfig(d)
 
 	siteConfig.AppSettings = &basicAppSettings
@@ -439,7 +435,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	appSettings := expandFunctionAppAppSettings(d, appServiceTier)
+	appSettings := expandFunctionAppAppSettings(d)
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
@@ -636,7 +632,7 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) []web.NameValuePair {
+func getBasicFunctionAppAppSettings(d *schema.ResourceData) []web.NameValuePair {
 	// TODO: This is a workaround since there are no public Functions API
 	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
@@ -659,9 +655,11 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 	}
 
 	// If the application plan is NOT dynamic (consumption plan), we do NOT want to include WEBSITE_CONTENT components
-	if !strings.EqualFold(appServiceTier, "dynamic") {
-		return basicSettings
-	}
+	//issue #5209. WEB_CONTENT components not support by service. Just return basicSettings
+	//if !strings.EqualFold(appServiceTier, "dynamic") {
+	//	return basicSettings
+	//}
+
 	return basicSettings
 }
 
@@ -687,10 +685,10 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
 }
 
-func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) map[string]*string {
+func expandFunctionAppAppSettings(d *schema.ResourceData) map[string]*string {
 	output := expandAppServiceAppSettings(d)
 
-	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+	basicAppSettings := getBasicFunctionAppAppSettings(d)
 	for _, p := range basicAppSettings {
 		output[*p.Name] = p.Value
 	}
