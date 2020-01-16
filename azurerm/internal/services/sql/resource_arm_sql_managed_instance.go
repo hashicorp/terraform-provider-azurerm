@@ -136,6 +136,8 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 			LicenseType:        sql.ManagedInstanceLicenseType(licenseType),
 			AdministratorLogin: utils.String(adminUsername),
 			SubnetID:           utils.String(subnetId),
+			StorageSizeInGB:    utils.Int32(int32(d.Get("storage_size_in_gb").(int))),
+			VCores:             utils.Int32(int32(d.Get("vcores").(int))),
 		},
 	}
 
@@ -200,7 +202,9 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 	if miServerProperties := resp.ManagedInstanceProperties; miServerProperties != nil {
 		d.Set("license_type", miServerProperties.LicenseType)
 		d.Set("administrator_login", miServerProperties.AdministratorLogin)
-		d.Set("fully_qualified_domain_name", miServerProperties.FullyQualifiedDomainName)
+		d.Set("subnet_id", miServerProperties.SubnetID)
+		d.Set("storage_size_in_gb", miServerProperties.StorageSizeInGB)
+		d.Set("vcores", miServerProperties.VCores)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
