@@ -20,20 +20,20 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_dedicated_host_group" "example" {
-  name                                = "example-dhg"
-  resource_group_name                 = azurerm_resource_group.example.name
-  location                            = azurerm_resource_group.example.location
-  platform_fault_domain_count         = 2
+  name                        = "example-dhg"
+  resource_group_name         = azurerm_resource_group.example.name
+  location                    = azurerm_resource_group.example.location
+  platform_fault_domain_count = 2
 }
 
 
 resource "azurerm_dedicated_host" "example" {
-  name                                = "example-dh"
-  location                            = azurerm_resource_group.example.location
-  resource_group_name                 = azurerm_resource_group.example.name
-  host_group_name                     = azurerm_dedicated_host_group.example.name
-  sku                                 = "DSv3-Type1"
-  platform_fault_domain               = 1
+  name                  = "example-dh"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  host_group_name       = azurerm_dedicated_host_group.example.name
+  sku                   = "DSv3-Type1"
+  platform_fault_domain = 1
 }
 ```
 
