@@ -611,13 +611,15 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 			return fmt.Errorf("Error expanding `network_interface`: %+v", err)
 		}
 
-		healthProbeId := d.Get("health_probe_id").(string)
-
 		updateProps.VirtualMachineProfile.NetworkProfile = &compute.VirtualMachineScaleSetUpdateNetworkProfile{
 			NetworkInterfaceConfigurations: networkInterfaces,
-			HealthProbe: &compute.APIEntityReference{
+		}
+
+		healthProbeId := d.Get("health_probe_id").(string)
+		if healthProbeId != "" {
+			updateProps.VirtualMachineProfile.NetworkProfile.HealthProbe = &compute.APIEntityReference{
 				ID: utils.String(healthProbeId),
-			},
+			}
 		}
 	}
 
