@@ -556,6 +556,7 @@ func TestAccAzureRMFunctionApp_corsSettings(t *testing.T) {
 }
 
 //TODO: service configuration API always return vnetName as empty string. Disable this test temporary.
+//come back when service fix this problem
 //relate issue: https://github.com/Azure/azure-rest-api-specs/issues/8158
 //func TestAccAzureRMFunctionApp_vnetName(t *testing.T) {
 //	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
@@ -1547,46 +1548,6 @@ resource "azurerm_function_app" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func testAccAzureRMFunctionApp_vnetName(data acceptance.TestData, vnetName string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_function_app" "test" {
-  name                      = "acctest-%[1]d-func"
-  location                  = "${azurerm_resource_group.test.location}"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
-
-  site_config {
-    virtual_network_name = "%[4]s"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, vnetName)
 }
 
 func testAccAzureRMFunctionApp_enableHttp2(data acceptance.TestData) string {
