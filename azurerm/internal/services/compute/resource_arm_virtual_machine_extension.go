@@ -128,7 +128,9 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 			return fmt.Errorf("Error getting Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		location = *virtualMachine.Location
+		if location = *virtualMachine.Location; location == "" {
+			return fmt.Errorf("Error reading location of Virtual Machine %q", virtualMachineName)
+		}
 	} else {
 		if vm, ok := d.GetOk("virtual_machine_name"); !ok {
 			return fmt.Errorf("Error, one of `virtual_machine_name` (deprecated) or `virtual_machine_id` (preferred) required.")
