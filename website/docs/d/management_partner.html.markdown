@@ -15,7 +15,7 @@ Uses this data source to access information about an existing Management Partner
 
 ```hcl
 data "azurerm_management_partner" "example" {
-  partner_id = 512725
+  partner_id = 6080810
 }
 
 output "management_partner_id" {
@@ -35,4 +35,4 @@ The following attributes are exported:
 
 * `id` - The ID of the Management Partner.
 
-* `partner_name` - A friendly name for the Management Partner.
+* `partner_name` - The friendly name for the Management Partner.

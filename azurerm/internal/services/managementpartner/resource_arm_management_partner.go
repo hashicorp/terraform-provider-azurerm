@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -35,10 +35,9 @@ func resourceArmManagementPartner() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"partner_id": {
-				Type:         schema.TypeInt,
+				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IntBetween(100000, 999999),
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"partner_name": {

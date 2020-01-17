@@ -67,7 +67,7 @@ func TestAccAzureRMManagementPartner_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagementPartnerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMManagementPartner_update(),
+				Config: testAccAzureRMManagementPartner_basic(),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementPartnerExists(data.ResourceName),
 				),
@@ -133,7 +133,7 @@ func testCheckAzureRMManagementPartnerDestroy(s *terraform.State) error {
 func testAccAzureRMManagementPartner_basic() string {
 	return fmt.Sprintf(`
 resource "azurerm_management_partner" "test" {
-   partner_id = 512725
+   partner_id = "6080810"
 }
 `)
 }
@@ -151,7 +151,7 @@ resource "azurerm_management_partner" "import" {
 func testAccAzureRMManagementPartner_update() string {
 	return fmt.Sprintf(`
 resource "azurerm_management_partner" "test" {
-   partner_id = 622123
+   partner_id = "5162520"
 }
 `)
 }

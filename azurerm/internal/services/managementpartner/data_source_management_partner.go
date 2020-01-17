@@ -2,10 +2,10 @@ package managementpartner
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -21,9 +21,9 @@ func dataSourceArmManagementPartner() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"partner_id": {
-				Type:         schema.TypeInt,
+				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(100000, 999999),
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"partner_name": {
