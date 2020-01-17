@@ -45,7 +45,7 @@ func TestAppConfigurationID(t *testing.T) {
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Web/Servers/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppConfiguration/ConfigurationStores/Store1",
 			Expected: nil,
 		},
 	}
