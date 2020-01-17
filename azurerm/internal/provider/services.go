@@ -27,6 +27,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
@@ -93,6 +94,7 @@ func SupportedServices() []common.ServiceRegistration {
 		hdinsight.Registration{},
 		healthcare.Registration{},
 		iothub.Registration{},
+		iotcentral.Registration{},
 		keyvault.Registration{},
 		kusto.Registration{},
 		loganalytics.Registration{},
