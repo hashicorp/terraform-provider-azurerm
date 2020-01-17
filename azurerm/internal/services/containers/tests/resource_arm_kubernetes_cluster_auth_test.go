@@ -217,6 +217,10 @@ func testAccAzureRMKubernetesCluster_updateRoleBaseAccessControlAAD(t *testing.T
 					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_admin_config_raw"),
 				),
 			},
+			data.ImportStep(
+				"service_principal.0.client_secret",
+				"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+			),
 			{
 				Config: testAccAzureRMKubernetesCluster_updateRoleBasedAccessControlAADConfig(data, clientId, clientSecret, updateClientId, updateClientSecret, tenantId),
 				Check: resource.ComposeTestCheckFunc(
@@ -232,6 +236,10 @@ func testAccAzureRMKubernetesCluster_updateRoleBaseAccessControlAAD(t *testing.T
 					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_admin_config_raw"),
 				),
 			},
+			data.ImportStep(
+				"service_principal.0.client_secret",
+				"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+			),
 		},
 	})
 }
