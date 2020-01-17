@@ -1,5 +1,10 @@
 ## 1.42.0 (Unreleased)
 
+IMPROVEMENTS:
+
+* dependencies: upgrading to `v38.1.0` of github.com/Azure/azure-sdk-for-go [GH-5385]
+* fontdoor: updating to use API version `2019-11-01` [GH-5385]
+
 BUG FIXES:
 
 * `azurerm_app_service` - fixing a crash when `logs` was nil [GH-5414]
@@ -29,6 +34,8 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: upgrading to `v38.0.0` of github.com/Azure/azure-sdk-for-go ([#5335](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5335 ))
+* backup: updating to use API version `2019-05-13` ([#5335 ](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5335))
 * Data Source: `azurerm_managed_disk` - exposing `disk_encryption_set_id` ([#5250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5250))
 * Data Source: `azurerm_managed_disk` - exposing `storage_account_id` ([#5250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5250))
 * `azurerm_cognitive_account` - the `sku` block has been deprecated in favour of the `sku_name` property ([#5380](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5380))
