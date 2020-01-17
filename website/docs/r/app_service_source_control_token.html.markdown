@@ -26,7 +26,7 @@ resource "azurerm_app_service_source_control_token" "example" {
 
 The following arguments are supported:
 
-* `type` - (Required) The source control type. Possible values are `BitBucket`, `Dropbox`, `GitHub` and `OneDrive`.
+* `type` - (Required) The source control type. Possible values are `Bitbucket`, `Dropbox`, `GitHub` and `OneDrive`.
 
 * `token` - (Required) The OAuth access token.
 

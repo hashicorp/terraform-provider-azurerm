@@ -8,7 +8,7 @@ func TestValidateAppServiceSourceControlToken(t *testing.T) {
 		Valid bool
 	}{
 		{Input: "", Valid: false},
-		{Input: "BitBucket", Valid: true},
+		{Input: "Bitbucket", Valid: true},
 		{Input: "Dropbox", Valid: true},
 		{Input: "GitLab", Valid: false},
 		{Input: "GitHub", Valid: true},

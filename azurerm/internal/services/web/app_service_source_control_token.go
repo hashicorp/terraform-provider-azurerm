@@ -7,7 +7,7 @@ import (
 
 func ValidateAppServiceSourceControlTokenName() schema.SchemaValidateFunc {
 	return validation.StringInSlice([]string{
-		"BitBucket",
+		"Bitbucket",
 		"Dropbox",
 		"GitHub",
 		"OneDrive",
