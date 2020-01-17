@@ -520,8 +520,8 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.service_principal_object_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.service_principal_object_id
 
   key_permissions = [
     "create",
@@ -635,11 +635,11 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
+    storage_account_type   = "Standard_LRS"
+    caching                = "ReadWrite"
     disk_encryption_set_id = azurerm_disk_encryption_set.test.id
-    disk_size_gb         = 10
-    lun                  = 10
+    disk_size_gb           = 10
+    lun                    = 10
   }
 
   network_interface {

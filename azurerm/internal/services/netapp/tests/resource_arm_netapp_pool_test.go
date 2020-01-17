@@ -191,7 +191,6 @@ resource "azurerm_netapp_pool" "import" {
   location            = "${azurerm_netapp_pool.test.location}"
   resource_group_name = "${azurerm_netapp_pool.test.resource_group_name}"
 }
-}
 `, testAccAzureRMNetAppPool_basic(data))
 }
 

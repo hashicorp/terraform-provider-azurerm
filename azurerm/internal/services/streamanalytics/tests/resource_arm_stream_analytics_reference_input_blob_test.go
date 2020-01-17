@@ -264,15 +264,15 @@ resource "azurerm_storage_container" "updated" {
 }
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.updated.name}"
-  storage_account_key          = "${azurerm_storage_account.updated.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.updated.name}"
-  path_pattern                 = "some-other-pattern"
-  date_format                  = "yyyy-MM-dd"
-  time_format                  = "HH"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.updated.name}"
+  storage_account_key       = "${azurerm_storage_account.updated.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.updated.name}"
+  path_pattern              = "some-other-pattern"
+  date_format               = "yyyy-MM-dd"
+  time_format               = "HH"
 
   serialization {
     type = "Avro"

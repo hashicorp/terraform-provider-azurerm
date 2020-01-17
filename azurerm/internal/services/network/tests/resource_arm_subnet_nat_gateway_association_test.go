@@ -248,5 +248,6 @@ func testAccAzureRMSubnetNatGatewayAssociation_requiresImport(data acceptance.Te
 resource "azurerm_subnet_nat_gateway_association" "import" {
   subnet_id      = "${azurerm_subnet_nat_gateway_association.test.subnet_id}"
   nat_gateway_id = "${azurerm_subnet_nat_gateway_association.test.nat_gateway_id}"
+}
 `, template)
 }
