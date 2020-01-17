@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-04-01/frontdoor"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-11-01/frontdoor"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -180,18 +180,18 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(frontdoor.Any),
-											string(frontdoor.BeginsWith),
-											string(frontdoor.Contains),
-											string(frontdoor.EndsWith),
-											string(frontdoor.Equal),
-											string(frontdoor.GeoMatch),
-											string(frontdoor.GreaterThan),
-											string(frontdoor.GreaterThanOrEqual),
-											string(frontdoor.IPMatch),
-											string(frontdoor.LessThan),
-											string(frontdoor.LessThanOrEqual),
-											string(frontdoor.RegEx),
+											string(frontdoor.OperatorAny),
+											string(frontdoor.OperatorBeginsWith),
+											string(frontdoor.OperatorContains),
+											string(frontdoor.OperatorEndsWith),
+											string(frontdoor.OperatorEqual),
+											string(frontdoor.OperatorGeoMatch),
+											string(frontdoor.OperatorGreaterThan),
+											string(frontdoor.OperatorGreaterThanOrEqual),
+											string(frontdoor.OperatorIPMatch),
+											string(frontdoor.OperatorLessThan),
+											string(frontdoor.OperatorLessThanOrEqual),
+											string(frontdoor.OperatorRegEx),
 										}, false),
 									},
 
