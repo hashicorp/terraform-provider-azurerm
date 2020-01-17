@@ -32,7 +32,7 @@ func ValidateCustomBlockResponseBody(i interface{}, k string) (_ []string, error
 }
 
 func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
-	routingRules := d.Get("routing_rule").([]interface{})
+	_, routingRules := d.GetChange("routing_rule") //.([]interface{})
 	configFrontendEndpoints := d.Get("frontend_endpoint").([]interface{})
 	backendPools := d.Get("backend_pool").([]interface{})
 	loadBalancingSettings := d.Get("backend_pool_load_balancing").([]interface{})
@@ -43,7 +43,7 @@ func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
 	}
 
 	// Loop over all of the Routing Rules and validate that only one type of configuration is defined per Routing Rule
-	for _, rr := range routingRules {
+	for _, rr := range routingRules.([]interface{}) {
 		routingRule := rr.(map[string]interface{})
 		routingRuleName := routingRule["name"]
 		redirectConfig := routingRule["redirect_configuration"].([]interface{})
@@ -68,14 +68,16 @@ func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
 				return fmt.Errorf(`"routing_rule":%q is invalid. %+v`, routingRuleName, err)
 			}
 
-			// Check 3. validate if the cache_query_parameter_strip_directive is defined
-			//          that the cache_use_dynamic_compression is set to true
-			//          !!! DO NOT VALIDATE IF CACHE IS DISABLED AS THE VALUES WILL BE IGNORED !!!
-			if cacheEnabled {
-				if cacheQueryParameterStripDirective := fc["cache_query_parameter_strip_directive"].(string); cacheQueryParameterStripDirective != "" {
-					if !fc["cache_use_dynamic_compression"].(bool) {
-						return fmt.Errorf(`"routing_rule": %q is invalid. "cache_use_dynamic_compression" must be set to "true" if the "cache_query_parameter_strip_directive" attribute is defined`, routingRuleName)
-					}
+			// Check 3. Check cache enabled states
+			if !cacheEnabled {
+				// If the cache is not enabled make sure the cache values are not set in the config file
+				// Get new value instead of old value
+				if stripDirective := fc["cache_query_parameter_strip_directive"]; stripDirective != "" {
+					return fmt.Errorf(`"routing_rule": %q "forwarding_configuration" is invalid. Please make sure that the "cache_query_parameter_strip_directive" and "cache_use_dynamic_compression" do not exist in the configuration file`, routingRuleName)
+				}
+
+				if v, ok := fc["cache_use_dynamic_compression"]; ok && v == true {
+					return fmt.Errorf(`"routing_rule": %q "forwarding_configuration" is invalid. Please make sure that the "cache_use_dynamic_compression" does not exist in the configuration file`, routingRuleName)
 				}
 			}
 		}

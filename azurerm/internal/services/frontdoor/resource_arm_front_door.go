@@ -175,15 +175,17 @@ func resourceArmFrontDoor() *schema.Resource {
 									"cache_enabled": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  false,
+										Default:  true,
 									},
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										Computed: true,
 									},
 									"cache_query_parameter_strip_directive": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Computed: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
@@ -1080,9 +1082,15 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorPat
 	// Per the portal, if you enable the cache the cache_query_parameter_strip_directive
 	// is then a required attribute else the CacheConfiguration type is null
 	if cacheEnabled {
+		// Set the default value for dynamic compression or use the value defined in the config
 		dynamicCompression := frontdoor.DynamicCompressionEnabledEnabled
 		if !cacheUseDynamicCompression {
 			dynamicCompression = frontdoor.DynamicCompressionEnabledDisabled
+		}
+
+		if cacheQueryParameterStripDirective == "" {
+			// Set Default Value for strip directive is not in the key slice and cache is enabled
+			cacheQueryParameterStripDirective = string(frontdoor.StripNone)
 		}
 
 		forwardingConfiguration.CacheConfiguration = &frontdoor.CacheConfiguration{
@@ -1378,13 +1386,19 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 					c["forwarding_protocol"] = string(v.ForwardingProtocol)
 
 					if cacheConfiguration := v.CacheConfiguration; cacheConfiguration != nil {
+						c["cache_enabled"] = true
 						if stripDirective := cacheConfiguration.QueryParameterStripDirective; stripDirective != "" {
 							c["cache_query_parameter_strip_directive"] = string(stripDirective)
+						} else {
+							c["cache_query_parameter_strip_directive"] = string(frontdoor.StripNone)
 						}
 
 						if dynamicCompression := cacheConfiguration.DynamicCompression; dynamicCompression != "" {
-							c["cache_use_dynamic_compression"] = (dynamicCompression == frontdoor.DynamicCompressionEnabledEnabled)
+							c["cache_use_dynamic_compression"] = bool(string(dynamicCompression) == string(frontdoor.DynamicCompressionEnabledEnabled))
 						}
+					} else {
+
+						c["cache_enabled"] = false
 					}
 
 					rc = append(rc, c)
