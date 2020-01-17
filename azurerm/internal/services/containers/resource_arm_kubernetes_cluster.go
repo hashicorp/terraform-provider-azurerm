@@ -785,15 +785,20 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	// RBAC profile updates need to be handled atomically before any call to createUpdate as a diff there will create a PropertyChangeNotAllowed error
 	if d.HasChange("role_based_access_control") {
+		props := existing.ManagedClusterProperties
+		// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
+		if props.EnableRBAC == nil {
+			return fmt.Errorf("Error reading current state of RBAC Enabled, expected bool got %+v", props.EnableRBAC)
+		}
 		rbacRaw := d.Get("role_based_access_control").([]interface{})
 		rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
 		// changing rbacEnabled must still force cluster recreation
-		if *existing.ManagedClusterProperties.EnableRBAC == rbacEnabled {
-			existing.ManagedClusterProperties.AadProfile = azureADProfile
-			existing.ManagedClusterProperties.EnableRBAC = utils.Bool(rbacEnabled)
+		if *props.EnableRBAC == rbacEnabled {
+			props.AadProfile = azureADProfile
+			props.EnableRBAC = utils.Bool(rbacEnabled)
 
 			log.Printf("[DEBUG] Updating the RBAC AAD profile")
-			future, err := clusterClient.ResetAADProfile(ctx, resourceGroup, name, *existing.ManagedClusterProperties.AadProfile)
+			future, err := clusterClient.ResetAADProfile(ctx, resourceGroup, name, *props.AadProfile)
 			if err != nil {
 				return fmt.Errorf("Error updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
