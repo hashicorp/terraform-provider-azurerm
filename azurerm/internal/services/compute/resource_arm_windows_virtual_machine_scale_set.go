@@ -646,11 +646,13 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 			return fmt.Errorf("Error expanding `network_interface`: %+v", err)
 		}
 
-		// TODO: setting the health probe on update once https://github.com/Azure/azure-rest-api-specs/pull/7355 has been fixed
-		//healthProbeId := d.Get("health_probe_id").(string)
+		healthProbeId := d.Get("health_probe_id").(string)
 
 		updateProps.VirtualMachineProfile.NetworkProfile = &compute.VirtualMachineScaleSetUpdateNetworkProfile{
 			NetworkInterfaceConfigurations: networkInterfaces,
+			HealthProbe: &compute.APIEntityReference{
+				ID: utils.String(healthProbeId),
+			},
 		}
 	}
 
