@@ -451,6 +451,10 @@ func resourceArmFrontDoor() *schema.Resource {
 }
 
 func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	if err := ValidateFrontdoorRoutingRuleSettings(d); err != nil {
+		return err
+	}
+
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1397,7 +1401,6 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 							c["cache_use_dynamic_compression"] = bool(string(dynamicCompression) == string(frontdoor.DynamicCompressionEnabledEnabled))
 						}
 					} else {
-
 						c["cache_enabled"] = false
 					}
 
