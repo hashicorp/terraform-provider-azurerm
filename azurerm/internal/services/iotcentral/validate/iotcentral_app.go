@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func IotCentralName(v interface{}, k string) (warnings []string, errors []error) {
+func IotCentralAppName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if len(value) < 2 || len(value) > 63 {
 		errors = append(errors, fmt.Errorf("%q length shoule be within 2~63", k))
@@ -19,7 +19,7 @@ func IotCentralName(v interface{}, k string) (warnings []string, errors []error)
 	return warnings, errors
 }
 
-func IotCentralSubdomain(v interface{}, k string) (warnings []string, errors []error) {
+func IotCentralAppSubdomain(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 	if len(value) < 2 || len(value) > 63 {
 		errors = append(errors, fmt.Errorf("%q length shoule between 2~63", k))
@@ -33,7 +33,7 @@ func IotCentralSubdomain(v interface{}, k string) (warnings []string, errors []e
 	return warnings, errors
 }
 
-func IotCentralDisplayName(v interface{}, k string) (warnings []string, errors []error) {
+func IotCentralAppDisplayName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^.{1,200}$`).Match([]byte(value)); !matched {

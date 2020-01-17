@@ -14,7 +14,7 @@ func TestIotCentralName(t *testing.T) {
 	}
 
 	for _, name := range validNames {
-		_, err := IotCentralName(name, "unit test")
+		_, err := IotCentralAppName(name, "unit test")
 		if err != nil {
 			t.Fatalf("%q should be a valid IoT Central Name: %q", name, err)
 		}
@@ -31,7 +31,7 @@ func TestIotCentralName(t *testing.T) {
 	}
 
 	for _, name := range invalidNames {
-		_, err := IotCentralName(name, "unit test")
+		_, err := IotCentralAppName(name, "unit test")
 		if err == nil {
 			t.Fatalf("%q should be an invalid IoT Central Name: %q", name, err)
 		}
@@ -50,7 +50,7 @@ func TestIotCentralSubdomain(t *testing.T) {
 	}
 
 	for _, name := range validNames {
-		_, err := IotCentralSubdomain(name, "unit test")
+		_, err := IotCentralAppSubdomain(name, "unit test")
 		if err != nil {
 			t.Fatalf("%q should be a valid IoT Central Subdomain name: %q", name, err)
 		}
@@ -67,7 +67,7 @@ func TestIotCentralSubdomain(t *testing.T) {
 	}
 
 	for _, name := range invalidNames {
-		_, err := IotCentralSubdomain(name, "unit test")
+		_, err := IotCentralAppSubdomain(name, "unit test")
 		if err == nil {
 			t.Fatalf("%q should be an invalid IoT Central Subdomain Name: %q", name, err)
 		}
@@ -86,7 +86,7 @@ func TestIotCentralDisplayName(t *testing.T) {
 	}
 
 	for _, name := range validNames {
-		_, err := IotCentralDisplayName(name, "unit test")
+		_, err := IotCentralAppDisplayName(name, "unit test")
 		if err != nil {
 			t.Fatalf("%q should be a valid IoT Central Display Name: %q", name, err)
 		}
@@ -97,7 +97,7 @@ func TestIotCentralDisplayName(t *testing.T) {
 		"adcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdssdavcadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdsadcdssdavcc",
 	}
 	for _, name := range invalidNames {
-		_, err := IotCentralDisplayName(name, "unit test")
+		_, err := IotCentralAppDisplayName(name, "unit test")
 		if err == nil {
 			t.Fatalf("%q should be an invalid IoT Central Display Name: %q", name, err)
 		}

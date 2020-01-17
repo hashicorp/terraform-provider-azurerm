@@ -42,11 +42,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group under which the IotHub resource has to be created. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource has to be createc. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource has to be create. Changing this forces a new resource to be created.
 
 * `sub_domain` - (Required) A `sub_domain` name. Subdomain for the IoT Central URL. Each application must have a unique subdomain.
 
-* `display_name` - (Required) A `display_name` name. Custom display name for the IoT Central application. 
+* `display_name` - (Optional) A `display_name` name. Custom display name for the IoT Central application. Default is resource name. 
 
 * `sku` - (Optional) A `sku` name. Possible values is `S1`, Default value is `S1`
 

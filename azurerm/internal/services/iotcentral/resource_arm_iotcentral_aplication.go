@@ -41,23 +41,24 @@ func resourceArmIotCentral() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.IotCentralName,
+				ValidateFunc: validate.IotCentralAppName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"location": azure.SchemaLocation(),
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sub_domain": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.IotCentralSubdomain,
+				ValidateFunc: validate.IotCentralAppSubdomain,
 			},
 
 			"display_name": {
 				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.IotCentralDisplayName,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validate.IotCentralAppDisplayName,
 			},
 
 			"sku": {
@@ -111,6 +112,10 @@ func resourceArmIotCentralAppForCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	displayName := d.Get("display_name").(string)
+	if displayName == "" {
+		displayName = name
+	}
+
 	subdomain := d.Get("sub_domain").(string)
 	template := d.Get("template").(string)
 	location := d.Get("location").(string)
@@ -196,6 +201,10 @@ func resourceArmIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) er
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	displayName := d.Get("display_name").(string)
+	if displayName == "" {
+		displayName = name
+	}
+
 	subdomain := d.Get("sub_domain").(string)
 	template := d.Get("template").(string)
 	future, err := client.Update(ctx, resourceGroup, name, iotcentral.AppPatch{

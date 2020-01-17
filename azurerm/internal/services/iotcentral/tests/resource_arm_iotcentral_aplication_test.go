@@ -163,10 +163,9 @@ func testAccAzureRMIotCentralApplication_basic(data acceptance.TestData) string 
 		
 		resource "azurerm_iotcentral_application" "test" {
 		  name                = "acctestiotcentralapp-%[2]d"
-		  resource_group_name = "${azurerm_resource_group.test.name}"
 		  location            = "${azurerm_resource_group.test.location}"
+		  resource_group_name = "${azurerm_resource_group.test.name}"
           sub_domain          = "acctestiotcentralapp-%[2]d"
-          display_name        = "acctestiotcentralapp-%[2]d"
 		  sku                 = "S1"
 		}
 		`, data.Locations.Primary, data.RandomInteger)
@@ -181,8 +180,8 @@ func testAccAzureRMIotCentralApplication_complete(data acceptance.TestData) stri
 		
 		resource "azurerm_iotcentral_application" "test" {
 		  name                = "acctestiotcentralapp-%[2]d"
-		  resource_group_name = "${azurerm_resource_group.test.name}"
 		  location            = "${azurerm_resource_group.test.location}"
+		  resource_group_name = "${azurerm_resource_group.test.name}"
           sub_domain          = "acctestiotcentralapp-%[2]d"
           display_name        = "acctestiotcentralapp-%[2]d"
 		  sku                 = "S1"
