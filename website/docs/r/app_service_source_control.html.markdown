@@ -42,10 +42,10 @@ resource "azurerm_app_service" "example" {
 }
 
 resource "azurerm_app_service_source_control" "example" {
-  app_service_id             = "${azurerm_app_service.example.id}"
-  repo_url                   = "https://github.com/Azure-Samples/app-service-web-html-get-started"
-  branch                     = "master"
-  is_manual_integration      = true
+  app_service_id        = "${azurerm_app_service.example.id}"
+  repo_url              = "https://github.com/Azure-Samples/app-service-web-html-get-started"
+  branch                = "master"
+  is_manual_integration = true
 }
 ```
 
