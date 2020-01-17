@@ -108,7 +108,7 @@ resource "azurerm_network_security_group" "test" {
 
 resource "azurerm_network_security_rule" "allow_management_inbound" {
   name                        = "allow_management_inbound"
-  priority                    = 100
+  priority                    = 105
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
@@ -178,7 +178,7 @@ resource "azurerm_network_security_rule" "deny_all_inbound" {
 
 resource "azurerm_network_security_rule" "allow_management_outbound" {
   name                        = "allow_management_outbound"
-  priority                    = 100
+  priority                    = 102
   direction                   = "Outbound"
   access                      = "Allow"
   protocol                    = "Tcp"
