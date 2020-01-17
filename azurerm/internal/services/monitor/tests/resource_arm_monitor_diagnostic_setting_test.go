@@ -258,7 +258,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger/10)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
 func testAccAzureRMMonitorDiagnosticSetting_requiresImport(data acceptance.TestData) string {
@@ -339,7 +339,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger/10)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
 func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data acceptance.TestData) string {
@@ -457,5 +457,5 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger/10)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
