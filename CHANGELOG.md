@@ -3,7 +3,7 @@
 IMPROVEMENTS:
 
 * dependencies: upgrading to `v38.1.0` of github.com/Azure/azure-sdk-for-go [GH-5385]
-* fontdoor: updating to use API version `2019-11-01` [GH-5385]
+* frontdoor: updating to use API version `2019-11-01` [GH-5385]
 
 BUG FIXES:
 
