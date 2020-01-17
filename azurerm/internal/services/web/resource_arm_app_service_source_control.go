@@ -137,6 +137,14 @@ func resourceArmAppServiceSourceControlRead(d *schema.ResourceData, meta interfa
 	resourceGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
+	appService, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(appService.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error retrieving existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+	}
 	resp, err := client.GetSourceControl(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -154,6 +162,8 @@ func resourceArmAppServiceSourceControlRead(d *schema.ResourceData, meta interfa
 		d.Set("is_manual_integration", props.IsManualIntegration)
 		d.Set("is_mercurial", props.IsMercurial)
 	}
+
+	d.Set("app_service_id", appService.ID)
 
 	return nil
 }
