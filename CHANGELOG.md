@@ -1,4 +1,9 @@
 ## 1.42.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_private_link_service` - fixing a crash when the `auto_approval` and `visibility` blocks aren't returned from the Azure API [GH-5428]
+
 ## 1.41.0 (January 16, 2020)
 
 NOTES:
