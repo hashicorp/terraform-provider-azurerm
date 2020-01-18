@@ -245,6 +245,16 @@ func resourceArmFunctionApp() *schema.Resource {
 								string(web.FtpsOnly),
 							}, false),
 						},
+						"scm_type": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"source_control"},
+							Default:       string(web.ScmTypeNone),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.ScmTypeLocalGit),
+								string(web.ScmTypeNone),
+							}, false),
+						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
@@ -798,6 +808,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
+	if v, ok := config["scm_type"]; ok {
+		siteConfig.ScmType = web.ScmType(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -836,6 +850,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)
+	result["scm_type"] = string(input.ScmType)
 
 	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
 
