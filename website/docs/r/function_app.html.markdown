@@ -119,6 +119,8 @@ The following arguments are supported:
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
+* `source_control` - (Optional) A Source Control block as defined below.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -167,6 +169,18 @@ A `cors` block supports the following:
 `identity` supports the following:
 
 * `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
+
+---
+
+A `source_control` block supports the following:
+
+* `repo_url` - (Required) The repository or source control URL.
+
+* `branch` - (Required) The name of branch to use for deployment. Defaults to `master`.
+
+* `deployment_rollback_enabled` - (Optional) Should deployment rollback be enabled? Defaults to `false`.
+
+* `is_manual_integration` - (Optional) Whether manual integration be enabled, rather than continuous integration (which configures webhooks into online repos like GitHub). Defaults to `false`.
 
 ---
 

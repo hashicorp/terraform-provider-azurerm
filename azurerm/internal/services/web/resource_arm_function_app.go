@@ -270,6 +270,8 @@ func resourceArmFunctionApp() *schema.Resource {
 					},
 				},
 			},
+
+			"source_control": azure.SchemaWebSourceControl(),
 		},
 	}
 }
@@ -375,6 +377,17 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
 		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+s", name, resourceGroup, err)
+	}
+
+	sourceControlRaw := d.Get("source_control").([]interface{})
+	sourceControlProperties := azure.ExpandWebSourceControl(sourceControlRaw)
+	
+	siteSourceControl := web.SiteSourceControl{
+		SiteSourceControlProperties: &sourceControlProperties,
+	}
+
+	if _, err := client.CreateOrUpdateSourceControl(ctx, resourceGroup, name, siteSourceControl); err != nil {
+		return fmt.Errorf("Error updating Source Control for App Service %q (Resource Group %q): %+s", name, resourceGroup, err)
 	}
 
 	return resourceArmFunctionAppUpdate(d, meta)
@@ -485,6 +498,19 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if d.HasChange("source_control") {
+		sourceControlRaw := d.Get("source_control").([]interface{})
+		sourceControlProperties := azure.ExpandWebSourceControl(sourceControlRaw)
+		siteSourceControl := web.SiteSourceControl{
+			SiteSourceControlProperties: &sourceControlProperties,
+		}
+
+		if _, err := client.UpdateSourceControl(ctx, resGroup, name, siteSourceControl); err != nil {
+			return fmt.Errorf("Error updating Source Control for App Service %q (Resource Group %q): %+s", name, resGroup, err)
+
+		}
+	}
+
 	return resourceArmFunctionAppRead(d, meta)
 }
 
@@ -541,6 +567,10 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	authResp, err := client.GetAuthSettings(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+	scmResp, err := client.GetSourceControl(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM App Service Source Control %q: %+v", name, err)
 	}
 
 	d.Set("name", name)
@@ -604,6 +634,11 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
 	if err = d.Set("site_credential", siteCred); err != nil {
 		return err
+	}
+
+	scm := azure.FlattenWebSourceControl(scmResp.SiteSourceControlProperties)
+	if err := d.Set("source_control", scm); err != nil {
+		return fmt.Errorf("Error setting `source_control`: %s", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
