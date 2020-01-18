@@ -32,10 +32,11 @@ func SchemaWebCorsSettings() *schema.Schema {
 
 func SchemaWebSourceControl() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
+		Type:       schema.TypeList,
+		Optional:   true,
+		Computed:   true,
+		MaxItems:   1,
+		ConfigMode: schema.SchemaConfigModeAttr,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"repo_url": {
