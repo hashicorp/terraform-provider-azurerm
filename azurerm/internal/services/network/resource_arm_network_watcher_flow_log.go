@@ -149,7 +149,7 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 			"version": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Default:      1,
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 2),
 			},
 		},
@@ -264,7 +264,10 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 
 	if props := fli.FlowLogProperties; props != nil {
 		d.Set("enabled", props.Enabled)
-		d.Set("version", props.Format.Version)
+
+		if format := props.Format; format != nil {
+			d.Set("version", format.Version)
+		}
 
 		// Azure API returns "" when flow log is disabled
 		// Don't overwrite to prevent storage account ID diff when that is the case
