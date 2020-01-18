@@ -9,7 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -28,29 +27,6 @@ func TestAccAzureRMAppServiceSourceControl_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMAppServiceSourceControl_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-	data := acceptance.BuildTestData(t, "azurerm_app_service_source_control", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSourceControlDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceSourceControl_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSourceControlExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMAppServiceSourceControl_requiresImport),
 		},
 	})
 }
@@ -145,18 +121,4 @@ resource "azurerm_app_service_source_control" "test" {
   is_manual_integration      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMAppServiceSourceControl_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAppServiceSourceControl_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_app_service_source_control" "import" {
-  app_service_id             = "${azurerm_app_service.test.id}"
-  repo_url                   = "https://github.com/Azure-Samples/app-service-web-html-get-started"
-  branch                     = "master"
-  is_manual_integration      = true
-}
-`, template)
 }
