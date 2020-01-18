@@ -380,14 +380,14 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	sourceControlRaw := d.Get("source_control").([]interface{})
-	sourceControlProperties := azure.ExpandWebSourceControl(sourceControlRaw)
-	
-	siteSourceControl := web.SiteSourceControl{
-		SiteSourceControlProperties: &sourceControlProperties,
-	}
+	if sourceControlProperties := azure.ExpandWebSourceControl(sourceControlRaw); sourceControlProperties != nil {
+		siteSourceControl := web.SiteSourceControl{
+			SiteSourceControlProperties: sourceControlProperties,
+		}
 
-	if _, err := client.CreateOrUpdateSourceControl(ctx, resourceGroup, name, siteSourceControl); err != nil {
-		return fmt.Errorf("Error updating Source Control for App Service %q (Resource Group %q): %+s", name, resourceGroup, err)
+		if _, err := client.CreateOrUpdateSourceControl(ctx, resourceGroup, name, siteSourceControl); err != nil {
+			return fmt.Errorf("Error updating Source Control for App Service %q (Resource Group %q): %+s", name, resourceGroup, err)
+		}
 	}
 
 	return resourceArmFunctionAppUpdate(d, meta)
@@ -500,15 +500,24 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if d.HasChange("source_control") {
 		sourceControlRaw := d.Get("source_control").([]interface{})
-		sourceControlProperties := azure.ExpandWebSourceControl(sourceControlRaw)
-		siteSourceControl := web.SiteSourceControl{
-			SiteSourceControlProperties: &sourceControlProperties,
+		if sourceControlProperties := azure.ExpandWebSourceControl(sourceControlRaw); sourceControlProperties != nil {
+			siteSourceControl := web.SiteSourceControl{
+				SiteSourceControlProperties: sourceControlProperties,
+			}
+
+			if _, err := client.UpdateSourceControl(ctx, resGroup, name, siteSourceControl); err != nil {
+				return fmt.Errorf("Error updating Source Control for App Service %q (Resource Group %q): %+s", name, resGroup, err)
+
+			}
+		} else {
+			resp, err := client.DeleteSourceControl(ctx, resGroup, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(resp) {
+					return fmt.Errorf("Error deleting App Service Source Control (App Service %q / Resource Group %q): %s)", name, resGroup, err)
+				}
+			}
 		}
 
-		if _, err := client.UpdateSourceControl(ctx, resGroup, name, siteSourceControl); err != nil {
-			return fmt.Errorf("Error updating Source Control for App Service %q (Resource Group %q): %+s", name, resGroup, err)
-
-		}
 	}
 
 	return resourceArmFunctionAppRead(d, meta)

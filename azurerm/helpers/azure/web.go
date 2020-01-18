@@ -95,14 +95,13 @@ func ExpandWebCorsSettings(input interface{}) web.CorsSettings {
 	return corsSettings
 }
 
-func ExpandWebSourceControl(input []interface{}) web.SiteSourceControlProperties {
-	sourceControlProperties := web.SiteSourceControlProperties{}
-	
+func ExpandWebSourceControl(input []interface{}) *web.SiteSourceControlProperties {
 	if len(input) == 0 {
-		return sourceControlProperties
+		return nil
 	}
 
 	sourceControl := input[0].(map[string]interface{})
+	sourceControlProperties := web.SiteSourceControlProperties{}
 
 	if v, ok := sourceControl["repo_url"]; ok {
 		sourceControlProperties.RepoURL = utils.String(v.(string))
@@ -124,7 +123,7 @@ func ExpandWebSourceControl(input []interface{}) web.SiteSourceControlProperties
 		sourceControlProperties.IsMercurial = utils.Bool(v.(bool))
 	}
 
-	return sourceControlProperties
+	return &sourceControlProperties
 }
 
 func FlattenWebCorsSettings(input *web.CorsSettings) []interface{} {
