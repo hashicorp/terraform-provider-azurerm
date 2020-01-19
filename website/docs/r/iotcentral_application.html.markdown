@@ -14,17 +14,17 @@ Manages an IotCentral Application
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "example-resource"
+  location = "West Europe"
 }
 
 resource "azurerm_iotcentral_application" "example" {
-  name                = "iocentral-app1"
+  name                = "example-iocentral-app"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
+  sub_domain          = "example-iocentral-app-subdomian"
 
-  sub_domain          = "iocentral-app1-subdomian"
-  display_name        = "iocentral-app1-display-name"
+  display_name        = "example-iocentral-app-display-name"
   sku                 = "S1"
   template            = "iotc-default@1.0.0" 		
 

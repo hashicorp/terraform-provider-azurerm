@@ -156,61 +156,61 @@ func testCheckAzureRMIotCentralApplicationDestroy(s *terraform.State) error {
 
 func testAccAzureRMIotCentralApplication_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-		resource "azurerm_resource_group" "test" {
-		  name     = "acctestRG_%[2]d"
-		  location = "%[1]s"
-		}
+        resource "azurerm_resource_group" "test" {
+           name     = "acctestRG_%[2]d"
+           location = "%[1]s"
+        }
 		
-		resource "azurerm_iotcentral_application" "test" {
-		  name                = "acctestiotcentralapp-%[2]d"
-		  location            = "${azurerm_resource_group.test.location}"
-		  resource_group_name = "${azurerm_resource_group.test.name}"
+        resource "azurerm_iotcentral_application" "test" {
+          name                = "acctestiotcentralapp-%[2]d"
+          location            = "${azurerm_resource_group.test.location}"
+          resource_group_name = "${azurerm_resource_group.test.name}"
           sub_domain          = "acctestiotcentralapp-%[2]d"
-		  sku                 = "S1"
-		}
+          sku                 = "S1"
+        }
 		`, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMIotCentralApplication_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-		resource "azurerm_resource_group" "test" {
-		  name     = "acctestRG_%[2]d"
-		  location = "%[1]s"
-		}
+        resource "azurerm_resource_group" "test" {
+           name     = "acctestRG_%[2]d"
+           location = "%[1]s"
+        }
 		
-		resource "azurerm_iotcentral_application" "test" {
-		  name                = "acctestiotcentralapp-%[2]d"
-		  location            = "${azurerm_resource_group.test.location}"
-		  resource_group_name = "${azurerm_resource_group.test.name}"
+        resource "azurerm_iotcentral_application" "test" {
+          name                = "acctestiotcentralapp-%[2]d"
+          location            = "${azurerm_resource_group.test.location}"
+          resource_group_name = "${azurerm_resource_group.test.name}"
           sub_domain          = "acctestiotcentralapp-%[2]d"
           display_name        = "acctestiotcentralapp-%[2]d"
-		  sku                 = "S1"
-		  template            = "iotc-default@1.0.0"
-		  tags                = {
-              purpose = "testing"
+          sku                 = "S1"
+          template            = "iotc-default@1.0.0"
+          tags                = {
+            purpose = "testing"
           }
-		}
+        }
 		`, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMIotCentralApplication_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-		resource "azurerm_resource_group" "test" {
-		  name     = "acctestRG_%[2]d"
-		  location = "%[1]s"
-		}
+        resource "azurerm_resource_group" "test" {
+          name     = "acctestRG_%[2]d"
+          location = "%[1]s"
+        }
 		
-		resource "azurerm_iotcentral_application" "test" {
-		  name                = "acctestiotcentralapp%[2]d"
-		  resource_group_name = "${azurerm_resource_group.test.name}"
-		  location            = "${azurerm_resource_group.test.location}"
+        resource "azurerm_iotcentral_application" "test" {
+          name                = "acctestiotcentralapp%[2]d"
+          resource_group_name = "${azurerm_resource_group.test.name}"
+          location            = "${azurerm_resource_group.test.location}"
           sub_domain          = "acctestiotcentralapp-%[3]s"
           display_name        = "acctestiotcentralapp-%[2]d"
-		  sku                 = "S1"
+          sku                 = "S1"
           tags                = {
-              purpose = "testing"
+            purpose = "testing"
           }
-		}
+        }
 		`, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
@@ -219,14 +219,14 @@ func testAccAzureRMIotCentralApplication_requiresImport(data acceptance.TestData
 
 	return fmt.Sprintf(`
 		%s
-		resource "azurerm_iotcentral_application" "import" {
-			  name                = "${azurerm_iotcentral_application.test.name}"
-			  resource_group_name = "${azurerm_iotcentral_application.test.resource_group_name}"
-			  location            = "${azurerm_iotcentral_application.test.location}"
-			  sub_domain          = "${azurerm_iotcentral_application.test.sub_domain}"
-			  display_name        = "${azurerm_iotcentral_application.test.display_name}"
-			  sku                 = "S1"
-			}
+        resource "azurerm_iotcentral_application" "import" {
+          name                = "${azurerm_iotcentral_application.test.name}"
+          resource_group_name = "${azurerm_iotcentral_application.test.resource_group_name}"
+          location            = "${azurerm_iotcentral_application.test.location}"
+          sub_domain          = "${azurerm_iotcentral_application.test.sub_domain}"
+          display_name        = "${azurerm_iotcentral_application.test.display_name}"
+          sku                 = "S1"
+        }
 		`, template)
 
 }

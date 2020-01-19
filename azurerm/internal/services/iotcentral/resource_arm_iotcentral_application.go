@@ -18,9 +18,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotCentral() *schema.Resource {
+func resourceArmIotCentralApplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotCentralAppForCreate,
+		Create: resourceArmIotCentralAppCreate,
 		Read:   resourceArmIotCentralAppRead,
 		Update: resourceArmIotCentralAppUpdate,
 		Delete: resourceArmIotCentralAppDelete,
@@ -80,7 +80,7 @@ func resourceArmIotCentral() *schema.Resource {
 	}
 }
 
-func resourceArmIotCentralAppForCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotCentralAppCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTCentral.AppsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -88,7 +88,7 @@ func resourceArmIotCentralAppForCreate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
