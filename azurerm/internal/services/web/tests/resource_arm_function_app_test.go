@@ -628,6 +628,109 @@ func TestAccAzureRMFunctionApp_ftpsState(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFunctionApp_oneIpRestriction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFunctionApp_oneIpRestriction(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMFunctionApp_oneVNetSubnetIpRestriction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFunctionApp_oneVNetSubnetIpRestriction(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMFunctionApp_zeroedIpRestriction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				// This configuration includes a single explicit ip_restriction
+				Config: testAccAzureRMFunctionApp_oneIpRestriction(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "1"),
+				),
+			},
+			{
+				// This configuration has no site_config blocks at all.
+				Config: testAccAzureRMFunctionApp_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "1"),
+				),
+			},
+			{
+				// This configuration explicitly sets ip_restriction to [] using attribute syntax.
+				Config: testAccAzureRMFunctionApp_zeroedIpRestriction(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMFunctionApp_manyIpRestrictions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFunctionApp_manyIpRestrictions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.ip_address", "20.20.20.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.subnet_mask", "255.255.255.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.0.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.subnet_mask", "255.255.0.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.3.ip_address", "192.168.1.2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.3.subnet_mask", "255.255.255.0"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMFunctionAppDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServicesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -1725,6 +1828,201 @@ resource "azurerm_function_app" "test" {
 
   site_config {
     ftps_state = "AllAllowed"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMFunctionApp_oneIpRestriction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  site_config {
+    ip_restriction {
+      ip_address = "10.10.10.10"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMFunctionApp_oneVNetSubnetIpRestriction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  site_config {
+    ip_restriction {
+      virtual_network_subnet_id = "${azurerm_subnet.test.id}"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMFunctionApp_manyIpRestrictions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  site_config {
+    ip_restriction {
+      ip_address = "10.10.10.10"
+    }
+
+    ip_restriction {
+      ip_address  = "20.20.20.0"
+      subnet_mask = "255.255.255.0"
+    }
+
+    ip_restriction {
+      ip_address  = "30.30.0.0"
+      subnet_mask = "255.255.0.0"
+    }
+
+    ip_restriction {
+      ip_address  = "192.168.1.2"
+      subnet_mask = "255.255.255.0"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMFunctionApp_zeroedIpRestriction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  site_config {
+    ip_restriction = []
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)

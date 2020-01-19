@@ -154,6 +154,8 @@ The following arguments are supported:
 
 * `cors` - (Optional) A `cors` block as defined below.
 
+* `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+
 ---
 
 A `cors` block supports the following:
@@ -241,6 +243,18 @@ A `microsoft` block supports the following:
 * `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
 
 * `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
+
+---
+
+A `ip_restriction` block supports the following:
+
+* `ip_address` - (Optional) The IP Address used for this IP Restriction.
+
+* `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
+
+* `virtual_network_subnet_id` - (Optional.The Virtual Network Subnet ID used for this IP Restriction.
+
+-> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
 
 ## Attributes Reference
 

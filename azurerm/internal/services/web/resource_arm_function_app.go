@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"strings"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -225,6 +227,36 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"ip_restriction": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"ip_address": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"virtual_network_subnet_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"subnet_mask": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+										// TODO we should fix this in 2.0
+										// This attribute was made with the assumption that `ip_address` was the only valid option
+										// but `virtual_network_subnet_id` is being added and doesn't need a `subnet_mask`.
+										// We'll assume a default of "255.255.255.255" in the expand code when `ip_address` is specified
+										// and `subnet_mask` is not.
+										// Default:  "255.255.255.255",
+									},
+								},
+							},
+						},
 						"min_tls_version": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -324,7 +356,11 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
 
-	siteConfig := expandFunctionAppSiteConfig(d)
+	siteConfig, err := expandFunctionAppSiteConfig(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", name, resourceGroup, err)
+	}
+
 	siteConfig.AppSettings = &basicAppSettings
 
 	siteEnvelope := web.Site{
@@ -407,7 +443,10 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
-	siteConfig := expandFunctionAppSiteConfig(d)
+	siteConfig, err := expandFunctionAppSiteConfig(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", name, resGroup, err)
+	}
 
 	siteConfig.AppSettings = &basicAppSettings
 
@@ -450,7 +489,10 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("site_config") {
-		siteConfig := expandFunctionAppSiteConfig(d)
+		siteConfig, err := expandFunctionAppSiteConfig(d)
+		if err != nil {
+			return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", name, resGroup, err)
+		}
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
@@ -706,12 +748,12 @@ func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string)
 	return output
 }
 
-func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
+func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error) {
 	configs := d.Get("site_config").([]interface{})
 	siteConfig := web.SiteConfig{}
 
 	if len(configs) == 0 {
-		return siteConfig
+		return siteConfig, nil
 	}
 
 	config := configs[0].(map[string]interface{})
@@ -746,6 +788,51 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["ip_restriction"]; ok {
+		ipSecurityRestrictions := v.([]interface{})
+		restrictions := make([]web.IPSecurityRestriction, 0)
+		for i, ipSecurityRestriction := range ipSecurityRestrictions {
+			restriction := ipSecurityRestriction.(map[string]interface{})
+
+			ipAddress := restriction["ip_address"].(string)
+			vNetSubnetID := restriction["virtual_network_subnet_id"].(string)
+			if vNetSubnetID != "" && ipAddress != "" {
+				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can set set for `site_config.0.ip_restriction.%d`", i))
+			}
+
+			if vNetSubnetID == "" && ipAddress == "" {
+				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set set for `site_config.0.ip_restriction.%d`", i))
+			}
+
+			ipSecurityRestriction := web.IPSecurityRestriction{}
+			if ipAddress != "" {
+				mask := restriction["subnet_mask"].(string)
+				if mask == "" {
+					mask = "255.255.255.255"
+				}
+				// the 2018-02-01 API expects a blank subnet mask and an IP address in CIDR format: a.b.c.d/x
+				// so translate the IP and mask if necessary
+				restrictionMask := ""
+				cidrAddress := ipAddress
+				if mask != "" {
+					ipNet := net.IPNet{IP: net.ParseIP(ipAddress), Mask: net.IPMask(net.ParseIP(mask))}
+					cidrAddress = ipNet.String()
+				} else if !strings.Contains(ipAddress, "/") {
+					cidrAddress += "/32"
+				}
+				ipSecurityRestriction.IPAddress = &cidrAddress
+				ipSecurityRestriction.SubnetMask = &restrictionMask
+			}
+
+			if vNetSubnetID != "" {
+				ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+			}
+
+			restrictions = append(restrictions, ipSecurityRestriction)
+		}
+		siteConfig.IPSecurityRestrictions = &restrictions
+	}
+
 	if v, ok := config["min_tls_version"]; ok {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
@@ -754,7 +841,7 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
-	return siteConfig
+	return siteConfig, nil
 }
 
 func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
@@ -789,6 +876,32 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	if input.HTTP20Enabled != nil {
 		result["http2_enabled"] = *input.HTTP20Enabled
 	}
+
+	restrictions := make([]interface{}, 0)
+	if vs := input.IPSecurityRestrictions; vs != nil {
+		for _, v := range *vs {
+			block := make(map[string]interface{})
+			if ip := v.IPAddress; ip != nil {
+				// the 2018-02-01 API uses CIDR format (a.b.c.d/x), so translate that back to IP and mask
+				if strings.Contains(*ip, "/") {
+					ipAddr, ipNet, _ := net.ParseCIDR(*ip)
+					block["ip_address"] = ipAddr.String()
+					mask := net.IP(ipNet.Mask)
+					block["subnet_mask"] = mask.String()
+				} else {
+					block["ip_address"] = *ip
+				}
+			}
+			if subnet := v.SubnetMask; subnet != nil {
+				block["subnet_mask"] = *subnet
+			}
+			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
+				block["virtual_network_subnet_id"] = *vNetSubnetID
+			}
+			restrictions = append(restrictions, block)
+		}
+	}
+	result["ip_restriction"] = restrictions
 
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)
