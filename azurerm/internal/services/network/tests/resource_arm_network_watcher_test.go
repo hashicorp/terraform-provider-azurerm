@@ -91,6 +91,7 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 
 func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,

@@ -36,7 +36,8 @@ func NewFrontDoorsClient(subscriptionID string) FrontDoorsClient {
 	return NewFrontDoorsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewFrontDoorsClientWithBaseURI creates an instance of the FrontDoorsClient client.
+// NewFrontDoorsClientWithBaseURI creates an instance of the FrontDoorsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewFrontDoorsClientWithBaseURI(baseURI string, subscriptionID string) FrontDoorsClient {
 	return FrontDoorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -92,7 +93,7 @@ func (client FrontDoorsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -183,7 +184,7 @@ func (client FrontDoorsClient) DeletePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -277,7 +278,7 @@ func (client FrontDoorsClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -350,7 +351,7 @@ func (client FrontDoorsClient) ListPreparer(ctx context.Context) (*http.Request,
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -471,7 +472,7 @@ func (client FrontDoorsClient) ListByResourceGroupPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -601,7 +602,7 @@ func (client FrontDoorsClient) ValidateCustomDomainPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

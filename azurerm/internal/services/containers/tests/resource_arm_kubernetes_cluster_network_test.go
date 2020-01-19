@@ -821,13 +821,13 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_id     = "%s"
     client_secret = "%s"
   }
-  
+
   network_profile {
     network_plugin    = "kubenet"
     load_balancer_sku = "standard"
   }
-  
-  api_server_authorized_ip_ranges = [ "%s"]
+
+  api_server_authorized_ip_ranges = ["%s"]
   private_link_enabled            = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, clientId, clientSecret, cdir, enablePrivateLink)

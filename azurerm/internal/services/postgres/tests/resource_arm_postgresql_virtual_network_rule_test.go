@@ -268,7 +268,7 @@ resource "azurerm_postgresql_server" "test" {
   version                      = "9.5"
   ssl_enforcement              = "Enabled"
 
-  sku_name     = "GP_Gen5_2"
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -339,7 +339,7 @@ resource "azurerm_postgresql_server" "test" {
   version                      = "9.5"
   ssl_enforcement              = "Enabled"
 
-  sku_name     = "GP_Gen5_2"
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -396,7 +396,7 @@ resource "azurerm_postgresql_server" "test" {
   version                      = "9.5"
   ssl_enforcement              = "Enabled"
 
-  sku_name     = "GP_Gen5_2"
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -468,7 +468,7 @@ resource "azurerm_postgresql_server" "test" {
   version                      = "9.5"
   ssl_enforcement              = "Enabled"
 
-  sku_name     = "GP_Gen5_2"
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200

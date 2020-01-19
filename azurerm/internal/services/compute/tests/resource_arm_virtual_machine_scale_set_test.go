@@ -5686,7 +5686,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   health_probe_id     = "${azurerm_lb_probe.test.id}"
   depends_on          = ["azurerm_lb_rule.test"]
 
-  %[4]s 
+  %[4]s
 
   sku {
     name     = "Standard_F2"
