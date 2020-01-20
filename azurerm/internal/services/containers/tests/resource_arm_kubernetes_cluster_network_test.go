@@ -456,7 +456,7 @@ func testAccAzureRMKubernetesCluster_standardLoadBalancerProfile(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.managed_outbound_ips", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_profile.0.effective_outbound_ips.#", "3"),
 				),
 			},
@@ -533,8 +533,8 @@ func testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfile(t *testing.T
 				Config: testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfileConfig(data, clientId, clientSecret),
 				ExpectError: regexp.MustCompile(`errors during apply: 2 problems:
 
-- "network_profile.0.load_balancer_profile.0.managed_outbound_ips": conflicts with network_profile.0.load_balancer_profile.0.outbound_ip_address_ids
-- "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids": conflicts with network_profile.0.load_balancer_profile.0.managed_outbound_ips`),
+- "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count": conflicts with network_profile.0.load_balancer_profile.0.outbound_ip_address_ids
+- "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids": conflicts with network_profile.0.load_balancer_profile.0.managed_outbound_ip_count`),
 			},
 			{
 				ResourceName:      "azurerm_public_ip.test",
@@ -1134,7 +1134,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin    = "azure"
     load_balancer_sku = "Standard"
     load_balancer_profile {
-      managed_outbound_ips = 3
+      managed_outbound_ip_count = 3
     }
   }
 }
@@ -1260,7 +1260,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin    = "azure"
     load_balancer_sku = "basic"
     load_balancer_profile {
-      managed_outbound_ips = 3
+      managed_outbound_ip_count = 3
     }
   }
 }
@@ -1333,7 +1333,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin    = "azure"
     load_balancer_sku = "standard"
     load_balancer_profile {
-      managed_outbound_ips = 3
+      managed_outbound_ip_count = 3
       outbound_ip_address_ids = [ azurerm_public_ip.test.id, azurerm_public_ip.test2.id ]
     }
   }

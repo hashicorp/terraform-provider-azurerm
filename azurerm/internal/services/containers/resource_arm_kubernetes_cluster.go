@@ -422,7 +422,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"managed_outbound_ips": {
+									"managed_outbound_ip_count": {
 										Type:          schema.TypeInt,
 										Optional:      true,
 										ValidateFunc:  validation.IntBetween(1, 100),
@@ -431,7 +431,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									"outbound_ip_prefixes_ids": {
 										Type:          schema.TypeSet,
 										Optional:      true,
-										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ips", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: azure.ValidateResourceID,
@@ -440,7 +440,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									"outbound_ip_address_ids": {
 										Type:          schema.TypeSet,
 										Optional:      true,
-										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ips", "network_profile.0.load_balancer_profile.0.outbound_ip_prefixes_ids"},
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefixes_ids"},
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: azure.ValidateResourceID,
@@ -1471,7 +1471,7 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*conta
 	var outboundIpPrefixes *containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes
 	var outboundIps *containerservice.ManagedClusterLoadBalancerProfileOutboundIPs
 
-	if ipCount := config["managed_outbound_ips"]; ipCount != nil {
+	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
 		if c := int32(ipCount.(int)); c > 0 {
 			managedOutboundIps = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
 		}
@@ -1559,7 +1559,7 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 
 		if profile.LoadBalancerProfile.ManagedOutboundIPs != nil {
 			if profile.LoadBalancerProfile.ManagedOutboundIPs.Count != nil {
-				lb["managed_outbound_ips"] = profile.LoadBalancerProfile.ManagedOutboundIPs.Count
+				lb["managed_outbound_ip_count"] = profile.LoadBalancerProfile.ManagedOutboundIPs.Count
 			}
 		}
 

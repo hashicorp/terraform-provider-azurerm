@@ -321,7 +321,7 @@ A `load_balancer_profile` block supports the following:
 
 ~> **NOTE:** These options are mutually exclusive. Note that when specifying `outbound_ip_address_ids` ([azurerm_public_ip](/docs/providers/azurerm/r/public_ip.html)) the SKU must be `Standard`. 
 
-* `managed_outbound_ips` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be in the range of [1, 100].
+* `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be in the range of [1, 100].
 
 * `outbound_ip_prefixes_ids` - (Optional) The ID of the outbound Public IP Address Prefixes which should be used for the cluster load balancer.
 
