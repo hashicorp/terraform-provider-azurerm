@@ -178,7 +178,6 @@ func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta i
 	networkSecurityGroupID := d.Get("network_security_group_id").(string)
 	storageAccountID := d.Get("storage_account_id").(string)
 	enabled := d.Get("enabled").(bool)
-	version := d.Get("version").(int)
 
 	parameters := network.FlowLogInformation{
 		TargetResourceID: &networkSecurityGroupID,
@@ -186,14 +185,19 @@ func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta i
 			StorageID:       &storageAccountID,
 			Enabled:         &enabled,
 			RetentionPolicy: expandAzureRmNetworkWatcherFlowLogRetentionPolicy(d),
-			Format: &network.FlowLogFormatParameters{
-				Version: utils.Int32(int32(version)),
-			},
 		},
 	}
 
 	if _, ok := d.GetOk("traffic_analytics"); ok {
 		parameters.FlowAnalyticsConfiguration = expandAzureRmNetworkWatcherFlowLogTrafficAnalytics(d)
+	}
+
+	if version, ok := d.GetOk("version"); ok {
+		format := &network.FlowLogFormatParameters{
+			Version: utils.Int32(int32(version.(int))),
+		}
+
+		parameters.FlowLogProperties.Format = format
 	}
 
 	future, err := client.SetFlowLogConfiguration(ctx, resourceGroupName, networkWatcherName, parameters)
