@@ -116,27 +116,27 @@ func testCheckAzureRMBotChannelDirectlineDestroy(s *terraform.State) error {
 
 func testAccAzureRMBotChannelDirectline_basicConfig(data acceptance.TestData) string {
 	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
-	return fmt.Sprintf(`
+	return fmt.Sprintf(` 
 %s
 
 resource "azurerm_bot_channel_directline" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+	bot_name            = "${azurerm_bot_channels_registration.test.name}"
+	location            = "${azurerm_bot_channels_registration.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, template)
 }
 
 func testAccAzureRMBotChannelDirectline_basicUpdate(data acceptance.TestData) string {
 	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
-	return fmt.Sprintf(`
+	return fmt.Sprintf(` 
 %s
 
 resource "azurerm_bot_channel_directline" "test" {
-  bot_name            = "${azurerm_bot_channels_registration.test.name}"
-  location            = "${azurerm_bot_channels_registration.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  is_enabled           = false
+	bot_name            = "${azurerm_bot_channels_registration.test.name}"
+	location            = "${azurerm_bot_channels_registration.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	is_enabled          = false
 }
 `, template)
 }
