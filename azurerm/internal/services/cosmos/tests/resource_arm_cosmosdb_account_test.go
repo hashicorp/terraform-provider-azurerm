@@ -138,12 +138,28 @@ func testAccAzureRMCosmosDBAccount_updateConsistency(t *testing.T, kind document
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.Session),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Session, 1),
+				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.Strong),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			},
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.BoundedStaleness),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
+				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.Eventual),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.Eventual, 7, 770),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.Eventual, 77, 700),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.ConsistentPrefix),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.ConsistentPrefix, 1),
 			},
 			data.ImportStep(),
 		},
@@ -432,6 +448,34 @@ resource "azurerm_cosmosdb_account" "import" {
 `, testAccAzureRMCosmosDBAccount_basic(data, "", consistency))
 }
 
+func testAccAzureRMCosmosDBAccount_consistency(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel, interval, staleness int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  consistency_policy {
+    consistency_level       = "%s"
+    max_interval_in_seconds = %d"
+    max_staleness_prefix    = %d
+  }
+
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), interval, staleness)
+}
+
 func testAccAzureRMCosmosDBAccount_completePreReqs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -480,7 +524,6 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level = "%[4]s"
-
   }
 
   is_virtual_network_filter_enabled = true
@@ -528,7 +571,6 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level = "%[4]s"
-
   }
 
   is_virtual_network_filter_enabled = true
