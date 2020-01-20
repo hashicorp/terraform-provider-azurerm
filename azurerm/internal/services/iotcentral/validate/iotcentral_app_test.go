@@ -36,7 +36,6 @@ func TestIotCentralAppName(t *testing.T) {
 			t.Fatalf("%q should be an invalid IoT Central Name: %q", name, err)
 		}
 	}
-
 }
 
 func TestIotCentralAppSubdomain(t *testing.T) {
@@ -115,7 +114,7 @@ func TestIotCentralAppTemplateName(t *testing.T) {
 	for _, name := range validNames {
 		_, err := IotCentralAppTemplateName(name, "unit test")
 		if err != nil {
-			t.Fatalf("%q should be a valid IoT Central Tempalte Name: %q", name, err)
+			t.Fatalf("%q should be a valid IoT Central Template Name: %q", name, err)
 		}
 	}
 
@@ -126,7 +125,7 @@ func TestIotCentralAppTemplateName(t *testing.T) {
 	for _, name := range invalidNames {
 		_, err := IotCentralAppTemplateName(name, "unit test")
 		if err == nil {
-			t.Fatalf("%q should be an invalid IoT Central Tempalte Name: %q", name, err)
+			t.Fatalf("%q should be an invalid IoT Central Template Name: %q", name, err)
 		}
 	}
 }

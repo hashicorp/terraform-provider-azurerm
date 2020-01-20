@@ -106,10 +106,10 @@ func resourceArmIotCentralAppCreate(d *schema.ResourceData, meta interface{}) er
 		Name: utils.String(name),
 	})
 	if err != nil {
-		return fmt.Errorf("Error happend on check name availability. %q (Group Name %q). Error:  %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error happened on check name availability. %q (Group Name %q). Error:  %+v", name, resourceGroup, err)
 	}
 	if !*resp.NameAvailable {
-		return fmt.Errorf("Resource name not avialable. name: %s, Reason:  %q, Message  %q", name, *resp.Reason, *resp.Message)
+		return fmt.Errorf("Resource name not available. name: %s, Reason:  %q, Message  %q", name, *resp.Reason, *resp.Message)
 	}
 
 	displayName := d.Get("display_name").(string)

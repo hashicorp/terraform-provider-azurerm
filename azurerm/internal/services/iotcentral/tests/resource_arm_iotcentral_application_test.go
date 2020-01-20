@@ -157,63 +157,63 @@ func testCheckAzureRMIotCentralApplicationDestroy(s *terraform.State) error {
 
 func testAccAzureRMIotCentralApplication_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-        resource "azurerm_resource_group" "test" {
-           name     = "acctestRG-%[2]d"
-           location = "%[1]s"
-        }
-		
-        resource "azurerm_iotcentral_application" "test" {
-          name                = "acctest-iotcentralapp-%[2]d"
-          location            = azurerm_resource_group.test.location
-          resource_group_name = azurerm_resource_group.test.name
-          sub_domain          = "acctest-iotcentralapp-%[2]d"
-          sku                 = "S1"
-        }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_iotcentral_application" "test" {
+  name                = "acctest-iotcentralapp-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sub_domain          = "acctest-iotcentralapp-%[2]d"
+  sku                 = "S1"
+}
 `, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMIotCentralApplication_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-        resource "azurerm_resource_group" "test" {
-           name     = "acctestRG-%[2]d"
-           location = "%[1]s"
-        }
-		
-        resource "azurerm_iotcentral_application" "test" {
-          name                = "acctest-iotcentralapp-%[2]d"
-          location            = azurerm_resource_group.test.location
-          resource_group_name = azurerm_resource_group.test.name
-          sub_domain          = "acctest-iotcentralapp-%[2]d"
-          display_name        = "acctest-iotcentralapp-%[2]d"
-          sku                 = "S1"
-          template            = "iotc-default@1.0.0"
-          tags                = {
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
 
-            ENV= "Test"
-            }
-        }
+resource "azurerm_iotcentral_application" "test" {
+  name                = "acctest-iotcentralapp-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sub_domain          = "acctest-iotcentralapp-%[2]d"
+  display_name        = "acctest-iotcentralapp-%[2]d"
+  sku                 = "S1"
+  template            = "iotc-default@1.0.0"
+  tags = {
+
+    ENV = "Test"
+  }
+}
 `, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMIotCentralApplication_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-        resource "azurerm_resource_group" "test" {
-          name     = "acctestRG-%[2]d"
-          location = "%[1]s"
-        }
-		
-        resource "azurerm_iotcentral_application" "test" {
-          name                = "acctest-iotcentralapp-%[2]d"
-          resource_group_name = "${azurerm_resource_group.test.name}"
-          location            = "${azurerm_resource_group.test.location}"
-          sub_domain          = "acctest-iotcentralapp-%[2]d"
-          display_name        = "acctest-iotcentralapp-%[2]d"
-          sku                 = "S1"
-          tags                = {
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[1]s"
+}
 
-            ENV= "Test"
-          }
-        }
+resource "azurerm_iotcentral_application" "test" {
+  name                = "acctest-iotcentralapp-%[2]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sub_domain          = "acctest-iotcentralapp-%[2]d"
+  display_name        = "acctest-iotcentralapp-%[2]d"
+  sku                 = "S1"
+  tags = {
+
+    ENV = "Test"
+  }
+}
 `, data.Locations.Primary, data.RandomInteger)
 }
 
@@ -232,5 +232,4 @@ func testAccAzureRMIotCentralApplication_requiresImport(data acceptance.TestData
           sku                 = "S1"
         }
 `, template)
-
 }

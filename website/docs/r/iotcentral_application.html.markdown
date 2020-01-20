@@ -24,12 +24,12 @@ resource "azurerm_iotcentral_application" "example" {
   location            = "${azurerm_resource_group.example.location}"
   sub_domain          = "example-iotcentral-app-subdomain"
 
-  display_name        = "example-iotcentral-app-display-name"
-  sku                 = "S1"
-  template            = "iotc-default@1.0.0" 		
+  display_name = "example-iotcentral-app-display-name"
+  sku          = "S1"
+  template     = "iotc-default@1.0.0"
 
   tags = {
-     Foo="Bar"
+    Foo = "Bar"
   }
 }
 ```
