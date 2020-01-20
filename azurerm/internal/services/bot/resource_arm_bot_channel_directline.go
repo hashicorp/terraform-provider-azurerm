@@ -111,11 +111,9 @@ func resourceArmBotChannelDirectline() *schema.Resource {
 }
 
 func expandSites(input []interface{}) (*[]botservice.DirectLineSite, error) {
-
 	sites := make([]botservice.DirectLineSite, len(input))
 
 	for i, element := range input {
-
 		site := element.(map[string]interface{})
 		if v, ok := site["site_name"]; ok {
 			siteName := v.(string)
@@ -145,14 +143,12 @@ func expandSites(input []interface{}) (*[]botservice.DirectLineSite, error) {
 			}
 			sites[i].TrustedOrigins = &items
 		}
-
 	}
 
 	return &sites, nil
 }
 
 func unExpandSites(input []botservice.DirectLineSite) []interface{} {
-
 	sites := make([]interface{}, len(input))
 
 	for i, element := range input {
@@ -192,7 +188,7 @@ func resourceArmBotChannelDirectlineCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	sites, err := expandSites(d.Get("site").(*schema.Set).List())
+	sites, _ := expandSites(d.Get("site").(*schema.Set).List())
 
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineChannel{
@@ -249,7 +245,7 @@ func resourceArmBotChannelDirectlineRead(d *schema.ResourceData, meta interface{
 	d.Set("location", resp.Location)
 	d.Set("bot_name", botName)
 
-	channelsResp, err := client.ListWithKeys(ctx, id.ResourceGroup, botName, botservice.ChannelNameDirectLineChannel)
+	channelsResp, _ := client.ListWithKeys(ctx, id.ResourceGroup, botName, botservice.ChannelNameDirectLineChannel)
 	if props := channelsResp.Properties; props != nil {
 		if channel, ok := props.AsDirectLineChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
@@ -268,7 +264,7 @@ func resourceArmBotChannelDirectlineUpdate(d *schema.ResourceData, meta interfac
 
 	botName := d.Get("bot_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	sites, err := expandSites(d.Get("site").(*schema.Set).List())
+	sites, _ := expandSites(d.Get("site").(*schema.Set).List())
 
 	channel := botservice.BotChannel{
 		Properties: botservice.DirectLineChannel{
