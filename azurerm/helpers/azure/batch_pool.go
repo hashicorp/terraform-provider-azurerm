@@ -565,8 +565,7 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 	networkConfiguration := &batch.NetworkConfiguration{}
 
 	if v, ok := networkConfigValue["subnet_id"]; ok {
-		value := v.(string)
-		if value != "" {
+		if value := v.(string); value != "" {
 			networkConfiguration.SubnetID = &value
 		}
 	}
@@ -589,8 +588,6 @@ func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpoi
 	}
 
 	endpointConfigurationValue := list[0].(map[string]interface{})
-
-	endpointConfiguration := &batch.PoolEndpointConfiguration{}
 
 	inboundNatPoolsValues := endpointConfigurationValue["inbound_nat_pools"].([]interface{})
 	inboundNatPools := make([]batch.InboundNatPool, len(inboundNatPoolsValues))
@@ -619,9 +616,9 @@ func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpoi
 		}
 	}
 
-	endpointConfiguration.InboundNatPools = &inboundNatPools
-
-	return endpointConfiguration, nil
+	return &batch.PoolEndpointConfiguration{
+		InboundNatPools: &inboundNatPools,
+	}, nil
 }
 
 //ExpandBatchPoolNetworkSecurityGroupRule expands Batch pool network security group rule
@@ -664,12 +661,12 @@ func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfigurat
 		result["subnet_id"] = *networkConfig.SubnetID
 	}
 
-	if networkConfig.EndpointConfiguration != nil {
+	if cfg := networkConfig.EndpointConfiguration; cfg != nil {
 		endpointConfigs := make([]interface{}, 1)
 
-		if networkConfig.EndpointConfiguration.InboundNatPools != nil && len(*networkConfig.EndpointConfiguration.InboundNatPools) != 0 {
-			inboundNatPools := make([]interface{}, len(*networkConfig.EndpointConfiguration.InboundNatPools))
-			for i, inboundNatPool := range *networkConfig.EndpointConfiguration.InboundNatPools {
+		if cfg.InboundNatPools != nil && len(*cfg.InboundNatPools) != 0 {
+			inboundNatPools := make([]interface{}, len(*cfg.InboundNatPools))
+			for i, inboundNatPool := range *cfg.InboundNatPools {
 				inboundNatPoolMap := make(map[string]interface{})
 				if inboundNatPool.Name != nil {
 					inboundNatPoolMap["name"] = *inboundNatPool.Name
@@ -685,9 +682,9 @@ func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfigurat
 				}
 				inboundNatPoolMap["protocol"] = inboundNatPool.Protocol
 
-				if inboundNatPool.NetworkSecurityGroupRules != nil && len(*inboundNatPool.NetworkSecurityGroupRules) != 0 {
-					networkSecurities := make([]interface{}, len(*inboundNatPool.NetworkSecurityGroupRules))
-					for j, networkSecurity := range *inboundNatPool.NetworkSecurityGroupRules {
+				if sgRules := inboundNatPool.NetworkSecurityGroupRules; sgRules != nil && len(*sgRules) != 0 {
+					networkSecurities := make([]interface{}, len(*sgRules))
+					for j, networkSecurity := range *sgRules {
 						networkSecurityMap := make(map[string]interface{})
 
 						if networkSecurity.Priority != nil {
