@@ -1513,19 +1513,23 @@ func idsToResourceReferences(set interface{}) *[]containerservice.ResourceRefere
 }
 
 func resourceReferencesToIds(refs *[]containerservice.ResourceReference) []string {
-	if refs != nil {
-		ids := make([]string, 0)
+	if refs == nil {
+		return nil
+	}
 
-		for _, ref := range *refs {
-			if ref.ID != nil {
-				ids = append(ids, *ref.ID)
-			}
+	ids := make([]string, 0)
+
+	for _, ref := range *refs {
+		if ref.ID != nil {
+			ids = append(ids, *ref.ID)
 		}
+	}
 
+	if len(ids) > 0 {
 		return ids
 	}
 
-	return nil
+	return ids
 }
 
 func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfileType) []interface{} {
@@ -1554,24 +1558,24 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 	}
 
 	lbProfiles := make([]interface{}, 0)
-	if profile.LoadBalancerProfile != nil {
+	if lbp := profile.LoadBalancerProfile; lbp != nil {
 		lb := make(map[string]interface{})
 
-		if profile.LoadBalancerProfile.ManagedOutboundIPs != nil {
-			if profile.LoadBalancerProfile.ManagedOutboundIPs.Count != nil {
-				lb["managed_outbound_ip_count"] = profile.LoadBalancerProfile.ManagedOutboundIPs.Count
+		if ips := lbp.ManagedOutboundIPs; ips != nil {
+			if count := ips.Count; count != nil {
+				lb["managed_outbound_ip_count"] = count
 			}
 		}
 
-		if profile.LoadBalancerProfile.OutboundIPs != nil {
-			if profile.LoadBalancerProfile.OutboundIPs.PublicIPs != nil {
-				lb["outbound_ip_address_ids"] = resourceReferencesToIds(profile.LoadBalancerProfile.OutboundIPs.PublicIPs)
+		if oip := lbp.OutboundIPs; oip != nil {
+			if poip := oip.PublicIPs; poip != nil {
+				lb["outbound_ip_address_ids"] = resourceReferencesToIds(poip)
 			}
 		}
 
-		if profile.LoadBalancerProfile.OutboundIPPrefixes != nil {
-			if profile.LoadBalancerProfile.OutboundIPPrefixes.PublicIPPrefixes != nil {
-				lb["outbound_ip_prefix_ids"] = resourceReferencesToIds(profile.LoadBalancerProfile.OutboundIPPrefixes.PublicIPPrefixes)
+		if oip := lbp.OutboundIPPrefixes; oip != nil {
+			if pip := oip.PublicIPPrefixes; pip != nil {
+				lb["outbound_ip_prefix_ids"] = resourceReferencesToIds(pip)
 			}
 		}
 
