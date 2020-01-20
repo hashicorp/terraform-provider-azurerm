@@ -1,8 +1,8 @@
-package mssqlvm
+package mssql
 
 import (
 	"fmt"
-	"strings"
+	"reflect"
 	"time"
 
 	"log"
@@ -33,49 +33,33 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(45 * time.Minute),
+			Read:   schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(45 * time.Minute),
+			Delete: schema.DefaultTimeout(45 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
-
-			"location": azure.SchemaLocation(),
-
-			"virtual_machine_resource_id": {
+			"virtual_machine_id": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"sql_license_type": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sqlvirtualmachine.PAYG),
 					string(sqlvirtualmachine.AHUB),
 				}, false),
 			},
 
-			"sql_sku": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(sqlvirtualmachine.Developer),
-					string(sqlvirtualmachine.Express),
-					string(sqlvirtualmachine.Standard),
-					string(sqlvirtualmachine.Enterprise),
-					string(sqlvirtualmachine.Web),
-				}, false),
-			},
-
-			"sql_virtual_machine_group_resource_id": {
+			"sql_virtual_machine_group_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -85,13 +69,9 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"enable": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
 						"day_of_week": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sqlvirtualmachine.Monday),
 								string(sqlvirtualmachine.Tuesday),
@@ -104,12 +84,12 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 						},
 						"maintenance_window_duration_in_minutes": {
 							Type:         schema.TypeInt,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validation.IntBetween(30, 180),
 						},
 						"maintenance_window_starting_hour": {
 							Type:         schema.TypeInt,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validation.IntBetween(0, 23),
 						},
 					},
@@ -122,30 +102,29 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"enable": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-						"credential_name": {
+						"name": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"azure_key_vault_url": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
+							ForceNew:     true,
 							Sensitive:    true,
 							ValidateFunc: validate.URLIsHTTPS,
 						},
 						"service_principal_name": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
+							ForceNew:     true,
 							Sensitive:    true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"service_principal_secret": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
+							ForceNew:     true,
 							Sensitive:    true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
@@ -166,6 +145,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 						"sql_connectivity_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  string(sqlvirtualmachine.PRIVATE),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(sqlvirtualmachine.LOCAL),
 								string(sqlvirtualmachine.PRIVATE),
@@ -175,7 +155,8 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 						"sql_connectivity_port": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validate.PortNumber,
+							Default:      1433,
+							ValidateFunc: validation.IntBetween(1024, 65535),
 						},
 						"sql_connectivity_update_password": {
 							Type:         schema.TypeString,
@@ -183,7 +164,7 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Sensitive:    true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
-						"sql_connectivity_update_user_name": {
+						"sql_connectivity_update_username": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
@@ -194,61 +175,59 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
-
-			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
 
 func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQLVM.SQLVirtualMachinesClient
+	client := meta.(*clients.Client).MSSQL.SQLVirtualMachinesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vmResourceId := d.Get("virtual_machine_resource_id").(string)
-	id, err := azure.ParseAzureResourceID(vmResourceId)
+	vmId := d.Get("virtual_machine_id").(string)
+	id, err := azure.ParseAzureResourceID(vmId)
 	if err != nil {
-		return fmt.Errorf("Error creating Sql Virtual Machine from virtual machine %s: %+v", vmResourceId, err)
+		return err
 	}
 	name := id.Path["virtualMachines"]
-
-	resourceGroupName := d.Get("resource_group_name").(string)
+	resourceGroupName := id.ResourceGroup
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, name, "")
+		existing, err := client.Get(ctx, resourceGroupName, name, "*")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for present of existing Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_virtual_machine", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_mssql_virtual_machine", *existing.ID)
 		}
 	}
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	// get location from vm
+	vmclient := meta.(*clients.Client).Compute.VMClient
+	respvm, err := vmclient.Get(ctx, resourceGroupName, name, "")
+	if err != nil {
+		return fmt.Errorf("Error making Read request on Azure Virtual Machine %s: %+v", name, err)
+	}
+	if respvm.Location == nil {
+		return fmt.Errorf("Error location is empty from making Read request on Azure Virtual Machine %s: %+v", name, err)
+	}
 
 	properties := sqlvirtualmachine.Properties{
 		SQLServerLicenseType:                   sqlvirtualmachine.SQLServerLicenseType(d.Get("sql_license_type").(string)),
-		VirtualMachineResourceID:               utils.String(d.Get("virtual_machine_resource_id").(string)),
-		AutoPatchingSettings:                   expandArmSqlVirtualMachineAutoPatchingSettings(d),
-		KeyVaultCredentialSettings:             expandArmSqlVirtualMachineKeyVaultCredential(d),
-		ServerConfigurationsManagementSettings: expandArmSqlVirtualMachineServerConfigurationsManagement(d),
+		VirtualMachineResourceID:               utils.String(d.Get("virtual_machine_id").(string)),
+		SQLManagement:                          sqlvirtualmachine.Full,
+		AutoPatchingSettings:                   expandArmSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
+		KeyVaultCredentialSettings:             expandArmSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
+		ServerConfigurationsManagementSettings: expandArmSqlVirtualMachineServerConfigurationsManagement(d.Get("server_configuration").([]interface{})),
 	}
 
-	if sqlVirtualMachineGroupResourceID, ok := d.GetOk("sql_virtual_machine_group_resource_id"); ok {
+	if sqlVirtualMachineGroupResourceID, ok := d.GetOk("sql_virtual_machine_group_id"); ok {
 		properties.SQLVirtualMachineGroupResourceID = utils.String(sqlVirtualMachineGroupResourceID.(string))
 	}
 
-	if sqlImageSku, ok := d.GetOk("sql_sku"); ok {
-		properties.SQLImageSku = sqlvirtualmachine.SQLImageSku(sqlImageSku.(string))
-	}
-
 	parameters := sqlvirtualmachine.SQLVirtualMachine{
-		Location:   utils.String(location),
+		Location:   utils.String(azure.NormalizeLocation(*respvm.Location)),
 		Properties: &properties,
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -261,8 +240,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error waiting for creation of Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
-	expandSettings := getExpandSettings(d)
-	resp, err := client.Get(ctx, resourceGroupName, name, expandSettings)
+	resp, err := client.Get(ctx, resourceGroupName, name, "*")
 	if err != nil {
 		return fmt.Errorf("Error retrieving Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
 	}
@@ -275,7 +253,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQLVM.SQLVirtualMachinesClient
+	client := meta.(*clients.Client).MSSQL.SQLVirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -286,8 +264,7 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 	resourceGroupName := id.ResourceGroup
 	name := id.Path["sqlVirtualMachines"]
 
-	expandSettings := getExpandSettings(d)
-	resp, err := client.Get(ctx, resourceGroupName, name, expandSettings)
+	resp, err := client.Get(ctx, resourceGroupName, name, "*")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Sql Virtual Machine %q does not exist - removing from state", d.Id())
@@ -297,24 +274,27 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error reading Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroupName)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
 	if properties := resp.Properties; properties != nil {
-		d.Set("sql_sku", string(properties.SQLImageSku))
+		d.Set("virtual_machine_id", properties.VirtualMachineResourceID)
 		d.Set("sql_license_type", string(properties.SQLServerLicenseType))
-		d.Set("virtual_machine_resource_id", properties.VirtualMachineResourceID)
-		d.Set("auto_patching", flattenArmSqlVirtualMachineAutoPatching(properties.AutoPatchingSettings))
-		d.Set("key_vault_credential", flattenArmSqlVirtualMachineKeyVaultCredential(properties.KeyVaultCredentialSettings, d))
-		d.Set("server_configuration", flattenArmSqlVirtualMachineServerConfigurationsManagement(properties.ServerConfigurationsManagementSettings, d))
+		flattenedAutoPatching := flattenArmSqlVirtualMachineAutoPatching(properties.AutoPatchingSettings)
+		if err := d.Set("auto_patching", flattenedAutoPatching); err != nil {
+			return fmt.Errorf("Error setting `auto_patching`: %+v", err)
+		}
+		flattenedKeyVaultCredential := flattenArmSqlVirtualMachineKeyVaultCredential(properties.KeyVaultCredentialSettings, d)
+		if err := d.Set("key_vault_credential", flattenedKeyVaultCredential); err != nil {
+			return fmt.Errorf("Error setting `key_vault_credential`: %+v", err)
+		}
+		flattenedServerConfiguration := flattenArmSqlVirtualMachineServerConfigurationsManagement(properties.ServerConfigurationsManagementSettings, d)
+		if err := d.Set("server_configuration", flattenedServerConfiguration); err != nil {
+			return fmt.Errorf("Error setting `server_configuration`: %+v", err)
+		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQLVM.SQLVirtualMachinesClient
+	client := meta.(*clients.Client).MSSQL.SQLVirtualMachinesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -327,9 +307,6 @@ func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface
 
 	future, err := client.Delete(ctx, resourceGroupName, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 		return fmt.Errorf("Error deleting Sql Virtual Machine (Sql Virtual Machine Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
@@ -342,154 +319,144 @@ func resourceArmMsSqlVirtualMachineDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func getExpandSettings(d *schema.ResourceData) string {
-	var result []string
-	if _, ok := d.GetOk("auto_patching"); ok {
-		result = append(result, "autoPatchingSettings")
-	}
-	if _, ok := d.GetOk("key_vault_credential"); ok {
-		result = append(result, "keyVaultCredentialSettings")
-	}
-	if _, ok := d.GetOk("server_configuration"); ok {
-		result = append(result, "serverConfigurationsManagementSettings")
-	}
-	return strings.Join(result, ",")
-}
-
-func expandArmSqlVirtualMachineAutoPatchingSettings(d *schema.ResourceData) *sqlvirtualmachine.AutoPatchingSettings {
-	autoPatchingSettings := d.Get("auto_patching").([]interface{})
-	if len(autoPatchingSettings) == 0 {
+func expandArmSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvirtualmachine.AutoPatchingSettings {
+	if len(input) == 0 {
 		return nil
 	}
-	autoPatchingSetting := autoPatchingSettings[0].(map[string]interface{})
-	result := sqlvirtualmachine.AutoPatchingSettings{}
+	autoPatchingSetting := input[0].(map[string]interface{})
 
-	if v, ok := autoPatchingSetting["enable"]; ok {
-		result.Enable = utils.Bool(v.(bool))
+	return &sqlvirtualmachine.AutoPatchingSettings{
+		Enable:                        utils.Bool(true),
+		MaintenanceWindowDuration:     utils.Int32(int32(autoPatchingSetting["maintenance_window_duration_in_minutes"].(int))),
+		MaintenanceWindowStartingHour: utils.Int32(int32(autoPatchingSetting["maintenance_window_starting_hour"].(int))),
+		DayOfWeek:                     sqlvirtualmachine.DayOfWeek(autoPatchingSetting["day_of_week"].(string)),
 	}
-	if v, ok := autoPatchingSetting["maintenance_window_duration_in_minutes"]; ok {
-		result.MaintenanceWindowDuration = utils.Int32(int32(v.(int)))
-	}
-	if v, ok := autoPatchingSetting["maintenance_window_starting_hour"]; ok {
-		result.MaintenanceWindowStartingHour = utils.Int32(int32(v.(int)))
-	}
-	if dayOfWeek, ok := autoPatchingSetting["day_of_week"]; ok {
-		result.DayOfWeek = sqlvirtualmachine.DayOfWeek(dayOfWeek.(string))
-	}
-	return &result
 }
 
 func flattenArmSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachine.AutoPatchingSettings) []interface{} {
-	if autoPatching == nil {
+	if autoPatching == nil || *autoPatching.Enable == false {
 		return []interface{}{}
 	}
-	result := make(map[string]interface{})
-	result["enable"] = autoPatching.Enable
-	if maintenanceWindowDuration := autoPatching.MaintenanceWindowDuration; maintenanceWindowDuration != nil {
-		result["maintenance_window_duration_in_minutes"] = autoPatching.MaintenanceWindowDuration
+	return []interface{}{
+		map[string]interface{}{
+			"day_of_week":                            string(autoPatching.DayOfWeek),
+			"maintenance_window_starting_hour":       autoPatching.MaintenanceWindowStartingHour,
+			"maintenance_window_duration_in_minutes": autoPatching.MaintenanceWindowDuration,
+		},
 	}
-	if maintenanceWindowStartingHour := autoPatching.MaintenanceWindowStartingHour; maintenanceWindowStartingHour != nil {
-		result["maintenance_window_starting_hour"] = autoPatching.MaintenanceWindowStartingHour
-	}
-	result["day_of_week"] = string(autoPatching.DayOfWeek)
-	return []interface{}{result}
 }
 
-func expandArmSqlVirtualMachineKeyVaultCredential(d *schema.ResourceData) *sqlvirtualmachine.KeyVaultCredentialSettings {
-	keyVaultCredentialSettings := d.Get("key_vault_credential").([]interface{})
-	if len(keyVaultCredentialSettings) == 0 {
+func expandArmSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtualmachine.KeyVaultCredentialSettings {
+	if len(input) == 0 {
 		return nil
 	}
-	keyVaultCredentialSetting := keyVaultCredentialSettings[0].(map[string]interface{})
-	result := sqlvirtualmachine.KeyVaultCredentialSettings{}
+	keyVaultCredentialSetting := input[0].(map[string]interface{})
 
-	if v, ok := keyVaultCredentialSetting["azure_key_vault_url"]; ok {
-		result.AzureKeyVaultURL = utils.String(v.(string))
+	return &sqlvirtualmachine.KeyVaultCredentialSettings{
+		Enable:                 utils.Bool(true),
+		CredentialName:         utils.String(keyVaultCredentialSetting["name"].(string)),
+		AzureKeyVaultURL:       utils.String(keyVaultCredentialSetting["azure_key_vault_url"].(string)),
+		ServicePrincipalName:   utils.String(keyVaultCredentialSetting["service_principal_name"].(string)),
+		ServicePrincipalSecret: utils.String(keyVaultCredentialSetting["service_principal_secret"].(string)),
 	}
-	if v, ok := keyVaultCredentialSetting["credential_name"]; ok {
-		result.CredentialName = utils.String(v.(string))
-	}
-	if v, ok := keyVaultCredentialSetting["service_principal_name"]; ok {
-		result.ServicePrincipalName = utils.String(v.(string))
-	}
-	if v, ok := keyVaultCredentialSetting["service_principal_secret"]; ok {
-		result.ServicePrincipalSecret = utils.String(v.(string))
-	}
-	if v, ok := keyVaultCredentialSetting["enable"]; ok {
-		result.Enable = utils.Bool(v.(bool))
-	}
-
-	return &result
 }
 
 func flattenArmSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.KeyVaultCredentialSettings, d *schema.ResourceData) []interface{} {
-	if keyVault == nil {
+	if keyVault == nil || *keyVault.Enable == false {
 		return []interface{}{}
 	}
-	result := make(map[string]interface{})
-	result["enable"] = keyVault.Enable
-	if credentialName := keyVault.CredentialName; credentialName != nil {
-		result["credential_name"] = credentialName
+	name := ""
+	if keyVault.CredentialName != nil {
+		name = *keyVault.CredentialName
 	}
+	keyVaultUrl := ""
 	if v, ok := d.GetOk("key_vault_credential.0.azure_key_vault_url"); ok {
-		result["azure_key_vault_url"] = v
+		keyVaultUrl = v.(string)
 	}
+	servicePrincipalName := ""
 	if v, ok := d.GetOk("key_vault_credential.0.service_principal_name"); ok {
-		result["service_principal_name"] = v
+		servicePrincipalName = v.(string)
 	}
+	servicePrincipalSecret := ""
 	if v, ok := d.GetOk("key_vault_credential.0.service_principal_secret"); ok {
-		result["service_principal_secret"] = v
+		servicePrincipalSecret = v.(string)
 	}
 
-	return []interface{}{result}
+	return []interface{}{
+		map[string]interface{}{
+			"name":                     name,
+			"azure_key_vault_url":      keyVaultUrl,
+			"service_principal_name":   servicePrincipalName,
+			"service_principal_secret": servicePrincipalSecret,
+		},
+	}
 }
 
-func expandArmSqlVirtualMachineServerConfigurationsManagement(d *schema.ResourceData) *sqlvirtualmachine.ServerConfigurationsManagementSettings {
-	serverConfigMMs := d.Get("server_configuration").([]interface{})
-	if len(serverConfigMMs) == 0 {
+func expandArmSqlVirtualMachineServerConfigurationsManagement(input []interface{}) *sqlvirtualmachine.ServerConfigurationsManagementSettings {
+	if len(input) == 0 {
 		return nil
 	}
-	serverConfigMM := serverConfigMMs[0].(map[string]interface{})
+	serverConfigMM := input[0].(map[string]interface{})
 
-	result := sqlvirtualmachine.ServerConfigurationsManagementSettings{}
-	sqlConnectivityUpdateSettings := sqlvirtualmachine.SQLConnectivityUpdateSettings{}
+	result := sqlvirtualmachine.ServerConfigurationsManagementSettings{
+		SQLConnectivityUpdateSettings: &sqlvirtualmachine.SQLConnectivityUpdateSettings{
+			ConnectivityType: sqlvirtualmachine.ConnectivityType(serverConfigMM["sql_connectivity_type"].(string)),
+			Port:             utils.Int32(int32(serverConfigMM["sql_connectivity_port"].(int))),
+		},
+	}
+	if userName, ok := serverConfigMM["sql_connectivity_update_username"]; ok {
+		result.SQLConnectivityUpdateSettings.SQLAuthUpdateUserName = utils.String(userName.(string))
+	}
+	if pwd, ok := serverConfigMM["sql_connectivity_update_password"]; ok {
+		result.SQLConnectivityUpdateSettings.SQLAuthUpdatePassword = utils.String(pwd.(string))
+	}
+
 	//additional feature
 	if v, ok := serverConfigMM["is_r_services_enabled"]; ok {
 		result.AdditionalFeaturesServerConfigurations = &sqlvirtualmachine.AdditionalFeaturesServerConfigurations{IsRServicesEnabled: utils.Bool(v.(bool))}
 	}
-	//connectivity
-	if connectivityType, ok := serverConfigMM["sql_connectivity_type"]; ok {
-		sqlConnectivityUpdateSettings.ConnectivityType = sqlvirtualmachine.ConnectivityType(connectivityType.(string))
-	}
-	if v, ok := serverConfigMM["sql_connectivity_port"]; ok {
-		sqlConnectivityUpdateSettings.Port = utils.Int32(int32(v.(int)))
-	}
-	result.SQLConnectivityUpdateSettings = &sqlConnectivityUpdateSettings
-
 	return &result
 }
 
 func flattenArmSqlVirtualMachineServerConfigurationsManagement(serverConfig *sqlvirtualmachine.ServerConfigurationsManagementSettings, d *schema.ResourceData) []interface{} {
-	if serverConfig == nil {
+	// if the stucture of sqlvirtualmachine.ServerConfigurationsManagementSettings changes, we should update this
+	if serverConfig == nil || reflect.DeepEqual(*serverConfig, sqlvirtualmachine.ServerConfigurationsManagementSettings{
+		SQLConnectivityUpdateSettings:          &sqlvirtualmachine.SQLConnectivityUpdateSettings{},
+		SQLWorkloadTypeUpdateSettings:          &sqlvirtualmachine.SQLWorkloadTypeUpdateSettings{},
+		SQLStorageUpdateSettings:               &sqlvirtualmachine.SQLStorageUpdateSettings{},
+		AdditionalFeaturesServerConfigurations: &sqlvirtualmachine.AdditionalFeaturesServerConfigurations{},
+	}) {
 		return []interface{}{}
 	}
-	result := make(map[string]interface{})
 
 	//additional feature
-	result["is_r_services_enabled"] = serverConfig.AdditionalFeaturesServerConfigurations.IsRServicesEnabled
-
+	var isRServiceEnabled bool
+	if serverConfig.AdditionalFeaturesServerConfigurations.IsRServicesEnabled != nil {
+		isRServiceEnabled = *serverConfig.AdditionalFeaturesServerConfigurations.IsRServicesEnabled
+	}
 	//connectivity
-	result["sql_connectivity_type"] = serverConfig.SQLConnectivityUpdateSettings.ConnectivityType
+	connectivityType := serverConfig.SQLConnectivityUpdateSettings.ConnectivityType
 
-	if connectivityPort := serverConfig.SQLConnectivityUpdateSettings.Port; connectivityPort != nil {
-		result["sql_connectivity_port"] = connectivityPort
+	var connectivityPort int32
+	if serverConfig.SQLConnectivityUpdateSettings.Port != nil {
+		connectivityPort = *serverConfig.SQLConnectivityUpdateSettings.Port
 	}
-	if pwd, ok := d.GetOk("server_configuration.0.sql_connectivity_update_password"); ok {
-		result["sql_connectivity_update_password"] = pwd
+	pwd := ""
+	if v, ok := d.GetOk("server_configuration.0.sql_connectivity_update_password"); ok {
+		pwd = v.(string)
 	}
-	if userName, ok := d.GetOk("server_configuration.0.sql_connectivity_update_user_name"); ok {
-		result["sql_connectivity_update_user_name"] = userName
+	userName := ""
+	if v, ok := d.GetOk("server_configuration.0.sql_connectivity_update_username"); ok {
+		userName = v.(string)
 	}
 
-	return []interface{}{result}
+	return []interface{}{
+		map[string]interface{}{
+			"is_r_services_enabled":            isRServiceEnabled,
+			"sql_connectivity_type":            connectivityType,
+			"sql_connectivity_port":            connectivityPort,
+			"sql_connectivity_update_password": pwd,
+			"sql_connectivity_update_username": userName,
+		},
+	}
 }

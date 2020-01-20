@@ -3,13 +3,12 @@ subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_virtual_machine"
 description: |-
-  Manage Azure MsSqlVirtualMachine instance.
+  Manages a Microsoft SQL Virtual Machine
 ---
 
 # azurerm_mssql_virtual_machine
 
-Manage Azure MsSqlVirtualMachine instance.
-
+Manages a Microsoft SQL Virtual Machine
 
 ## Example Usage
 
@@ -17,15 +16,6 @@ Manage Azure MsSqlVirtualMachine instance.
 resource "azurerm_resource_group" "example" {
   name     = "example-group"
   location = "example-location"
-}
-
-resource "azurerm_storage_account" "example" {
-  name                     = "examplesa"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_kind             = "StorageV2"
-  account_tier             = "Premium"
-  account_replication_type = "LRS"
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -36,7 +26,7 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                      = "example-sub"
+  name                      = "example-sn"
   resource_group_name       = azurerm_resource_group.test.name
   virtual_network_name      = azurerm_virtual_network.test.name
   address_prefix            = "10.0.0.0/24"
@@ -44,14 +34,14 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "vm" {
-  name                = "exampleIP"
+  name                = "example-pip"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Dynamic"
 }
 
 resource "azurerm_network_security_group" "nsg" {
-  name                = "examplensg"
+  name                = "example-nsg"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
@@ -85,7 +75,7 @@ resource "azurerm_network_security_rule" "MSSQLRule" {
 }
 
 resource "azurerm_network_interface" "example" {
-  name                      = "exampleni"
+  name                      = "example-nic"
   location                  = azurerm_resource_group.example.location
   resource_group_name       = azurerm_resource_group.example.name
   network_security_group_id = azurerm_network_security_group.nsg.id
@@ -113,10 +103,10 @@ resource "azurerm_virtual_machine" "example" {
   }
 
   storage_os_disk {
-    name          = "exampleOSDisk"
-    vhd_uri       = "${azurerm_storage_account.example.primary_blob_endpoint}vhds/exampleOSDisk.vhd"
-    caching       = "ReadOnly"
-    create_option = "FromImage"
+    name              = "exampleOSDisk"
+    caching           = "ReadOnly"
+    create_option     = "FromImage"
+    managed_disk_type = "Premium_LRS"
   }
 
   os_profile {
@@ -144,77 +134,67 @@ resource "azurerm_mssql_virtual_machine" "example" {
 
 The following arguments are supported:
 
-* `resource_group_name` - (Required) The name of the resource group that contains the resource. You can obtain this value from the Azure Resource Manager API or the portal. Changing this forces a new resource to be created.
+* `virtual_machine_id` - (Required) The ID of the Virtual Machine.
 
-* `location` - (Required) The resource location. Changing this forces a new resource to be created.
+* `sql_virtual_machine_group_id` - (Optional) The ARM resource id of the SQL virtual machine group this SQL virtual machine is or will be part of.
 
-* `virtual_machine_resource_id` - (Required) The ARM Resource id of underlying virtual machine created from SQL marketplace image.
+* `sql_license_type` - (Optional) The SQL Server license type. Possible values are `AHUB` (Azure Hybrid Benefit) and `PAYG` (Pay-As-You-Go).
 
-* `sql_virtual_machine_group_resource_id` - (Optional) The ARM resource id of the SQL virtual machine group this SQL virtual machine is or will be part of.
+* `auto_patching` - (Optional) An `auto_patching` block as defined below.
 
-* `sql_license_type` - (Optional) The SQL Server license type. Possible values include: 'PAYG'(Pay As You Go), 'AHUB'(Azure Hybrid Benefit). Defaults to `PAYG`.
+* `key_vault_credential` - (Optional) (Optional) An `key_vault_credential` block as defined below.
 
-* `sql_sku` - (Optional) The SQL Server edition type. Possible values include: 'Developer', 'Express', 'Standard', 'Enterprise', 'Web'. Defaults to `Developer`.
+* `server_configuration` - (Optional) An `server_configuration` block as defined below.
 
-* `auto_patching` - (Optional) The `auto_patching_setting` block defined below.SQL Server Azure VMs can use Automated Patching to schedule a maintenance window for installing important windows and SQL Server updates automatically. Please refer [automated patching](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/sql/virtual-machines-windows-sql-automated-patching) for more information.
-
-* `key_vault_credential` - (Optional) The `key_vault_credential_setting` block defined below. For more information, please refer to [virtual machines windows sql keyvault](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/sql/virtual-machines-windows-ps-sql-keyvault)
-
-* `server_configuration` - (Optional) The `server_configurations_management_setting` block defined below.
-
-* `tags` - (Optional) The Resource tags. Changing this forces a new resource to be created.
-
-
-The `auto_patching_setting` block supports the following:
-
-* `enable` - (Optional) Enable or disable autopatching on SQL virtual machine.
-
-* `day_of_week` - (Optional) The day of week to apply the patch on. Defaults to `Monday`.
-
-* `maintenance_window_starting_hour` - (Optional) The hour of the day when patching is initiated. Local VM time.
-
-* `maintenance_window_duration_in_minutes` - (Optional) The duration of patching.
-
-* `name` - (Computed) The name of the SQL virtual machine, which is the same with the name of the Virtual Machine provided.
----
-
-The `key_vault_credential_setting` block supports the following:
-
-* `enable` - (Optional) Enable or disable key vault credential setting.
-
-* `credential_name` - (Optional) The credential name.
-
-* `azure_key_vault_url` - (Optional) The azure Key Vault url.
-
-* `service_principal_name` - (Optional) The service principal name to access key vault.
-
-* `service_principal_secret` - (Optional) The service principal name secret to access key vault.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-The `server_configurations_management_setting` block supports the following:
+The `auto_patching` block supports the following:
 
-* `sql_connectivity_type` - (Optional) The SQL Server connectivity option. Defaults to `LOCAL`.
+* `day_of_week` - (Required) The day of week to apply the patch on.
 
-* `sql_connectivity_port` - (Optional) The SQL Server port.
+* `maintenance_window_starting_hour` - (Required) The Hour, in the Virtual Machine Time-Zone when the patching maintenance window should begin.
 
-* `sql_connectivity_update_user_name` - (Optional) The SQL Server sysadmin login to create.
+* `maintenance_window_duration_in_minutes` - (Required) The size of the Maintenance Window in minutes.
+
+---
+
+The `key_vault_credential` block supports the following:
+
+* `name` - (Required) The credential name.
+
+* `azure_key_vault_url` - (Required) The azure Key Vault url.
+
+* `service_principal_name` - (Required) The service principal name to access key vault.
+
+* `service_principal_secret` - (Required) The service principal name secret to access key vault.
+
+---
+
+The `server_configuration` block supports the following:
+
+* `is_r_services_enabled` - (Optional) Should R Services be enabled?
+
+* `sql_connectivity_type` - (Optional) The connectivity type used for this SQL Server. Defaults to `PRIVATE`.
+
+* `sql_connectivity_port` - (Optional) The SQL Server port. Defaults to `1433`.
+
+* `sql_connectivity_update_username` - (Optional) The SQL Server sysadmin login to create.
 
 * `sql_connectivity_update_password` - (Optional) The SQL Server sysadmin login password.
 
-* `is_r_services_enabled` - (Optional) Enable or disable R services (SQL 2016 onwards).Enables SQL Server Machine Learning Services (In-Database), allowing you to utilize advanced analytics within your SQL Server. SQL Server Machine Learning Services (In-Database) is only supported with SQL Server 2017 Enterprise.
+
 
 ## Attributes Reference
 
 The following attributes are exported:
-* `id` - Resource ID.
-
-* `name` - Resource name.
+* `id` - The ID of the SQL Virtual Machine.
 
 ## Import
 
-Sql Virtual Machine can be imported using the `resource id`, e.g.
+Sql Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_sql_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resource-group/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/example-sql-virtual-machine
+$ terraform import azurerm_sql_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/example1
 ```

@@ -39,7 +39,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssqlvm"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
@@ -105,7 +104,6 @@ func SupportedServices() []common.ServiceRegistration {
 		monitor.Registration{},
 		msi.Registration{},
 		mssql.Registration{},
-		mssqlvm.Registration{},
 		mysql.Registration{},
 		netapp.Registration{},
 		network.Registration{},

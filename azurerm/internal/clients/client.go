@@ -41,7 +41,6 @@ import (
 	monitor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/client"
 	msi "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/client"
 	mssql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/client"
-	mssqlvm "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssqlvm/client"
 	mysql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/client"
 	netapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/client"
 	network "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/client"
@@ -111,7 +110,6 @@ type Client struct {
 	Monitor          *monitor.Client
 	MSI              *msi.Client
 	MSSQL            *mssql.Client
-	MSSQLVM          *mssqlvm.Client
 	MySQL            *mysql.Client
 	NetApp           *netapp.Client
 	Network          *network.Client
@@ -204,7 +202,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Subscription = subscription.NewClient(o)
 	client.TrafficManager = trafficManager.NewClient(o)
 	client.Web = web.NewClient(o)
-	client.MSSQLVM = mssqlvm.NewClient(o)
 
 	return nil
 }

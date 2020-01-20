@@ -49,7 +49,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.Maps":                 {},
 		"Microsoft.MarketplaceOrdering":  {},
 		"Microsoft.Media":                {},
-		"Microsoft.MsSql":                {},
+		"Microsoft.SqlVirtualMachine":    {},
 		"Microsoft.Network":              {},
 		"Microsoft.NotificationHubs":     {},
 		"Microsoft.OperationalInsights":  {},
