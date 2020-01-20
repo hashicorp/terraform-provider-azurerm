@@ -70,9 +70,10 @@ func resourceArmIotCentralApplication() *schema.Resource {
 				Default: iotcentral.S1,
 			},
 			"template": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validate.IotCentralAppTemplateName,
 			},
 
 			"tags": tags.Schema(),
@@ -101,14 +102,14 @@ func resourceArmIotCentralAppCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	req, err := client.CheckNameAvailability(ctx, iotcentral.OperationInputs{
+	resp, err := client.CheckNameAvailability(ctx, iotcentral.OperationInputs{
 		Name: utils.String(name),
 	})
 	if err != nil {
 		return fmt.Errorf("Error happend on check name availability. %q (Group Name %q). Error:  %+v", name, resourceGroup, err)
 	}
-	if !*req.NameAvailable {
-		return fmt.Errorf("Resource name not avialable. Reason:  %q, Message  %q", *req.Reason, *req.Message)
+	if !*resp.NameAvailable {
+		return fmt.Errorf("Resource name not avialable. name: %s, Reason:  %q, Message  %q", name, *resp.Reason, *resp.Message)
 	}
 
 	displayName := d.Get("display_name").(string)
@@ -141,16 +142,16 @@ func resourceArmIotCentralAppCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error waiting for creating IoT Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	response, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving IoT Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
 	}
 
-	if resp.ID == nil && *resp.ID != "" {
+	if response.ID == nil || *response.ID == "" {
 		return fmt.Errorf("Error create IoT Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(*response.ID)
 	return resourceArmIotCentralAppRead(d, meta)
 }
 
@@ -228,7 +229,7 @@ func resourceArmIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error retrieving IoT Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
 	}
 
-	if resp.ID == nil {
+	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Cannot read IoT Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
 	}
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestIotCentralName(t *testing.T) {
+func TestIotCentralAppName(t *testing.T) {
 	validNames := []string{
 		"a1", "11", "1a", "aa",
 		"1-1", "aaa-aa", "a--a-aa",
@@ -39,7 +39,7 @@ func TestIotCentralName(t *testing.T) {
 
 }
 
-func TestIotCentralSubdomain(t *testing.T) {
+func TestIotCentralAppSubdomain(t *testing.T) {
 	validNames := []string{
 		"a1", "11", "1a", "aa",
 		"1-1", "a-a",
@@ -74,7 +74,7 @@ func TestIotCentralSubdomain(t *testing.T) {
 	}
 }
 
-func TestIotCentralDisplayName(t *testing.T) {
+func TestIotCentralAppDisplayName(t *testing.T) {
 	validNames := []string{
 		"a", "A", "1",
 		"1-", "a-", "A-",
@@ -100,6 +100,33 @@ func TestIotCentralDisplayName(t *testing.T) {
 		_, err := IotCentralAppDisplayName(name, "unit test")
 		if err == nil {
 			t.Fatalf("%q should be an invalid IoT Central Display Name: %q", name, err)
+		}
+	}
+}
+
+func TestIotCentralAppTemplateName(t *testing.T) {
+	validNames := []string{
+		"a", "A", "1",
+		"1-", "a-", "A-",
+		"-", "-1", "_-a", "#$%$#!",
+		"abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde",
+	}
+
+	for _, name := range validNames {
+		_, err := IotCentralAppTemplateName(name, "unit test")
+		if err != nil {
+			t.Fatalf("%q should be a valid IoT Central Tempalte Name: %q", name, err)
+		}
+	}
+
+	invalidNames := []string{
+		"",
+		"template3iottemplate-12_2@$#%xuzhang3iottemplate-1a",
+	}
+	for _, name := range invalidNames {
+		_, err := IotCentralAppTemplateName(name, "unit test")
+		if err == nil {
+			t.Fatalf("%q should be an invalid IoT Central Tempalte Name: %q", name, err)
 		}
 	}
 }

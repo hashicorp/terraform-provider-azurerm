@@ -19,17 +19,17 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_iotcentral_application" "example" {
-  name                = "example-iocentral-app"
+  name                = "example-iotcentral-app"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
-  sub_domain          = "example-iocentral-app-subdomian"
+  sub_domain          = "example-iotcentral-app-subdomain"
 
-  display_name        = "example-iocentral-app-display-name"
+  display_name        = "example-iotcentral-app-display-name"
   sku                 = "S1"
   template            = "iotc-default@1.0.0" 		
 
   tags = {
-    purpose = "testing"
+     Foo="Bar"
   }
 }
 ```
