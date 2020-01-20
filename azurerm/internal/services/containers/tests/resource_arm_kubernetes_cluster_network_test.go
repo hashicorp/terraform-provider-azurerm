@@ -530,11 +530,8 @@ func testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfile(t *testing.T
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfileConfig(data, clientId, clientSecret),
-				ExpectError: regexp.MustCompile(`errors during apply: 2 problems:
-
-- "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count": conflicts with network_profile.0.load_balancer_profile.0.outbound_ip_address_ids
-- "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids": conflicts with network_profile.0.load_balancer_profile.0.managed_outbound_ip_count`),
+				Config:      testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfileConfig(data, clientId, clientSecret),
+				ExpectError: regexp.MustCompile(`- "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count": conflicts with network_profile.0.load_balancer_profile.0.outbound_ip_address_ids`),
 			},
 			{
 				ResourceName:      "azurerm_public_ip.test",
@@ -1228,7 +1225,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin    = "azure"
     load_balancer_sku = "Standard"
     load_balancer_profile {
-      outbound_ip_address_ids = [ azurerm_public_ip.test.id ]
+      outbound_ip_address_ids = [azurerm_public_ip.test.id]
     }
   }
 }
@@ -1361,7 +1358,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "standard"
     load_balancer_profile {
       managed_outbound_ip_count = 3
-      outbound_ip_address_ids = [ azurerm_public_ip.test.id, azurerm_public_ip.test2.id ]
+      outbound_ip_address_ids   = [azurerm_public_ip.test.id, azurerm_public_ip.test2.id]
     }
   }
 }
@@ -1390,10 +1387,10 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip_prefix" "test" {
-    location            = azurerm_resource_group.test.location
-    resource_group_name = azurerm_resource_group.test.name
-    name                = "acctestipprefix%d"
-    prefix_length       = 31
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestipprefix%d"
+  prefix_length       = 31
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
