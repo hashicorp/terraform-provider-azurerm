@@ -40,6 +40,7 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
 			// TODO: Remove in 2.0
 			"virtual_machine_name": {
 				Type:       schema.TypeString,
@@ -48,6 +49,7 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 				ForceNew:   true,
 				Deprecated: "This field has been deprecated in favor of `virtual_machine_id` - will be removed in 2.0 of the Azure Provider",
 			},
+
 			"virtual_machine_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -55,6 +57,7 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: ValidateVirtualMachineID,
 			},
+
 			"publisher": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -90,6 +93,7 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 				ValidateFunc:     validation.ValidateJsonString,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
+
 			// TODO: Remove location and resource_group_name in 2.0
 			"location": {
 				Type:             schema.TypeString,
@@ -100,8 +104,10 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 				DiffSuppressFunc: azure.SuppressLocationDiff,
 				Deprecated:       "location is no longer used",
 			},
+
 			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
-			"tags":                tags.Schema(),
+
+			"tags": tags.Schema(),
 		},
 	}
 }

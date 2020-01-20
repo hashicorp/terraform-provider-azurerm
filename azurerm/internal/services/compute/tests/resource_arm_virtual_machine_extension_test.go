@@ -36,6 +36,7 @@ func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(data.ResourceName, "settings", regexp.MustCompile("whoami")),
 				),
 			},
+			data.ImportStep("protected_settings"),
 		},
 	})
 }
@@ -64,6 +65,7 @@ func TestAccAzureRMVirtualMachineExtension_deprecated(t *testing.T) {
 					resource.TestMatchResourceAttr(data.ResourceName, "settings", regexp.MustCompile("whoami")),
 				),
 			},
+			data.ImportStep("protected_settings"),
 		},
 	})
 }
@@ -294,7 +296,7 @@ SETTINGS
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-// TODO: Remove in 2.0
+// TODO: Remove in 2.0 - this test config covers the name & location inputs
 func testAccAzureRMVirtualMachineExtension_deprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
