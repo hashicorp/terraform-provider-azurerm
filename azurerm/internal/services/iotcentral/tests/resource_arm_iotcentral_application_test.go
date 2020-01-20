@@ -219,17 +219,15 @@ resource "azurerm_iotcentral_application" "test" {
 
 func testAccAzureRMIotCentralApplication_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMIotCentralApplication_basic(data)
-
 	return fmt.Sprintf(`
-		%s
-        resource "azurerm_iotcentral_application" "import" {
-
-          name                = azurerm_iotcentral_application.test.name
-          resource_group_name = azurerm_iotcentral_application.test.resource_group_name
-          location            = azurerm_iotcentral_application.test.location
-          sub_domain          = azurerm_iotcentral_application.test.sub_domain
-          display_name        = azurerm_iotcentral_application.test.display_name
-          sku                 = "S1"
-        }
+%s
+resource "azurerm_iotcentral_application" "import" {
+  name                = azurerm_iotcentral_application.test.name
+  resource_group_name = azurerm_iotcentral_application.test.resource_group_name
+  location            = azurerm_iotcentral_application.test.location
+  sub_domain          = azurerm_iotcentral_application.test.sub_domain
+  display_name        = azurerm_iotcentral_application.test.display_name
+  sku                 = "S1"
+}
 `, template)
 }
