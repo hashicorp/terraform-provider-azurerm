@@ -57,8 +57,6 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tags.Schema(),
-
 			//resource fields
 			"offer_type": {
 				Type:             schema.TypeString,
@@ -78,6 +76,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.GlobalDocumentDB),
 					string(documentdb.MongoDB),
+					string(documentdb.Parse),
 				}, true),
 			},
 
@@ -201,6 +200,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 			"capabilities": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -208,11 +208,11 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								"EnableTable",
-								"EnableGremlin",
-								"EnableCassandra",
-								"EnableMongo",
 								"EnableAggregationPipeline",
+								"EnableCassandra",
+								"EnableGremlin",
+								"EnableTable",
+								"EnableMongo",
 								"MongoDBv3.4",
 								"mongoEnableDocLevelTTL",
 							}, true),
@@ -303,6 +303,8 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
