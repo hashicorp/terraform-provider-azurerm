@@ -4,6 +4,7 @@ IMPROVEMENTS:
 
 * dependencies: upgrading to `v38.1.0` of github.com/Azure/azure-sdk-for-go [GH-5385]
 * frontdoor: updating to use API version `2019-11-01` [GH-5385]
+* `azurerm_cosmosdb_account` - add support for the `capabilities` capability [GH-5325]
 
 BUG FIXES:
 
