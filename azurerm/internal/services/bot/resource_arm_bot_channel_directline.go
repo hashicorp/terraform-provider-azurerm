@@ -63,13 +63,15 @@ func resourceArmBotChannelDirectline() *schema.Resource {
 						},
 
 						"key": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 
 						"key2": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 
 						"is_enabled": {
