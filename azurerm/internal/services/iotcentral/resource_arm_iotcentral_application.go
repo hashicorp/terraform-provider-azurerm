@@ -208,14 +208,15 @@ func resourceArmIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) er
 
 	subdomain := d.Get("sub_domain").(string)
 	template := d.Get("template").(string)
-	future, err := client.Update(ctx, resourceGroup, name, iotcentral.AppPatch{
+	appPatch := iotcentral.AppPatch{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		AppProperties: &iotcentral.AppProperties{
 			DisplayName: &displayName,
 			Subdomain:   &subdomain,
 			Template:    &template,
 		},
-	})
+	}
+	future, err := client.Update(ctx, resourceGroup, name, appPatch)
 	if err != nil {
 		return fmt.Errorf("Error update Iot Central Application %q (Resource Group %q).  %+v", name, resourceGroup, err)
 	}

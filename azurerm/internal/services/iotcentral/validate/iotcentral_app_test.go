@@ -121,7 +121,7 @@ func TestIotCentralAppTemplateName(t *testing.T) {
 
 	invalidNames := []string{
 		"",
-		"template3iottemplate-12_2@$#%xuzhang3iottemplate-1a",
+		"abcdeabcdeabcdeabcde@$#%abcdeabcdeadeabcdeabcdeabcdeabcde-1a",
 	}
 	for _, name := range invalidNames {
 		_, err := IotCentralAppTemplateName(name, "unit test")
