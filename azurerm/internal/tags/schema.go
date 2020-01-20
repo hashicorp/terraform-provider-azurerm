@@ -24,6 +24,9 @@ func ForceNewSchema() *schema.Schema {
 		Computed:     true,
 		ForceNew:     true,
 		ValidateFunc: Validate,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
 	}
 }
 
@@ -34,5 +37,8 @@ func Schema() *schema.Schema {
 		Optional:     true,
 		Computed:     true,
 		ValidateFunc: Validate,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
 	}
 }
