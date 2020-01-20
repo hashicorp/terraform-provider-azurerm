@@ -426,9 +426,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 										Type:          schema.TypeInt,
 										Optional:      true,
 										ValidateFunc:  validation.IntBetween(1, 100),
-										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefixes_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
-									"outbound_ip_prefixes_ids": {
+									"outbound_ip_prefix_ids": {
 										Type:          schema.TypeSet,
 										Optional:      true,
 										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
@@ -440,7 +440,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									"outbound_ip_address_ids": {
 										Type:          schema.TypeSet,
 										Optional:      true,
-										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefixes_ids"},
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: azure.ValidateResourceID,
@@ -1477,7 +1477,7 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*conta
 		}
 	}
 
-	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefixes_ids"]); ipPrefixes != nil {
+	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefix_ids"]); ipPrefixes != nil {
 		outboundIpPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
 	}
 
@@ -1571,7 +1571,7 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 
 		if profile.LoadBalancerProfile.OutboundIPPrefixes != nil {
 			if profile.LoadBalancerProfile.OutboundIPPrefixes.PublicIPPrefixes != nil {
-				lb["outbound_ip_prefixes_ids"] = resourceReferencesToIds(profile.LoadBalancerProfile.OutboundIPPrefixes.PublicIPPrefixes)
+				lb["outbound_ip_prefix_ids"] = resourceReferencesToIds(profile.LoadBalancerProfile.OutboundIPPrefixes.PublicIPPrefixes)
 			}
 		}
 
