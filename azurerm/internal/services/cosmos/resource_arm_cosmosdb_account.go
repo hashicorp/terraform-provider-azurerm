@@ -753,7 +753,7 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 
 	//if a replication location is added or removed it can take some time to provision
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Creating", "Updating", "Deleting"},
+		Pending:    []string{"Creating", "Updating", "Deleting", "Initializing"},
 		Target:     []string{"Succeeded"},
 		MinTimeout: 30 * time.Second,
 		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up

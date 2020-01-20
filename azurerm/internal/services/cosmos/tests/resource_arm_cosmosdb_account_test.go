@@ -481,8 +481,6 @@ resource "azurerm_cosmosdb_account" "test" {
   consistency_policy {
     consistency_level = "%[4]s"
 
-    max_interval_in_seconds = 777
-	max_staleness_prefix    = 100001
   }
 
   is_virtual_network_filter_enabled = true
@@ -531,8 +529,6 @@ resource "azurerm_cosmosdb_account" "test" {
   consistency_policy {
     consistency_level = "%[4]s"
 
-    max_interval_in_seconds = 777
-	max_staleness_prefix    = 100001
   }
 
   is_virtual_network_filter_enabled = true
@@ -609,8 +605,6 @@ func checkAccAzureRMCosmosDBAccount_basic(data acceptance.TestData, consistency 
 		resource.TestCheckResourceAttr(data.ResourceName, "geo_location.#", strconv.Itoa(locationCount)),
 		resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
 		resource.TestCheckResourceAttr(data.ResourceName, "read_endpoints.#", strconv.Itoa(locationCount)),
-		resource.TestCheckResourceAttr(data.ResourceName, "write_endpoints.#", "1"),
-		resource.TestCheckResourceAttr(data.ResourceName, "enable_multiple_write_locations", "false"),
 		resource.TestCheckResourceAttrSet(data.ResourceName, "primary_master_key"),
 		resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_master_key"),
 		resource.TestCheckResourceAttrSet(data.ResourceName, "primary_readonly_master_key"),
