@@ -126,7 +126,7 @@ func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationNa
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
+		resourceGroup := fmt.Sprintf("acctestRG-psql-%d", rInt)
 		serverName := fmt.Sprintf("acctest-psql-server-%d", rInt)
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
