@@ -6,6 +6,7 @@ IMPROVEMENTS:
 * frontdoor: updating to use API version `2019-11-01` [GH-5385]
 * `azurerm_cosmosdb_account` - support for the `EnableMongo` capability [GH-5325]
 * `azurerm_databricks_workspace` - support for the `custom_parameters` property and `public_subnet_name`, `private_subnet_name`, and `virtual_network_id` parameters [GH-3889]
+* `azurerm_express_route_circuit` - support for the `Basic` and `Local` tiers [GH-5456]
 
 BUG FIXES:
 
