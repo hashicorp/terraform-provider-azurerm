@@ -31,7 +31,7 @@ resource "azurerm_dedicated_host" "example" {
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
   host_group_name       = azurerm_dedicated_host_group.example.name
-  sku                   = "DSv3-Type1"
+  sku_name              = "DSv3-Type1"
   platform_fault_domain = 1
 }
 ```
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `host_group_name` - (Required) Specify the name of the Dedicated Host Group in which to create the Dedicated Host. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Specify the sku name of the Dedicated Host. Possible values are `DSv3-Type1`, `ESv3-Type1`, `FSv2-Type2`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) Specify the sku name of the Dedicated Host. Possible values are `DSv3-Type1`, `ESv3-Type1`, `FSv2-Type2`. Changing this forces a new resource to be created.
 
 * `platform_fault_domain` - (Required) Specify the fault domain of the Dedicated Host Group in which to create the Dedicated Host. Changing this forces a new resource to be created.
 

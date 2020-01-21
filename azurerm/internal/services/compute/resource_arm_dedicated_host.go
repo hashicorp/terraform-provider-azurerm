@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -30,9 +32,10 @@ func resourceArmDedicatedHost() *schema.Resource {
 		Update: resourceArmDedicatedHostUpdate,
 		Delete: resourceArmDedicatedHostDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.DedicatedHostID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -60,9 +63,9 @@ func resourceArmDedicatedHost() *schema.Resource {
 				ValidateFunc: validateDedicatedHostGroupName(),
 			},
 
-			// In order to follow convention for both protal and azure cli, `sku` here means
+			// In order to follow convention for both protal and azure cli, `sku_name` here means
 			// sku name only.
-			"sku": {
+			"sku_name": {
 				Type:     schema.TypeString,
 				ForceNew: true,
 				Required: true,
@@ -122,18 +125,16 @@ func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
 	parameters := compute.DedicatedHost{
-		Location: utils.String(location),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		DedicatedHostProperties: &compute.DedicatedHostProperties{
 			AutoReplaceOnFailure: utils.Bool(d.Get("auto_replace_on_failure").(bool)),
 			LicenseType:          compute.DedicatedHostLicenseTypes(d.Get("license_type").(string)),
 		},
 		Sku: &compute.Sku{
-			Name: utils.String(d.Get("sku").(string)),
+			Name: utils.String(d.Get("sku_name").(string)),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if platformFaultDomain, ok := d.GetOk("platform_fault_domain"); ok {
 		parameters.DedicatedHostProperties.PlatformFaultDomain = utils.Int32(int32(platformFaultDomain.(int)))
@@ -164,31 +165,28 @@ func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DedicatedHostID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroupName := id.ResourceGroup
-	hostGroupName := id.Path["hostGroups"]
-	name := id.Path["hosts"]
 
-	resp, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Dedicated Host %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+		return fmt.Errorf("Error reading Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroupName)
+	d.Set("name", resp.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	d.Set("host_group_name", hostGroupName)
-	d.Set("sku", resp.Sku.Name)
+	d.Set("host_group_name", id.HostGroup)
+	d.Set("sku_name", resp.Sku.Name)
 	if props := resp.DedicatedHostProperties; props != nil {
 		d.Set("platform_fault_domain", props.PlatformFaultDomain)
 		d.Set("auto_replace_on_failure", props.AutoReplaceOnFailure)
@@ -206,14 +204,13 @@ func resourceArmDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) er
 	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 	hostGroupName := d.Get("host_group_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	parameters := compute.DedicatedHostUpdate{
 		DedicatedHostProperties: &compute.DedicatedHostProperties{
 			AutoReplaceOnFailure: utils.Bool(d.Get("auto_replace_on_failure").(bool)),
 			LicenseType:          compute.DedicatedHostLicenseTypes(d.Get("license_type").(string)),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Update(ctx, resourceGroupName, hostGroupName, name, parameters)
@@ -232,32 +229,29 @@ func resourceArmDedicatedHostDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DedicatedHostID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroupName := id.ResourceGroup
-	hostGroupName := id.Path["hostGroups"]
-	name := id.Path["hosts"]
 
-	future, err := client.Delete(ctx, resourceGroupName, hostGroupName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.HostGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+		return fmt.Errorf("Error deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+			return fmt.Errorf("Error waiting for deleting Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
 		}
 	}
 
 	// API has bug, which appears to be eventually consistent. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/8137
-	log.Printf("[DEBUG] Waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to disappear", name, hostGroupName, resourceGroupName)
+	log.Printf("[DEBUG] Waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to disappear", id.Name, id.HostGroup, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
 		Refresh:                   dedicatedHostDeletedRefreshFunc(ctx, client, id),
-		MinTimeout:                5 * time.Second,
+		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 5,
 	}
 
@@ -268,18 +262,15 @@ func resourceArmDedicatedHostDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to become available: %+v", name, hostGroupName, resourceGroupName, err)
+		return fmt.Errorf("Error waiting for Dedicated Host %q (Host Group Name %q / Resource Group %q) to become available: %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func dedicatedHostDeletedRefreshFunc(ctx context.Context, client *compute.DedicatedHostsClient, id *azure.ResourceID) resource.StateRefreshFunc {
-	resourceGroupName := id.ResourceGroup
-	hostGroupName := id.Path["hostGroups"]
-	name := id.Path["hosts"]
+func dedicatedHostDeletedRefreshFunc(ctx context.Context, client *compute.DedicatedHostsClient, id *parse.DedicatedHostId) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
+		res, err := client.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {
 				return "NotFound", "NotFound", nil

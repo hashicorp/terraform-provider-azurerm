@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
@@ -31,7 +32,7 @@ func TestAccAzureRMDedicatedHost_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", string(compute.DedicatedHostLicenseTypesNone)),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_replace_on_failure", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "platform_fault_domain", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "DSv3-Type1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "DSv3-Type1"),
 				),
 			},
 			data.ImportStep(),
@@ -52,7 +53,7 @@ func TestAccAzureRMDedicatedHost_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDedicatedHostExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "platform_fault_domain", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "DSv3-Type1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "DSv3-Type1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", string(compute.DedicatedHostLicenseTypesWindowsServerHybrid)),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_replace_on_failure", "false"),
 				),
@@ -78,6 +79,7 @@ func TestAccAzureRMDedicatedHost_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_replace_on_failure", "true"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMDedicatedHost_complete(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -86,6 +88,7 @@ func TestAccAzureRMDedicatedHost_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_replace_on_failure", "false"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -121,16 +124,17 @@ func testCheckAzureRMDedicatedHostExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Dedicated Host not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
-		hostGroupName := rs.Primary.Attributes["host_group_name"]
+		id, err := parse.DedicatedHostID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DedicatedHostsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := client.Get(ctx, resourceGroupName, hostGroupName, name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Dedicated Host %q (Host Group Name %q / Resource Group %q) does not exist", name, hostGroupName, resourceGroupName)
+				return fmt.Errorf("Bad: Dedicated Host %q (Host Group Name %q / Resource Group %q) does not exist", id.Name, id.HostGroup, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on Compute.DedicatedHostsClient: %+v", err)
 		}
@@ -148,11 +152,12 @@ func testCheckAzureRMDedicatedHostDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroupName := rs.Primary.Attributes["resource_group_name"]
-		hostGroupName := rs.Primary.Attributes["host_group_name"]
+		id, err := parse.DedicatedHostID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		if resp, err := client.Get(ctx, resourceGroupName, hostGroupName, name, ""); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, ""); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on Compute.DedicatedHostsClient: %+v", err)
 			}
@@ -184,7 +189,7 @@ resource "azurerm_dedicated_host" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   host_group_name       = azurerm_dedicated_host_group.test.name
-  sku                   = "DSv3-Type1"
+  sku_name              = "DSv3-Type1"
   platform_fault_domain = 1
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
@@ -210,7 +215,7 @@ resource "azurerm_dedicated_host" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   host_group_name         = azurerm_dedicated_host_group.test.name
-  sku                     = "DSv3-Type1"
+  sku_name                = "DSv3-Type1"
   platform_fault_domain   = 1
   license_type            = "Windows_Server_Hybrid"
   auto_replace_on_failure = false
@@ -226,7 +231,7 @@ resource "azurerm_dedicated_host" "import" {
   resource_group_name   = azurerm_dedicated_host.test.resource_group_name
   location              = azurerm_dedicated_host.test.location
   host_group_name       = azurerm_dedicated_host.test.host_group_name
-  sku                   = azurerm_dedicated_host.test.sku
+  sku_name              = azurerm_dedicated_host.test.sku_name
   platform_fault_domain = azurerm_dedicated_host.test.platform_fault_domain
 }
 `, testAccAzureRMDedicatedHost_basic(data))
