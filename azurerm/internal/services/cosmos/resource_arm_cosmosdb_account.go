@@ -944,10 +944,6 @@ func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.R
 			FailoverPriority: &failoverPriority,
 		}
 
-		if v, ok := data["zone_redundant"].(bool); ok {
-			location.IsZoneRedundant = &v
-		}
-
 		locations = append(locations, location)
 	}
 
@@ -1047,20 +1043,13 @@ func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account d
 		}
 	}
 
-	allLocations := append(*account.WriteLocations, *account.ReadLocations...)
-
-	for _, l := range *account.FailoverPolicies {
+	for _, l := range append(*account.WriteLocations, *account.ReadLocations...) {
 		id := *l.ID
 		lb := map[string]interface{}{
 			"id":                id,
 			"location":          azure.NormalizeLocation(*l.LocationName),
 			"failover_priority": int(*l.FailoverPriority),
-		}
-
-		for _, wl := range allLocations {
-			if *wl.ID == id {
-				lb["zone_redundant"] = *wl.IsZoneRedundant
-			}
+			"zone_redundant":    l.IsZoneRedundant,
 		}
 
 		//if id is not the default then it must be set via prefix
