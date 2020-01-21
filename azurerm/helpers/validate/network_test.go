@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestCIDR(t *testing.T) {
+func TestCIDRallowNoSuffix(t *testing.T) {
 	cases := []struct {
 		CIDR   string
 		Errors int
@@ -30,11 +30,69 @@ func TestCIDR(t *testing.T) {
 			CIDR:   "127.0.0.1/-1",
 			Errors: 1,
 		},
+		{
+			CIDR:   "2001:db8:a0b:12f0::1/32",
+			Errors: 0,
+		},
+		{
+			CIDR:   "2001:db8:a0b:12f0::1/222",
+			Errors: 1,
+		},
+		{
+			CIDR:   "2001:db8:a0b:12f0::1",
+			Errors: 0,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.CIDR, func(t *testing.T) {
-			_, errors := CIDR(tc.CIDR, "test")
+			_, errors := CIDR(tc.CIDR, "test", true)
+
+			if len(errors) != tc.Errors {
+				t.Fatalf("Expected CIDR to return %d error(s) not %d", tc.Errors, len(errors))
+			}
+		})
+	}
+}
+
+func TestCIDR(t *testing.T) {
+	cases := []struct {
+		CIDR   string
+		Errors int
+	}{
+		{
+			CIDR:   "",
+			Errors: 1,
+		},
+		{
+			CIDR:   "0.0.0.0",
+			Errors: 1,
+		},
+		{
+			CIDR:   "127.0.0.1/8",
+			Errors: 0,
+		},
+		{
+			CIDR:   "127.0.0.1/33",
+			Errors: 1,
+		},
+		{
+			CIDR:   "127.0.0.1/-1",
+			Errors: 1,
+		},
+		{
+			CIDR:   "2001:db8:a0b:12f0::1/32",
+			Errors: 0,
+		},
+		{
+			CIDR:   "2001:db8:a0b:12f0::1/222",
+			Errors: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.CIDR, func(t *testing.T) {
+			_, errors := CIDR(tc.CIDR, "test", false)
 
 			if len(errors) != tc.Errors {
 				t.Fatalf("Expected CIDR to return %d error(s) not %d", tc.Errors, len(errors))
@@ -188,6 +246,122 @@ func TestIPv4AddressOrEmpty(t *testing.T) {
 
 			if len(errors) != tc.Errors {
 				t.Fatalf("Expected IPv4AddressOrEmpty to return %d error(s) not %d", len(errors), tc.Errors)
+			}
+		})
+	}
+}
+
+func TestIPAddress(t *testing.T) {
+	cases := []struct {
+		IP     string
+		Errors int
+	}{
+		{
+			IP:     "",
+			Errors: 1,
+		},
+		{
+			IP:     "0.0.0.0",
+			Errors: 0,
+		},
+		{
+			IP:     "1.2.3.no",
+			Errors: 1,
+		},
+		{
+			IP:     "text",
+			Errors: 1,
+		},
+		{
+			IP:     "1.2.3.4",
+			Errors: 0,
+		},
+		{
+			IP:     "12.34.43.21",
+			Errors: 0,
+		},
+		{
+			IP:     "100.123.199.0",
+			Errors: 0,
+		},
+		{
+			IP:     "255.255.255.255",
+			Errors: 0,
+		},
+		{
+			IP:     "2001:0db8:85a3:0:0:8a2e:0370:7334",
+			Errors: 0,
+		},
+		{
+			IP:     "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+			Errors: 0,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.IP, func(t *testing.T) {
+			_, errors := IPAddress(tc.IP, "test")
+
+			if len(errors) != tc.Errors {
+				t.Fatalf("Expected IPAddress to return %d error(s) not %d", len(errors), tc.Errors)
+			}
+		})
+	}
+}
+
+func TestIPAddressOrEmpty(t *testing.T) {
+	cases := []struct {
+		IP     string
+		Errors int
+	}{
+		{
+			IP:     "",
+			Errors: 0,
+		},
+		{
+			IP:     "0.0.0.0",
+			Errors: 0,
+		},
+		{
+			IP:     "1.2.3.no",
+			Errors: 1,
+		},
+		{
+			IP:     "text",
+			Errors: 1,
+		},
+		{
+			IP:     "1.2.3.4",
+			Errors: 0,
+		},
+		{
+			IP:     "12.34.43.21",
+			Errors: 0,
+		},
+		{
+			IP:     "100.123.199.0",
+			Errors: 0,
+		},
+		{
+			IP:     "255.255.255.255",
+			Errors: 0,
+		},
+		{
+			IP:     "2001:0db8:85a3:0:0:8a2e:0370:7334",
+			Errors: 0,
+		},
+		{
+			IP:     "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+			Errors: 0,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.IP, func(t *testing.T) {
+			_, errors := IPAddressOrEmpty(tc.IP, "test")
+
+			if len(errors) != tc.Errors {
+				t.Fatalf("Expected IPAddressOrEmpty to return %d error(s) not %d", len(errors), tc.Errors)
 			}
 		})
 	}
