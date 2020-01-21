@@ -68,9 +68,10 @@ depscheck:
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."
 	@tfproviderlint \
-        -R001 -R002 -R003 -R004\
-        -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019\
-        ./$(PKG_NAME)
+        -AT001 -AT004 -AT005 -AT006 -AT007\
+        -R001 -R002 -R003 -R004 -R006\
+        -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019 -S020 -S021 -S022 -S023\
+        ./$(PKG_NAME)/...
 	@sh -c "'$(CURDIR)/scripts/terrafmt-acctests.sh'"
 
 whitespace:
