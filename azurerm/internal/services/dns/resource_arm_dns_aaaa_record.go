@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -52,10 +53,8 @@ func resourceArmDnsAAAARecord() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-						return ipv6AddressDiffSuppress(k, old, new, d)
-					},
+					Type:             schema.TypeString,
+					DiffSuppressFunc: suppress.IPv6Compression,
 				},
 				Set:           schema.HashString,
 				ConflictsWith: []string{"target_resource_id"},
