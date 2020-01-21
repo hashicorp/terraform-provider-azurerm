@@ -94,7 +94,17 @@ func validateIPAddress(i interface{}, k string, allowEmpty bool) (warnings []str
 }
 
 // CIDR validations allow IPv4 and IPv6 CIDR notations as defined in RFC 4632 and RFC 4291
-func CIDR(i interface{}, k string, allowNoSuffix bool) (warnings []string, errors []error) {
+func CIDR(i interface{}, k string) (warnings []string, errors []error) {
+	return cIDR(i, k, false)
+}
+
+// CIDRAllowNoSuffix validations allow IPv4 and IPv6 CIDR notations as defined in RFC 4632 and RFC 4291
+// Additionally invalid CIDR notations without suffix are allowed.
+func CIDRAllowNoSuffix(i interface{}, k string) (warnings []string, errors []error) {
+	return cIDR(i, k, true)
+}
+
+func cIDR(i interface{}, k string, allowNoSuffix bool) (warnings []string, errors []error) {
 	cidr := i.(string)
 
 	// A CIDR without the suffix is invalid, but for compatibility reasons we need

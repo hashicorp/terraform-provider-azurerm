@@ -46,10 +46,10 @@ func TestCIDRallowNoSuffix(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.CIDR, func(t *testing.T) {
-			_, errors := CIDR(tc.CIDR, "test", true)
+			_, errors := CIDRAllowNoSuffix(tc.CIDR, "test")
 
 			if len(errors) != tc.Errors {
-				t.Fatalf("Expected CIDR to return %d error(s) not %d", tc.Errors, len(errors))
+				t.Fatalf("Expected CIDRAllowNoSuffix to return %d error(s) not %d", tc.Errors, len(errors))
 			}
 		})
 	}
@@ -92,7 +92,7 @@ func TestCIDR(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.CIDR, func(t *testing.T) {
-			_, errors := CIDR(tc.CIDR, "test", false)
+			_, errors := CIDR(tc.CIDR, "test")
 
 			if len(errors) != tc.Errors {
 				t.Fatalf("Expected CIDR to return %d error(s) not %d", tc.Errors, len(errors))
