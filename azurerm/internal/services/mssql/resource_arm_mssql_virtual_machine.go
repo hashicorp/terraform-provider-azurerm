@@ -3,6 +3,7 @@ package mssql
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"log"
@@ -106,6 +107,17 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
+							//api return "sqlvmName:name1,sqlvmName:name2"
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								oldNamelist := strings.Split(old, ",")
+								for _, n := range oldNamelist {
+									cur := strings.Split(n, ":")
+									if len(cur) > 1 && cur[1] == new {
+										return true
+									}
+								}
+								return false
+							},
 						},
 						"azure_key_vault_url": {
 							Type:         schema.TypeString,
@@ -214,8 +226,8 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	properties := sqlvirtualmachine.Properties{
-		SQLServerLicenseType:                   sqlvirtualmachine.SQLServerLicenseType(d.Get("sql_license_type").(string)),
 		VirtualMachineResourceID:               utils.String(d.Get("virtual_machine_id").(string)),
+		SQLServerLicenseType:                   sqlvirtualmachine.SQLServerLicenseType(d.Get("sql_license_type").(string)),
 		SQLManagement:                          sqlvirtualmachine.Full,
 		AutoPatchingSettings:                   expandArmSqlVirtualMachineAutoPatchingSettings(d.Get("auto_patching").([]interface{})),
 		KeyVaultCredentialSettings:             expandArmSqlVirtualMachineKeyVaultCredential(d.Get("key_vault_credential").([]interface{})),
@@ -337,11 +349,19 @@ func flattenArmSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachine.Aut
 	if autoPatching == nil || *autoPatching.Enable == false {
 		return []interface{}{}
 	}
+	var startHour int32
+	if autoPatching.MaintenanceWindowStartingHour != nil {
+		startHour = *autoPatching.MaintenanceWindowStartingHour
+	}
+	var duration int32
+	if autoPatching.MaintenanceWindowDuration != nil {
+		duration = *autoPatching.MaintenanceWindowDuration
+	}
 	return []interface{}{
 		map[string]interface{}{
 			"day_of_week":                            string(autoPatching.DayOfWeek),
-			"maintenance_window_starting_hour":       autoPatching.MaintenanceWindowStartingHour,
-			"maintenance_window_duration_in_minutes": autoPatching.MaintenanceWindowDuration,
+			"maintenance_window_starting_hour":       startHour,
+			"maintenance_window_duration_in_minutes": duration,
 		},
 	}
 }

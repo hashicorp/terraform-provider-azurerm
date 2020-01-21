@@ -123,10 +123,8 @@ resource "azurerm_virtual_machine" "example" {
 }
 
 resource "azurerm_mssql_virtual_machine" "example" {
-  resource_group_name         = azurerm_resource_group.example.name
-  location                    = azurerm_resource_group.example.location
-  virtual_machine_resource_id = azurerm_virtual_machine.example.id
-  sql_license_type            = "PAYG"
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
 }
 ```
 
@@ -196,5 +194,5 @@ The following attributes are exported:
 Sql Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_sql_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/example1
+$ terraform import azurerm_mssql_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/example1
 ```

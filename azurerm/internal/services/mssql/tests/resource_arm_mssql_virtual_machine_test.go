@@ -2,10 +2,11 @@ package tests
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-uuid"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/go-uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -109,15 +110,16 @@ func TestAccAzureRMMsSqlVirtualMachine_updateKeyVault(t *testing.T) {
 					resource.TestMatchResourceAttr(data.ResourceName, "key_vault_credential.0.name", regexp.MustCompile("/*:acctestkv")),
 				),
 			},
-			data.ImportStep(),
-			//{
-			//	Config: testAccAzureRMMsSqlVirtualMachine_withKeyVaultUpdated(data,value),
-			//	Check: resource.ComposeTestCheckFunc(
-			//		testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
-			//		resource.TestMatchResourceAttr(data.ResourceName, "key_vault_credential.0.name",regexp.MustCompile("/*:acctestkv2")),
-			//	),
-			//},
-			//data.ImportStep(),
+			data.ImportStep("key_vault_credential.0.azure_key_vault_url", "key_vault_credential.0.service_principal_name", "key_vault_credential.0.service_principal_secret"),
+
+			{
+				Config: testAccAzureRMMsSqlVirtualMachine_withKeyVaultUpdated(data, value),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
+					resource.TestMatchResourceAttr(data.ResourceName, "key_vault_credential.0.name", regexp.MustCompile("/*:acctestkv2")),
+				),
+			},
+			data.ImportStep("key_vault_credential.0.azure_key_vault_url", "key_vault_credential.0.service_principal_name", "key_vault_credential.0.service_principal_secret"),
 		},
 	})
 }
@@ -230,7 +232,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name      = azurerm_virtual_network.test.name
   address_prefix            = "10.0.0.0/24"
   network_security_group_id = azurerm_network_security_group.nsg.id
-  # despite the warning, change it causes refresh plan not empty
+  # despite the warning, changing it causes refresh plan not empty
 }
 
 resource "azurerm_public_ip" "vm" {
@@ -395,7 +397,7 @@ provider "azuread" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acckv%[2]d"
+  name                = "acckv-%[2]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
@@ -408,11 +410,14 @@ resource "azurerm_key_vault" "test" {
 
     key_permissions = [
       "create",
-      "list",
+      "delete",
       "get",
+      "update",
     ]
 
     secret_permissions = [
+      "get",
+      "delete",
       "set",
     ]
   }
@@ -423,7 +428,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "generated" {
-  name         = "acckey-%[2]d"
+  name         = "key-%[2]d"
   key_vault_id = "${azurerm_key_vault.test.id}"
   key_type     = "RSA"
   key_size     = 2048
@@ -476,7 +481,7 @@ provider "azuread" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acckv%[2]d"
+  name                = "acckv-%[2]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
@@ -489,11 +494,14 @@ resource "azurerm_key_vault" "test" {
 
     key_permissions = [
       "create",
-      "list",
+      "delete",
       "get",
+      "update",
     ]
 
     secret_permissions = [
+      "get",
+      "delete",
       "set",
     ]
   }
@@ -504,7 +512,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "generated" {
-  name         = "acckey-%[2]d"
+  name         = "key-%[2]d"
   key_vault_id = "${azurerm_key_vault.test.id}"
   key_type     = "RSA"
   key_size     = 2048
