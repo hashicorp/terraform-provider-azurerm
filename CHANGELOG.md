@@ -2,15 +2,23 @@
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to `v38.1.0` of github.com/Azure/azure-sdk-for-go [GH-5385]
+* dependencies: upgrading to `v38.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-5385]
 * frontdoor: updating to use API version `2019-11-01` [GH-5385]
-* `azurerm_cosmosdb_account` - add support for the `capabilities` capability [GH-5325]
+* `azurerm_cosmosdb_account` - support for the `EnableMongo` capability [GH-5325]
+* `azurerm_databricks_workspace` - support for the `custom_parameters` property and `public_subnet_name`, `private_subnet_name`, and `virtual_network_id` parameters [GH-3889]
+* `azurerm_express_route_circuit` - support for the `Basic` and `Local` tiers [GH-5456]
+* `azurerm_network_watcher_flow_log` - support for the `version` property [GH-5419]
 
 BUG FIXES:
 
 * `azurerm_app_service` - fixing a crash when `logs` was nil [GH-5414]
 * `azurerm_container_group` - fixing a crash when `IPAddress.Ports` was nil in the response from the Azure API [GH-5415]
+* `azurerm_postgresql_server` - correctly validate the `name` property [GH-5443]
+* `azurerm_postgresql_database` - correctly validate the `server_name` property [GH-5443]
+* `azurerm_postgresql_firewall` - correctly validate the `server_name` property [GH-5443]
+* `azurerm_postgresql_virtual_network_rule` - correctly validate the `server_name` property [GH-5443]
 * `azurerm_private_link_service` - fixing a crash when the `auto_approval` and `visibility` blocks aren't returned from the Azure API [GH-5428]
+
 
 ## 1.41.0 (January 16, 2020)
 

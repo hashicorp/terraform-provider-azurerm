@@ -45,7 +45,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_shared_image":                         resourceArmSharedImage(),
 		"azurerm_snapshot":                             resourceArmSnapshot(),
 		"azurerm_virtual_machine_data_disk_attachment": resourceArmVirtualMachineDataDiskAttachment(),
-		"azurerm_virtual_machine_extension":            resourceArmVirtualMachineExtensions(),
+		"azurerm_virtual_machine_extension":            resourceArmVirtualMachineExtension(),
 		"azurerm_virtual_machine_scale_set":            resourceArmVirtualMachineScaleSet(),
 		"azurerm_virtual_machine":                      resourceArmVirtualMachine(),
 	}
