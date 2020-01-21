@@ -70,8 +70,6 @@ func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *compu
 	}
 
 	var diskEncryptionKey *compute.KeyVaultAndSecretReference
-	var keyEncryptionKey *compute.KeyVaultAndKeyReference
-
 	if v := settings["disk_encryption_key"].([]interface{}); len(v) > 0 {
 		dek := v[0].(map[string]interface{})
 
@@ -85,6 +83,7 @@ func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *compu
 		}
 	}
 
+	var keyEncryptionKey *compute.KeyVaultAndKeyReference
 	if v := settings["key_encryption_key"].([]interface{}); len(v) > 0 {
 		kek := v[0].(map[string]interface{})
 
@@ -113,38 +112,57 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.Encryption
 		return []interface{}{}
 	}
 
-	value := map[string]interface{}{
-		"enabled": *encryptionSettings.Enabled,
+	enabled := false
+	if encryptionSettings.Enabled != nil {
+		enabled = *encryptionSettings.Enabled
 	}
 
+	diskEncryptionKeys := make([]interface{}, 0)
+	keyEncryptionKeys := make([]interface{}, 0)
 	if encryptionSettings.EncryptionSettings != nil && len(*encryptionSettings.EncryptionSettings) > 0 {
 		// at this time we only support a single element
 		settings := (*encryptionSettings.EncryptionSettings)[0]
-		if key := settings.DiskEncryptionKey; key != nil {
-			keys := make(map[string]interface{})
 
-			keys["secret_url"] = *key.SecretURL
-			if vault := key.SourceVault; vault != nil {
-				keys["source_vault_id"] = *vault.ID
+		if key := settings.DiskEncryptionKey; key != nil {
+			secretUrl := ""
+			if key.SecretURL != nil {
+				secretUrl = *key.SecretURL
 			}
 
-			value["disk_encryption_key"] = []interface{}{keys}
+			sourceVaultId := ""
+			if key.SourceVault != nil && key.SourceVault.ID != nil {
+				sourceVaultId = *key.SourceVault.ID
+			}
+
+			diskEncryptionKeys = append(diskEncryptionKeys, map[string]interface{}{
+				"secret_url":      secretUrl,
+				"source_vault_id": sourceVaultId,
+			})
 		}
 
 		if key := settings.KeyEncryptionKey; key != nil {
-			keys := make(map[string]interface{})
-
-			keys["key_url"] = *key.KeyURL
-
-			if vault := key.SourceVault; vault != nil {
-				keys["source_vault_id"] = *vault.ID
+			keyUrl := ""
+			if key.KeyURL != nil {
+				keyUrl = *key.KeyURL
 			}
 
-			value["key_encryption_key"] = []interface{}{keys}
+			sourceVaultId := ""
+			if key.SourceVault != nil && key.SourceVault.ID != nil {
+				sourceVaultId = *key.SourceVault.ID
+			}
+
+			keyEncryptionKeys = append(keyEncryptionKeys, map[string]interface{}{
+				"key_url":         keyUrl,
+				"source_vault_id": sourceVaultId,
+			})
 		}
 	}
 
 	return []interface{}{
-		value,
+		map[string]interface{}{
+			"enabled":             enabled,
+			"disk_encryption_key": diskEncryptionKeys,
+			"key_encryption_key":  keyEncryptionKeys,
+		},
 	}
 }

@@ -15,7 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -27,16 +29,17 @@ func resourceArmAppConfiguration() *schema.Resource {
 		Update: resourceArmAppConfigurationUpdate,
 		Delete: resourceArmAppConfigurationDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.AppConfigurationID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -191,17 +194,12 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
-	skuName := d.Get("sku").(string)
-	sku := appconf.Sku{
-		Name: &skuName,
-	}
-
 	parameters := appconf.ConfigurationStore{
-		Location: &location,
-		Sku:      &sku,
-		Tags:     tags.Expand(t),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Sku: &appconf.Sku{
+			Name: utils.String(d.Get("sku").(string)),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
@@ -232,36 +230,33 @@ func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{})
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration update.")
-
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	t := d.Get("tags").(map[string]interface{})
-	skuName := d.Get("sku").(string)
-	sku := appconf.Sku{
-		Name: &skuName,
+	id, err := parse.AppConfigurationID(d.Id())
+	if err != nil {
+		return err
 	}
 
 	parameters := appconf.ConfigurationStoreUpdateParameters{
-		Sku:  &sku,
-		Tags: tags.Expand(t),
+		Sku: &appconf.Sku{
+			Name: utils.String(d.Get("sku").(string)),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Update(ctx, resourceGroup, name, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error updating App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for update of App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read App Configuration %s (resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read App Configuration %s (resource Group %q) ID", id.Name, id.ResourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -274,25 +269,23 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AppConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["configurationStores"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Configuration %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] App Configuration %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -305,9 +298,9 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("endpoint", resp.Endpoint)
 	}
 
-	resultPage, err := client.ListKeys(ctx, resourceGroup, name, "")
+	resultPage, err := client.ListKeys(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("Failed to receive access keys for App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Failed to receive access keys for App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	values := resultPage.Values()
@@ -324,8 +317,8 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		accessKey := []interface{}{accessKeyParams}
-		if name := value.Name; name != nil {
-			if strings.HasPrefix(*name, "Primary") {
+		if n := value.Name; n != nil {
+			if strings.HasPrefix(*n, "Primary") {
 				if readOnly := value.ReadOnly; readOnly != nil {
 					if *readOnly {
 						d.Set("primary_read_key", accessKey)
@@ -333,7 +326,7 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 						d.Set("primary_write_key", accessKey)
 					}
 				}
-			} else if strings.HasPrefix(*name, "Secondary") {
+			} else if strings.HasPrefix(*n, "Secondary") {
 				if readOnly := value.ReadOnly; readOnly != nil {
 					if *readOnly {
 						d.Set("secondary_read_key", accessKey)
@@ -342,7 +335,7 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 					}
 				}
 			} else {
-				log.Printf("[WARN] Received unknown App Configuration access key '%s', ignoring...", *name)
+				log.Printf("[WARN] Received unknown App Configuration access key '%s', ignoring...", *n)
 			}
 		}
 	}
@@ -355,26 +348,24 @@ func resourceArmAppConfigurationDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AppConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["configurationStores"]
 
-	fut, err := client.Delete(ctx, resourceGroup, name)
+	fut, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(fut.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = fut.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(fut.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

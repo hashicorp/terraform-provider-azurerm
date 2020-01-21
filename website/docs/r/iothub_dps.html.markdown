@@ -25,7 +25,6 @@ resource "azurerm_iothub_dps" "example" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }

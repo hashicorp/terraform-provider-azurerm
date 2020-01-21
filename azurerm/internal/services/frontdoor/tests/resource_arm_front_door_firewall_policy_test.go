@@ -243,7 +243,7 @@ custom_rule {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testAccRG-%d"
-  location = "%s"
+  location = "%[2]s"
 }
 
 resource "azurerm_frontdoor_firewall_policy" "test" {
@@ -272,7 +272,7 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
     }
   }
 
-  %s
+  %[3]s
 
   managed_rule {
     type    = "DefaultRuleSet"

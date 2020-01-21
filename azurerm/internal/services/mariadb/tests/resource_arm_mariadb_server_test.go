@@ -558,7 +558,7 @@ resource "azurerm_mariadb_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku_name = "MO_Gen5_16"
-    
+
   storage_profile {
     storage_mb            = 4096000
     backup_retention_days = 7

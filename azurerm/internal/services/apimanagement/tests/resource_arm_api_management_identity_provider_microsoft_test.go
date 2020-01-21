@@ -194,7 +194,7 @@ resource "azurerm_api_management_identity_provider_microsoft" "import" {
   resource_group_name = "${azurerm_api_management_identity_provider_microsoft.test.resource_group_name}"
   api_management_name = "${azurerm_api_management_identity_provider_microsoft.test.api_management_name}"
   client_id           = "${azurerm_api_management_identity_provider_microsoft.test.client_id}"
-  client_secret	      = "${azurerm_api_management_identity_provider_microsoft.test.client_secret}"
+  client_secret       = "${azurerm_api_management_identity_provider_microsoft.test.client_secret}"
 }
 `, template)
 }

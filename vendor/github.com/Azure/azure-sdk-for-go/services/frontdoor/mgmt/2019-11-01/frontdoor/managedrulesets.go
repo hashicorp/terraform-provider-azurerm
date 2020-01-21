@@ -35,7 +35,8 @@ func NewManagedRuleSetsClient(subscriptionID string) ManagedRuleSetsClient {
 	return NewManagedRuleSetsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewManagedRuleSetsClientWithBaseURI creates an instance of the ManagedRuleSetsClient client.
+// NewManagedRuleSetsClientWithBaseURI creates an instance of the ManagedRuleSetsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewManagedRuleSetsClientWithBaseURI(baseURI string, subscriptionID string) ManagedRuleSetsClient {
 	return ManagedRuleSetsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -80,7 +81,7 @@ func (client ManagedRuleSetsClient) ListPreparer(ctx context.Context) (*http.Req
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-03-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

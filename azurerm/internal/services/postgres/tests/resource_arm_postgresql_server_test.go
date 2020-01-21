@@ -355,16 +355,16 @@ func testCheckAzureRMPostgreSQLServerDestroy(s *terraform.State) error {
 func testAccAzureRMPostgreSQLServer_basic(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku_name     = "GP_Gen5_2"
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -384,16 +384,16 @@ resource "azurerm_postgresql_server" "test" {
 func testAccAzureRMPostgreSQLServer_basicNinePointFiveOldSku(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku_name     = "GP_Gen5_2"
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -436,7 +436,7 @@ resource "azurerm_postgresql_server" "import" {
   location            = "${azurerm_postgresql_server.test.location}"
   resource_group_name = "${azurerm_postgresql_server.test.resource_group_name}"
 
-  sku_name     = "GP_Gen5_2"
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -455,16 +455,16 @@ resource "azurerm_postgresql_server" "import" {
 func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku_name     = "GP_Gen5_2"
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -483,12 +483,12 @@ resource "azurerm_postgresql_server" "test" {
 func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -511,12 +511,12 @@ resource "azurerm_postgresql_server" "test" {
 func testAccAzureRMPostgreSQLServer_basicMaxStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -540,17 +540,17 @@ resource "azurerm_postgresql_server" "test" {
 func testAccAzureRMPostgreSQLServer_generalPurpose(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku_name = "GP_Gen5_32"
-    
+
   storage_profile {
     storage_mb            = 640000
     backup_retention_days = 7
@@ -568,12 +568,12 @@ resource "azurerm_postgresql_server" "test" {
 func testAccAzureRMPostgreSQLServer_memoryOptimized(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -596,12 +596,12 @@ resource "azurerm_postgresql_server" "test" {
 func testAccAzureRMPostgreSQLServer_memoryOptimizedGeoRedundant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 

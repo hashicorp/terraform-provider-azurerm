@@ -1,33 +1,72 @@
-## 1.41.0 (Unreleased)
-
-FEATURES:
-
-* **New Data Source:** `azurerm_dedicated_host_group` [GH-5307]
-* **New Data Source:** `azurerm_disk_encryption_set` [GH-5249]
-* **New Data Source:** `azurerm_iothub_dps` [GH-5336]
-* **New data source:** `azurerm_iothub_shared_access_policy` [GH-5368]
-* **New Resource:** `azurerm_api_management_identity_provider_facebook` [GH-5346]
-* **New Resource:** `azurerm_api_management_identity_provider_twitter` [GH-5306]
-* **New Resource:** `azurerm_api_management_identity_provider_microsoft` [GH-5369]
-* **New Resource:** `azurerm_cosmosdb_gremlin_graph` [GH-5301]
-* **New Resource:** `azurerm_dedicated_host_group` [GH-5307]
-* **New Resource:** `azurerm_disk_encryption_set` [GH-5249]
+## 1.42.0 (Unreleased)
 
 IMPROVEMENTS:
 
-* `azurerm_cognitive_account` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5380]
-* `azurerm_devspace_controller` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5379]
-* `azurerm_batch_pool` - support for the `metadata` property [GH-5309]
-* `azurerm_function_app` - convert `connection_string`s from a `TypeList` to a `TypeSet` [GH-5319]
-* `azurerm_mariadb_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5378]
-* `azurerm_postgresql_server` - the `sku` block has been deprecated in favour of the `sku_name` property [GH-5376]
-* `azurerm_lb_rule` - support for the `enable_tcp_reset` property [GH-5373]
-* `azurerm_lb_nat_rule` -  support for the `enable_tcp_reset` and `idle_timeout_in_minutes` properties [GH-5373]
+* dependencies: upgrading to `v38.1.0` of github.com/Azure/azure-sdk-for-go [GH-5385]
+* frontdoor: updating to use API version `2019-11-01` [GH-5385]
+* `azurerm_cosmosdb_account` - support for the `EnableMongo` capability [GH-5325]
+* `azurerm_databricks_workspace` - support for the `custom_parameters` property and `public_subnet_name`, `private_subnet_name`, and `virtual_network_id` parameters [GH-3889]
+* `azurerm_express_route_circuit` - support for the `Basic` and `Local` tiers [GH-5456]
+* `azurerm_network_watcher_flow_log` - support for the `version` property [GH-5419]
 
 BUG FIXES:
 
-* `azurerm_api_management_operation` - will no longer panic on missing values in `request` [GH-5318]
-* `azurerm_storage_account` - fix performance issue for accounts that don't support queues [GH-5316]
+* `azurerm_app_service` - fixing a crash when `logs` was nil [GH-5414]
+* `azurerm_container_group` - fixing a crash when `IPAddress.Ports` was nil in the response from the Azure API [GH-5415]
+* `azurerm_postgresql_server` - correctly validate the `name` property [GH-5443]
+* `azurerm_postgresql_database` - correctly validate the `server_name` property [GH-5443]
+* `azurerm_postgresql_firewall` - correctly validate the `server_name` property [GH-5443]
+* `azurerm_postgresql_virtual_network_rule` - correctly validate the `server_name` property [GH-5443]
+* `azurerm_private_link_service` - fixing a crash when the `auto_approval` and `visibility` blocks aren't returned from the Azure API [GH-5428]
+
+
+## 1.41.0 (January 16, 2020)
+
+NOTES:
+
+* `azurerm_managed_disk` - the Azure API now requires that the `storage_account_id` field is specified during import, as such this field is now required during when importing a VHD to a Managed Disk ([#5250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5250))
+
+FEATURES:
+
+* **New Data Source:** `azurerm_dedicated_host_group` ([#5307](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5307))
+* **New Data Source:** `azurerm_disk_encryption_set` ([#5249](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5249))
+* **New Data Source:** `azurerm_eventgrid_topic` ([#5367](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5367))
+* **New Data Source:** `azurerm_iothub_dps` ([#5336](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5336))
+* **New Data Source:** `azurerm_iothub_shared_access_policy` ([#5368](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5368))
+* **New Data Source:** `azurerm_storage_container` ([#5374](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5374))
+* **New Resource:** `azurerm_api_management_identity_provider_facebook` ([#5346](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5346))
+* **New Resource:** `azurerm_api_management_identity_provider_twitter` ([#5306](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5306))
+* **New Resource:** `azurerm_api_management_identity_provider_microsoft` ([#5369](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5369))
+* **New Resource:** `azurerm_cosmosdb_gremlin_graph` ([#5301](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5301))
+* **New Resource:** `azurerm_dedicated_host_group` ([#5307](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5307))
+* **New Resource:** `azurerm_disk_encryption_set` ([#5249](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5249))
+
+IMPROVEMENTS:
+
+* dependencies: upgrading to `v38.0.0` of github.com/Azure/azure-sdk-for-go ([#5335](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5335 ))
+* backup: updating to use API version `2019-05-13` ([#5335 ](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5335))
+* Data Source: `azurerm_managed_disk` - exposing `disk_encryption_set_id` ([#5250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5250))
+* Data Source: `azurerm_managed_disk` - exposing `storage_account_id` ([#5250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5250))
+* `azurerm_cognitive_account` - the `sku` block has been deprecated in favour of the `sku_name` property ([#5380](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5380))
+* `azurerm_devspace_controller` - the `sku` block has been deprecated in favour of the `sku_name` property ([#5379](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5379))
+* `azurerm_batch_pool` - support for the `metadata` property ([#5309](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5309))
+* `azurerm_function_app` - convert `connection_string`s from a `TypeList` to a `TypeSet` ([#5319](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5319))
+* `azurerm_iothub` - deprecate the `sku.tier` property as it is no longer required ([#5382](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5382))
+* `azurerm_iothub` - add an upper range of `200` to the `sku.capacify` validation ([#5382](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5382))
+* `azurerm_iothub_dps` - deprecate the `sku.tier` property as it is no longer required ([#5382](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5382))
+* `azurerm_iothub_dps` - add an upper range of `200` to the `sku.capacify` validation ([#5382](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5382))
+* `azurerm_lb_rule` - support for the `enable_tcp_reset` property ([#5373](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5373))
+* `azurerm_lb_nat_rule` -  support for the `enable_tcp_reset` and `idle_timeout_in_minutes` properties ([#5373](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5373))
+* `azurerm_managed_disk` - support for configuring `disk_encryption_set_id` ([#5250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5250))
+* `azurerm_managed_disk` - support for configuring `storage_account_id` which is now required by the Azure API during an import ([#5250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5250))
+* `azurerm_mariadb_server` - the `sku` block has been deprecated in favour of the `sku_name` property ([#5378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5378))
+* `azurerm_mysql_server` - the `sku` block has been deprecated in favour of the `sku_name` property ([#5377](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5377))
+* `azurerm_postgresql_server` - the `sku` block has been deprecated in favour of the `sku_name` property ([#5376](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5376))
+
+BUG FIXES:
+
+* `azurerm_api_management_operation` - will no longer panic on missing values in `request` ([#5318](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5318))
+* `azurerm_storage_account` - fix performance issue for accounts that don't support queues ([#5316](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5316))
 
 ## 1.40.0 (January 08, 2020)
 

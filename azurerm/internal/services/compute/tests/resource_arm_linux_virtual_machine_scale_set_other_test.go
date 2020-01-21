@@ -579,14 +579,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_otherCustomData(data acceptance.T
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                 = "acctestvmss-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
-  custom_data          = base64encode(%q)
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  custom_data         = base64encode(%q)
 
   disable_password_authentication = false
 
@@ -1222,7 +1222,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
-  health_probe_id     = "${azurerm_lb_probe.test.id}"
 
   disable_password_authentication = false
   provision_vm_agent              = %t
