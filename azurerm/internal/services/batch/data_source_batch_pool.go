@@ -304,52 +304,43 @@ func dataSourceArmBatchPool() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"inbound_nat_pools": {
+									"name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"protocol": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"backend_port": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"frontend_port_range_start": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"frontend_port_range_end": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"network_security_group_rules": {
 										Type:     schema.TypeList,
 										Optional: true,
 										Computed: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"name": {
+												"priority": {
+													Type:     schema.TypeInt,
+													Computed: true,
+												},
+												"access": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"protocol": {
+												"source_address_prefix": {
 													Type:     schema.TypeString,
 													Computed: true,
-												},
-												"backend_port": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"frontend_port_range_start": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"frontend_port_range_end": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"network_security_group_rules": {
-													Type:     schema.TypeList,
-													Optional: true,
-													Computed: true,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"priority": {
-																Type:     schema.TypeInt,
-																Computed: true,
-															},
-															"access": {
-																Type:     schema.TypeString,
-																Computed: true,
-															},
-															"source_address_prefix": {
-																Type:     schema.TypeString,
-																Computed: true,
-															},
-														},
-													},
 												},
 											},
 										},

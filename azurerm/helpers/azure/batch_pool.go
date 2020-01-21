@@ -587,12 +587,9 @@ func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpoi
 		return nil, nil
 	}
 
-	endpointConfigurationValue := list[0].(map[string]interface{})
+	inboundNatPools := make([]batch.InboundNatPool, len(list))
 
-	inboundNatPoolsValues := endpointConfigurationValue["inbound_nat_pools"].([]interface{})
-	inboundNatPools := make([]batch.InboundNatPool, len(inboundNatPoolsValues))
-
-	for i, inboundNatPoolsValue := range inboundNatPoolsValues {
+	for i, inboundNatPoolsValue := range list {
 		inboundNatPool := inboundNatPoolsValue.(map[string]interface{})
 
 		name := inboundNatPool["name"].(string)
@@ -661,49 +658,44 @@ func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfigurat
 		result["subnet_id"] = *networkConfig.SubnetID
 	}
 
-	if cfg := networkConfig.EndpointConfiguration; cfg != nil {
-		endpointConfigs := make([]interface{}, 1)
+	if cfg := networkConfig.EndpointConfiguration; cfg != nil && cfg.InboundNatPools != nil && len(*cfg.InboundNatPools) != 0 {
+		endpointConfigs := make([]interface{}, len(*cfg.InboundNatPools))
 
-		if cfg.InboundNatPools != nil && len(*cfg.InboundNatPools) != 0 {
-			inboundNatPools := make([]interface{}, len(*cfg.InboundNatPools))
-			for i, inboundNatPool := range *cfg.InboundNatPools {
-				inboundNatPoolMap := make(map[string]interface{})
-				if inboundNatPool.Name != nil {
-					inboundNatPoolMap["name"] = *inboundNatPool.Name
-				}
-				if inboundNatPool.BackendPort != nil {
-					inboundNatPoolMap["backend_port"] = *inboundNatPool.BackendPort
-				}
-				if inboundNatPool.FrontendPortRangeStart != nil {
-					inboundNatPoolMap["frontend_port_range_start"] = *inboundNatPool.FrontendPortRangeStart
-				}
-				if inboundNatPool.FrontendPortRangeEnd != nil {
-					inboundNatPoolMap["frontend_port_range_end"] = *inboundNatPool.FrontendPortRangeEnd
-				}
-				inboundNatPoolMap["protocol"] = inboundNatPool.Protocol
-
-				if sgRules := inboundNatPool.NetworkSecurityGroupRules; sgRules != nil && len(*sgRules) != 0 {
-					networkSecurities := make([]interface{}, len(*sgRules))
-					for j, networkSecurity := range *sgRules {
-						networkSecurityMap := make(map[string]interface{})
-
-						if networkSecurity.Priority != nil {
-							networkSecurityMap["priority"] = *networkSecurity.Priority
-						}
-						if networkSecurity.SourceAddressPrefix != nil {
-							networkSecurityMap["source_address_prefix"] = *networkSecurity.SourceAddressPrefix
-						}
-						networkSecurityMap["access"] = networkSecurity.Access
-						networkSecurities[j] = networkSecurityMap
-					}
-					inboundNatPoolMap["network_security_group_rules"] = networkSecurities
-				}
-				inboundNatPools[i] = inboundNatPoolMap
+		for i, inboundNatPool := range *cfg.InboundNatPools {
+			inboundNatPoolMap := make(map[string]interface{})
+			if inboundNatPool.Name != nil {
+				inboundNatPoolMap["name"] = *inboundNatPool.Name
 			}
-			endpointConfig := make(map[string]interface{})
-			endpointConfig["inbound_nat_pools"] = inboundNatPools
-			endpointConfigs[0] = endpointConfig
+			if inboundNatPool.BackendPort != nil {
+				inboundNatPoolMap["backend_port"] = *inboundNatPool.BackendPort
+			}
+			if inboundNatPool.FrontendPortRangeStart != nil {
+				inboundNatPoolMap["frontend_port_range_start"] = *inboundNatPool.FrontendPortRangeStart
+			}
+			if inboundNatPool.FrontendPortRangeEnd != nil {
+				inboundNatPoolMap["frontend_port_range_end"] = *inboundNatPool.FrontendPortRangeEnd
+			}
+			inboundNatPoolMap["protocol"] = inboundNatPool.Protocol
+
+			if sgRules := inboundNatPool.NetworkSecurityGroupRules; sgRules != nil && len(*sgRules) != 0 {
+				networkSecurities := make([]interface{}, len(*sgRules))
+				for j, networkSecurity := range *sgRules {
+					networkSecurityMap := make(map[string]interface{})
+
+					if networkSecurity.Priority != nil {
+						networkSecurityMap["priority"] = *networkSecurity.Priority
+					}
+					if networkSecurity.SourceAddressPrefix != nil {
+						networkSecurityMap["source_address_prefix"] = *networkSecurity.SourceAddressPrefix
+					}
+					networkSecurityMap["access"] = networkSecurity.Access
+					networkSecurities[j] = networkSecurityMap
+				}
+				inboundNatPoolMap["network_security_group_rules"] = networkSecurities
+			}
+			endpointConfigs[i] = inboundNatPoolMap
 		}
+
 		result["endpoint_configuration"] = endpointConfigs
 	}
 

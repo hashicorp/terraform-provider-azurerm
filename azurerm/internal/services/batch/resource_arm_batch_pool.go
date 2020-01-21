@@ -397,78 +397,68 @@ func resourceArmBatchPool() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							ForceNew: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"inbound_nat_pools": {
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"protocol": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(batch.TCP),
+											string(batch.UDP),
+										}, false),
+									},
+									"backend_port": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 29876, 29877),
+										// 1 and 65535 except for 29876, 29877 as these are reserved.
+									},
+									"frontend_port_range_start": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 50000, 55000),
+									},
+									"frontend_port_range_end": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 50000, 55000),
+									},
+									"network_security_group_rules": {
 										Type:     schema.TypeList,
 										Optional: true,
 										ForceNew: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"name": {
-													Type:         schema.TypeString,
+												"priority": {
+													Type:         schema.TypeInt,
 													Required:     true,
 													ForceNew:     true,
-													ValidateFunc: validate.NoEmptyStrings,
+													ValidateFunc: validation.IntAtLeast(150),
 												},
-												"protocol": {
+												"access": {
 													Type:     schema.TypeString,
 													Required: true,
 													ForceNew: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(batch.TCP),
-														string(batch.UDP),
+														string(batch.Allow),
+														string(batch.Deny),
 													}, false),
 												},
-												"backend_port": {
-													Type:         schema.TypeInt,
+												"source_address_prefix": {
+													Type:         schema.TypeString,
 													Required:     true,
 													ForceNew:     true,
-													ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 29876, 29877),
-													// 1 and 65535 except for 29876, 29877 as these are reserved.
-												},
-												"frontend_port_range_start": {
-													Type:         schema.TypeInt,
-													Required:     true,
-													ForceNew:     true,
-													ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 50000, 55000),
-												},
-												"frontend_port_range_end": {
-													Type:         schema.TypeInt,
-													Required:     true,
-													ForceNew:     true,
-													ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 50000, 55000),
-												},
-												"network_security_group_rules": {
-													Type:     schema.TypeList,
-													Optional: true,
-													ForceNew: true,
-													Elem: &schema.Resource{
-														Schema: map[string]*schema.Schema{
-															"priority": {
-																Type:         schema.TypeInt,
-																Required:     true,
-																ForceNew:     true,
-																ValidateFunc: validation.IntAtLeast(150),
-															},
-															"access": {
-																Type:     schema.TypeString,
-																Required: true,
-																ForceNew: true,
-																ValidateFunc: validation.StringInSlice([]string{
-																	string(batch.Allow),
-																	string(batch.Deny),
-																}, false),
-															},
-															"source_address_prefix": {
-																Type:         schema.TypeString,
-																Required:     true,
-																ForceNew:     true,
-																ValidateFunc: validate.NoEmptyStrings,
-															},
-														},
-													},
+													ValidateFunc: validate.NoEmptyStrings,
 												},
 											},
 										},

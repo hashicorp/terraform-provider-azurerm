@@ -276,17 +276,11 @@ A `network_configuration` block supports the following:
 
 * `subnet_id` - (Optional) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool will join. Changing this forces a new resource to be created.
 
-* `endpoint_configuration` - (Optional) The configuration for endpoints on compute nodes in the Batch pool. Set as documented in the endpoint_configuration block below. Changing this forces a new resource to be created.
+* `endpoint_configuration` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
 
 ---
 
 A `endpoint_configuration` block supports the following:
-
-* `inbound_nat_pools` - (Optional) A list of inbound NAT pools that can be used to address specific ports on an individual compute node externally. Set as documented in the inbound_nat_pools block below. Changing this forces a new resource to be created.
-
----
-
-A `inbound_nat_pools` block supports the following:
 
 * `name` - The name of the endpoint. The name must be unique within a Batch pool, can contain letters, numbers, underscores, periods, and hyphens. Names must start with a letter or number, must end with a letter, number, or underscore, and cannot exceed 77 characters. Changing this forces a new resource to be created.
 
@@ -315,3 +309,10 @@ A `network_security_group_rules` block supports the following:
 The following attributes are exported:
 
 * `id` - The Batch pool ID.
+
+
+## Import
+Batch pools can be imported using the `resource id`, e.g.
+```shell
+ terraform import azurerm_batch_pool.myBatchPool1 /subscriptions/00000000-0000-0000-0000-000000000000/myResourceGroups/myGroup1/providers/Microsoft.Batch/myBatchAccounts/myBatchAccount1/myBatchPools/myBatchPool1
+```
