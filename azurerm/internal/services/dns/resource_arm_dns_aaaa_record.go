@@ -2,6 +2,7 @@ package dns
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"time"
 
@@ -48,9 +49,14 @@ func resourceArmDnsAAAARecord() *schema.Resource {
 			},
 
 			"records": {
-				Type:          schema.TypeSet,
-				Optional:      true,
-				Elem:          &schema.Schema{Type: schema.TypeString},
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+						return ipv6AddressDiffSuppress(k, old, new, d)
+					},
+				},
 				Set:           schema.HashString,
 				ConflictsWith: []string{"target_resource_id"},
 			},
@@ -205,6 +211,13 @@ func resourceArmDnsAaaaRecordDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
+}
+
+func ipv6AddressDiffSuppress(_, old, new string, _ *schema.ResourceData) bool {
+	oldIp := net.ParseIP(old)
+	newIp := net.ParseIP(new)
+
+	return oldIp.Equal(newIp)
 }
 
 func expandAzureRmDnsAaaaRecords(input []interface{}) *[]dns.AaaaRecord {
