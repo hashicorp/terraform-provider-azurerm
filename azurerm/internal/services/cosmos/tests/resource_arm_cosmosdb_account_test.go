@@ -464,7 +464,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level       = "%s"
-    max_interval_in_seconds = %d"
+    max_interval_in_seconds = %d
     max_staleness_prefix    = %d
   }
 
@@ -602,7 +602,6 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func testAccAzureRMCosmosDBAccount_capabilities(data acceptance.TestData, kind documentdb.DatabaseAccountKind, capabilities []string) string {
-
 	capeTf := ""
 	for _, c := range capabilities {
 		capeTf = capeTf + fmt.Sprintf("capabilities {name = \"%s\"}\n", c)
