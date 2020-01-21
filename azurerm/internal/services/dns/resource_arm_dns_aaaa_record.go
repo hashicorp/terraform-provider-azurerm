@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -55,6 +56,7 @@ func resourceArmDnsAAAARecord() *schema.Resource {
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
 					DiffSuppressFunc: suppress.IPv6Compression,
+					ValidateFunc:     validate.IPv6Address,
 				},
 				Set:           schema.HashString,
 				ConflictsWith: []string{"target_resource_id"},
@@ -210,13 +212,6 @@ func resourceArmDnsAaaaRecordDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
-}
-
-func ipv6AddressDiffSuppress(_, old, new string, _ *schema.ResourceData) bool {
-	oldIp := net.ParseIP(old)
-	newIp := net.ParseIP(new)
-
-	return oldIp.Equal(newIp)
 }
 
 func expandAzureRmDnsAaaaRecords(input []interface{}) *[]dns.AaaaRecord {
