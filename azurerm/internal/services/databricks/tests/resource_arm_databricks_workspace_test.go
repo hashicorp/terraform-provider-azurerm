@@ -109,10 +109,7 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMDatabricksWorkspace_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_databricks_workspace"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMDatabricksWorkspace_requiresImport),
 		},
 	})
 }
@@ -132,22 +129,43 @@ func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_parameters.0.virtual_network_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_parameters.0.public_subnet_name", "public"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_parameters.0.private_subnet_name", "private"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "Production"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Pricing", "Standard"),
 				),
 			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMDatabricksWorkspace_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDatabricksWorkspace_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_parameters.0.virtual_network_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Environment", "Production"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Pricing", "Standard"),
+				),
+			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMDatabricksWorkspace_completeUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_parameters.0.virtual_network_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_parameters.0.public_subnet_name", "public"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_parameters.0.private_subnet_name", "private"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Pricing", "Standard"),
 				),
@@ -214,12 +232,12 @@ func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
 func testAccAzureRMDatabricksWorkspace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-db-%d"
   location = "%s"
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                = "acctestdbw-%d"
+  name                = "acctestDBW-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "standard"
@@ -244,19 +262,20 @@ resource "azurerm_databricks_workspace" "import" {
 func testAccAzureRMDatabricksWorkspace_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-db-%[1]d"
+
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "test"
+  name                = "acctest-vnet-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "public" {
-  name                 = "public"
+  name                 = "acctest-sn-public-%[1]d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.1.0/24"
@@ -281,7 +300,7 @@ resource "azurerm_subnet" "public" {
 }
 
 resource "azurerm_subnet" "private" {
-  name                 = "private"
+  name                 = "acctest-sn-private-%[1]d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
@@ -306,7 +325,7 @@ resource "azurerm_subnet" "private" {
 }
 
 resource "azurerm_network_security_group" "nsg" {
-  name                = "private-nsg"
+  name                = "acctest-nsg-private-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
@@ -322,13 +341,14 @@ resource "azurerm_subnet_network_security_group_association" "private" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                        = "acctestdbw-%d"
+  name                        = "acctestDBW-%[1]d"
   resource_group_name         = "${azurerm_resource_group.test.name}"
   location                    = "${azurerm_resource_group.test.location}"
   sku                         = "standard"
-  managed_resource_group_name = "acctestRG-%d-managed"
+  managed_resource_group_name = "acctestRG-db-%[1]d-managed"
 
   custom_parameters {
+    no_public_ip        = true
     public_subnet_name  = "${azurerm_subnet.public.name}"
     private_subnet_name = "${azurerm_subnet.private.name}"
     virtual_network_id  = "${azurerm_virtual_network.test.id}"
@@ -339,25 +359,29 @@ resource "azurerm_databricks_workspace" "test" {
     Pricing     = "Standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMDatabricksWorkspace_completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-db-%d"
   location = "%s"
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                        = "acctestdbw-%d"
+  name                        = "acctestDBW-%d"
   resource_group_name         = "${azurerm_resource_group.test.name}"
   location                    = "${azurerm_resource_group.test.location}"
   sku                         = "standard"
-  managed_resource_group_name = "acctestRG-%d-managed"
+  managed_resource_group_name = "acctestRG-DBW-%d-managed"
 
   tags = {
     Pricing = "Standard"
+  }
+
+  custom_parameters {
+    no_public_ip        = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

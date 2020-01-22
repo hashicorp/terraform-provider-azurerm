@@ -76,20 +76,29 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"no_public_ip": {
+							Type:     schema.TypeBool,
+							ForceNew: true,
+							Optional: true,
+						},
+
 						"public_subnet_name": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
+
 						"private_subnet_name": {
 							Type:     schema.TypeString,
 							ForceNew: true,
 							Optional: true,
 						},
+
 						"virtual_network_id": {
-							Type:     schema.TypeString,
-							ForceNew: true,
-							Optional: true,
+							Type:         schema.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 					},
 				},
@@ -259,21 +268,28 @@ func flattenWorkspaceCustomParameters(p *databricks.WorkspaceCustomParameters) [
 	}
 
 	parameters := make(map[string]interface{})
-	if privateSubnet := p.CustomPrivateSubnetName; privateSubnet != nil {
-		if privateSubnet.Value != nil {
-			parameters["private_subnet_name"] = *privateSubnet.Value
+
+	if v := p.EnableNoPublicIP; v != nil {
+		if v.Value != nil {
+			parameters["no_public_ip"] = *v.Value
 		}
 	}
 
-	if publicSubnet := p.CustomPublicSubnetName; publicSubnet != nil {
-		if publicSubnet.Value != nil {
-			parameters["public_subnet_name"] = *publicSubnet.Value
+	if v := p.CustomPrivateSubnetName; v != nil {
+		if v.Value != nil {
+			parameters["private_subnet_name"] = *v.Value
 		}
 	}
 
-	if vnetID := p.CustomVirtualNetworkID; vnetID != nil {
-		if vnetID.Value != nil {
-			parameters["virtual_network_id"] = *vnetID.Value
+	if v := p.CustomPublicSubnetName; v != nil {
+		if v.Value != nil {
+			parameters["public_subnet_name"] = *v.Value
+		}
+	}
+
+	if v := p.CustomVirtualNetworkID; v != nil {
+		if v.Value != nil {
+			parameters["virtual_network_id"] = *v.Value
 		}
 	}
 
@@ -287,6 +303,12 @@ func expandWorkspaceCustomParameters(d *schema.ResourceData) *databricks.Workspa
 	}
 	config := configList.([]interface{})[0].(map[string]interface{})
 	parameters := databricks.WorkspaceCustomParameters{}
+
+	if v, ok := config["no_public_ip"].(bool); ok {
+		parameters.EnableNoPublicIP = &databricks.WorkspaceCustomBooleanParameter{
+			Value: &v,
+		}
+	}
 
 	if v := config["public_subnet_name"].(string); v != "" {
 		parameters.CustomPublicSubnetName = &databricks.WorkspaceCustomStringParameter{
