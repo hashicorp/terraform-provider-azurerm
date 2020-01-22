@@ -120,6 +120,9 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_requiresImport(t *testing.T
 
 func testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.InputsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -130,8 +133,6 @@ func testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName string
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.InputsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on streamAnalyticsInputsClient: %+v", err)
@@ -147,6 +148,7 @@ func testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName string
 
 func testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).StreamAnalytics.InputsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_reference_input_blob" {
@@ -156,7 +158,6 @@ func testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy(s *terraform.State
 		name := rs.Primary.Attributes["name"]
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			return nil
@@ -176,15 +177,15 @@ func testAccAzureRMStreamAnalyticsReferenceInputBlob_avro(data acceptance.TestDa
 %s
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.test.name}"
-  storage_account_key          = "${azurerm_storage_account.test.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.test.name}"
-  path_pattern                 = "some-random-pattern"
-  date_format                  = "yyyy/MM/dd"
-  time_format                  = "HH"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.test.name}"
+  storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.test.name}"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
+  time_format               = "HH"
 
   serialization {
     type = "Avro"
@@ -199,15 +200,15 @@ func testAccAzureRMStreamAnalyticsReferenceInputBlob_csv(data acceptance.TestDat
 %s
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.test.name}"
-  storage_account_key          = "${azurerm_storage_account.test.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.test.name}"
-  path_pattern                 = "some-random-pattern"
-  date_format                  = "yyyy/MM/dd"
-  time_format                  = "HH"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.test.name}"
+  storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.test.name}"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
+  time_format               = "HH"
 
   serialization {
     type            = "Csv"
@@ -224,15 +225,15 @@ func testAccAzureRMStreamAnalyticsReferenceInputBlob_json(data acceptance.TestDa
 %s
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.test.name}"
-  storage_account_key          = "${azurerm_storage_account.test.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.test.name}"
-  path_pattern                 = "some-random-pattern"
-  date_format                  = "yyyy/MM/dd"
-  time_format                  = "HH"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.test.name}"
+  storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.test.name}"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
+  time_format               = "HH"
 
   serialization {
     type     = "Json"
@@ -250,7 +251,7 @@ func testAccAzureRMStreamAnalyticsReferenceInputBlob_updated(data acceptance.Tes
 resource "azurerm_storage_account" "updated" {
   name                     = "acctestsa2%s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  data.Locations.Primary                 = "${azurerm_resource_group.test.data.Locations.Primary}"
+  location                 = "${azurerm_resource_group.test.data.Locations.Primary}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -263,15 +264,15 @@ resource "azurerm_storage_container" "updated" {
 }
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.updated.name}"
-  storage_account_key          = "${azurerm_storage_account.updated.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.updated.name}"
-  path_pattern                 = "some-other-pattern"
-  date_format                  = "yyyy-MM-dd"
-  time_format                  = "HH"
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
+  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.updated.name}"
+  storage_account_key       = "${azurerm_storage_account.updated.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.updated.name}"
+  path_pattern              = "some-other-pattern"
+  date_format               = "yyyy-MM-dd"
+  time_format               = "HH"
 
   serialization {
     type = "Avro"
@@ -304,13 +305,13 @@ func testAccAzureRMStreamAnalyticsReferenceInputBlob_template(data acceptance.Te
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  data.Locations.Primary = "%s"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  data.Locations.Primary                 = "${azurerm_resource_group.test.data.Locations.Primary}"
+  location                 = "${azurerm_resource_group.test.data.Locations.Primary}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -325,7 +326,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
   resource_group_name                      = "${azurerm_resource_group.test.name}"
-  data.Locations.Primary                                 = "${azurerm_resource_group.test.data.Locations.Primary}"
+  location                                 = "${azurerm_resource_group.test.data.Locations.Primary}"
   compatibility_level                      = "1.0"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60

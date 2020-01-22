@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit"
-sidebar_current: "docs-azurerm-datasource-express-route-circuit"
 description: |-
   Gets information about an existing ExpressRoute circuit.
 ---
@@ -70,5 +69,5 @@ output "service_key" {
 
 `sku` supports the following:
 
-* `tier` - The service tier. Possible values are `Standard` or `Premium`.
+* `tier` - The service tier. Possible values are `Basic`, `Local`, `Standard` or `Premium`.
 * `family` - The billing mode for bandwidth. Possible values are `MeteredData` or `UnlimitedData`.

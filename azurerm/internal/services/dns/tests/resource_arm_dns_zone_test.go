@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMDnsZone_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
-	config := testAccAzureRMDnsZone_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMDnsZone_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDnsZone_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsZoneExists(data.ResourceName),
 				),
@@ -61,7 +60,6 @@ func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
-	config := testAccAzureRMDnsZone_withVNets(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,7 +67,7 @@ func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMDnsZone_withVNets(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsZoneExists(data.ResourceName),
 				),
@@ -81,8 +79,6 @@ func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
 
 func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
-	preConfig := testAccAzureRMDnsZone_withTags(data)
-	postConfig := testAccAzureRMDnsZone_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -90,14 +86,14 @@ func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMDnsZone_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsZoneExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMDnsZone_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsZoneExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -110,6 +106,9 @@ func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 
 func testCheckAzureRMDnsZoneExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Dns.ZonesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -122,8 +121,6 @@ func testCheckAzureRMDnsZoneExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for DNS zone: %s", zoneName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Dns.ZonesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, zoneName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get DNS zone: %+v", err)

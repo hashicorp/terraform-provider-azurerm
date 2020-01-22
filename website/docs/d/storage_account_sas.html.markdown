@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account_sas"
-sidebar_current: "docs-azurerm-datasource-storage-account-sas"
 description: |-
   Gets a Shared Access Signature (SAS Token) for an existing Storage Account.
 

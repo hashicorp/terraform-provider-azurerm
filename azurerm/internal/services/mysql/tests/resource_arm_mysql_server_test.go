@@ -31,6 +31,25 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySQLServer_basicFiveSixOldSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySQLServer_basicFiveSixOldSku(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
+		},
+	})
+}
+
 func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -65,7 +84,6 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	config := testAccAzureRMMySQLServer_basicFiveSeven(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -73,7 +91,7 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_basicFiveSeven(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
@@ -104,7 +122,6 @@ func TestAccAzureRMMySQLServer_basicEightZero(t *testing.T) {
 
 func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	config := testAccAzureRMMySQLServer_generalPurpose(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -112,7 +129,7 @@ func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_generalPurpose(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
@@ -124,7 +141,6 @@ func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 
 func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	config := testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -132,7 +148,7 @@ func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
@@ -143,8 +159,6 @@ func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 
 func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	config := testAccAzureRMMySQLServer_basicFiveSeven(data)
-	updatedConfig := testAccAzureRMMySQLServer_basicFiveSevenUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -152,7 +166,7 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_basicFiveSeven(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_2"),
@@ -162,7 +176,7 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMMySQLServer_basicFiveSevenUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_4"),
@@ -178,8 +192,6 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 
 func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	config := testAccAzureRMMySQLServer_generalPurpose(data)
-	updatedConfig := testAccAzureRMMySQLServer_memoryOptimized(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -187,7 +199,7 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_generalPurpose(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_32"),
@@ -199,7 +211,7 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMMySQLServer_memoryOptimized(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "MO_Gen5_16"),
@@ -216,8 +228,6 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 
 func TestAccAzureRMMySQLServer_storageAutogrow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
-	config := testAccAzureRMMySQLServer_basicFiveSeven(data)
-	updatedConfig := testAccAzureRMMySQLServer_autogrow(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -225,14 +235,14 @@ func TestAccAzureRMMySQLServer_storageAutogrow(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMySQLServer_basicFiveSeven(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Enabled"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMMySQLServer_autogrow(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.auto_grow", "Disabled"),
@@ -246,6 +256,9 @@ func TestAccAzureRMMySQLServer_storageAutogrow(t *testing.T) {
 
 func testCheckAzureRMMySQLServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ServersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -257,9 +270,6 @@ func testCheckAzureRMMySQLServerExists(resourceName string) resource.TestCheckFu
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Server: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.ServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -311,6 +321,34 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
+  sku_name = "GP_Gen5_2"
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "5.6"
+  ssl_enforcement              = "Enabled"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMMySQLServer_basicFiveSixOldSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                = "acctestmysqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     name     = "GP_Gen5_2"
     capacity = 2
@@ -344,12 +382,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -377,12 +410,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -405,14 +433,9 @@ func testAccAzureRMMySQLServer_requiresImport(data acceptance.TestData) string {
 resource "azurerm_mysql_server" "import" {
   name                = "${azurerm_mysql_server.test.name}"
   location            = "${azurerm_mysql_server.test.location}"
-  resource_group_name = "${azurerm_mysql_server.test.name}"
+  resource_group_name = "${azurerm_mysql_server.test.resource_group_name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -440,12 +463,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_4"
-    capacity = 4
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_4"
 
   storage_profile {
     storage_mb            = 640000
@@ -506,12 +524,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "MO_Gen5_16"
-    capacity = 16
-    tier     = "MemoryOptimized"
-    family   = "Gen5"
-  }
+  sku_name = "MO_Gen5_16"
 
   storage_profile {
     storage_mb            = 4194304
@@ -539,12 +552,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "MO_Gen5_16"
-    capacity = 16
-    tier     = "MemoryOptimized"
-    family   = "Gen5"
-  }
+  sku_name = "MO_Gen5_16"
 
   storage_profile {
     storage_mb            = 4194304
@@ -572,12 +580,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200

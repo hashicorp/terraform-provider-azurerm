@@ -2,7 +2,6 @@
 subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_endpoint"
-sidebar_current: "docs-azurerm-resource-cdn-endpoint"
 description: |-
   Manages a CDN Endpoint.
 

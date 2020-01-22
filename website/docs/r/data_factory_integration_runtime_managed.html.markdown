@@ -2,7 +2,6 @@
 subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_integration_runtime_managed"
-sidebar_current: "docs-azurerm_data_factory_integration_runtime_managed"
 description: |-
   Manages an Azure Data Factory Managed Integration Runtime.
 ---
@@ -15,7 +14,7 @@ Manages an Azure Data Factory Managed Integration Runtime.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

@@ -83,6 +83,9 @@ func TestAccAzureRMDevTestPolicy_complete(t *testing.T) {
 
 func testCheckAzureRMDevTestPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.PoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -93,9 +96,6 @@ func testCheckAzureRMDevTestPolicyExists(resourceName string) resource.TestCheck
 		policySetName := rs.Primary.Attributes["policy_set_name"]
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.PoliciesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, labName, policySetName, policyName, "")
 		if err != nil {

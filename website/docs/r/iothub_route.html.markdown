@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_route"
-sidebar_current: "docs-azurerm-resource-messaging-iothub-route-x"
 description: |-
   Manages an IotHub Route
 ---
@@ -17,7 +16,7 @@ Manages an IotHub Route
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "West US"
 }
 
@@ -43,7 +42,6 @@ resource "azurerm_iothub" "example" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 

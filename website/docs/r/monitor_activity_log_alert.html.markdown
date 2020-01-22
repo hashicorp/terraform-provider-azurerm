@@ -2,7 +2,6 @@
 subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_activity_log_alert"
-sidebar_current: "docs-azurerm-resource-monitor-activity-log-alert"
 description: |-
   Manages an Activity Log Alert within Azure Monitor
 ---

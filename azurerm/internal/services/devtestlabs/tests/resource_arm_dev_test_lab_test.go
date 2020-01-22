@@ -84,6 +84,9 @@ func TestAccAzureRMDevTestLab_complete(t *testing.T) {
 
 func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -96,8 +99,6 @@ func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for DevTest Lab: %s", labName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, labName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get devTestLabsClient: %+v", err)

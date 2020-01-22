@@ -2,7 +2,6 @@
 subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_interactive_query_cluster"
-sidebar_current: "docs-azurerm-resource-hdinsight-interactive-query-cluster"
 description: |-
   Manages a HDInsight Interactive Query Cluster.
 ---

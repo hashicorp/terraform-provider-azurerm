@@ -108,6 +108,7 @@ func testCheckAzureRMIotHubConsumerGroupDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotHubConsumerGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -120,7 +121,6 @@ func testCheckAzureRMIotHubConsumerGroupExists(resourceName string) resource.Tes
 		endpointName := rs.Primary.Attributes["eventhub_endpoint_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		resp, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

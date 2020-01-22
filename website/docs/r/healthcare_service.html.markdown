@@ -2,7 +2,6 @@
 subcategory: "Healthcare"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_healthcare_service"
-sidebar_current: "docs-azurerm-resource-healthcare-service-x"
 description: |-
   Manages a Healthcare Service.
 ---

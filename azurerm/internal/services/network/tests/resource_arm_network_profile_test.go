@@ -111,6 +111,9 @@ func TestAccAzureRMNetworkProfile_disappears(t *testing.T) {
 
 func testCheckAzureRMNetworkProfileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -123,8 +126,6 @@ func testCheckAzureRMNetworkProfileExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Network Profile: %q", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -140,6 +141,9 @@ func testCheckAzureRMNetworkProfileExists(resourceName string) resource.TestChec
 
 func testCheckAzureRMNetworkProfileDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -152,8 +156,6 @@ func testCheckAzureRMNetworkProfileDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Network Profile: %q", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ProfileClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		if _, err := client.Delete(ctx, resourceGroup, name); err != nil {
 			return fmt.Errorf("Bad: Delete on netProfileClient: %+v", err)
 		}

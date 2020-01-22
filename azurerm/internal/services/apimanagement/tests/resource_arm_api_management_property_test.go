@@ -13,7 +13,6 @@ import (
 
 func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
-	config := testAccAzureRMAPIManagementProperty_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -21,7 +20,7 @@ func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementPropertyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAPIManagementProperty_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty%d", data.RandomInteger)),
@@ -37,8 +36,6 @@ func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 
 func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
-	config := testAccAzureRMAPIManagementProperty_basic(data)
-	config2 := testAccAzureRMAPIManagementProperty_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -46,7 +43,7 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementPropertyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAPIManagementProperty_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty%d", data.RandomInteger)),
@@ -56,7 +53,7 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 				),
 			},
 			{
-				Config: config2,
+				Config: testAccAzureRMAPIManagementProperty_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty2%d", data.RandomInteger)),
@@ -73,6 +70,8 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 
 func testCheckAzureRMAPIManagementPropertyDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.PropertyClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_property" {
 			continue
@@ -82,7 +81,6 @@ func testCheckAzureRMAPIManagementPropertyDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 
 		if err != nil {
@@ -98,6 +96,9 @@ func testCheckAzureRMAPIManagementPropertyDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.PropertyClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -107,8 +108,6 @@ func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.T
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.PropertyClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

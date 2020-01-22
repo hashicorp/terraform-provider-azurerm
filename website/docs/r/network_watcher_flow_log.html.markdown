@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_watcher_flow_log"
-sidebar_current: "docs-azurerm-resource-network-watcher-flow-log"
 description: |-
   Manages a Network Watcher Flow Log.
 
@@ -16,7 +15,7 @@ Manages a Network Watcher Flow Log.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "eastus"
 }
 
@@ -27,9 +26,9 @@ resource "azurerm_network_security_group" "test" {
 }
 
 resource "azurerm_network_watcher" "test" {
-    name                = "acctestnw"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestnw"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -56,7 +55,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
   network_security_group_id = "${azurerm_network_security_group.test.id}"
   storage_account_id        = "${azurerm_storage_account.test.id}"
   enabled                   = true
-  
+
   retention_policy {
     enabled = true
     days    = 7
@@ -88,6 +87,8 @@ The following arguments are supported:
 * `retention_policy` - (Required) A `retention_policy` block as documented below.
 
 * `traffic_analytics` - (Optional) A `traffic_analytics` block as documented below.
+
+* `version` - (Optional) The version (revision) of the flow log. Possible values are `1` and `2`.
 
 ---
 

@@ -161,7 +161,7 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
   partner_namespace_id = "${azurerm_eventhub_namespace.testb.id}"
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
 func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(data acceptance.TestData) string {
@@ -186,7 +186,7 @@ resource "azurerm_eventhub_namespace" "testb" {
 }
 
 resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
-  name                 = "${azurerm_eventhub_namespace.testa.name}"
+  name                 = "${azurerm_eventhub_namespace.testa.name}-111"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   namespace_name       = "${azurerm_eventhub_namespace.testa.name}"
   partner_namespace_id = "${azurerm_eventhub_namespace.testb.id}"
@@ -231,7 +231,7 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
   partner_namespace_id = "${azurerm_eventhub_namespace.testc.id}"
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
 func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated_removed(data acceptance.TestData) string {
@@ -261,5 +261,5 @@ resource "azurerm_eventhub_namespace" "testc" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

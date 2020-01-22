@@ -2,7 +2,6 @@
 subcategory: "Private DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_dns_cname_record"
-sidebar_current: "docs-azurerm-resource-private-dns-cname-record"
 description: |-
   Manages a Private DNS CNAME Record.
 ---

@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-	config := testAccAzureRMVirtualNetworkGateway_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkGateway_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Basic"),
@@ -137,7 +136,6 @@ func TestAccAzureRMVirtualNetworkGateway_standard(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_vpnGw2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-	config := testAccAzureRMVirtualNetworkGateway_sku(data, "VpnGw2")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -145,7 +143,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw2(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkGateway_sku(data, "VpnGw2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "VpnGw2"),
@@ -157,7 +155,6 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw2(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_vpnGw3(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-	config := testAccAzureRMVirtualNetworkGateway_sku(data, "VpnGw3")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -165,7 +162,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw3(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkGateway_sku(data, "VpnGw3"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "VpnGw3"),
@@ -177,7 +174,6 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw3(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_generation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-	config := testAccAzureRMVirtualNetworkGateway_generation(data, "Generation2")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -185,7 +181,7 @@ func TestAccAzureRMVirtualNetworkGateway_generation(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkGateway_generation(data, "Generation2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "generation", "Generation2"),
@@ -197,7 +193,6 @@ func TestAccAzureRMVirtualNetworkGateway_generation(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-	config := testAccAzureRMVirtualNetworkGateway_vpnClientConfig(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -205,7 +200,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkGateway_vpnClientConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.radius_server_address", "1.2.3.4"),
@@ -218,7 +213,6 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-	config := testAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -226,7 +220,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.vpn_client_protocols.#", "1"),
@@ -238,7 +232,6 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_enableBgp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-	config := testAccAzureRMVirtualNetworkGateway_enableBgp(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -246,7 +239,7 @@ func TestAccAzureRMVirtualNetworkGateway_enableBgp(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkGateway_enableBgp(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_bgp", "true"),
@@ -259,7 +252,6 @@ func TestAccAzureRMVirtualNetworkGateway_enableBgp(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_expressRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-	config := testAccAzureRMVirtualNetworkGateway_expressRoute(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -267,7 +259,7 @@ func TestAccAzureRMVirtualNetworkGateway_expressRoute(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetworkGateway_expressRoute(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "type", "ExpressRoute"),
@@ -280,6 +272,9 @@ func TestAccAzureRMVirtualNetworkGateway_expressRoute(t *testing.T) {
 
 func testCheckAzureRMVirtualNetworkGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetGatewayClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -287,9 +282,6 @@ func testCheckAzureRMVirtualNetworkGatewayExists(resourceName string) resource.T
 
 		gatewayName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetGatewayClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {

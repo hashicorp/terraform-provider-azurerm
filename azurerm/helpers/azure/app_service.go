@@ -1249,7 +1249,7 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 	configs := input.([]interface{})
 	logs := web.SiteLogsConfigProperties{}
 
-	if len(configs) == 0 {
+	if len(configs) == 0 || configs[0] == nil {
 		return logs
 	}
 

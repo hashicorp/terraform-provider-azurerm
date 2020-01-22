@@ -2,7 +2,6 @@
 subcategory: "Template"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_template_deployment"
-sidebar_current: "docs-azurerm-resource-template-deployment"
 description: |-
   Manages a template deployment of resources.
 ---
@@ -21,7 +20,7 @@ One workaround for this is to use a unique Resource Group for each ARM Template 
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG-01"
+  name     = "example-resources"
   location = "West US"
 }
 

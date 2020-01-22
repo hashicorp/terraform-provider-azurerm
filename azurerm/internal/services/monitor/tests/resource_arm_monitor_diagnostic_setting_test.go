@@ -142,14 +142,15 @@ func TestAccAzureRMMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 
 func testCheckAzureRMMonitorDiagnosticSettingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.DiagnosticSettingsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.DiagnosticSettingsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		name := rs.Primary.Attributes["name"]
 		actualResourceId := rs.Primary.Attributes["target_resource_id"]
 		targetResourceId := strings.TrimPrefix(actualResourceId, "/")
@@ -198,19 +199,19 @@ func testAccAzureRMMonitorDiagnosticSetting_eventhub(data acceptance.TestData) s
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
+  name                = "acctest-EHN-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Basic"
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
+  name                = "acctest-EH-%[1]d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   partition_count     = 2
@@ -227,18 +228,15 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%d"
+  name                = "acctest%[3]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  sku {
-    name = "standard"
-  }
+  sku_name            = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                           = "acctestds%d"
+  name                           = "acctest-DS-%[1]d"
   target_resource_id             = "${azurerm_key_vault.test.id}"
   eventhub_authorization_rule_id = "${azurerm_eventhub_namespace_authorization_rule.test.id}"
   eventhub_name                  = "${azurerm_eventhub.test.name}"
@@ -260,7 +258,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
 func testAccAzureRMMonitorDiagnosticSetting_requiresImport(data acceptance.TestData) string {
@@ -299,12 +297,12 @@ func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(data acceptanc
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestlaw%d"
+  name                = "acctest-LAW-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
@@ -312,18 +310,15 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%d"
+  name                = "acctest%[3]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  sku {
-    name = "standard"
-  }
+  sku_name            = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                       = "acctestds%d"
+  name                       = "acctest-DS-%[1]d"
   target_resource_id         = "${azurerm_key_vault.test.id}"
   log_analytics_workspace_id = "${azurerm_log_analytics_workspace.test.id}"
 
@@ -344,7 +339,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
 func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data acceptance.TestData) string {
@@ -352,12 +347,12 @@ func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestlaw%d"
+  name                = "acctest-LAW-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
@@ -365,13 +360,13 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
+  name                = "acctest-DF-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                       = "acctestds%d"
+  name                       = "acctest-DS-%[1]d"
   target_resource_id         = "${azurerm_data_factory.test.id}"
   log_analytics_workspace_id = "${azurerm_log_analytics_workspace.test.id}"
 
@@ -412,7 +407,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMMonitorDiagnosticSetting_storageAccount(data acceptance.TestData) string {
@@ -420,12 +415,12 @@ func testAccAzureRMMonitorDiagnosticSetting_storageAccount(data acceptance.TestD
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestlogs%d"
+  name                     = "acctest%[3]d"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_replication_type = "LRS"
@@ -433,18 +428,15 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkv%d"
+  name                = "acctest%[3]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  sku {
-    name = "standard"
-  }
+  sku_name            = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name               = "acctestds%d"
+  name               = "acctest-DS-%[1]d"
   target_resource_id = "${azurerm_key_vault.test.id}"
   storage_account_id = "${azurerm_storage_account.test.id}"
 
@@ -465,5 +457,5 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }

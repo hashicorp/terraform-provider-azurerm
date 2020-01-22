@@ -154,6 +154,9 @@ func testCheckAzureRMAutomationAccountDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAutomationAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.AccountClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -165,9 +168,6 @@ func testCheckAzureRMAutomationAccountExists(resourceName string) resource.TestC
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Automation Account: '%s'", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.AccountClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 

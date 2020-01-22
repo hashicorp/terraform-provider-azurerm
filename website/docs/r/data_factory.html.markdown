@@ -2,7 +2,6 @@
 subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory"
-sidebar_current: "docs-azurerm-resource-data-factory-x"
 description: |-
   Manages an Azure Data Factory (Version 2).
 ---
@@ -15,7 +14,7 @@ Manages an Azure Data Factory (Version 2).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

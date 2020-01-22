@@ -54,6 +54,10 @@ resource "azurerm_batch_pool" "fixed" {
       }
     }
   }
+  
+  metadata ={
+    "tagName"= "Example tag"
+  }
 }
 
 resource "azurerm_batch_pool" "autopool" {

@@ -1,7 +1,6 @@
 ---
 layout: "azurerm"
 page_title: "Azure Provider: Migrating to a renamed resource"
-sidebar_current: "docs-azurerm-migrating-to-a-renamed-resource"
 description: |-
     This page documents how to migrate between two resources in the Azure Provider which have been renamed.
 

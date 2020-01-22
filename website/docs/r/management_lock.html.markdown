@@ -2,7 +2,6 @@
 subcategory: "Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_management_lock"
-sidebar_current: "docs-azurerm-resource-management-lock"
 description: |-
   Manages a Management Lock which is scoped to a Subscription, Resource Group or Resource.
 

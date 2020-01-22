@@ -2,7 +2,6 @@
 subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_mongo_database"
-sidebar_current: "docs-azurerm-resource-cosmosdb-mongo-database"
 description: |-
   Manages a Mongo Database within a Cosmos DB Account.
 ---

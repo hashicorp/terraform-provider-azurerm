@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_data_lake_gen2_filesystem"
-sidebar_current: "docs-azurerm-resource-storage-data-lake-gen2-filesystem"
 description: |-
   Manages a Data Lake Gen2 File System within an Azure Storage Account.
 ---

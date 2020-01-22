@@ -2,7 +2,6 @@
 subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_stream_input_iothub"
-sidebar_current: "docs-azurerm-resource-stream-analytics-stream-input-iothub"
 description: |-
   Manages a Stream Analytics Stream Input IoTHub.
 ---
@@ -30,7 +29,6 @@ resource "azurerm_iothub" "example" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }

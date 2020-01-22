@@ -177,6 +177,9 @@ func testCheckAzureRMApiManagementApiOperationDestroy(s *terraform.State) error 
 
 func testCheckAzureRMApiManagementApiOperationExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -187,9 +190,6 @@ func testCheckAzureRMApiManagementApiOperationExists(name string) resource.TestC
 		apiName := rs.Primary.Attributes["api_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationId)
 		if err != nil {

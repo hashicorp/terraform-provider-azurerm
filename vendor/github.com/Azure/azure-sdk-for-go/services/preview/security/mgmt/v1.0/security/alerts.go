@@ -746,15 +746,14 @@ func (client AlertsClient) ListSubscriptionLevelAlertsByRegionComplete(ctx conte
 	return
 }
 
-// UpdateResourceGroupLevelAlertState update the alert's state
+// UpdateResourceGroupLevelAlertStateToDismiss update the alert's state
 // Parameters:
 // alertName - name of the alert object
-// alertUpdateActionType - type of the action to do on the alert
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
-func (client AlertsClient) UpdateResourceGroupLevelAlertState(ctx context.Context, alertName string, alertUpdateActionType string, resourceGroupName string) (result autorest.Response, err error) {
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismiss(ctx context.Context, alertName string, resourceGroupName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateResourceGroupLevelAlertState")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateResourceGroupLevelAlertStateToDismiss")
 		defer func() {
 			sc := -1
 			if result.Response != nil {
@@ -770,38 +769,37 @@ func (client AlertsClient) UpdateResourceGroupLevelAlertState(ctx context.Contex
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AlertsClient", "UpdateResourceGroupLevelAlertState", err.Error())
+		return result, validation.NewError("security.AlertsClient", "UpdateResourceGroupLevelAlertStateToDismiss", err.Error())
 	}
 
-	req, err := client.UpdateResourceGroupLevelAlertStatePreparer(ctx, alertName, alertUpdateActionType, resourceGroupName)
+	req, err := client.UpdateResourceGroupLevelAlertStateToDismissPreparer(ctx, alertName, resourceGroupName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertState", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToDismiss", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.UpdateResourceGroupLevelAlertStateSender(req)
+	resp, err := client.UpdateResourceGroupLevelAlertStateToDismissSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertState", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToDismiss", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.UpdateResourceGroupLevelAlertStateResponder(resp)
+	result, err = client.UpdateResourceGroupLevelAlertStateToDismissResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertState", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToDismiss", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// UpdateResourceGroupLevelAlertStatePreparer prepares the UpdateResourceGroupLevelAlertState request.
-func (client AlertsClient) UpdateResourceGroupLevelAlertStatePreparer(ctx context.Context, alertName string, alertUpdateActionType string, resourceGroupName string) (*http.Request, error) {
+// UpdateResourceGroupLevelAlertStateToDismissPreparer prepares the UpdateResourceGroupLevelAlertStateToDismiss request.
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismissPreparer(ctx context.Context, alertName string, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"alertName":             autorest.Encode("path", alertName),
-		"alertUpdateActionType": autorest.Encode("path", alertUpdateActionType),
-		"ascLocation":           autorest.Encode("path", client.AscLocation),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
-		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+		"alertName":         autorest.Encode("path", alertName),
+		"ascLocation":       autorest.Encode("path", client.AscLocation),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
 	const APIVersion = "2015-06-01-preview"
@@ -812,21 +810,21 @@ func (client AlertsClient) UpdateResourceGroupLevelAlertStatePreparer(ctx contex
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/locations/{ascLocation}/alerts/{alertName}/{alertUpdateActionType}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/locations/{ascLocation}/alerts/{alertName}/dismiss", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// UpdateResourceGroupLevelAlertStateSender sends the UpdateResourceGroupLevelAlertState request. The method will close the
+// UpdateResourceGroupLevelAlertStateToDismissSender sends the UpdateResourceGroupLevelAlertStateToDismiss request. The method will close the
 // http.Response Body if it receives an error.
-func (client AlertsClient) UpdateResourceGroupLevelAlertStateSender(req *http.Request) (*http.Response, error) {
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismissSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
-// UpdateResourceGroupLevelAlertStateResponder handles the response to the UpdateResourceGroupLevelAlertState request. The method always
+// UpdateResourceGroupLevelAlertStateToDismissResponder handles the response to the UpdateResourceGroupLevelAlertStateToDismiss request. The method always
 // closes the http.Response Body.
-func (client AlertsClient) UpdateResourceGroupLevelAlertStateResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismissResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -836,13 +834,100 @@ func (client AlertsClient) UpdateResourceGroupLevelAlertStateResponder(resp *htt
 	return
 }
 
-// UpdateSubscriptionLevelAlertState update the alert's state
+// UpdateResourceGroupLevelAlertStateToReactivate update the alert's state
 // Parameters:
 // alertName - name of the alert object
-// alertUpdateActionType - type of the action to do on the alert
-func (client AlertsClient) UpdateSubscriptionLevelAlertState(ctx context.Context, alertName string, alertUpdateActionType string) (result autorest.Response, err error) {
+// resourceGroupName - the name of the resource group within the user's subscription. The name is case
+// insensitive.
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivate(ctx context.Context, alertName string, resourceGroupName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateSubscriptionLevelAlertState")
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateResourceGroupLevelAlertStateToReactivate")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("security.AlertsClient", "UpdateResourceGroupLevelAlertStateToReactivate", err.Error())
+	}
+
+	req, err := client.UpdateResourceGroupLevelAlertStateToReactivatePreparer(ctx, alertName, resourceGroupName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToReactivate", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateResourceGroupLevelAlertStateToReactivateSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToReactivate", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateResourceGroupLevelAlertStateToReactivateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateResourceGroupLevelAlertStateToReactivate", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// UpdateResourceGroupLevelAlertStateToReactivatePreparer prepares the UpdateResourceGroupLevelAlertStateToReactivate request.
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivatePreparer(ctx context.Context, alertName string, resourceGroupName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"alertName":         autorest.Encode("path", alertName),
+		"ascLocation":       autorest.Encode("path", client.AscLocation),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2015-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/locations/{ascLocation}/alerts/{alertName}/reactivate", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateResourceGroupLevelAlertStateToReactivateSender sends the UpdateResourceGroupLevelAlertStateToReactivate request. The method will close the
+// http.Response Body if it receives an error.
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivateSender(req *http.Request) (*http.Response, error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
+}
+
+// UpdateResourceGroupLevelAlertStateToReactivateResponder handles the response to the UpdateResourceGroupLevelAlertStateToReactivate request. The method always
+// closes the http.Response Body.
+func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivateResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// UpdateSubscriptionLevelAlertStateToDismiss update the alert's state
+// Parameters:
+// alertName - name of the alert object
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismiss(ctx context.Context, alertName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateSubscriptionLevelAlertStateToDismiss")
 		defer func() {
 			sc := -1
 			if result.Response != nil {
@@ -854,37 +939,36 @@ func (client AlertsClient) UpdateSubscriptionLevelAlertState(ctx context.Context
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AlertsClient", "UpdateSubscriptionLevelAlertState", err.Error())
+		return result, validation.NewError("security.AlertsClient", "UpdateSubscriptionLevelAlertStateToDismiss", err.Error())
 	}
 
-	req, err := client.UpdateSubscriptionLevelAlertStatePreparer(ctx, alertName, alertUpdateActionType)
+	req, err := client.UpdateSubscriptionLevelAlertStateToDismissPreparer(ctx, alertName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertState", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToDismiss", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.UpdateSubscriptionLevelAlertStateSender(req)
+	resp, err := client.UpdateSubscriptionLevelAlertStateToDismissSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertState", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToDismiss", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.UpdateSubscriptionLevelAlertStateResponder(resp)
+	result, err = client.UpdateSubscriptionLevelAlertStateToDismissResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertState", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToDismiss", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// UpdateSubscriptionLevelAlertStatePreparer prepares the UpdateSubscriptionLevelAlertState request.
-func (client AlertsClient) UpdateSubscriptionLevelAlertStatePreparer(ctx context.Context, alertName string, alertUpdateActionType string) (*http.Request, error) {
+// UpdateSubscriptionLevelAlertStateToDismissPreparer prepares the UpdateSubscriptionLevelAlertStateToDismiss request.
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismissPreparer(ctx context.Context, alertName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"alertName":             autorest.Encode("path", alertName),
-		"alertUpdateActionType": autorest.Encode("path", alertUpdateActionType),
-		"ascLocation":           autorest.Encode("path", client.AscLocation),
-		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+		"alertName":      autorest.Encode("path", alertName),
+		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
 	const APIVersion = "2015-06-01-preview"
@@ -895,21 +979,102 @@ func (client AlertsClient) UpdateSubscriptionLevelAlertStatePreparer(ctx context
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/locations/{ascLocation}/alerts/{alertName}/{alertUpdateActionType}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/locations/{ascLocation}/alerts/{alertName}/dismiss", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// UpdateSubscriptionLevelAlertStateSender sends the UpdateSubscriptionLevelAlertState request. The method will close the
+// UpdateSubscriptionLevelAlertStateToDismissSender sends the UpdateSubscriptionLevelAlertStateToDismiss request. The method will close the
 // http.Response Body if it receives an error.
-func (client AlertsClient) UpdateSubscriptionLevelAlertStateSender(req *http.Request) (*http.Response, error) {
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismissSender(req *http.Request) (*http.Response, error) {
 	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	return autorest.SendWithSender(client, req, sd...)
 }
 
-// UpdateSubscriptionLevelAlertStateResponder handles the response to the UpdateSubscriptionLevelAlertState request. The method always
+// UpdateSubscriptionLevelAlertStateToDismissResponder handles the response to the UpdateSubscriptionLevelAlertStateToDismiss request. The method always
 // closes the http.Response Body.
-func (client AlertsClient) UpdateSubscriptionLevelAlertStateResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismissResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// UpdateSubscriptionLevelAlertStateToReactivate update the alert's state
+// Parameters:
+// alertName - name of the alert object
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivate(ctx context.Context, alertName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.UpdateSubscriptionLevelAlertStateToReactivate")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("security.AlertsClient", "UpdateSubscriptionLevelAlertStateToReactivate", err.Error())
+	}
+
+	req, err := client.UpdateSubscriptionLevelAlertStateToReactivatePreparer(ctx, alertName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToReactivate", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateSubscriptionLevelAlertStateToReactivateSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToReactivate", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateSubscriptionLevelAlertStateToReactivateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.AlertsClient", "UpdateSubscriptionLevelAlertStateToReactivate", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// UpdateSubscriptionLevelAlertStateToReactivatePreparer prepares the UpdateSubscriptionLevelAlertStateToReactivate request.
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivatePreparer(ctx context.Context, alertName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"alertName":      autorest.Encode("path", alertName),
+		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2015-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/locations/{ascLocation}/alerts/{alertName}/reactivate", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateSubscriptionLevelAlertStateToReactivateSender sends the UpdateSubscriptionLevelAlertStateToReactivate request. The method will close the
+// http.Response Body if it receives an error.
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivateSender(req *http.Request) (*http.Response, error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
+}
+
+// UpdateSubscriptionLevelAlertStateToReactivateResponder handles the response to the UpdateSubscriptionLevelAlertStateToReactivate request. The method always
+// closes the http.Response Body.
+func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

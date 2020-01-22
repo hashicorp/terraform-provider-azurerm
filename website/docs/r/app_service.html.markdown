@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service"
-sidebar_current: "docs-azurerm-resource-app-service-x"
 description: |-
   Manages an App Service (within an App Service Plan).
 

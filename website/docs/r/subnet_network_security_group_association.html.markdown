@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet_network_security_group_association"
-sidebar_current: "docs-azurerm-resource-network-subnet-network-security-group-association"
 description: |-
   Associates a [Network Security Group](network_security_group.html) with a [Subnet](subnet.html) within a [Virtual Network](virtual_network.html).
 

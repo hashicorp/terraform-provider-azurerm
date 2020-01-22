@@ -2,7 +2,6 @@
 subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_dps_shared_access_policy"
-sidebar_current: "docs-azurerm-resource-iothub-dps-shared-access-policy-x"
 description: |-
   Manages an IotHub Device Provisioning Service Shared Access Policy
 ---
@@ -26,7 +25,6 @@ resource "azurerm_iothub_dps" "example" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }
@@ -36,8 +34,8 @@ resource "azurerm_iothub_dps_shared_access_policy" "example" {
   resource_group_name = azurerm_resource_group.example.name
   iothub_dps_name     = azurerm_iothub_dps.example.name
 
-  enrollment_write  = true
-  enrollment_read   = true
+  enrollment_write = true
+  enrollment_read  = true
 }
 ```
 
@@ -77,7 +75,11 @@ The following attributes are exported:
 
 * `primary_key` - The primary key used to create the authentication token.
 
+* `primary_connection_string` - The primary connection string of the Shared Access Policy.
+
 * `secondary_key` - The secondary key used to create the authentication token.
+
+* `secondary_connection_string` - The secondary connection string of the Shared Access Policy.
 
 ## Import
 

@@ -33,7 +33,6 @@ func TestAccDataSourceAzureRMPPostgreSqlServer_basic(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMPostgreSqlServer_basic(data acceptance.TestData, version string) string {
-	template := testAccAzureRMPostgreSQLServer_basic(data, version)
 	return fmt.Sprintf(`
 %s
 
@@ -41,5 +40,5 @@ data "azurerm_postgresql_server" "test" {
   name                = "${azurerm_postgresql_server.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, template)
+`, testAccAzureRMPostgreSQLServer_basic(data, version))
 }

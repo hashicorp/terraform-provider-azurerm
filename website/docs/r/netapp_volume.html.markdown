@@ -2,7 +2,6 @@
 subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_volume"
-sidebar_current: "docs-azurerm-resource-netapp-volume"
 description: |-
   Manages a NetApp Volume.
 ---
@@ -34,7 +33,7 @@ resource "azurerm_subnet" "example" {
 
   delegation {
     name = "netapp"
-  
+
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
       actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]

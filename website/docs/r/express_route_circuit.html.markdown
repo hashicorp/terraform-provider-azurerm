@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit"
-sidebar_current: "docs-azurerm-resource-network-express-route-circuit-x"
 description: |-
   Manages an ExpressRoute circuit.
 ---
@@ -66,7 +65,7 @@ The following arguments are supported:
 
 `sku` supports the following:
 
-* `tier` - (Required) The service tier. Possible values are `Standard` or `Premium`.
+* `tier` - (Required) The service tier. Possible values are `Basic`, `Local`, `Standard` or `Premium`.
 
 * `family` - (Required) The billing mode for bandwidth. Possible values are `MeteredData` or `UnlimitedData`.
 

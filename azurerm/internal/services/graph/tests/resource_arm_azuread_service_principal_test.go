@@ -16,7 +16,6 @@ import (
 func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_azuread_service_principal", "test")
 	id := uuid.New().String()
-	config := testAccAzureRMActiveDirectoryServicePrincipal_basic(id)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -24,7 +23,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMActiveDirectoryServicePrincipal_basic(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryServicePrincipalExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
@@ -66,13 +65,14 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_requiresImport(t *testing.T) 
 
 func testCheckAzureRMActiveDirectoryServicePrincipalExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ServicePrincipalsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ServicePrincipalsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
 		if err != nil {
@@ -87,13 +87,14 @@ func testCheckAzureRMActiveDirectoryServicePrincipalExists(resourceName string) 
 }
 
 func testCheckAzureRMActiveDirectoryServicePrincipalDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ServicePrincipalsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_azuread_service_principal" {
 			continue
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ServicePrincipalsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
 		if err != nil {

@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_consumer_group"
-sidebar_current: "docs-azurerm-resource-messaging-eventhub-consumer-group"
 description: |-
   Manages a Event Hubs Consumer Group as a nested resource within an Event Hub.
 ---

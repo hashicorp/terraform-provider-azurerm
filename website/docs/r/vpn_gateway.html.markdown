@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_vpn_gateway"
-sidebar_current: "docs-azurerm-network-vpn-gateway"
 description: |-
     Manages a VPN Gateway within a Virtual Hub.
 ---

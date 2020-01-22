@@ -65,7 +65,6 @@ func TestAccAzureRMMonitorActivityLogAlert_requiresImport(t *testing.T) {
 
 func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
-	config := testAccAzureRMMonitorActivityLogAlert_singleResource(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -73,7 +72,7 @@ func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMonitorActivityLogAlert_singleResource(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -92,7 +91,6 @@ func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
 
 func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
-	config := testAccAzureRMMonitorActivityLogAlert_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -100,7 +98,7 @@ func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMonitorActivityLogAlert_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -126,8 +124,6 @@ func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
 
 func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
-	basicConfig := testAccAzureRMMonitorActivityLogAlert_basic(data)
-	completeConfig := testAccAzureRMMonitorActivityLogAlert_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -135,7 +131,7 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 		CheckDestroy: testCheckAzureRMMonitorActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: basicConfig,
+				Config: testAccAzureRMMonitorActivityLogAlert_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -151,7 +147,7 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 				),
 			},
 			{
-				Config: completeConfig,
+				Config: testAccAzureRMMonitorActivityLogAlert_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -171,7 +167,7 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 				),
 			},
 			{
-				Config: basicConfig,
+				Config: testAccAzureRMMonitorActivityLogAlert_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorActivityLogAlertExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -359,6 +355,9 @@ func testCheckAzureRMMonitorActivityLogAlertDestroy(s *terraform.State) error {
 
 func testCheckAzureRMMonitorActivityLogAlertExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ActivityLogAlertsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -370,9 +369,6 @@ func testCheckAzureRMMonitorActivityLogAlertExists(resourceName string) resource
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Activity Log Alert Instance: %s", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ActivityLogAlertsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {

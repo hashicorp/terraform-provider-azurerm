@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_profile"
-sidebar_current: "docs-azurerm-resource-network-profile-x"
 description: |-
   Manages an Azure Network Profile.
 
