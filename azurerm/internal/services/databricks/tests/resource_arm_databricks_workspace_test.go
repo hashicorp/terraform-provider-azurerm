@@ -262,7 +262,7 @@ resource "azurerm_databricks_workspace" "import" {
 func testAccAzureRMDatabricksWorkspace_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-db-%[1]d"
+  name = "acctestRG-db-%[1]d"
 
   location = "%[2]s"
 }
@@ -381,7 +381,7 @@ resource "azurerm_databricks_workspace" "test" {
   }
 
   custom_parameters {
-    no_public_ip        = false
+    no_public_ip = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
