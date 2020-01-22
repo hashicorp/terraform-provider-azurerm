@@ -3,14 +3,6 @@ resource "azurerm_resource_group" "example" {
   location = "${var.location}"
 }
 
-resource "azurerm_storage_account" "example" {
-  name                     = "${var.prefix}-strac"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
-
 resource "azurerm_sql_server" "example" {
   name                         = "${var.prefix}-sqlsvr"
   resource_group_name          = "${azurerm_resource_group.example.name}"
@@ -29,12 +21,6 @@ resource "azurerm_sql_database" "example" {
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
   create_mode                      = "Default"
   requested_service_objective_name = "Basic"
-
-  blob_extended_auditing_policy {
-    state                         = "Enabled"
-    storage_endpoint              = "${azurerm_storage_account.example.primary_blob_endpoint}"
-    storage_account_access_key    = "${azurerm_storage_account.example.primary_access_key}"
-  }
 }
 
 # Enables the "Allow Access to Azure services" box as described in the API docs
