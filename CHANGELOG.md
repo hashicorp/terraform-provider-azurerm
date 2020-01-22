@@ -8,6 +8,8 @@ IMPROVEMENTS:
 * `azurerm_databricks_workspace` - support for the `custom_parameters` property and `public_subnet_name`, `private_subnet_name`, and `virtual_network_id` parameters [GH-3889]
 * `azurerm_express_route_circuit` - support for the `Basic` and `Local` tiers [GH-5456]
 * `azurerm_network_watcher_flow_log` - support for the `version` property [GH-5419]
+* `azurerm_traffic_manager_profile` - add the `expected_status_code_ranges` [GH-5471]
+* `azurerm_traffic_manager_profile` - switch `dns_config` and `monitor_config` to type list and limit to `1` [GH-5471]
 
 BUG FIXES:
 
