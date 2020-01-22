@@ -392,10 +392,6 @@ func testAccAzureRMMsSqlVirtualMachine_withKeyVault(data acceptance.TestData, va
 
 data "azurerm_client_config" "current" {}
 
-provider "azuread" {
-  version = ">=0.1.0"
-}
-
 resource "azurerm_key_vault" "test" {
   name                = "acckv-%[2]d"
   location            = "${azurerm_resource_group.test.location}"
@@ -475,10 +471,6 @@ func testAccAzureRMMsSqlVirtualMachine_withKeyVaultUpdated(data acceptance.TestD
 	return fmt.Sprintf(`
 %s
 data "azurerm_client_config" "current" {}
-
-provider "azuread" {
-  version = ">=0.1.0"
-}
 
 resource "azurerm_key_vault" "test" {
   name                = "acckv-%[2]d"
