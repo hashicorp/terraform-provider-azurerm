@@ -345,7 +345,7 @@ resource "azurerm_databricks_workspace" "test" {
   resource_group_name         = "${azurerm_resource_group.test.name}"
   location                    = "${azurerm_resource_group.test.location}"
   sku                         = "standard"
-  managed_resource_group_name = "acctestRG-db-%[1]d-managed"
+  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
   custom_parameters {
     no_public_ip        = true
