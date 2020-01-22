@@ -76,7 +76,7 @@ func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
 
 				// Since dynamic compression is type bool it will always be initialized as false and I will not know if it is really in the config or not, the only one I can validate here is in the true case
 				if dynamicCompression := fc["cache_use_dynamic_compression"]; dynamicCompression == true {
-					return fmt.Errorf(`routing_rule %s forwarding_configuration block is invalid. Please make sure that the "cache_use_dynamic_compression" attribute does not exist in the configuration file`, routingRuleName)
+					return fmt.Errorf(`routing_rule %s forwarding_configuration block is invalid. Please make sure that the "cache_use_dynamic_compression" attribute does not exist in the configuration file or is set its value to false`, routingRuleName)
 				}
 			} else {
 				// Don't need to worry about dynamic compression in this case because it's data type is bool and will always initialize to false if not present in the config

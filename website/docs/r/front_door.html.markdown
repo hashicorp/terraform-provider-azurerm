@@ -192,9 +192,11 @@ The `forwarding_configuration` block supports the following:
 
 * `cache_enabled` - (Optional) Specifies whether to Enable caching or not. Valid options are `true` or `false`. Defaults to `false`.
 
+-> **NOTE:** If `cache_enabled` is set to **false** the `cache_query_parameter_strip_directive` attribute must be removed from the configuration file and the `cache_use_dynamic_compression` should be removed or set to `false`, conversely if `cache_enabled` is set to **true** the `cache_query_parameter_strip_directive` must be defined in the configuration.
+
 * `cache_use_dynamic_compression` - (Optional) Whether to use dynamic compression when caching. Valid options are `true` or `false`. Defaults to `false`.
 
-* `cache_query_parameter_strip_directive` - (Optional) Defines cache behavior in releation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripNone`.
+* `cache_query_parameter_strip_directive` - (Optional/Required) Defines cache behavior in releation to query string parameters. Valid options are `StripAll` or `StripNone`.
 
 * `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behavior preserves the URL path.
 
