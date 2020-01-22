@@ -20,10 +20,6 @@ func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_basic(t *testing
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "namespace_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
 				),
 			},
 		},
@@ -41,14 +37,13 @@ resource "azurerm_eventhub_namespace" "test" {
   name                = "acctest-EHN-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-
   sku = "Standard"
 }
 
-resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+data "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "acctest-EHN-AR%[1]d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.resource_group_name}"
+  resource_group_name = "${azurerm_eventhub_authorization_rule.test.resource_group_name}"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

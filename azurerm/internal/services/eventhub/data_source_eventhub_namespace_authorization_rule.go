@@ -34,8 +34,6 @@ func dataSourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 		}),
-
-		CustomizeDiff: azure.EventHubAuthorizationRuleCustomizeDiff,
 	}
 }
 
