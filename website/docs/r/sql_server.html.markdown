@@ -103,9 +103,9 @@ The following attributes are exported:
 
 An `blob_extended_auditing_policy` block supports the following:
 
-* `storage_account_access_key` - (Required)Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
+* `storage_account_access_key` - (Required)Specifies the identifier key of the auditing storage account.
 
-* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint is required.
+* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
 
 * `is_storage_secondary_key_in_use` - Specifies whether storageAccountAccessKey value is the storage's secondary key.
 
