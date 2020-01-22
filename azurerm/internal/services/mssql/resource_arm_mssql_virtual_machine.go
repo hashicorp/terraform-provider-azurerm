@@ -346,7 +346,7 @@ func expandArmSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvir
 }
 
 func flattenArmSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachine.AutoPatchingSettings) []interface{} {
-	if autoPatching == nil || *autoPatching.Enable == false {
+	if autoPatching == nil || !*autoPatching.Enable {
 		return []interface{}{}
 	}
 	var startHour int32
@@ -382,7 +382,7 @@ func expandArmSqlVirtualMachineKeyVaultCredential(input []interface{}) *sqlvirtu
 }
 
 func flattenArmSqlVirtualMachineKeyVaultCredential(keyVault *sqlvirtualmachine.KeyVaultCredentialSettings, d *schema.ResourceData) []interface{} {
-	if keyVault == nil || *keyVault.Enable == false {
+	if keyVault == nil || !*keyVault.Enable {
 		return []interface{}{}
 	}
 	name := ""
@@ -439,7 +439,7 @@ func expandArmSqlVirtualMachineServerConfigurationsManagement(input []interface{
 }
 
 func flattenArmSqlVirtualMachineServerConfigurationsManagement(serverConfig *sqlvirtualmachine.ServerConfigurationsManagementSettings, d *schema.ResourceData) []interface{} {
-	// if the stucture of sqlvirtualmachine.ServerConfigurationsManagementSettings changes, we should update this
+	// if the structure of sqlvirtualmachine.ServerConfigurationsManagementSettings changes, we should update this
 	if serverConfig == nil || reflect.DeepEqual(*serverConfig, sqlvirtualmachine.ServerConfigurationsManagementSettings{
 		SQLConnectivityUpdateSettings:          &sqlvirtualmachine.SQLConnectivityUpdateSettings{},
 		SQLWorkloadTypeUpdateSettings:          &sqlvirtualmachine.SQLWorkloadTypeUpdateSettings{},
