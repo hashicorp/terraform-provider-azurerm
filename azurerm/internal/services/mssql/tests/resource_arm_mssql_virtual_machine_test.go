@@ -290,7 +290,6 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctest-VM-%[1]d"
   location              = azurerm_resource_group.test.location
@@ -324,7 +323,6 @@ resource "azurerm_virtual_machine" "test" {
     enable_automatic_upgrades = true
   }
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
 
@@ -332,6 +330,7 @@ func testAccAzureRMMsSqlVirtualMachine_basic(data acceptance.TestData) string {
 	vmconfig := testAccAzureRMVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_mssql_virtual_machine" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   sql_license_type   = "PAYG"
@@ -355,6 +354,7 @@ func testAccAzureRMMsSqlVirtualMachine_withAutoPatching(data acceptance.TestData
 	vmconfig := testAccAzureRMVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_mssql_virtual_machine" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   sql_license_type   = "PAYG"
@@ -372,6 +372,7 @@ func testAccAzureRMMsSqlVirtualMachine_withAutoPatchingUpdated(data acceptance.T
 	vmconfig := testAccAzureRMVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_mssql_virtual_machine" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   sql_license_type   = "PAYG"
@@ -470,6 +471,7 @@ func testAccAzureRMMsSqlVirtualMachine_withKeyVaultUpdated(data acceptance.TestD
 	vmconfig := testAccAzureRMVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
@@ -550,6 +552,7 @@ func testAccAzureRMMsSqlVirtualMachine_withServerConfig(data acceptance.TestData
 	vmconfig := testAccAzureRMVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_mssql_virtual_machine" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   sql_license_type   = "PAYG"
@@ -569,6 +572,7 @@ func testAccAzureRMMsSqlVirtualMachine_withServerConfigUpdated(data acceptance.T
 	vmconfig := testAccAzureRMVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_mssql_virtual_machine" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   sql_license_type   = "PAYG"
