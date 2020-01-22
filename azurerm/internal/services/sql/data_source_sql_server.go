@@ -2,7 +2,6 @@ package sql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -70,47 +69,6 @@ func dataSourceSqlServer() *schema.Resource {
 				},
 			},
 
-			"blob_extended_auditing_policy": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"state": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"storage_endpoint": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"retention_days": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"audit_actions_and_groups": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Set:      schema.HashString,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"storage_account_subscription_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"is_storage_secondary_key_in_use": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-						"predicate_expression": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -150,18 +108,6 @@ func dataSourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	if err := d.Set("identity", flattenAzureRmSqlServerIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
-
-	auditingClient := meta.(*clients.Client).Sql.ExtendedServerBlobAuditingPoliciesClient
-	auditingResp, err := auditingClient.Get(ctx, resourceGroup, name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Server %q Blob Auditing Policies - removing from state", d.Id())
-		}
-
-		return fmt.Errorf("Error reading SQL Server %s: %v Blob Auditing Policies", name, err)
-	}
-
-	d.Set("blob_extended_auditing_policy", flattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
