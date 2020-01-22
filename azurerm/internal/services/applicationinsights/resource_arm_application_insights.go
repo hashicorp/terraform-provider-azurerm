@@ -177,7 +177,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		},
 	}
 
-	_ , err = billingFeatureClient.Update(ctx, resGroup, name, applicationInsightsComponentBillingFeatures)
+	_, err = billingFeatureClient.Update(ctx, resGroup, name, applicationInsightsComponentBillingFeatures)
 	if err != nil {
 		return fmt.Errorf("Error update Application Insights Billing Feature %q (Resource Group %q): %+v", name, resGroup, err)
 	}
