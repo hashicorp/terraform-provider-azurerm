@@ -171,13 +171,13 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 	log.Printf("[INFO] preparing arguments for TrafficManager Profile creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing TrafficManager profile %s (resource group %s) ID", name, resGroup)
+				return fmt.Errorf("Error checking for presence of existing TrafficManager profile %s (resource group %s) ID", name, resourceGroup)
 			}
 		}
 
@@ -206,16 +206,16 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, name, profile); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, profile); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error reading TrafficManager profile %s (resource group %s): %v", name, resGroup, err)
+		return fmt.Errorf("Error reading TrafficManager profile %s (resource group %s): %v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read TrafficManager profile %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read TrafficManager profile %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -232,10 +232,10 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -244,7 +244,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error making Read request on Traffic Manager Profile %s: %+v", name, err)
 	}
 
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 	d.Set("name", resp.Name)
 
 	if profile := resp.ProfileProperties; profile != nil {
@@ -271,10 +271,10 @@ func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	resp, err := client.Delete(ctx, resGroup, name)
+	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err
