@@ -1,25 +1,24 @@
 ---
 subcategory: "Messaging"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_eventhub_authorization_rule"
+page_title: "Azure Resource Manager: azurerm_eventhub_namespace_authorization_rule"
 description: |-
-  Gets information about an existing EventHubs authorization Rule within an EventHub.
+  Gets information about an Authorization Rule for an Event Hub Namespace.
 ---
 
-# Data Source: azurerm_eventhub_authorization_rule
+# Data Source: azurerm_eventhub_namespace_authorization_rule
 
-Use this data source to access information about an existing EventHub's authorization Rule within an EventHub.
+Use this data source to access information about an Authorization Rule for an Event Hub Namespace.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_eventhub_namespace_authorization_rule" "example" {
   name                = "navi"
-  namespace_name      = "${azurerm_eventhub_namespace.example.name}" 
   resource_group_name = "${azurerm_eventhub_authorization_rule.example.resource_group_name}"
 
 output "eventhub_authorization_rule_id" {
-  value = "${data.azurem_eventhub_authorization_rule.example.id}"}
+  value = "${data.azurem_eventhub_namespace_authorization_rule.example.id}"}
 }
 ```
 
@@ -37,9 +36,7 @@ The following attributes are exported:
 
 * `id` - The EventHub ID.
 
-* `namespace_name` - The name of the grandparent EventHub Namespace. 
-
-* `eventhub_name` - The name of the EventHub. 
+* `namespace_name` - The name of the EventHub Namespace. 
 
 * `listen` - Does this Authorization Rule have permissions to Listen to the Event Hub?
 

@@ -43,7 +43,7 @@ resource "azurerm_eventhub_namespace" "test" {
 data "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "acctest-EHN-AR%[1]d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_eventhub_authorization_rule.test.resource_group_name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
