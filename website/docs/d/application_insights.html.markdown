@@ -35,5 +35,5 @@ output "application_insights_instrumentation_key" {
 * `application_type` - The type of the component.
 * `instrumentation_key` - The instrumentation key of the Application Insights component.
 * `location` - The Azure location where the component exists.
-* `retention_in_days` - The retention period in days. Possible values are `30`, `60`, `90`, `120`, `180`, `270`, `365`, `550` or `730`.
+* `retention_in_days` - The retention period in days.
 * `tags` - Tags applied to the component.

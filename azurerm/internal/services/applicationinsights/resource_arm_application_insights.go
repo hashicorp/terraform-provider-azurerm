@@ -67,7 +67,6 @@ func resourceArmApplicationInsights() *schema.Resource {
 			"retention_in_days": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  90,
 				ValidateFunc: validation.IntInSlice([]int{
 					30,
 					60,
@@ -128,7 +127,6 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	applicationType := d.Get("application_type").(string)
-	retentionInDays := d.Get("retention_in_days").(int)
 	samplingPercentage := utils.Float(d.Get("sampling_percentage").(float64))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
@@ -136,8 +134,11 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
 		ApplicationID:      &name,
 		ApplicationType:    insights.ApplicationType(applicationType),
-		RetentionInDays:    utils.Int32(int32(retentionInDays)),
 		SamplingPercentage: samplingPercentage,
+	}
+
+	if v, ok := d.GetOk("retention_in_days"); ok {
+		applicationInsightsComponentProperties.RetentionInDays = utils.Int32(int32(v.(int)))
 	}
 
 	insightProperties := insights.ApplicationInsightsComponent{
@@ -205,8 +206,10 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("application_type", string(props.ApplicationType))
 		d.Set("app_id", props.AppID)
 		d.Set("instrumentation_key", props.InstrumentationKey)
-		d.Set("retention_in_days", props.RetentionInDays)
 		d.Set("sampling_percentage", props.SamplingPercentage)
+		if v := props.RetentionInDays; v != nil {
+			d.Set("retention_in_days", v)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

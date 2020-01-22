@@ -88,6 +88,8 @@ func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface
 	d.Set("location", resp.Location)
 	d.Set("app_id", resp.AppID)
 	d.Set("application_type", resp.ApplicationType)
-	d.Set("retention_in_days", resp.RetentionInDays)
+	if v := resp.RetentionInDays; v != nil {
+		d.Set("retention_in_days", v)
+	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
