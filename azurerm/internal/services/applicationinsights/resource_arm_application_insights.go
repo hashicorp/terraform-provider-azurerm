@@ -73,6 +73,19 @@ func resourceArmApplicationInsights() *schema.Resource {
 
 			"tags": tags.Schema(),
 
+			"daily_cap": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Default:      100,
+				ValidateFunc: validation.FloatBetween(0, 1000),
+			},
+
+			"stop_send_notification_when_hit_cap": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"app_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -89,7 +102,9 @@ func resourceArmApplicationInsights() *schema.Resource {
 
 func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	billingFeatureClient := meta.(*clients.Client).AppInsights.BillingFeatureClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights creation.")
@@ -112,6 +127,8 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 
 	applicationType := d.Get("application_type").(string)
 	samplingPercentage := utils.Float(d.Get("sampling_percentage").(float64))
+	dailyCap := utils.Float(d.Get("daily_cap").(float64))
+	stopSendNotificationWhenHitCap := utils.Bool(d.Get("stop_send_notification_when_hit_cap").(bool))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
@@ -147,6 +164,24 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
 	}
 
+	billingFeatureRead, err := billingFeatureClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error read Application Insights Billing Features %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	applicationInsightsComponentBillingFeatures := insights.ApplicationInsightsComponentBillingFeatures{
+		CurrentBillingFeatures: billingFeatureRead.CurrentBillingFeatures,
+		DataVolumeCap: &insights.ApplicationInsightsComponentDataVolumeCap{
+			Cap:                            dailyCap,
+			StopSendNotificationWhenHitCap: stopSendNotificationWhenHitCap,
+		},
+	}
+
+	_ , err = billingFeatureClient.Update(ctx, resGroup, name, applicationInsightsComponentBillingFeatures)
+	if err != nil {
+		return fmt.Errorf("Error update Application Insights Billing Feature %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
 	d.SetId(*read.ID)
 
 	return resourceArmApplicationInsightsRead(d, meta)
@@ -154,6 +189,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 
 func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	billingFeatureClient := meta.(*clients.Client).AppInsights.BillingFeatureClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -176,6 +212,11 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", name, err)
 	}
 
+	billingFeatureResp, err := billingFeatureClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", name, err)
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
@@ -187,6 +228,11 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("app_id", props.AppID)
 		d.Set("instrumentation_key", props.InstrumentationKey)
 		d.Set("sampling_percentage", props.SamplingPercentage)
+	}
+
+	if billingFeatureProps := billingFeatureResp.DataVolumeCap; billingFeatureProps != nil {
+		d.Set("daily_cap", billingFeatureProps.Cap)
+		d.Set("stop_send_notification_when_hit_cap", billingFeatureProps.StopSendNotificationWhenHitCap)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

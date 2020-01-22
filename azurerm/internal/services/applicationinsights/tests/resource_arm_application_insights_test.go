@@ -249,6 +249,8 @@ func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
 					testCheckAzureRMApplicationInsightsExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "web"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sampling_percentage", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "daily_cap", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "stop_send_notification_when_hit_cap", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
 				),
@@ -296,11 +298,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  application_type    = "%s"
-  sampling_percentage = 50
+  name                                = "acctestappinsights-%d"
+  location                            = "${azurerm_resource_group.test.location}"
+  resource_group_name                 = "${azurerm_resource_group.test.name}"
+  application_type                    = "%s"
+  sampling_percentage                 = 50
+  daily_cap                           = 50
+  stop_send_notification_when_hit_cap = true
 
   tags = {
     Hello = "World"
