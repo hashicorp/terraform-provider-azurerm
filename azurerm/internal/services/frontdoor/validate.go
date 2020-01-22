@@ -51,20 +51,38 @@ func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
 
 		// Check 0. validate that at least one routing configuration exists per routing rule
 		if len(redirectConfig) == 0 && len(forwardConfig) == 0 {
-			return fmt.Errorf(`"routing_rule":%q is invalid. you must have either a "redirect_configuration" or a "forwarding_configuration" defined for the "routing_rule":%q `, routingRuleName, routingRuleName)
+			return fmt.Errorf(`routing_rule %s block is invalid. you must have either a "redirect_configuration" or a "forwarding_configuration" defined for the routing_rule %s`, routingRuleName, routingRuleName)
 		}
 
 		// Check 1. validate that only one configuration type is defined per routing rule
 		if len(redirectConfig) == 1 && len(forwardConfig) == 1 {
-			return fmt.Errorf(`"routing_rule":%q is invalid. "redirect_configuration" conflicts with "forwarding_configuration". You can only have one configuration type per each routing rule`, routingRuleName)
+			return fmt.Errorf(`routing_rule %s block is invalid. "redirect_configuration" conflicts with "forwarding_configuration". You can only have one configuration type per each routing rule`, routingRuleName)
 		}
 
 		// Check 2. routing rule is a forwarding_configuration type make sure the backend_pool_name exists in the configuration file
 		if len(forwardConfig) > 0 {
 			fc := forwardConfig[0].(map[string]interface{})
+			cacheEnabled := fc["cache_enabled"].(bool)
 
 			if err := VerifyBackendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
-				return fmt.Errorf(`"routing_rule":%q is invalid. %+v`, routingRuleName, err)
+				return fmt.Errorf(`routing_rule %s is invalid. %+v`, routingRuleName, err)
+			}
+
+			// check existance of attributes in config based off cache enabled state
+			if !cacheEnabled {
+				if stripDirective := fc["cache_query_parameter_strip_directive"]; stripDirective != "" {
+					return fmt.Errorf(`routing_rule %s forwarding_configuration block is invalid. Please make sure that the "cache_query_parameter_strip_directive" attribute does not exist in the configuration file`, routingRuleName)
+				}
+
+				// Since dynamic compression is type bool it will always be initialized as false and I will not know if it is really in the config or not, the only one I can validate here is in the true case
+				if dynamicCompression := fc["cache_use_dynamic_compression"]; dynamicCompression == true {
+					return fmt.Errorf(`routing_rule %s forwarding_configuration block is invalid. Please make sure that the "cache_use_dynamic_compression" attribute does not exist in the configuration file`, routingRuleName)
+				}
+			} else {
+				// Don't need to worry about dynamic compression in this case because it's data type is bool and will always initialize to false if not present in the config
+				if stripDirective := fc["cache_query_parameter_strip_directive"]; stripDirective == "" {
+					return fmt.Errorf(`routing_rule %s forwarding_configuration block is invalid. Please make sure that the "cache_query_parameter_strip_directive" attribute is defined in the configuration file`, routingRuleName)
+				}
 			}
 		}
 
@@ -86,35 +104,6 @@ func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
 	// Verify frontend endpoints custom https configuration is valid if defined
 	if err := VerifyCustomHttpsConfiguration(configFrontendEndpoints); err != nil {
 		return fmt.Errorf(`%+v`, err)
-	}
-
-	return nil
-}
-
-func ValidateFrontdoorRoutingRuleSettings(d *schema.ResourceData) error {
-	routingRules := d.Get("routing_rule").([]interface{})
-
-	// Loop over all of the Routing Rules and validate that only one type of configuration is defined per Routing Rule
-	for _, rr := range routingRules {
-		routingRule := rr.(map[string]interface{})
-		forwardConfig := routingRule["forwarding_configuration"].([]interface{})
-
-		// If the routing rule is a forwarding_configuration type and the cache has been disabled
-		// make sure none of the other cache attributes have values
-		if len(forwardConfig) > 0 {
-			fc := forwardConfig[0].(map[string]interface{})
-			cacheEnabled := fc["cache_enabled"].(bool)
-
-			if !cacheEnabled {
-				if stripDirective := fc["cache_query_parameter_strip_directive"]; stripDirective != "" {
-					return fmt.Errorf(`"routing_rule:forwarding_configuration" is invalid. Please make sure that the "cache_query_parameter_strip_directive" does not exist in the configuration file`)
-				}
-
-				if v, ok := fc["cache_use_dynamic_compression"]; ok && v == true {
-					return fmt.Errorf(`"routing_rule:forwarding_configuration" is invalid. Please make sure that the "cache_use_dynamic_compression" does not exist in the configuration file`)
-				}
-			}
-		}
 	}
 
 	return nil

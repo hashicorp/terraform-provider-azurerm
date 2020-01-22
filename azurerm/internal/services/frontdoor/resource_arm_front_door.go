@@ -175,17 +175,15 @@ func resourceArmFrontDoor() *schema.Resource {
 									"cache_enabled": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  true,
+										Default:  false,
 									},
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Computed: true,
 									},
 									"cache_query_parameter_strip_directive": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Computed: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
@@ -195,7 +193,6 @@ func resourceArmFrontDoor() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
-									// Added Portal Default value for #4627
 									"forwarding_protocol": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -451,10 +448,6 @@ func resourceArmFrontDoor() *schema.Resource {
 }
 
 func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	if err := ValidateFrontdoorRoutingRuleSettings(d); err != nil {
-		return err
-	}
-
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
