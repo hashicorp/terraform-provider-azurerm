@@ -27,9 +27,8 @@ resource "azurerm_storage_account" "example" {
   resource_group_name      = "${azurerm_resource_group.example.name}"
   location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
-  account_replication_type = "GRS"
+  account_replication_type = "LRS"
 }
-
 
 resource "azurerm_sql_server" "example" {
   name                         = "mysqlserver"
@@ -45,7 +44,6 @@ resource "azurerm_sql_server" "example" {
     is_storage_secondary_key_in_use = true
     retention_days                  = 6
   }
-
 
   tags = {
     environment = "production"
