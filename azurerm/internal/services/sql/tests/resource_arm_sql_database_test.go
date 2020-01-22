@@ -392,7 +392,7 @@ func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_withBlobAuditingPolices(t *testing.T) {
+func TestAccAzureRMSqlDatabase_updateWithBlobAuditingPolices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -404,7 +404,17 @@ func TestAccAzureRMSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 				Config: testAccAzureRMSqlDatabase_withBlobAuditingPolices(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.state", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.is_storage_secondary_key_in_use", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.retention_days", "6"),
+				),
+			},
+			data.ImportStep("administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key", "create_mode"),
+			{
+				Config: testAccAzureRMSqlDatabase_withBlobAuditingPolicesUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.is_storage_secondary_key_in_use", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.retention_days", "11"),
 				),
 			},
 			data.ImportStep("administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key", "create_mode"),
@@ -838,20 +848,28 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_withBlobAuditingPolices(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
- name                     = "accstr%d"
- resource_group_name      = "${azurerm_resource_group.test.name}"
- location                 = "${azurerm_resource_group.test.location}"
- account_tier             = "Standard"
- account_replication_type = "GRS"
+  name                     = "str%[1]d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "str2%[1]d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_sql_server" "test" {
-  name                         = "acctestsqlserver%d"
+  name                         = "acctestsqlserver%[1]d"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   location                     = "${azurerm_resource_group.test.location}"
   version                      = "12.0"
@@ -860,7 +878,7 @@ resource "azurerm_sql_server" "test" {
 }
 
 resource "azurerm_sql_database" "test" {
-  name                             = "acctestdb%d"
+  name                             = "acctestdb%[1]d"
   resource_group_name              = "${azurerm_resource_group.test.name}"
   server_name                      = "${azurerm_sql_server.test.name}"
   location                         = "${azurerm_resource_group.test.location}"
@@ -870,10 +888,63 @@ resource "azurerm_sql_database" "test" {
   requested_service_objective_name = "S0"
 
   blob_extended_auditing_policy {
-		state                         = "Enabled"
-		storage_endpoint              = "${azurerm_storage_account.test.primary_blob_endpoint}"
-        storage_account_access_key    = "${azurerm_storage_account.test.primary_access_key}"
-	}
+    storage_endpoint                = "${azurerm_storage_account.test.primary_blob_endpoint}"
+    storage_account_access_key      = "${azurerm_storage_account.test.primary_access_key}"
+    is_storage_secondary_key_in_use = true
+    retention_days                  = 6
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMSqlDatabase_withBlobAuditingPolicesUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "str%[1]d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "str2%[1]d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_sql_server" "test" {
+  name                         = "acctestsqlserver%[1]d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+  name                             = "acctestdb%[1]d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "Standard"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
+
+  blob_extended_auditing_policy {
+    storage_endpoint                = "${azurerm_storage_account.test.primary_blob_endpoint}"
+    storage_account_access_key      = "${azurerm_storage_account.test.primary_access_key}"
+    is_storage_secondary_key_in_use = false
+    retention_days                  = 11
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

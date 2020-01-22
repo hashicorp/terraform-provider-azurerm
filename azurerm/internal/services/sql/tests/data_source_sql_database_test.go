@@ -28,7 +28,6 @@ func TestAccDataSourceAzureRMSqlDatabase_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "server_name"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "blob_extended_auditing_policy.0.state", "Disabled"),
 				),
 			},
 		},
@@ -81,28 +80,6 @@ func TestAccDataSourceAzureRMSqlDatabase_readScale(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMSqlDatabase_blobExtendedAuditing(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_sql_database", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMSqlDatabase_blobExtendedAuditing(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "blob_extended_auditing_policy.0.retention_days"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "blob_extended_auditing_policy.0.storage_account_subscription_id"),
-				),
-			},
-		},
-	})
-}
 func testAccDataSourceAzureRMSqlDatabase_basic(data acceptance.TestData) string {
 	template := testAccAzureRMSqlDatabase_basic(data)
 	return fmt.Sprintf(`
@@ -131,19 +108,6 @@ data "azurerm_sql_database" "test" {
 
 func testAccDataSourceAzureRMSqlDatabase_readScale(data acceptance.TestData, readScale bool) string {
 	template := testAccAzureRMSqlDatabase_readScale(data, readScale)
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_sql_database" "test" {
-  name                = "${azurerm_sql_database.test.name}"
-  server_name         = "${azurerm_sql_database.test.server_name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-`, template)
-}
-
-func testAccDataSourceAzureRMSqlDatabase_blobExtendedAuditing(data acceptance.TestData) string {
-	template := testAccAzureRMSqlDatabase_withBlobAuditingPolices(data)
 	return fmt.Sprintf(`
 %s
 

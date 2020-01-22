@@ -2,7 +2,6 @@ package sql
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
@@ -71,46 +70,6 @@ func dataSourceSqlDatabase() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"blob_extended_auditing_policy": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"state": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"storage_endpoint": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"retention_days": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"audit_actions_and_groups": {
-							Type:     schema.TypeSet,
-							Computed: true,
-							Set:      schema.HashString,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"storage_account_subscription_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"is_storage_secondary_key_in_use": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-						"predicate_expression": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -152,17 +111,6 @@ func dataSourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 
 		d.Set("read_scale", props.ReadScale == sql.ReadScaleEnabled)
 	}
-
-	auditingClient := meta.(*clients.Client).Sql.ExtendedDatabaseBlobAuditingPoliciesClient
-	auditingResp, err := auditingClient.Get(ctx, resourceGroup, serverName, name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Server %q Database %q Blob Auditing Policies - removing from state", serverName, name)
-		}
-		return fmt.Errorf("Error reading SQL Server %s Database %q: %v Blob Auditing Policies", serverName, name, err)
-	}
-
-	d.Set("blob_extended_auditing_policy", flattenAzureRmSqlDBBlobAuditingPolicies(&auditingResp, d))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

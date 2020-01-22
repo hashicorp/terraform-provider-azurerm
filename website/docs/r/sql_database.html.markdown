@@ -42,9 +42,10 @@ resource "azurerm_sql_database" "example" {
   server_name         = "${azurerm_sql_server.example.name}"
 
   blob_extended_auditing_policy {
-    state                      = "Enabled"
-    storage_endpoint           = "${azurerm_storage_account.example.primary_blob_endpoint}"
-    storage_account_access_key = "${azurerm_storage_account.example.primary_access_key}"
+    storage_endpoint                = "${azurerm_storage_account.example.primary_blob_endpoint}"
+    storage_account_access_key      = "${azurerm_storage_account.example.primary_access_key}"
+    is_storage_secondary_key_in_use = true
+    retention_days                  = 6
   }
 
   tags = {
@@ -122,14 +123,10 @@ The following arguments are supported:
 
 An `blob_extended_auditing_policy` block supports the following:
 
-* `state` - (Required) Specifies the state of the policy. If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled are required. Possible values include: 'Enabled', 'Disabled'
-* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint is required.
-* `storage_account_access_key` - (Required)Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
-* `retention_days` - Specifies the number of days to keep in the audit logs in the storage account.
-* `storage_account_subscription_id` - Specifies the blob storage subscription Id.
+* `storage_account_access_key` - (Required)Specifies the identifier key of the auditing storage account.
+* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
 * `is_storage_secondary_key_in_use` - Specifies whether storageAccountAccessKey value is the storage's secondary key.
-* `audit_actions_and_groups` - Specifies the Actions-Groups and Actions to audit.For more information, see [Database-Level Audit Actions](https://docs.microsoft.com/en-us/sql/relational-databases/security/auditing/sql-server-audit-action-groups-and-actions#database-level-audit-actions).
-* `predicate_expression` - Specifies condition of where clause when creating an audit.
+* `retention_days` - Specifies the number of days to keep in the audit logs in the storage account.
 
 ## Attributes Reference
 
