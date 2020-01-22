@@ -50,6 +50,11 @@ func dataSourceArmApplicationInsights() *schema.Resource {
 				Computed: true,
 			},
 
+			"retention_in_days": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"tags": {
 				Type:     schema.TypeMap,
 				Computed: true,
@@ -83,5 +88,8 @@ func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface
 	d.Set("location", resp.Location)
 	d.Set("app_id", resp.AppID)
 	d.Set("application_type", resp.ApplicationType)
+	if v := resp.RetentionInDays; v != nil {
+		d.Set("retention_in_days", v)
+	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }

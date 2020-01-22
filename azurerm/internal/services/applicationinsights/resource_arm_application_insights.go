@@ -64,6 +64,22 @@ func resourceArmApplicationInsights() *schema.Resource {
 				}, true),
 			},
 
+			"retention_in_days": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				ValidateFunc: validation.IntInSlice([]int{
+					30,
+					60,
+					90,
+					120,
+					180,
+					270,
+					365,
+					550,
+					730,
+				}),
+			},
+
 			"sampling_percentage": {
 				Type:         schema.TypeFloat,
 				Optional:     true,
@@ -136,6 +152,10 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		ApplicationID:      &name,
 		ApplicationType:    insights.ApplicationType(applicationType),
 		SamplingPercentage: samplingPercentage,
+	}
+
+	if v, ok := d.GetOk("retention_in_days"); ok {
+		applicationInsightsComponentProperties.RetentionInDays = utils.Int32(int32(v.(int)))
 	}
 
 	insightProperties := insights.ApplicationInsightsComponent{
@@ -228,6 +248,9 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("app_id", props.AppID)
 		d.Set("instrumentation_key", props.InstrumentationKey)
 		d.Set("sampling_percentage", props.SamplingPercentage)
+		if v := props.RetentionInDays; v != nil {
+			d.Set("retention_in_days", v)
+		}
 	}
 
 	if billingFeatureProps := billingFeatureResp.DataVolumeCap; billingFeatureProps != nil {

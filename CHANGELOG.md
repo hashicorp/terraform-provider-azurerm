@@ -4,10 +4,14 @@ IMPROVEMENTS:
 
 * dependencies: upgrading to `v38.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-5385]
 * frontdoor: updating to use API version `2019-11-01` [GH-5385]
+* `azurem_application_insights` - add support for `retention_in_days` [GH-5457]
 * `azurerm_cosmosdb_account` - support for the `EnableMongo` capability [GH-5325]
 * `azurerm_databricks_workspace` - support for the `custom_parameters` property and `public_subnet_name`, `private_subnet_name`, and `virtual_network_id` parameters [GH-3889]
+* `azurerm_databricks_workspace` - support for the `no_public_ip` custom parameter [GH-5469]
 * `azurerm_express_route_circuit` - support for the `Basic` and `Local` tiers [GH-5456]
 * `azurerm_network_watcher_flow_log` - support for the `version` property [GH-5419]
+* `azurerm_traffic_manager_profile` - add the `expected_status_code_ranges` [GH-5471]
+* `azurerm_traffic_manager_profile` - switch `dns_config` and `monitor_config` to type list and limit to `1` [GH-5471]
 
 BUG FIXES:
 
@@ -18,7 +22,7 @@ BUG FIXES:
 * `azurerm_postgresql_firewall` - correctly validate the `server_name` property [GH-5443]
 * `azurerm_postgresql_virtual_network_rule` - correctly validate the `server_name` property [GH-5443]
 * `azurerm_private_link_service` - fixing a crash when the `auto_approval` and `visibility` blocks aren't returned from the Azure API [GH-5428]
-
+* `azurerm_virtual_machine` - will no longer panic if `network_interface_ids` is missing [GH-5413]
 
 ## 1.41.0 (January 16, 2020)
 

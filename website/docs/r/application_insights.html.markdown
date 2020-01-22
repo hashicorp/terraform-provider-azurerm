@@ -52,6 +52,8 @@ The following arguments are supported:
 
 * `stop_send_notification_when_hit_cap` - (Optional) Specifies if a notification email will be send when the daily data volume cap is met. Default to `false`.
 
+* `retention_in_days` - (Optional) Specifies the retention period in days. Possible values are `30`, `60`, `90`, `120`, `180`, `270`, `365`, `550` or `730`.
+
 * `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

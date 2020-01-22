@@ -248,6 +248,7 @@ func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "web"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_in_days", "120"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sampling_percentage", "50"),
 					resource.TestCheckResourceAttr(data.ResourceName, "daily_cap", "50"),
 					resource.TestCheckResourceAttr(data.ResourceName, "stop_send_notification_when_hit_cap", "true"),
@@ -302,6 +303,7 @@ resource "azurerm_application_insights" "test" {
   location                            = "${azurerm_resource_group.test.location}"
   resource_group_name                 = "${azurerm_resource_group.test.name}"
   application_type                    = "%s"
+  retention_in_days                   = 120
   sampling_percentage                 = 50
   daily_cap                           = 50
   stop_send_notification_when_hit_cap = true
