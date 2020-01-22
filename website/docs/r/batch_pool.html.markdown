@@ -314,5 +314,5 @@ The following attributes are exported:
 ## Import
 Batch pools can be imported using the `resource id`, e.g.
 ```shell
- terraform import azurerm_batch_pool.myBatchPool1 /subscriptions/00000000-0000-0000-0000-000000000000/myResourceGroups/myGroup1/providers/Microsoft.Batch/myBatchAccounts/myBatchAccount1/myBatchPools/myBatchPool1
+ terraform import azurerm_batch_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/myResourceGroups/myGroup1/providers/Microsoft.Batch/myBatchAccounts/myBatchAccount1/myBatchPools/myBatchPool1
 ```
