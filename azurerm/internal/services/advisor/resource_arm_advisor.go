@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmAdvisorConfigurations() *schema.Resource {
+func resourceArmAdvisor() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAdvisorConfigurationsCreateUpdate,
-		Read:   resourceArmAdvisorConfigurationsRead,
-		Update: resourceArmAdvisorConfigurationsCreateUpdate,
-		Delete: resourceArmAdvisorConfigurationsDelete,
+		Create: resourceArmAdvisorCreateUpdate,
+		Read:   resourceArmAdvisorRead,
+		Update: resourceArmAdvisorCreateUpdate,
+		Delete: resourceArmAdvisorDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -38,6 +38,7 @@ func resourceArmAdvisorConfigurations() *schema.Resource {
 			"resource_group_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceGroupName,
 			},
 
@@ -52,19 +53,20 @@ func resourceArmAdvisorConfigurations() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice([]string{"5", "10", "15", "20"}, true),
+				ConflictsWith: []string{"resource_group_name"},
 			},
 		},
 	}
 }
 
-func resourceArmAdvisorConfigurationsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAdvisorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Advisor.ConfigurationsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure Advisor Configurations creation.")
+	log.Printf("[INFO] preparing arguments for Azure Advisor creation.")
 
-	ConfigDataProperties := advisor.ConfigDataProperties{}
+	p := advisor.ConfigDataProperties{}
 	//resource_group
 	var resourceGroup string
 	if resourceGroupName, ok := d.GetOkExists("resource_group_name"); ok {
@@ -73,65 +75,65 @@ func resourceArmAdvisorConfigurationsCreateUpdate(d *schema.ResourceData, meta i
 	//exclude
 	if exclude, ok := d.GetOkExists("exclude"); ok {
 		exclude := exclude.(bool)
-		ConfigDataProperties.Exclude = &exclude
+		p.Exclude = &exclude
 	}
 	//low_cpu_threshold
 	if lowCpuThreshold, ok := d.GetOkExists("low_cpu_threshold"); ok {
 		lowCpuThreshold := lowCpuThreshold.(string)
-		ConfigDataProperties.LowCPUThreshold = &lowCpuThreshold
+		p.LowCPUThreshold = &lowCpuThreshold
 	}
 
 	parameters := advisor.ConfigData{
-		Properties: &ConfigDataProperties,
+		Properties: &p,
 	}
 
 	if resourceGroup != "" {
 		_, err := client.CreateInResourceGroup(ctx, parameters, resourceGroup)
 		if err != nil {
-			return fmt.Errorf("Error creating Advisor Configurations (Resource Group %q): %+v", resourceGroup, err)
+			return fmt.Errorf("Error creating Advisor (Resource Group %q): %+v", resourceGroup, err)
 		}
 
 		readlist, err := client.ListByResourceGroup(ctx, resourceGroup)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Advisor Configurations (Resource Group %q): %+v", resourceGroup, err)
+			return fmt.Errorf("Error retrieving Advisor (Resource Group %q): %+v", resourceGroup, err)
 		}
 		if readlist.IsEmpty() {
-			return fmt.Errorf("Error retrieving Advisor Configurations (Resource Group %q)", resourceGroup)
+			return fmt.Errorf("Error retrieving Advisor (Resource Group %q)", resourceGroup)
 		}
 		read := (*readlist.Value)[0]
 
 		if read.ID == nil {
-			return fmt.Errorf("Cannot read Advisor Configurations (resource group %q) ID", resourceGroup)
+			return fmt.Errorf("Cannot read Advisor (resource group %q) ID", resourceGroup)
 		}
 
 		d.SetId(*read.ID)
 	} else {
 		_, err := client.CreateInSubscription(ctx, parameters)
 		if err != nil {
-			return fmt.Errorf("Error creating Advisor Configurations: %+v", err)
+			return fmt.Errorf("Error creating Advisor: %+v", err)
 		}
 
 		readlist, err := client.ListBySubscription(ctx)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Advisor Configurations: %+v", err)
+			return fmt.Errorf("Error retrieving Advisor: %+v", err)
 		}
 		// here is a sdk problem, which NotDone return false when the response is empty
 		if !readlist.NotDone() {
-			return fmt.Errorf("Error retrieving Advisor Configurations, the response page enumeration should be started or is not yet complete")
+			return fmt.Errorf("Error retrieving Advisor, the response page enumeration should be started or is not yet complete")
 		}
 		read := readlist.Values()[0]
 
 		if read.ID == nil {
-			return fmt.Errorf("Cannot read Advisor Configurations ")
+			return fmt.Errorf("Cannot read Advisor ")
 		}
 
 		d.SetId(*read.ID)
 	}
 
-	return resourceArmAdvisorConfigurationsRead(d, meta)
+	return resourceArmAdvisorRead(d, meta)
 }
 
-func resourceArmAdvisorConfigurationsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAdvisorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Advisor.ConfigurationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,7 +142,8 @@ func resourceArmAdvisorConfigurationsRead(d *schema.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	if resourceGroup, ok := id.Path["resourceGroups"]; ok {
+	resourceGroup := id.ResourceGroup
+	if resourceGroup!="" {
 		resplist, err := client.ListByResourceGroup(ctx, resourceGroup)
 		if err != nil {
 			if utils.ResponseWasNotFound(resplist.Response) || resplist.IsEmpty() {
@@ -152,7 +155,9 @@ func resourceArmAdvisorConfigurationsRead(d *schema.ResourceData, meta interface
 		}
 		resp := (*resplist.Value)[0]
 
-		d.Set("resource_group_name", resourceGroup)
+		if resourceGroup != "" {
+			d.Set("resource_group_name", resourceGroup)
+		}
 
 		if exclude := resp.Properties.Exclude; exclude != nil {
 			d.Set("exclude", exclude)
@@ -188,7 +193,7 @@ func resourceArmAdvisorConfigurationsRead(d *schema.ResourceData, meta interface
 	}
 }
 
-func resourceArmAdvisorConfigurationsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAdvisorDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Advisor.ConfigurationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -197,7 +202,8 @@ func resourceArmAdvisorConfigurationsDelete(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	if resourceGroup, ok := id.Path["resourceGroups"]; ok {
+	resourceGroup := id.ResourceGroup
+	if resourceGroup!="" {
 		parameters := advisor.ConfigData{
 			Properties: &advisor.ConfigDataProperties{
 				Exclude: utils.Bool(true),
@@ -206,7 +212,7 @@ func resourceArmAdvisorConfigurationsDelete(d *schema.ResourceData, meta interfa
 
 		_, err := client.CreateInResourceGroup(ctx, parameters, resourceGroup)
 		if err != nil {
-			return fmt.Errorf("Error deleting Advisor Configurations (Resource Group %q): %+v", resourceGroup, err)
+			return fmt.Errorf("Error deleting Advisor (Resource Group %q): %+v", resourceGroup, err)
 		}
 
 		return nil
@@ -219,7 +225,7 @@ func resourceArmAdvisorConfigurationsDelete(d *schema.ResourceData, meta interfa
 
 		_, err := client.CreateInSubscription(ctx, parameters)
 		if err != nil {
-			return fmt.Errorf("Error deleting Advisor Configurations (Resource Group %q): %+v", resourceGroup, err)
+			return fmt.Errorf("Error deleting Advisor (Resource Group %q): %+v", resourceGroup, err)
 		}
 
 		return nil

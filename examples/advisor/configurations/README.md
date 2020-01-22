@@ -1,3 +1,3 @@
-# Example: Advisor Configurations
+# Example: Advisor
 
-This example provisions advisor configurations.
+This example provisions Advisor.
