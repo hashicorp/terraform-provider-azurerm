@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-06-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -89,6 +89,18 @@ func resourceArmNetAppVolume() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"protocol_types": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Schema{Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						"NFSv3",
+						"NFSv4.1",
+						"CIFS",
+					}, false)},
+			},
+
 			"storage_quota_in_gb": {
 				Type:         schema.TypeInt,
 				Required:     true,
@@ -122,7 +134,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
-						"nfsv4_enabled": {
+						"nfsv41_enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
@@ -167,6 +179,7 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	volumePath := d.Get("volume_path").(string)
 	serviceLevel := d.Get("service_level").(string)
 	subnetId := d.Get("subnet_id").(string)
+	protocolTypes := d.Get("protocol_types").([]interface{})
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
 	exportPolicyRule := d.Get("export_policy_rule").(*schema.Set).List()
 
@@ -176,6 +189,7 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 			CreationToken:  utils.String(volumePath),
 			ServiceLevel:   netapp.ServiceLevel(serviceLevel),
 			SubnetID:       utils.String(subnetId),
+			ProtocolTypes:  utils.ExpandStringSlice(protocolTypes),
 			UsageThreshold: utils.Int64(storageQuotaInGB),
 			ExportPolicy:   expandArmNetAppVolumeExportPolicyRule(exportPolicyRule),
 		},
@@ -236,7 +250,7 @@ func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
 		d.Set("subnet_id", props.SubnetID)
-
+		d.Set("protocol_types", props.ProtocolTypes)
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
@@ -316,7 +330,7 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*schema.Set).List()), ",")
 			cifsEnabled := v["cifs_enabled"].(bool)
 			nfsv3Enabled := v["nfsv3_enabled"].(bool)
-			nfsv4Enabled := v["nfsv4_enabled"].(bool)
+			nfsv41Enabled := v["nfsv41_enabled"].(bool)
 			unixReadOnly := v["unix_read_only"].(bool)
 			unixReadWrite := v["unix_read_write"].(bool)
 
@@ -324,7 +338,7 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 				AllowedClients: utils.String(allowedClients),
 				Cifs:           utils.Bool(cifsEnabled),
 				Nfsv3:          utils.Bool(nfsv3Enabled),
-				Nfsv4:          utils.Bool(nfsv4Enabled),
+				Nfsv41:         utils.Bool(nfsv41Enabled),
 				RuleIndex:      utils.Int32(ruleIndex),
 				UnixReadOnly:   utils.Bool(unixReadOnly),
 				UnixReadWrite:  utils.Bool(unixReadWrite),
@@ -362,9 +376,9 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 		if v := item.Nfsv3; v != nil {
 			nfsv3Enabled = *v
 		}
-		nfsv4Enabled := false
-		if v := item.Nfsv4; v != nil {
-			nfsv4Enabled = *v
+		nfsv41Enabled := false
+		if v := item.Nfsv41; v != nil {
+			nfsv41Enabled = *v
 		}
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
@@ -380,7 +394,7 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 			"allowed_clients": utils.FlattenStringSlice(&allowedClients),
 			"cifs_enabled":    cifsEnabled,
 			"nfsv3_enabled":   nfsv3Enabled,
-			"nfsv4_enabled":   nfsv4Enabled,
+			"nfsv41_enabled":  nfsv41Enabled,
 			"unix_read_only":  unixReadOnly,
 			"unix_read_write": unixReadWrite,
 		})

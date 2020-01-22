@@ -25,6 +25,27 @@ func TestAccAzureRMNetAppVolume_basic(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocol_types.0", "NFSv3"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMNetAppVolume_nfsv41(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetAppVolume_nfsv41(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocol_types.0", "NFSv4.1"),
 				),
 			},
 			data.ImportStep(),
@@ -71,7 +92,7 @@ func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Premium"),
+					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "101"),
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "2"),
 				),
@@ -250,8 +271,29 @@ resource "azurerm_netapp_volume" "test" {
   account_name        = "${azurerm_netapp_account.test.name}"
   pool_name           = "${azurerm_netapp_pool.test.name}"
   volume_path         = "my-unique-file-path-%d"
-  service_level       = "Premium"
+  service_level       = "Standard"
   subnet_id           = "${azurerm_subnet.test.id}"
+  protocol_types      = ["NFSv3"]
+  storage_quota_in_gb = 100
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMNetAppVolume_nfsv41(data acceptance.TestData) string {
+	template := testAccAzureRMNetAppVolume_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_netapp_account.test.name}"
+  pool_name           = "${azurerm_netapp_pool.test.name}"
+  volume_path         = "my-unique-file-path-%d"
+  service_level       = "Standard"
+  subnet_id           = "${azurerm_subnet.test.id}"
+  protocol_types      = ["NFSv4.1"]
   storage_quota_in_gb = 100
 }
 `, template, data.RandomInteger, data.RandomInteger)
@@ -280,9 +322,10 @@ resource "azurerm_netapp_volume" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_netapp_account.test.name}"
   pool_name           = "${azurerm_netapp_pool.test.name}"
-  service_level       = "Premium"
+  service_level       = "Standard"
   volume_path         = "my-unique-file-path-%d"
   subnet_id           = "${azurerm_subnet.test.id}"
+  protocol_types      = ["NFSv3"]
   storage_quota_in_gb = 101
 
   export_policy_rule {
@@ -290,7 +333,7 @@ resource "azurerm_netapp_volume" "test" {
     allowed_clients = ["1.2.3.0/24"]
     cifs_enabled    = false
     nfsv3_enabled   = true
-    nfsv4_enabled   = false
+    nfsv41_enabled   = false
     unix_read_only  = false
     unix_read_write = true
   }
@@ -300,7 +343,7 @@ resource "azurerm_netapp_volume" "test" {
     allowed_clients = ["1.2.5.0"]
     cifs_enabled    = false
     nfsv3_enabled   = true
-    nfsv4_enabled   = false
+    nfsv41_enabled   = false
     unix_read_only  = true
     unix_read_write = false
   }
@@ -343,8 +386,9 @@ resource "azurerm_netapp_volume" "test" {
   account_name        = "${azurerm_netapp_account.test.name}"
   pool_name           = "${azurerm_netapp_pool.test.name}"
   volume_path         = "my-updated-unique-file-path-%d"
-  service_level       = "Premium"
+  service_level       = "Standard"
   subnet_id           = "${azurerm_subnet.updated.id}"
+  protocol_types      = ["NFSv3"]
   storage_quota_in_gb = 100
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -361,9 +405,10 @@ resource "azurerm_netapp_volume" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_netapp_account.test.name}"
   pool_name           = "${azurerm_netapp_pool.test.name}"
-  service_level       = "Premium"
+  service_level       = "Standard"
   volume_path         = "my-unique-file-path-%d"
   subnet_id           = "${azurerm_subnet.test.id}"
+  protocol_types      = ["NFSv3"]
   storage_quota_in_gb = 101
 
   export_policy_rule {
@@ -371,7 +416,7 @@ resource "azurerm_netapp_volume" "test" {
     allowed_clients = ["1.2.4.0/24", "1.3.4.0"]
     cifs_enabled    = false
     nfsv3_enabled   = true
-    nfsv4_enabled   = false
+    nfsv41_enabled   = false
     unix_read_only  = false
     unix_read_write = true
   }
@@ -420,7 +465,7 @@ resource "azurerm_netapp_pool" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_netapp_account.test.name}"
-  service_level       = "Premium"
+  service_level       = "Standard"
   size_in_tb          = 4
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)

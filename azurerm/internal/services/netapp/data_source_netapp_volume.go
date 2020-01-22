@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -61,6 +62,18 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+
+			"protocol_types": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Schema{Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						"NFSv3",
+						"NFSv4.1",
+						"CIFS",
+					}, false)},
+			},
 		},
 	}
 }
@@ -100,6 +113,14 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
 		d.Set("subnet_id", props.SubnetID)
+
+		protocolTypes := make([]string, 0)
+		if prtclTypes := props.ProtocolTypes; prtclTypes != nil {
+			for _, protocol := range *prtclTypes {
+				protocolTypes = append(protocolTypes, protocol)
+			}
+		}
+		d.Set("protocol_types", protocolTypes)
 
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
