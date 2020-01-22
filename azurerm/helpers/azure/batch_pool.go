@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -594,8 +596,10 @@ func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpoi
 		name := inboundNatPool["name"].(string)
 		protocol := batch.InboundEndpointProtocol(inboundNatPool["protocol"].(string))
 		backendPort := int32(inboundNatPool["backend_port"].(int))
-		frontendPortRangeStart := int32(inboundNatPool["frontend_port_range_start"].(int))
-		frontendPortRangeEnd := int32(inboundNatPool["frontend_port_range_end"].(int))
+		frontendPortRange := inboundNatPool["frontend_port_range"].(string)
+		parts := strings.Split(frontendPortRange, "-")
+		frontendPortRangeStart, _ := strconv.Atoi(parts[0])
+		frontendPortRangeEnd, _ := strconv.Atoi(parts[1])
 
 		networkSecurityGroupRules, err := ExpandBatchPoolNetworkSecurityGroupRule(inboundNatPool["network_security_group_rules"].([]interface{}))
 		if err != nil {
@@ -606,8 +610,8 @@ func ExpandBatchPoolEndpointConfiguration(list []interface{}) (*batch.PoolEndpoi
 			Name:                      &name,
 			Protocol:                  protocol,
 			BackendPort:               &backendPort,
-			FrontendPortRangeStart:    &frontendPortRangeStart,
-			FrontendPortRangeEnd:      &frontendPortRangeEnd,
+			FrontendPortRangeStart:    utils.Int32(int32(frontendPortRangeStart)),
+			FrontendPortRangeEnd:      utils.Int32(int32(frontendPortRangeEnd)),
 			NetworkSecurityGroupRules: &networkSecurityGroupRules,
 		}
 	}
@@ -668,11 +672,8 @@ func FlattenBatchPoolNetworkConfiguration(networkConfig *batch.NetworkConfigurat
 			if inboundNatPool.BackendPort != nil {
 				inboundNatPoolMap["backend_port"] = *inboundNatPool.BackendPort
 			}
-			if inboundNatPool.FrontendPortRangeStart != nil {
-				inboundNatPoolMap["frontend_port_range_start"] = *inboundNatPool.FrontendPortRangeStart
-			}
-			if inboundNatPool.FrontendPortRangeEnd != nil {
-				inboundNatPoolMap["frontend_port_range_end"] = *inboundNatPool.FrontendPortRangeEnd
+			if inboundNatPool.FrontendPortRangeStart != nil && inboundNatPool.FrontendPortRangeEnd != nil {
+				inboundNatPoolMap["frontend_port_range"] = fmt.Sprintf("%d-%d", *inboundNatPool.FrontendPortRangeStart, inboundNatPool.FrontendPortRangeEnd)
 			}
 			inboundNatPoolMap["protocol"] = inboundNatPool.Protocol
 

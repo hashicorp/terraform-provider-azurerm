@@ -167,9 +167,7 @@ A `endpoint_configuration` block exports the following:
 
 * `protocol` - The protocol of the endpoint. Acceptable values are `TCP` and `UDP`.
 
-* `frontend_port_range_start` - The first port number in the range of external ports that are used to provide inbound access to the backendPort on the individual compute nodes.
-
-* `frontend_port_range_end` - The last port number in the range of external ports that are used to provide inbound access to the backendPort on the individual compute nodes.
+* `frontend_port_range` - The range of external ports that are used to provide inbound access to the backendPort on the individual compute nodes in the format of `1000-1100`.
 
 * `network_security_group_rules` - (Optional) The list of network security group rules that are applied to the endpoint.
 

@@ -316,12 +316,8 @@ func dataSourceArmBatchPool() *schema.Resource {
 										Type:     schema.TypeInt,
 										Computed: true,
 									},
-									"frontend_port_range_start": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"frontend_port_range_end": {
-										Type:     schema.TypeInt,
+									"frontend_port_range": {
+										Type:     schema.TypeString,
 										Computed: true,
 									},
 									"network_security_group_rules": {
