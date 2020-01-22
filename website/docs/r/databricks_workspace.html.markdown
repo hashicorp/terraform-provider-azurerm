@@ -54,6 +54,8 @@ The following arguments are supported:
 
 `custom_parameters` supports the following:
 
+* `no_public_ip` - (Optional) Are public IP Addresses not allowed?
+
 * `public_subnet_name` - (Optional) The name of the Public Subnet within the Virtual Network. Required if `virtual_network_id` is set.
 
 * `private_subnet_name` - (Optional) The name of the Private Subnet within the Virtual Network. Required if `virtual_network_id` is set.
