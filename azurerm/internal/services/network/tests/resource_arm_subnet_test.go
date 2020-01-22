@@ -515,7 +515,7 @@ resource "azurerm_subnet" "test" {
     name = "acctestdelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }
