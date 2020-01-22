@@ -22,6 +22,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func ValidatePSQLServerName(i interface{}, k string) (_ []string, errors []error) {
+	if m, regexErrs := validate.RegExHelper(i, k, `^[0-9a-z]{2}[-0-9a-z]{0,60}[0-9a-z]$`); !m {
+		errors = append(regexErrs, fmt.Errorf("%q can contain only lowercase letters, numbers, and '-', but can't start or end with '-' or have more than 63 characters.", k))
+	}
+
+	return nil, errors
+}
+
 func resourceArmPostgreSQLServer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmPostgreSQLServerCreate,
@@ -41,9 +49,10 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: ValidatePSQLServerName,
 			},
 
 			"location": azure.SchemaLocation(),

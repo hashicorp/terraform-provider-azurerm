@@ -126,8 +126,8 @@ func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationNa
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ConfigurationsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
-		serverName := fmt.Sprintf("acctestpsqlsvr-%d", rInt)
+		resourceGroup := fmt.Sprintf("acctestRG-psql-%d", rInt)
+		serverName := fmt.Sprintf("acctest-psql-server-%d", rInt)
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
 		if err != nil {
@@ -188,7 +188,6 @@ func testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(data acceptance.TestD
 }
 
 func testAccAzureRMPostgreSQLConfiguration_template(data acceptance.TestData, name string, value string) string {
-	server := testAccAzureRMPostgreSQLConfiguration_empty(data)
 	return fmt.Sprintf(`
 %s
 
@@ -198,22 +197,22 @@ resource "azurerm_postgresql_configuration" "test" {
   server_name         = "${azurerm_postgresql_server.test.name}"
   value               = "%s"
 }
-`, server, name, value)
+`, testAccAzureRMPostgreSQLConfiguration_empty(data), name, value)
 }
 
 func testAccAzureRMPostgreSQLConfiguration_empty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku_name     = "GP_Gen5_2"
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200

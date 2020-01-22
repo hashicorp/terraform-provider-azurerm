@@ -350,7 +350,7 @@ func TestAccAzureRMCosmosDBAccount_capabilityUpdate(t *testing.T) {
 	})
 }
 
-func TestAbcAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
+func TestAccAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

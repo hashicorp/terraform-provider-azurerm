@@ -911,13 +911,22 @@ resource "azurerm_storage_account" "test%d" {
 }
 
 func testAccAzureRMKeyVault_generateAccessPolicyConfigs(accountNum int) string {
+	// due to a weird terraform fmt issue where:
+	//   "${azurerm_storage_account.test%d.identity.0.principal_id}"
+	// becomes
+	//   "${azurerm_storage_account.test % d.identity.0.principal_id}"
+	//
+	// lets inject this separately so we can run terrafmt on this file
+
+	oid := fmt.Sprintf("${azurerm_storage_account.test%d.identity.0.principal_id}", accountNum)
+
 	return fmt.Sprintf(`
 access_policy {
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${azurerm_storage_account.test%d.identity.0.principal_id}"
+  object_id = "%s"
 
   key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
 }
-`, accountNum)
+`, oid)
 }

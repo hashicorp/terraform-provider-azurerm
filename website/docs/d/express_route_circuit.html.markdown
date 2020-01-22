@@ -69,5 +69,5 @@ output "service_key" {
 
 `sku` supports the following:
 
-* `tier` - The service tier. Possible values are `Standard` or `Premium`.
+* `tier` - The service tier. Possible values are `Basic`, `Local`, `Standard` or `Premium`.
 * `family` - The billing mode for bandwidth. Possible values are `MeteredData` or `UnlimitedData`.

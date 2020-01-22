@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-04-01/frontdoor"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-11-01/frontdoor"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -832,8 +832,11 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorPath strin
 
 func expandArmFrontDoorCustomHTTPSConfiguration(input []interface{}) *frontdoor.CustomHTTPSConfiguration {
 	if len(input) == 0 {
+		// https://github.com/Azure/azure-sdk-for-go/issues/6882
+		defaultProtocolType := "ServerNameIndication"
+
 		defaultHttpsConfiguration := frontdoor.CustomHTTPSConfiguration{
-			ProtocolType:      frontdoor.ServerNameIndication,
+			ProtocolType:      &defaultProtocolType,
 			CertificateSource: frontdoor.CertificateSourceFrontDoor,
 			CertificateSourceParameters: &frontdoor.CertificateSourceParameters{
 				CertificateType: frontdoor.Dedicated,
@@ -1435,8 +1438,11 @@ func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubReso
 }
 
 func makeCustomHttpsConfiguration(customHttpsConfiguration map[string]interface{}) frontdoor.CustomHTTPSConfiguration {
+	// https://github.com/Azure/azure-sdk-for-go/issues/6882
+	defaultProtocolType := "ServerNameIndication"
+
 	customHTTPSConfigurationUpdate := frontdoor.CustomHTTPSConfiguration{
-		ProtocolType: frontdoor.ServerNameIndication,
+		ProtocolType: &defaultProtocolType,
 	}
 
 	if customHttpsConfiguration["certificate_source"].(string) == "AzureKeyVault" {

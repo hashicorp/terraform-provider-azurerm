@@ -131,7 +131,7 @@ POLICY_DEFINITIONS
 func testAzureRMPolicySetDefinition_requiresImport(data acceptance.TestData) string {
 	template := testAzureRMPolicySetDefinition_builtIn(data)
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_policy_set_definition" "import" {
   name         = "${azurerm_policy_set_definition.test.name}"
