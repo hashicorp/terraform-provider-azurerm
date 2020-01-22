@@ -80,8 +80,8 @@ func TestAccAzureRMAdvisor_rgWithThreshold(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAdvisorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAdvisor_rgWithThreshold(data),
-				ExpectError:regexp.MustCompile("errors during plan: \"low_cpu_threshold\": conflicts with resource_group_name"),
+				Config:      testAccAzureRMAdvisor_rgWithThreshold(data),
+				ExpectError: regexp.MustCompile("errors during plan: \"low_cpu_threshold\": conflicts with resource_group_name"),
 			},
 		},
 	})
@@ -217,5 +217,3 @@ resource "azurerm_advisor" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
-
-

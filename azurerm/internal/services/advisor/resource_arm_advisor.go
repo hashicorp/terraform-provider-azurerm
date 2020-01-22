@@ -49,10 +49,10 @@ func resourceArmAdvisor() *schema.Resource {
 			},
 
 			"low_cpu_threshold": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice([]string{"5", "10", "15", "20"}, true),
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ValidateFunc:  validation.StringInSlice([]string{"5", "10", "15", "20"}, true),
 				ConflictsWith: []string{"resource_group_name"},
 			},
 		},
@@ -143,7 +143,7 @@ func resourceArmAdvisorRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	if resourceGroup!="" {
+	if resourceGroup != "" {
 		resplist, err := client.ListByResourceGroup(ctx, resourceGroup)
 		if err != nil {
 			if utils.ResponseWasNotFound(resplist.Response) || resplist.IsEmpty() {
@@ -203,7 +203,7 @@ func resourceArmAdvisorDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	if resourceGroup!="" {
+	if resourceGroup != "" {
 		parameters := advisor.ConfigData{
 			Properties: &advisor.ConfigDataProperties{
 				Exclude: utils.Bool(true),
