@@ -609,7 +609,8 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
 
@@ -1799,16 +1800,18 @@ func expandAzureRmVirtualMachineNetworkProfile(d *schema.ResourceData) compute.N
 	network_profile := compute.NetworkProfile{}
 
 	for _, nic := range nicIds {
-		id := nic.(string)
-		primary := id == primaryNicId
+		if nic != nil {
+			id := nic.(string)
+			primary := id == primaryNicId
 
-		network_interface := compute.NetworkInterfaceReference{
-			ID: &id,
-			NetworkInterfaceReferenceProperties: &compute.NetworkInterfaceReferenceProperties{
-				Primary: &primary,
-			},
+			network_interface := compute.NetworkInterfaceReference{
+				ID: &id,
+				NetworkInterfaceReferenceProperties: &compute.NetworkInterfaceReferenceProperties{
+					Primary: &primary,
+				},
+			}
+			network_interfaces = append(network_interfaces, network_interface)
 		}
-		network_interfaces = append(network_interfaces, network_interface)
 	}
 
 	network_profile.NetworkInterfaces = &network_interfaces
