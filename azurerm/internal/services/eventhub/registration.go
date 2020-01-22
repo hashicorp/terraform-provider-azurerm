@@ -15,6 +15,7 @@ func (r Registration) Name() string {
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_eventhub_namespace": dataSourceEventHubNamespace(),
+		"azurerm_eventhub_namespace_authorization_rule": dataSourceEventHubNamespaceAuthorizationRule(),
 	}
 }
 
