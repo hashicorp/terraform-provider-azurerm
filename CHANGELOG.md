@@ -18,7 +18,7 @@ BUG FIXES:
 * `azurerm_postgresql_firewall` - correctly validate the `server_name` property [GH-5443]
 * `azurerm_postgresql_virtual_network_rule` - correctly validate the `server_name` property [GH-5443]
 * `azurerm_private_link_service` - fixing a crash when the `auto_approval` and `visibility` blocks aren't returned from the Azure API [GH-5428]
-
+* `azurerm_virtual_machine` - will no longer panic if `network_interface_ids` is missing [GH-5413]
 
 ## 1.41.0 (January 16, 2020)
 
