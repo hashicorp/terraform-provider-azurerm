@@ -178,7 +178,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_dedicated_host_group" "test" {
-  name                        = "acctestDHG-compute-%s"
+  name                        = "acctest-DHG-%s"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   platform_fault_domain_count = 2
@@ -186,7 +186,7 @@ resource "azurerm_dedicated_host_group" "test" {
 
 
 resource "azurerm_dedicated_host" "test" {
-  name                  = "acctestDH-compute-%s"
+  name                  = "acctest-DH-%s"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   host_group_name       = azurerm_dedicated_host_group.test.name
@@ -204,7 +204,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_dedicated_host_group" "test" {
-  name                        = "acctestDHG-compute-%s"
+  name                        = "acctest-DHG-%s"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   platform_fault_domain_count = 2
@@ -212,7 +212,7 @@ resource "azurerm_dedicated_host_group" "test" {
 
 
 resource "azurerm_dedicated_host" "test" {
-  name                    = "acctestDH-compute-%s"
+  name                    = "acctest-DH-%s"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   host_group_name         = azurerm_dedicated_host_group.test.name

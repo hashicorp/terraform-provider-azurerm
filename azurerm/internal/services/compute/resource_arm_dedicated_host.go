@@ -63,8 +63,6 @@ func resourceArmDedicatedHost() *schema.Resource {
 				ValidateFunc: validateDedicatedHostGroupName(),
 			},
 
-			// In order to follow convention for both protal and azure cli, `sku_name` here means
-			// sku name only.
 			"sku_name": {
 				Type:     schema.TypeString,
 				ForceNew: true,
