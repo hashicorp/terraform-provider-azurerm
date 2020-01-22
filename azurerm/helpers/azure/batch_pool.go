@@ -561,7 +561,6 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*batch.NetworkConf
 	}
 
 	networkConfigValue := list[0].(map[string]interface{})
-
 	networkConfiguration := &batch.NetworkConfiguration{}
 
 	if v, ok := networkConfigValue["subnet_id"]; ok {
