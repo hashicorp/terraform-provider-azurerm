@@ -1812,7 +1812,6 @@ func expandAzureRmVirtualMachineNetworkProfile(d *schema.ResourceData) compute.N
 			}
 			network_interfaces = append(network_interfaces, network_interface)
 		}
-
 	}
 
 	network_profile.NetworkInterfaces = &network_interfaces
