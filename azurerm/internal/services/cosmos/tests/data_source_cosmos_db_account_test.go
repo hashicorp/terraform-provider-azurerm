@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDAtaSourceAzureRMCosmosDBAccount_basic(t *testing.T) {
+func TestAccDataSourceAzureRMCosmosDBAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -18,7 +18,7 @@ func TestAccDAtaSourceAzureRMCosmosDBAccount_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDAtaSourceAzureRMCosmosDBAccount_basic(data),
+				Config: testAccDataSourceAzureRMCosmosDBAccount_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
 				),
@@ -49,7 +49,7 @@ func TestAccDataSourceAzureRMCosmosDBAccount_complete(t *testing.T) {
 	})
 }
 
-func testAccDAtaSourceAzureRMCosmosDBAccount_basic(data acceptance.TestData) string {
+func testAccDataSourceAzureRMCosmosDBAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
