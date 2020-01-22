@@ -251,7 +251,7 @@ func testAccAzureRMDatabricksWorkspace_requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_databricks_workspace" "import" {
-  name                = "$[azurerm_databricks_workspace.test.name}"
+  name                = "${azurerm_databricks_workspace.test.name}"
   resource_group_name = "${azurerm_databricks_workspace.test.resource_group_name}"
   location            = "${azurerm_databricks_workspace.test.location}"
   sku                 = "${azurerm_databricks_workspace.test.sku}"
