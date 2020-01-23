@@ -165,7 +165,7 @@ A `endpoint_configuration` block exports the following:
 
 * `backend_port` - The port number on the compute node.
 
-* `protocol` - The protocol of the endpoint. Acceptable values are `TCP` and `UDP`.
+* `protocol` - The protocol of the endpoint.
 
 * `frontend_port_range` - The range of external ports that are used to provide inbound access to the backendPort on the individual compute nodes in the format of `1000-1100`.
 
