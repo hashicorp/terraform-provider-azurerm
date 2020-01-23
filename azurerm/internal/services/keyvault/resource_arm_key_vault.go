@@ -160,7 +160,6 @@ func resourceArmKeyVault() *schema.Resource {
 			"enabled_for_soft_delete": {
 				Type:         schema.TypeBool,
 				Optional:     true,
-				ValidateFunc: validate.BoolIsTrue(),
 			},
 
 			"enabled_for_purge_protection": {
