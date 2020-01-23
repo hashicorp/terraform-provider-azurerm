@@ -222,8 +222,10 @@ resource "azurerm_subnet" "update" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.update.name}"
   address_prefix       = "10.0.2.0/24"
+
   delegation {
     name = "netapp"
+
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
       actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
