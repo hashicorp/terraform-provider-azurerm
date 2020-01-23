@@ -526,8 +526,9 @@ func testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfile(t *testing.T
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfileConfig(data, clientId, clientSecret),
@@ -558,8 +559,9 @@ func testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile(t *testing.T) {
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfileConfig(data, clientId, clientSecret),
