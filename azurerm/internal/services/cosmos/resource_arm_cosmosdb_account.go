@@ -57,8 +57,6 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tags.Schema(),
-
 			//resource fields
 			"offer_type": {
 				Type:             schema.TypeString,
@@ -78,6 +76,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.GlobalDocumentDB),
 					string(documentdb.MongoDB),
+					string(documentdb.Parse),
 				}, true),
 			},
 
@@ -118,14 +117,14 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 						"max_interval_in_seconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      5,
+							Default:      5,                               // 2.0 change to computed?
 							ValidateFunc: validation.IntBetween(5, 86400), // single region values
 						},
 
 						"max_staleness_prefix": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      100,
+							Default:      100,                                // 2.0 change to computed
 							ValidateFunc: validation.IntBetween(10, 1000000), // single region values
 						},
 					},
@@ -201,6 +200,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 			"capabilities": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -208,11 +208,11 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								"EnableTable",
-								"EnableGremlin",
-								"EnableCassandra",
-								"EnableMongo",
 								"EnableAggregationPipeline",
+								"EnableCassandra",
+								"EnableGremlin",
+								"EnableTable",
+								"EnableMongo",
 								"MongoDBv3.4",
 								"mongoEnableDocLevelTTL",
 							}, true),
@@ -303,6 +303,8 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -751,7 +753,7 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 
 	//if a replication location is added or removed it can take some time to provision
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Creating", "Updating", "Deleting"},
+		Pending:    []string{"Creating", "Updating", "Deleting", "Initializing"},
 		Target:     []string{"Succeeded"},
 		MinTimeout: 30 * time.Second,
 		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up
