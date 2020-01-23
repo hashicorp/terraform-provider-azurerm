@@ -62,14 +62,14 @@ func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
 		// Check 2. routing rule is a forwarding_configuration type make sure the backend_pool_name exists in the configuration file
 		if len(forwardConfig) > 0 {
 			fc := forwardConfig[0].(map[string]interface{})
-			cacheEnabled := fc["cache_enabled"].(bool)
+			//cacheEnabled := fc["cache_enabled"].(bool)
 
 			if err := VerifyBackendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
 				return fmt.Errorf(`routing_rule %s is invalid. %+v`, routingRuleName, err)
 			}
 
 			// check existence of attributes in config based off cache enabled state
-			if !cacheEnabled {
+			/*if !cacheEnabled {
 				if stripDirective := fc["cache_query_parameter_strip_directive"]; stripDirective != "" {
 					return fmt.Errorf(`routing_rule %s forwarding_configuration block is invalid. Please make sure that the "cache_query_parameter_strip_directive" attribute does not exist in the configuration file`, routingRuleName)
 				}
@@ -83,7 +83,7 @@ func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
 				if stripDirective := fc["cache_query_parameter_strip_directive"]; stripDirective == "" {
 					return fmt.Errorf(`routing_rule %s forwarding_configuration block is invalid. Please make sure that the "cache_query_parameter_strip_directive" attribute is defined in the configuration file`, routingRuleName)
 				}
-			}
+			}*/
 		}
 
 		// Check 3. validate that each routing rule frontend_endpoints are actually defined in the resource schema

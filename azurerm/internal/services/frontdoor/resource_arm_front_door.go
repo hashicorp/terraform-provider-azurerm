@@ -175,11 +175,12 @@ func resourceArmFrontDoor() *schema.Resource {
 									"cache_enabled": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  false,
+										Default:  true,
 									},
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										Default:  false,
 									},
 									"cache_query_parameter_strip_directive": {
 										Type:     schema.TypeString,
@@ -188,6 +189,7 @@ func resourceArmFrontDoor() *schema.Resource {
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
 										}, false),
+										Default: string(frontdoor.StripNone),
 									},
 									"custom_forwarding_path": {
 										Type:     schema.TypeString,
@@ -663,7 +665,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error setting `backend_pool_load_balancing`: %+v", err)
 		}
 
-		if err := d.Set("routing_rule", flattenArmFrontDoorRoutingRule(properties.RoutingRules)); err != nil {
+		if err := d.Set("routing_rule", flattenArmFrontDoorRoutingRule(properties.RoutingRules, d.Get("routing_rule"))); err != nil {
 			return fmt.Errorf("Error setting `routing_rules`: %+v", err)
 		}
 	}
@@ -1344,20 +1346,29 @@ func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalanc
 	return []interface{}{result}
 }
 
-func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{} {
+func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks interface{}) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	output := make([]interface{}, 0)
+	oldByName := map[string]map[string]interface{}{}
 
+	for _, i := range oldBlocks.([]interface{}) {
+		v := i.(map[string]interface{})
+
+		oldByName[v["name"].(string)] = v
+	}
+
+	output := make([]interface{}, 0)
 	for _, v := range *input {
 		result := make(map[string]interface{})
 
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
-		if name := v.Name; name != nil {
+
+		name := v.Name
+		if name != nil {
 			result["name"] = *name
 		}
 
@@ -1399,6 +1410,17 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 						}
 					} else {
 						c["cache_enabled"] = false
+
+						//get `forwarding_configuration`
+						if o, ok := oldByName[*name]; ok {
+							ofcs := o["forwarding_configuration"].([]interface{})
+							if len(ofcs) > 0 {
+								ofc := ofcs[0].(map[string]interface{})
+
+								c["cache_query_parameter_strip_directive"] = ofc["cache_query_parameter_strip_directive"]
+								c["cache_use_dynamic_compression"] = ofc["cache_use_dynamic_compression"]
+							}
+						}
 					}
 
 					rc = append(rc, c)
