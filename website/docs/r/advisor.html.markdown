@@ -1,5 +1,5 @@
 ---
-subcategory: "Advisor"
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_advisor"
 description: |-
