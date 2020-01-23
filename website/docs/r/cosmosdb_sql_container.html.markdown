@@ -47,6 +47,8 @@ The following arguments are supported:
 
 * `throughput` - (Optional) The throughput of SQL container (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
+* `default_ttl` - (Optional) The default time to live of SQL container. If missing, items are not expired automatically. If present and the value is set to "-1", it is equal to infinity, and items don’t expire by default. If present and the value is set to some number "n" – items will expire "n" seconds after their last modified time.
+
 ---
 A `unique_key` block supports the following:
 

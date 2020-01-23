@@ -65,6 +65,7 @@ func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
 				Config: testAccAzureRMCosmosDbSqlContainer_complete(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_ttl", "500"),
 					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "600"),
 				),
 			},
@@ -74,6 +75,7 @@ func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
 				Config: testAccAzureRMCosmosDbSqlContainer_update(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_ttl", "1000"),
 					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "400"),
 				),
 			},
@@ -168,7 +170,8 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
-  throughput = 600
+  default_ttl = 500
+  throughput  = 600
 }
 
 `, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
@@ -187,7 +190,8 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
-  throughput = 400
+  default_ttl = 1000
+  throughput  = 400
 }
 
 `, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
