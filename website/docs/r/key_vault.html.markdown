@@ -84,7 +84,9 @@ The following arguments are supported:
 
 * `enabled_for_template_deployment` - (Optional) Boolean flag to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault. Defaults to `false`.
 
-* `enabled_for_soft_delete` - (Optional) Boolean flag to specify whether the key vault is enabled for soft delete. Once enabled you can not disable this setting.
+* `enabled_for_soft_delete` - (Optional) Should Soft Delete be enabled for items in this Key Vault?
+
+-> **NOTE:** Once enabled you can not disable this setting.
 
 * `purge_on_delete` - (Optional) Boolean flag to specify if the KeyVault should be purged on delete. This purges KeyVaults enabled for soft delete on resource deletition.
 
