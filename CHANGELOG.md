@@ -8,7 +8,8 @@ IMPROVEMENTS:
 
 * dependencies: upgrading to `v38.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-5385]
 * frontdoor: updating to use API version `2019-11-01` [GH-5385]
-* `azurem_application_insights` - add support for `retention_in_days` [GH-5457]
+* `azurerm_application_insights` - add support for `retention_in_days` [GH-5457]
+* `azure_batch_pool` - support for the `network_configuration` property [GH-5392]
 * `azurerm_cosmosdb_account` - support for the `EnableMongo` capability [GH-5325]
 * `azurerm_cosmosdb_account` - support for the `Parse` kind [GH-5453]
 * `azurerm_databricks_workspace` - support for the `custom_parameters` property and `public_subnet_name`, `private_subnet_name`, and `virtual_network_id` parameters [GH-3889]
