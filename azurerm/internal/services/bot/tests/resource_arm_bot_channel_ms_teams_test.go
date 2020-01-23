@@ -67,6 +67,9 @@ func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
 
 func testCheckAzureRMBotChannelMsTeamsExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -78,9 +81,6 @@ func testCheckAzureRMBotChannelMsTeamsExists(name string) resource.TestCheckFunc
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channel MsTeams")
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ChannelClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameMsTeamsChannel))
 		if err != nil {

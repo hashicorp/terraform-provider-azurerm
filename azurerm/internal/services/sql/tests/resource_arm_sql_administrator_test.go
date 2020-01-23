@@ -87,6 +87,9 @@ func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 
 func testCheckAzureRMSqlAdministratorExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServerAzureADAdministratorsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -94,9 +97,6 @@ func testCheckAzureRMSqlAdministratorExists(resourceName string) resource.TestCh
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServerAzureADAdministratorsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		_, err := client.Get(ctx, resourceGroup, serverName)
 		return err
@@ -105,6 +105,9 @@ func testCheckAzureRMSqlAdministratorExists(resourceName string) resource.TestCh
 
 func testCheckAzureRMSqlAdministratorDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServerAzureADAdministratorsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -112,9 +115,6 @@ func testCheckAzureRMSqlAdministratorDisappears(resourceName string) resource.Te
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServerAzureADAdministratorsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName); err != nil {
 			return fmt.Errorf("Bad: Delete on sqlAdministratorClient: %+v", err)
@@ -125,6 +125,9 @@ func testCheckAzureRMSqlAdministratorDisappears(resourceName string) resource.Te
 }
 
 func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServerAzureADAdministratorsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_active_directory_administrator" {
 			continue
@@ -132,9 +135,6 @@ func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServerAzureADAdministratorsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName)
 		if err != nil {

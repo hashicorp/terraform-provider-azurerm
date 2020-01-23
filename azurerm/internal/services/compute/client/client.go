@@ -8,7 +8,9 @@ import (
 
 type Client struct {
 	AvailabilitySetsClient         *compute.AvailabilitySetsClient
+	DedicatedHostGroupsClient      *compute.DedicatedHostGroupsClient
 	DisksClient                    *compute.DisksClient
+	DiskEncryptionSetsClient       *compute.DiskEncryptionSetsClient
 	GalleriesClient                *compute.GalleriesClient
 	GalleryImagesClient            *compute.GalleryImagesClient
 	GalleryImageVersionsClient     *compute.GalleryImageVersionsClient
@@ -30,8 +32,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&availabilitySetsClient.Client, o.ResourceManagerAuthorizer)
 
+	dedicatedHostGroupsClient := compute.NewDedicatedHostGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&dedicatedHostGroupsClient.Client, o.ResourceManagerAuthorizer)
+
 	disksClient := compute.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&disksClient.Client, o.ResourceManagerAuthorizer)
+
+	diskEncryptionSetsClient := compute.NewDiskEncryptionSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&diskEncryptionSetsClient.Client, o.ResourceManagerAuthorizer)
 
 	galleriesClient := compute.NewGalleriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&galleriesClient.Client, o.ResourceManagerAuthorizer)
@@ -80,7 +88,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		AvailabilitySetsClient:         &availabilitySetsClient,
+		DedicatedHostGroupsClient:      &dedicatedHostGroupsClient,
 		DisksClient:                    &disksClient,
+		DiskEncryptionSetsClient:       &diskEncryptionSetsClient,
 		GalleriesClient:                &galleriesClient,
 		GalleryImagesClient:            &galleryImagesClient,
 		GalleryImageVersionsClient:     &galleryImageVersionsClient,

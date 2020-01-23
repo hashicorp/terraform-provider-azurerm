@@ -12,6 +12,7 @@ import (
 
 func testCheckAzureRMWindowsVirtualMachineScaleSetDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_windows_virtual_machine_scale_set" {
@@ -21,7 +22,6 @@ func testCheckAzureRMWindowsVirtualMachineScaleSetDestroy(s *terraform.State) er
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		name := rs.Primary.Attributes["name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -37,6 +37,9 @@ func testCheckAzureRMWindowsVirtualMachineScaleSetDestroy(s *terraform.State) er
 
 func testCheckAzureRMWindowsVirtualMachineScaleSetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -46,8 +49,6 @@ func testCheckAzureRMWindowsVirtualMachineScaleSetExists(resourceName string) re
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		name := rs.Primary.Attributes["name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

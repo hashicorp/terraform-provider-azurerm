@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_point_to_site_vpn_gateway"
-sidebar_current: "docs-azurerm-resource-network-point-to-site-vpn-gateway"
 description: |-
   Manages a Point-to-Site VPN Gateway.
 

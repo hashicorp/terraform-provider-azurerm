@@ -420,6 +420,9 @@ func TestAccAzureRMSchedulerJob_web_complete(t *testing.T) {
 }
 
 func testCheckAzureRMSchedulerJobDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Scheduler.JobsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_scheduler_job.test" {
 			continue
@@ -428,9 +431,6 @@ func testCheckAzureRMSchedulerJobDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		jobCollection := rs.Primary.Attributes["job_collection_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Scheduler.JobsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, jobCollection, name)
 		if err != nil {
@@ -449,6 +449,9 @@ func testCheckAzureRMSchedulerJobDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSchedulerJobExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Scheduler.JobsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -462,9 +465,6 @@ func testCheckAzureRMSchedulerJobExists(resourceName string) resource.TestCheckF
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Scheduler Job: %q", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Scheduler.JobsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, jobCollection, name)
 		if err != nil {
@@ -536,7 +536,7 @@ resource "azurerm_scheduler_job" "import" {
 func testAccAzureRMSchedulerJob_web_put(data acceptance.TestData) string {
 	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
@@ -673,7 +673,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_recurringDaily(data acceptance.TestData) string {
 	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
@@ -698,7 +698,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_recurringWeekly(data acceptance.TestData) string {
 	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
@@ -722,7 +722,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_recurringMonthly(data acceptance.TestData) string {
 	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
@@ -782,7 +782,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_errorAction(data acceptance.TestData) string {
 	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"

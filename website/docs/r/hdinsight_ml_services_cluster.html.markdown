@@ -2,7 +2,6 @@
 subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_ml_services_cluster"
-sidebar_current: "docs-azurerm-resource-hdinsight-ml-services-cluster"
 description: |-
   Manages a HDInsight ML Services Cluster.
 ---

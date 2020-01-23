@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_queue"
-sidebar_current: "docs-azurerm-resource-storage-queue"
 description: |-
   Manages a Queue within an Azure Storage Account.
 ---

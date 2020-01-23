@@ -913,6 +913,9 @@ func TestAccAzureRMApplicationGateway_UserAssignedIdentity(t *testing.T) {
 
 func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
@@ -923,9 +926,6 @@ func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.Test
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Application Gateway: %q", gatewayName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {
@@ -1875,7 +1875,7 @@ resource "azurerm_application_gateway" "test" {
     request_timeout       = 1
 
     pick_host_name_from_backend_address = true
-    trusted_root_certificate_names      = ["${local.auth_cert_name}"] 
+    trusted_root_certificate_names      = ["${local.auth_cert_name}"]
   }
 
   trusted_root_certificate {

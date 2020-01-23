@@ -173,6 +173,9 @@ func TestAccAzureRMSqlServer_updateWithIdentityAdded(t *testing.T) {
 
 func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -185,8 +188,6 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s", sqlServerName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -229,6 +230,9 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -237,9 +241,6 @@ func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheck
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName)
 		if err != nil {
@@ -331,21 +332,21 @@ resource "azurerm_sql_server" "test" {
 func testAccAzureRMSqlServer_withIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-	name                         = "acctestsqlserver%d"
-	resource_group_name          = "${azurerm_resource_group.test.name}"
-	location                     = "${azurerm_resource_group.test.location}"
-	version                      = "12.0"
-	administrator_login          = "mradministrator"
-	administrator_login_password = "thisIsDog11"
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 
-	identity {
-		type = "SystemAssigned"
-	}
-}	
+  identity {
+    type = "SystemAssigned"
+  }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

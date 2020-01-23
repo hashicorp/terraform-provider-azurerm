@@ -80,6 +80,25 @@ func TestAccAzureRMSubnet_delegation(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSubnet_delegationComputedActions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSubnet_delegationComputedActions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "delegation.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
@@ -263,6 +282,9 @@ func TestAccAzureRMSubnet_serviceEndpointsVNetUpdate(t *testing.T) {
 
 func testCheckAzureRMSubnetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -277,9 +299,6 @@ func testCheckAzureRMSubnetExists(resourceName string) resource.TestCheckFunc {
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vnetName, name, "")
 		if err != nil {
@@ -296,6 +315,10 @@ func testCheckAzureRMSubnetExists(resourceName string) resource.TestCheckFunc {
 
 func testCheckAzureRMSubnetRouteTableExists(resourceName string, routeTableId string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		networksClient := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetClient
+		subnetsClient := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -310,10 +333,6 @@ func testCheckAzureRMSubnetRouteTableExists(resourceName string, routeTableId st
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", subnetName)
 		}
-
-		networksClient := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetClient
-		subnetsClient := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		vnetResp, vnetErr := networksClient.Get(ctx, resourceGroup, vnetName, "")
 		if vnetErr != nil {
@@ -347,6 +366,9 @@ func testCheckAzureRMSubnetRouteTableExists(resourceName string, routeTableId st
 
 func testCheckAzureRMSubnetDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -360,8 +382,6 @@ func testCheckAzureRMSubnetDisappears(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
 		if err != nil {
 			if !response.WasNotFound(future.Response()) {
@@ -465,6 +485,37 @@ resource "azurerm_subnet" "test" {
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMSubnet_delegationComputedActions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+
+  delegation {
+    name = "acctestdelegation"
+
+    service_delegation {
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }

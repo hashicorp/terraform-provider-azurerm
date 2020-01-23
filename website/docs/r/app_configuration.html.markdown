@@ -2,7 +2,6 @@
 subcategory: "App Configuration"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_configuration"
-sidebar_current: "docs-azurerm-resource-app-configuration"
 description: |-
   Manages an Azure App Configuration.
 

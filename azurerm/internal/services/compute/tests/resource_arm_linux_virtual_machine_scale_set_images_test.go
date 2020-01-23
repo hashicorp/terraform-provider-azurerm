@@ -451,13 +451,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "mradministrator"
   admin_password      = "P@ssword1234!"
- 
+
   disable_password_authentication = false
-  source_image_id     = azurerm_image.%s.id
+  source_image_id                 = azurerm_image.%s.id
 
   os_disk {
     storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
+    caching              = "None"
   }
 
   network_interface {

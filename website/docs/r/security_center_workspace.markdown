@@ -2,7 +2,6 @@
 subcategory: "Security Center"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_security_center_workspace"
-sidebar_current: "docs-azurerm-security-center-workspace"
 description: |-
     Manages the subscription's Security Center Workspace.
 ---

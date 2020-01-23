@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_container"
-sidebar_current: "docs-azurerm-resource-storage-container"
 description: |-
   Manages a Container within an Azure Storage Account.
 ---

@@ -288,6 +288,9 @@ func TestAccAzureRMFirewallNetworkRuleCollection_updateFirewallTags(t *testing.T
 
 func testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -298,8 +301,6 @@ func testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName string) re
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
@@ -323,6 +324,9 @@ func testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName string) re
 
 func testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist(resourceName string, collectionName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -332,8 +336,6 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist(resourceName stri
 		firewallName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err
@@ -351,6 +353,9 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist(resourceName stri
 
 func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -361,8 +366,6 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName string
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
 			return err

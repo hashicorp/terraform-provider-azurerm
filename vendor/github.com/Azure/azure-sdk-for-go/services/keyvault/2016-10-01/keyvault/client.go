@@ -237,7 +237,7 @@ func (client BaseClient) CreateCertificate(ctx context.Context, vaultBaseURL str
 			Constraints: []validation.Constraint{{Target: "parameters.CertificatePolicy", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.CertificatePolicy.X509CertificateProperties", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "parameters.CertificatePolicy.X509CertificateProperties.ValidityInMonths", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.CertificatePolicy.X509CertificateProperties.ValidityInMonths", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil}}},
+						Chain: []validation.Constraint{{Target: "parameters.CertificatePolicy.X509CertificateProperties.ValidityInMonths", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil}}},
 					}},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "CreateCertificate", err.Error())
@@ -1498,7 +1498,7 @@ func (client BaseClient) GetCertificateIssuers(ctx context.Context, vaultBaseURL
 		{TargetValue: maxresults,
 			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "GetCertificateIssuers", err.Error())
 	}
@@ -1785,7 +1785,7 @@ func (client BaseClient) GetCertificates(ctx context.Context, vaultBaseURL strin
 		{TargetValue: maxresults,
 			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "GetCertificates", err.Error())
 	}
@@ -1913,7 +1913,7 @@ func (client BaseClient) GetCertificateVersions(ctx context.Context, vaultBaseUR
 		{TargetValue: maxresults,
 			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "GetCertificateVersions", err.Error())
 	}
@@ -2127,7 +2127,7 @@ func (client BaseClient) GetDeletedCertificates(ctx context.Context, vaultBaseUR
 		{TargetValue: maxresults,
 			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "GetDeletedCertificates", err.Error())
 	}
@@ -2337,7 +2337,7 @@ func (client BaseClient) GetDeletedKeys(ctx context.Context, vaultBaseURL string
 		{TargetValue: maxresults,
 			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "GetDeletedKeys", err.Error())
 	}
@@ -2544,7 +2544,7 @@ func (client BaseClient) GetDeletedSecrets(ctx context.Context, vaultBaseURL str
 		{TargetValue: maxresults,
 			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "GetDeletedSecrets", err.Error())
 	}
@@ -2755,7 +2755,7 @@ func (client BaseClient) GetKeys(ctx context.Context, vaultBaseURL string, maxre
 		{TargetValue: maxresults,
 			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "GetKeys", err.Error())
 	}
@@ -2883,7 +2883,7 @@ func (client BaseClient) GetKeyVersions(ctx context.Context, vaultBaseURL string
 		{TargetValue: maxresults,
 			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "GetKeyVersions", err.Error())
 	}
@@ -3107,7 +3107,7 @@ func (client BaseClient) GetSasDefinitions(ctx context.Context, vaultBaseURL str
 		{TargetValue: maxresults,
 			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "GetSasDefinitions", err.Error())
 	}
@@ -3321,7 +3321,7 @@ func (client BaseClient) GetSecrets(ctx context.Context, vaultBaseURL string, ma
 		{TargetValue: maxresults,
 			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "GetSecrets", err.Error())
 	}
@@ -3449,7 +3449,7 @@ func (client BaseClient) GetSecretVersions(ctx context.Context, vaultBaseURL str
 		{TargetValue: maxresults,
 			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "GetSecretVersions", err.Error())
 	}
@@ -3666,7 +3666,7 @@ func (client BaseClient) GetStorageAccounts(ctx context.Context, vaultBaseURL st
 		{TargetValue: maxresults,
 			Constraints: []validation.Constraint{{Target: "maxresults", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "maxresults", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "maxresults", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "GetStorageAccounts", err.Error())
 	}
@@ -3798,7 +3798,7 @@ func (client BaseClient) ImportCertificate(ctx context.Context, vaultBaseURL str
 				{Target: "parameters.CertificatePolicy", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "parameters.CertificatePolicy.X509CertificateProperties", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "parameters.CertificatePolicy.X509CertificateProperties.ValidityInMonths", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.CertificatePolicy.X509CertificateProperties.ValidityInMonths", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil}}},
+							Chain: []validation.Constraint{{Target: "parameters.CertificatePolicy.X509CertificateProperties.ValidityInMonths", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil}}},
 						}},
 					}}}}}); err != nil {
 		return result, validation.NewError("keyvault.BaseClient", "ImportCertificate", err.Error())

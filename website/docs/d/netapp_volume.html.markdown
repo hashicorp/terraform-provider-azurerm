@@ -2,9 +2,8 @@
 subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_volume"
-sidebar_current: "docs-azurerm-datasource-netapp-volume"
 description: |-
-Gets information about an existing NetApp Volume
+  Gets information about an existing NetApp Volume
 ---
 
 # Data Source: azurerm_netapp_volume

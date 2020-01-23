@@ -204,6 +204,9 @@ func TestAccAzureRMSnapshot_fromUnmanagedDisk(t *testing.T) {
 }
 
 func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_snapshot" {
 			continue
@@ -212,8 +215,6 @@ func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -230,6 +231,9 @@ func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSnapshotExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -241,9 +245,6 @@ func testCheckAzureRMSnapshotExists(resourceName string) resource.TestCheckFunc 
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Snapshot: %q", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {

@@ -57,8 +57,6 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tags.Schema(),
-
 			//resource fields
 			"offer_type": {
 				Type:             schema.TypeString,
@@ -78,6 +76,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.GlobalDocumentDB),
 					string(documentdb.MongoDB),
+					string(documentdb.Parse),
 				}, true),
 			},
 
@@ -118,14 +117,14 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 						"max_interval_in_seconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      5,
+							Default:      5,                               // 2.0 change to computed?
 							ValidateFunc: validation.IntBetween(5, 86400), // single region values
 						},
 
 						"max_staleness_prefix": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      100,
+							Default:      100,                                // 2.0 change to computed
 							ValidateFunc: validation.IntBetween(10, 1000000), // single region values
 						},
 					},
@@ -201,6 +200,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 			"capabilities": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -208,10 +208,11 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								"EnableTable",
-								"EnableGremlin",
-								"EnableCassandra",
 								"EnableAggregationPipeline",
+								"EnableCassandra",
+								"EnableGremlin",
+								"EnableTable",
+								"EnableMongo",
 								"MongoDBv3.4",
 								"mongoEnableDocLevelTTL",
 							}, true),
@@ -302,6 +303,8 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -395,21 +398,6 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 	resp, err := resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
 	if err != nil {
 		return fmt.Errorf("Error creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	//for some reason capabilities doesn't always work on create, so lets patch it
-	//tracked: https://github.com/Azure/azure-sdk-for-go/issues/2864
-	future, err := client.Patch(ctx, resourceGroup, name, documentdb.DatabaseAccountPatchParameters{
-		DatabaseAccountPatchProperties: &documentdb.DatabaseAccountPatchProperties{
-			Capabilities: account.Capabilities,
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("Error Patching CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(context.Background(), client.Client); err != nil {
-		return fmt.Errorf("Error waiting on patch future CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	id := resp.ID
@@ -548,21 +536,6 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	id := (*upsertResponse).ID
 	if id == nil {
 		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
-	}
-
-	//for some reason capabilities doesn't always work on create, so lets patch it
-	//tracked: https://github.com/Azure/azure-sdk-for-go/issues/2864
-	future, err := client.Patch(ctx, resourceGroup, name, documentdb.DatabaseAccountPatchParameters{
-		DatabaseAccountPatchProperties: &documentdb.DatabaseAccountPatchProperties{
-			Capabilities: account.Capabilities,
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("Error Patching CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(context.Background(), client.Client); err != nil {
-		return fmt.Errorf("Error waiting on patch future CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*id)
@@ -780,7 +753,7 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 
 	//if a replication location is added or removed it can take some time to provision
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Creating", "Updating", "Deleting"},
+		Pending:    []string{"Creating", "Updating", "Deleting", "Initializing"},
 		Target:     []string{"Succeeded"},
 		MinTimeout: 30 * time.Second,
 		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up
@@ -894,7 +867,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 	return locations, nil
 }
 
-//todo remove when deprecated field `failover_policy` is
+// todo remove when deprecated field `failover_policy` is
 func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
 	input := d.Get("failover_policy").(*schema.Set).List()
 	locations := make([]documentdb.Location, 0, len(input))
@@ -978,7 +951,7 @@ func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.Consisten
 	return []interface{}{result}
 }
 
-//todo remove when failover_policy field is removed
+// todo remove when failover_policy field is removed
 func flattenAzureRmCosmosDBAccountFailoverPolicy(list *[]documentdb.FailoverPolicy) *schema.Set {
 	results := schema.Set{
 		F: resourceAzureRMCosmosDBAccountFailoverPolicyHash,
@@ -1064,7 +1037,7 @@ func flattenAzureRmCosmosDBAccountVirtualNetworkRules(rules *[]documentdb.Virtua
 	return &results
 }
 
-//todo remove once deprecated field `failover_policy` is removed
+// todo remove once deprecated field `failover_policy` is removed
 func resourceAzureRMCosmosDBAccountFailoverPolicyHash(v interface{}) int {
 	var buf bytes.Buffer
 

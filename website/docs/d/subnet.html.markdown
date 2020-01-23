@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet"
-sidebar_current: "docs-azurerm-datasource-subnet"
 description: |-
   Gets information about an existing Subnet located within a Virtual Network.
 ---

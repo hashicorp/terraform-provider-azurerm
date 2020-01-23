@@ -115,6 +115,9 @@ func TestAccAzureRMPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
 
 func testCheckAzureRMPostgreSQLDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.DatabasesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -127,9 +130,6 @@ func testCheckAzureRMPostgreSQLDatabaseExists(resourceName string) resource.Test
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Database: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.DatabasesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -175,21 +175,16 @@ func testCheckAzureRMPostgreSQLDatabaseDestroy(s *terraform.State) error {
 func testAccAzureRMPostgreSQLDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -204,7 +199,7 @@ resource "azurerm_postgresql_server" "test" {
 }
 
 resource "azurerm_postgresql_database" "test" {
-  name                = "acctestdb_%d"
+  name                = "acctest_PSQL_db_%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_postgresql_server.test.name}"
   charset             = "UTF8"
@@ -231,21 +226,16 @@ resource "azurerm_postgresql_database" "import" {
 func testAccAzureRMPostgreSQLDatabase_collationWithHyphen(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -260,7 +250,7 @@ resource "azurerm_postgresql_server" "test" {
 }
 
 resource "azurerm_postgresql_database" "test" {
-  name                = "acctestdb_%d"
+  name                = "acctest_PSQL_db_%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_postgresql_server.test.name}"
   charset             = "UTF8"
@@ -272,21 +262,16 @@ resource "azurerm_postgresql_database" "test" {
 func testAccAzureRMPostgreSQLDatabase_charsetLowercase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -301,7 +286,7 @@ resource "azurerm_postgresql_server" "test" {
 }
 
 resource "azurerm_postgresql_database" "test" {
-  name                = "acctestdb_%d"
+  name                = "acctest_PSQL_db_%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_postgresql_server.test.name}"
   charset             = "utf8"
@@ -313,21 +298,16 @@ resource "azurerm_postgresql_database" "test" {
 func testAccAzureRMPostgreSQLDatabase_charsetMixedcase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -342,7 +322,7 @@ resource "azurerm_postgresql_server" "test" {
 }
 
 resource "azurerm_postgresql_database" "test" {
-  name                = "acctestdb_%d"
+  name                = "acctest_PSQL_db_%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_postgresql_server.test.name}"
   charset             = "Utf8"

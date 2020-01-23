@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_endpoint_servicebus_topic"
-sidebar_current: "docs-azurerm-resource-messaging-iothub-servicebus-topic"
 description: |-
   Manages an IotHub ServiceBus Topic Endpoint
 ---

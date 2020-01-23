@@ -47,7 +47,7 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 				ConflictsWith: []string{"vault_name"},
 			},
 
-			//todo remove in 2.0
+			// todo remove in 2.0
 			"vault_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
@@ -58,7 +58,7 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 				ConflictsWith: []string{"key_vault_id"},
 			},
 
-			//todo remove in 2.0
+			// todo remove in 2.0
 			"resource_group_name": {
 				Type:       schema.TypeString,
 				Optional:   true,

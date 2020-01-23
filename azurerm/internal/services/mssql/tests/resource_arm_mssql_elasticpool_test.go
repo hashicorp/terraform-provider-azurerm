@@ -250,6 +250,9 @@ func TestAccAzureRMMsSqlElasticPool_resize_vCore(t *testing.T) {
 
 func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ElasticPoolsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -258,9 +261,6 @@ func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCh
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ElasticPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, poolName)
 		if err != nil {
@@ -303,6 +303,9 @@ func testCheckAzureRMMsSqlElasticPoolDestroy(s *terraform.State) error {
 
 func testCheckAzureRMMsSqlElasticPoolDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ElasticPoolsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -312,9 +315,6 @@ func testCheckAzureRMMsSqlElasticPoolDisappears(resourceName string) resource.Te
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ElasticPoolsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName, poolName); err != nil {
 			return fmt.Errorf("Bad: Delete on msSqlElasticPoolsClient: %+v", err)

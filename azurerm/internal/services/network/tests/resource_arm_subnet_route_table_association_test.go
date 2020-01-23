@@ -84,6 +84,9 @@ func TestAccAzureRMSubnetRouteTableAssociation_deleted(t *testing.T) {
 
 func testCheckAzureRMSubnetRouteTableAssociationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -100,8 +103,6 @@ func testCheckAzureRMSubnetRouteTableAssociationExists(resourceName string) reso
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -126,6 +127,9 @@ func testCheckAzureRMSubnetRouteTableAssociationExists(resourceName string) reso
 
 func testCheckAzureRMSubnetRouteTableAssociationDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -142,8 +146,6 @@ func testCheckAzureRMSubnetRouteTableAssociationDisappears(resourceName string) 
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(read.Response) {
@@ -167,6 +169,9 @@ func testCheckAzureRMSubnetRouteTableAssociationDisappears(resourceName string) 
 
 func testCheckAzureRMSubnetHasNoRouteTable(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -183,8 +188,6 @@ func testCheckAzureRMSubnetHasNoRouteTable(resourceName string) resource.TestChe
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SubnetsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

@@ -331,6 +331,9 @@ func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 
 func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -346,8 +349,6 @@ func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerEndpointsClient: %+v", err)
@@ -363,6 +364,9 @@ func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.
 
 func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -378,9 +382,6 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
 		if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
 			return fmt.Errorf("Bad: Delete on trafficManagerEndpointsClient: %+v", err)
 		}
@@ -391,6 +392,7 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 
 func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).TrafficManager.EndpointsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_endpoint" {
@@ -401,7 +403,6 @@ func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
 		endpointType := rs.Primary.Attributes["type"]
 		profileName := rs.Primary.Attributes["profile_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
 			return nil
@@ -418,17 +419,17 @@ func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
 func testAccAzureRMTrafficManagerEndpoint_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctesttmp%d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "acctesttmp%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -486,17 +487,17 @@ resource "azurerm_traffic_manager_endpoint" "import" {
 func testAccAzureRMTrafficManagerEndpoint_basicDisableExternal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctesttmp%d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "acctesttmp%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -539,17 +540,17 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
 func testAccAzureRMTrafficManagerEndpoint_weight(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctesttmp%d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "acctesttmp%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -583,17 +584,17 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 func testAccAzureRMTrafficManagerEndpoint_updateWeight(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctesttmp%d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "acctesttmp%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -626,17 +627,17 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 func testAccAzureRMTrafficManagerEndpoint_priority(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctesttmp%d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Priority"
 
   dns_config {
-    relative_name = "acctesttmp%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -670,17 +671,17 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 func testAccAzureRMTrafficManagerEndpoint_updatePriority(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctesttmp%d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Priority"
 
   dns_config {
-    relative_name = "acctesttmp%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -714,17 +715,17 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 func testAccAzureRMTrafficManagerEndpoint_subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctesttmp%d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Subnet"
 
   dns_config {
-    relative_name = "acctesttmp%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -768,17 +769,17 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 func testAccAzureRMTrafficManagerEndpoint_updateSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctesttmp%d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Subnet"
 
   dns_config {
-    relative_name = "acctesttmp%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -814,17 +815,17 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 func testAccAzureRMTrafficManagerEndpoint_headers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctesttmp%d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Priority"
 
   dns_config {
-    relative_name = "acctesttmp%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -862,17 +863,17 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 func testAccAzureRMTrafficManagerEndpoint_updateHeaders(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctesttmp%d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Priority"
 
   dns_config {
-    relative_name = "acctesttmp%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -910,7 +911,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 func testAccAzureRMTrafficManagerEndpoint_nestedEndpoints(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
@@ -972,7 +973,7 @@ resource "azurerm_traffic_manager_endpoint" "externalChild" {
 func testAccAzureRMTrafficManagerEndpoint_location(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
@@ -1007,7 +1008,7 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 func testAccAzureRMTrafficManagerEndpoint_locationUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
@@ -1042,17 +1043,17 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 func testAccAzureRMTrafficManagerEndpoint_geoMappings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctesttmp%d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Geographic"
 
   dns_config {
-    relative_name = "acctesttmp%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 100
   }
 
@@ -1081,17 +1082,17 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 func testAccAzureRMTrafficManagerEndpoint_geoMappingsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-traffic-%d"
   location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "acctesttmp%d"
+  name                   = "acctest-TMP-%d"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Geographic"
 
   dns_config {
-    relative_name = "acctesttmp%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 100
   }
 

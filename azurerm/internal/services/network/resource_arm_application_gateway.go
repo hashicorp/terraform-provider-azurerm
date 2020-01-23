@@ -795,13 +795,10 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"policy_type": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.Custom),
-									string(network.Predefined),
-								}, false),
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.Custom),
+								string(network.Predefined),
+							}, false),
 						},
 
 						"policy_name": {

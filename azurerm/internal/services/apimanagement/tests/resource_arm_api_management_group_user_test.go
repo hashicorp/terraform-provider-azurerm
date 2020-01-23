@@ -56,6 +56,8 @@ func TestAccAzureRMAPIManagementGroupUser_requiresImport(t *testing.T) {
 
 func testCheckAzureRMAPIManagementGroupUserDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupUsersClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_group_user" {
 			continue
@@ -66,7 +68,6 @@ func testCheckAzureRMAPIManagementGroupUserDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
@@ -81,6 +82,9 @@ func testCheckAzureRMAPIManagementGroupUserDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAPIManagementGroupUserExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupUsersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -91,8 +95,6 @@ func testCheckAzureRMAPIManagementGroupUserExists(resourceName string) resource.
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupUsersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {

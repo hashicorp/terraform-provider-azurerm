@@ -655,6 +655,10 @@ func TestAccAzureRMStorageAccount_queueProperties(t *testing.T) {
 
 func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		// Ensure resource group exists in API
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.AccountsClient
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -663,10 +667,6 @@ func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestChec
 
 		storageAccount := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		// Ensure resource group exists in API
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.AccountsClient
 
 		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount, "")
 		if err != nil {
@@ -683,6 +683,10 @@ func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestChec
 
 func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		// Ensure resource group exists in API
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.AccountsClient
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -691,10 +695,6 @@ func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.Test
 
 		storageAccount := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		// Ensure resource group exists in API
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Storage.AccountsClient
 
 		if _, err := conn.Delete(ctx, resourceGroup, storageAccount); err != nil {
 			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)

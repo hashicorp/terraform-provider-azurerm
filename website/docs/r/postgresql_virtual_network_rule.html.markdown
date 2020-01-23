@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_virtual_network_rule"
-sidebar_current: "docs-azurerm-resource-database-postgresql-virtual-network-rule"
 description: |-
   Manages a PostgreSQL Virtual Network Rule.
 ---
@@ -41,12 +40,7 @@ resource "azurerm_postgresql_server" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "B_Gen5_2"
 
   storage_profile {
     storage_mb            = 5120

@@ -142,14 +142,15 @@ func TestAccAzureRMMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 
 func testCheckAzureRMMonitorDiagnosticSettingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.DiagnosticSettingsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.DiagnosticSettingsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		name := rs.Primary.Attributes["name"]
 		actualResourceId := rs.Primary.Attributes["target_resource_id"]
 		targetResourceId := strings.TrimPrefix(actualResourceId, "/")
@@ -231,7 +232,7 @@ resource "azurerm_key_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-  sku_name 	          = "standard"
+  sku_name            = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -257,7 +258,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger/10)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
 func testAccAzureRMMonitorDiagnosticSetting_requiresImport(data acceptance.TestData) string {
@@ -313,7 +314,7 @@ resource "azurerm_key_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-  sku_name 	          = "standard"
+  sku_name            = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -338,7 +339,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger/10)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
 func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data acceptance.TestData) string {
@@ -431,7 +432,7 @@ resource "azurerm_key_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-  sku_name 	          = "standard"
+  sku_name            = "standard"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
@@ -456,5 +457,5 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger/10)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }

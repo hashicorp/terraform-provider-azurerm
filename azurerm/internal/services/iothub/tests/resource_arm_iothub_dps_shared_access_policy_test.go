@@ -96,21 +96,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_iothub_dps" "test" {
-	name                = "acctestIoTDPS-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-  
-	sku {
-	  name     = "S1"
-	  tier     = "Standard"
-	  capacity = "1"
-	}
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    capacity = "1"
   }
+}
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
   name                = "acctest"
-  service_config  = true
+  service_config      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -122,21 +121,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_iothub_dps" "test" {
-	name                = "acctestIoTDPS-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-  
-	sku {
-	  name     = "S1"
-	  tier     = "Standard"
-	  capacity = "1"
-	}
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    capacity = "1"
   }
+}
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
   name                = "acctest"
-  registration_write = true
+  registration_write  = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -148,21 +146,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_iothub_dps" "test" {
-	name                = "acctestIoTDPS-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-  
-	sku {
-	  name     = "S1"
-	  tier     = "Standard"
-	  capacity = "1"
-	}
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    capacity = "1"
   }
+}
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
   name                = "acctest"
-  enrollment_read = true
+  enrollment_read     = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -174,27 +171,27 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_iothub_dps" "test" {
-	name                = "acctestIoTDPS-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-  
-	sku {
-	  name     = "S1"
-	  tier     = "Standard"
-	  capacity = "1"
-	}
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    capacity = "1"
   }
+}
 resource "azurerm_iothub_dps_shared_access_policy" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
   name                = "acctest"
-  enrollment_write = true
+  enrollment_write    = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -209,8 +206,6 @@ func testCheckAzureRMIotHubDpsSharedAccessPolicyExists(resourceName string) reso
 		keyName := rs.Primary.Attributes["name"]
 		iothubDpsName := rs.Primary.Attributes["iothub_dps_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 
 		_, err = client.ListKeysForKeyName(ctx, iothubDpsName, keyName, resourceGroup)
 		if err != nil {

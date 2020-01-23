@@ -87,6 +87,9 @@ func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
 
 func testCheckAzureRMSqlFirewallRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -95,9 +98,6 @@ func testCheckAzureRMSqlFirewallRuleExists(resourceName string) resource.TestChe
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -113,6 +113,9 @@ func testCheckAzureRMSqlFirewallRuleExists(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_firewall_rule" {
 			continue
@@ -121,9 +124,6 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -142,6 +142,9 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSqlFirewallRuleDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -151,9 +154,6 @@ func testCheckAzureRMSqlFirewallRuleDisappears(resourceName string) resource.Tes
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.FirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {

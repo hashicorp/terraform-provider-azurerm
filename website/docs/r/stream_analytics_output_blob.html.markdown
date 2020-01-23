@@ -2,7 +2,6 @@
 subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_output_blob"
-sidebar_current: "docs-azurerm-resource-stream-analytics-output-blob"
 description: |-
   Manages a Stream Analytics Output to Blob Storage.
 ---

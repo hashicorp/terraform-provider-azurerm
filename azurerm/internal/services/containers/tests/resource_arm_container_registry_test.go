@@ -410,6 +410,9 @@ func testCheckAzureRMContainerRegistryDestroy(s *terraform.State) error {
 
 func testCheckAzureRMContainerRegistryExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.RegistriesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -421,9 +424,6 @@ func testCheckAzureRMContainerRegistryExists(resourceName string) resource.TestC
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.RegistriesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -440,6 +440,9 @@ func testCheckAzureRMContainerRegistryExists(resourceName string) resource.TestC
 
 func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku string, expectedLocations []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.ReplicationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -451,9 +454,6 @@ func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku s
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.ReplicationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.List(ctx, resourceGroup, name)
 		if err != nil {

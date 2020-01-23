@@ -73,6 +73,9 @@ func TestAccAzureRMMediaServicesAccount_multiplePrimaries(t *testing.T) {
 
 func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Media.ServicesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -84,9 +87,6 @@ func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.Te
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Media Services Account: '%s'", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Media.ServicesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {

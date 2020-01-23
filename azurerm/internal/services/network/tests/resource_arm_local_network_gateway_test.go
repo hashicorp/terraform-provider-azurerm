@@ -221,23 +221,23 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsComplete(t *testing.T) {
 // in the schema, and on Azure.
 func testCheckAzureRMLocalNetworkGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// first check within the schema for the local network gateway:
+		// first, check that it exists on Azure:
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// then, check within the schema for the local network gateway:
 		res, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Local network gateway '%s' not found.", resourceName)
 		}
 
-		// then, extract the name and the resource group:
+		// and finally, extract the name and the resource group:
 		id, err := azure.ParseAzureResourceID(res.Primary.ID)
 		if err != nil {
 			return err
 		}
 		localNetName := id.Path["localNetworkGateways"]
 		resGrp := id.ResourceGroup
-
-		// and finally, check that it exists on Azure:
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resGrp, localNetName)
 		if err != nil {
@@ -254,23 +254,23 @@ func testCheckAzureRMLocalNetworkGatewayExists(resourceName string) resource.Tes
 
 func testCheckAzureRMLocalNetworkGatewayDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// first check within the schema for the local network gateway:
+		// first, check that it exists on Azure:
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// then check within the schema for the local network gateway:
 		res, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Local network gateway '%s' not found.", resourceName)
 		}
 
-		// then, extract the name and the resource group:
+		// and finally, extract the name and the resource group:
 		id, err := azure.ParseAzureResourceID(res.Primary.ID)
 		if err != nil {
 			return err
 		}
 		localNetName := id.Path["localNetworkGateways"]
 		resourceGroup := id.ResourceGroup
-
-		// and finally, check that it exists on Azure:
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, localNetName)
 		if err != nil {
@@ -289,6 +289,9 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(resourceName string) resource
 }
 
 func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, res := range s.RootModule().Resources {
 		if res.Type != "azurerm_local_network_gateway" {
 			continue
@@ -301,8 +304,6 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 		localNetName := id.Path["localNetworkGateways"]
 		resourceGroup := id.ResourceGroup
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.LocalNetworkGatewaysClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, localNetName)
 
 		if err != nil {

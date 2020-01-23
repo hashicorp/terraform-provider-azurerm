@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_watcher_flow_log"
-sidebar_current: "docs-azurerm-resource-network-watcher-flow-log"
 description: |-
   Manages a Network Watcher Flow Log.
 
@@ -88,6 +87,8 @@ The following arguments are supported:
 * `retention_policy` - (Required) A `retention_policy` block as documented below.
 
 * `traffic_analytics` - (Optional) A `traffic_analytics` block as documented below.
+
+* `version` - (Optional) The version (revision) of the flow log. Possible values are `1` and `2`.
 
 ---
 

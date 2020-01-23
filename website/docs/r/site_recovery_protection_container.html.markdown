@@ -2,7 +2,6 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_site_recovery_protection_container"
-sidebar_current: "docs-azurerm-site-recovery-protection-container"
 description: |-
     Manages a site recovery services protection container on Azure.
 ---

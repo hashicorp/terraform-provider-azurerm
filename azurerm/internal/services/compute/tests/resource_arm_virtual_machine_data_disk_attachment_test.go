@@ -210,6 +210,9 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_virtualMachineExtension(t *t
 
 func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -225,9 +228,6 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string)
 
 		virtualMachineName := id.Path["virtualMachines"]
 		resourceGroup := id.ResourceGroup
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
 		if err != nil {
@@ -257,6 +257,9 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string)
 }
 
 func testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_machine_data_disk_attachment" {
 			continue
@@ -271,9 +274,6 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy(s *terraform.State)
 
 		virtualMachineName := id.Path["virtualMachines"]
 		resourceGroup := id.ResourceGroup
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
 		if err != nil {

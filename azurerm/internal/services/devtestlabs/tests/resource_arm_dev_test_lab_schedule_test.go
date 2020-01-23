@@ -105,6 +105,9 @@ func TestAccAzureRMDevTestLabSchedule_concurrent(t *testing.T) {
 
 func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabSchedulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -113,9 +116,6 @@ func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.Test
 		name := rs.Primary.Attributes["name"]
 		devTestLabName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabSchedulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, devTestLabName, name, "")
 		if err != nil {

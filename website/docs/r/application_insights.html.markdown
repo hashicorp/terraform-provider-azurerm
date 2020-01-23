@@ -2,7 +2,6 @@
 subcategory: "Application Insights"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_insights"
-sidebar_current: "docs-azurerm-resource-application-insights-x"
 description: |-
   Manages an Application Insights component.
 ---
@@ -48,6 +47,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `application_type` - (Required) Specifies the type of Application Insights to create. Valid values are `ios` for _iOS_, `java` for _Java web_, `MobileCenter` for _App Center_, `Node.JS` for _Node.js_, `other` for _General_, `phone` for _Windows Phone_, `store` for _Windows Store_ and `web` for _ASP.NET_. Please note these values are case sensitive; unmatched values are treated as _ASP.NET_ by Azure. Changing this forces a new resource to be created.
+
+* `retention_in_days` - (Optional) Specifies the retention period in days. Possible values are `30`, `60`, `90`, `120`, `180`, `270`, `365`, `550` or `730`.
 
 * `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry.
 

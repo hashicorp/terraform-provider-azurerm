@@ -2,7 +2,6 @@
 subcategory: "Application Insights"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_insights"
-sidebar_current: "docs-azurerm-datasource-application-insights"
 description: |-
   Gets information about an existing Application Insights component.
 ---
@@ -36,4 +35,5 @@ output "application_insights_instrumentation_key" {
 * `application_type` - The type of the component.
 * `instrumentation_key` - The instrumentation key of the Application Insights component.
 * `location` - The Azure location where the component exists.
+* `retention_in_days` - The retention period in days.
 * `tags` - Tags applied to the component.
