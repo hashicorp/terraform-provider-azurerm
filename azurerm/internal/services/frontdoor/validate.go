@@ -68,7 +68,7 @@ func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
 				return fmt.Errorf(`routing_rule %s is invalid. %+v`, routingRuleName, err)
 			}
 
-			// check existance of attributes in config based off cache enabled state
+			// check existence of attributes in config based off cache enabled state
 			if !cacheEnabled {
 				if stripDirective := fc["cache_query_parameter_strip_directive"]; stripDirective != "" {
 					return fmt.Errorf(`routing_rule %s forwarding_configuration block is invalid. Please make sure that the "cache_query_parameter_strip_directive" attribute does not exist in the configuration file`, routingRuleName)
