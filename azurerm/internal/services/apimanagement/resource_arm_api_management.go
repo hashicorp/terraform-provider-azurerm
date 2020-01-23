@@ -62,6 +62,14 @@ func resourceArmApiManagementService() *schema.Resource {
 				},
 			},
 
+			"private_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"publisher_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -460,6 +468,21 @@ func resourceArmApiManagementService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"vnet_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"External",
+					"Internal",
+					"None",
+				}, false),
+			},
+
+			"subnet_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -514,6 +537,12 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 			CustomProperties:       customProperties,
 			Certificates:           certificates,
 			HostnameConfigurations: hostnameConfigurations,
+			VirtualNetworkType:     virtualNetworkTypeStringToType(utils.String(d.Get("vnet_type").(string))),
+			VirtualNetworkConfiguration: &apimanagement.VirtualNetworkConfiguration{
+				Vnetid:           utils.String(""),
+				Subnetname:       utils.String(""),
+				SubnetResourceID: utils.String(d.Get("subnet_id").(string)),
+			},
 		},
 		Tags: tags.Expand(t),
 		Sku:  sku,
@@ -657,6 +686,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
+		d.Set("private_ip_addresses", props.PrivateIPAddresses)
 
 		if err := d.Set("security", flattenApiManagementCustomProperties(props.CustomProperties)); err != nil {
 			return fmt.Errorf("Error setting `security`: %+v", err)
@@ -1365,4 +1395,16 @@ func flattenApiManagementPolicies(d *schema.ResourceData, input apimanagement.Po
 	}
 
 	return []interface{}{output}
+}
+
+func virtualNetworkTypeStringToType(s *string) apimanagement.VirtualNetworkType {
+	switch *s {
+	case "External":
+		return apimanagement.VirtualNetworkTypeExternal
+	case "Internal":
+		return apimanagement.VirtualNetworkTypeInternal
+	case "None":
+		return apimanagement.VirtualNetworkTypeNone
+	}
+	return apimanagement.VirtualNetworkTypeNone
 }
