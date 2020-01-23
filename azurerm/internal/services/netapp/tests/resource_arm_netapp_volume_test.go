@@ -33,6 +33,26 @@ func TestAccAzureRMNetAppVolume_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetAppVolume_defaultProtocolType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetAppVolume_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocol_types.0", "NFSv3"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMNetAppVolume_nfsv41(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 
@@ -274,6 +294,25 @@ resource "azurerm_netapp_volume" "test" {
   service_level       = "Standard"
   subnet_id           = "${azurerm_subnet.test.id}"
   protocol_types      = ["NFSv3"]
+  storage_quota_in_gb = 100
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMNetAppVolume_defaultProtocolType(data acceptance.TestData) string {
+	template := testAccAzureRMNetAppVolume_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_netapp_account.test.name}"
+  pool_name           = "${azurerm_netapp_pool.test.name}"
+  volume_path         = "my-unique-file-path-%d"
+  service_level       = "Standard"
+  subnet_id           = "${azurerm_subnet.test.id}"
   storage_quota_in_gb = 100
 }
 `, template, data.RandomInteger, data.RandomInteger)
