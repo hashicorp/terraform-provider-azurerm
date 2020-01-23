@@ -243,7 +243,7 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
       match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
     }
   }
-  
+
   managed_rule {
     type    = "DefaultRuleSet"
     version = "preview-0.1"
