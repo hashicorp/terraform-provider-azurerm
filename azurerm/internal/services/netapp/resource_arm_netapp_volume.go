@@ -75,6 +75,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 			"service_level": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(netapp.Premium),
 					string(netapp.Standard),
@@ -91,6 +92,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 
 			"protocol_types": {
 				Type:     schema.TypeList,
+				ForceNew: true,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Schema{Type: schema.TypeString,
@@ -118,6 +120,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.IntBetween(1, 5),
 						},
+
 						"allowed_clients": {
 							Type:     schema.TypeSet,
 							Required: true,
@@ -126,22 +129,36 @@ func resourceArmNetAppVolume() *schema.Resource {
 								ValidateFunc: validate.CIDR,
 							},
 						},
+
 						"cifs_enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
+
 						"nfsv3_enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
+
 						"nfsv41_enabled": {
-							Type:     schema.TypeBool,
-							Required: true,
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"export_policy_rule.nfsv4_enabled"},
 						},
+
+						// TODO: Remove property in 2.0
+						"nfsv4_enabled": {
+							Type:          schema.TypeBool,
+							Optional:      true,
+							ConflictsWith: []string{"export_policy_rule.nfsv41_enabled"},
+							Deprecated:    "This property has been deprecated in favour of the 'nfsv41_enabled' property and will be removed in version 2.0 of the provider",
+						},
+
 						"unix_read_only": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+
 						"unix_read_write": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -182,6 +199,24 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	protocolTypes := d.Get("protocol_types").([]interface{})
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
 	exportPolicyRule := d.Get("export_policy_rule").(*schema.Set).List()
+
+	// TODO: Remove in 2.0
+	//if len(exportPolicyRule) != 0 {
+	// for _, item := range exportPolicyRule {
+	// 	v := item.(map[string]interface{})
+
+	// 	_, nfsv41Ok := v["nfsv41_enabled"].(bool)
+	// 	_, nfsv4Ok := v["nfsv4_enabled"].(bool)
+
+	// 	if !nfsv41Ok && !nfsv4Ok {
+	// 		return errors.New("one of nfsv41_enabled or nfsv4_enabled must be configured")
+	// 	}
+
+	// 	if nfsv4Ok {
+	// 		v["nfsv41_enabled"] = v["nfsv4_enabled"].(bool)
+	// 	}
+	// }
+	//}
 
 	parameters := netapp.Volume{
 		Location: utils.String(location),
@@ -331,6 +366,19 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 			cifsEnabled := v["cifs_enabled"].(bool)
 			nfsv3Enabled := v["nfsv3_enabled"].(bool)
 			nfsv41Enabled := v["nfsv41_enabled"].(bool)
+
+			// TODO: Remove in 2.0 and replace with nfsv41Enabled := v["nfsv41_enabled"].(bool)
+			// var nfsv41Enabled bool
+
+			// _, nfsv4Ok := v["nfsv4_enabled"].(bool)
+
+			// if nfsv4Ok {
+			// 	nfsv41Enabled = v["nfsv4_enabled"].(bool)
+			// } else {
+			// 	// TODO: Keep only this line in 2.0
+			// 	nfsv41Enabled = v["nfsv41_enabled"].(bool)
+			// }
+
 			unixReadOnly := v["unix_read_only"].(bool)
 			unixReadWrite := v["unix_read_write"].(bool)
 
