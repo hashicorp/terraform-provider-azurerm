@@ -233,7 +233,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	//CustomizeDiff should ensure one of these two is set
-	//todo remove this once `account_name` is removed
+	// todo remove this once `account_name` is removed
 	accountName := ""
 	if v, ok := d.GetOk("automation_account_name"); ok {
 		accountName = v.(string)
@@ -344,7 +344,7 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("automation_account_name", accountName)
-	d.Set("account_name", accountName) //todo remove once `account_name` is removed
+	d.Set("account_name", accountName) // todo remove once `account_name` is removed
 	d.Set("frequency", string(resp.Frequency))
 
 	if v := resp.StartTime; v != nil {

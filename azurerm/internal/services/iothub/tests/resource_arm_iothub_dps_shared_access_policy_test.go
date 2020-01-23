@@ -102,7 +102,6 @@ resource "azurerm_iothub_dps" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }
@@ -128,7 +127,6 @@ resource "azurerm_iothub_dps" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }
@@ -154,7 +152,6 @@ resource "azurerm_iothub_dps" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }
@@ -180,7 +177,6 @@ resource "azurerm_iothub_dps" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }

@@ -194,7 +194,7 @@ resource "azurerm_api_management_identity_provider_facebook" "import" {
   resource_group_name = "${azurerm_api_management_identity_provider_facebook.test.resource_group_name}"
   api_management_name = "${azurerm_api_management_identity_provider_facebook.test.api_management_name}"
   app_id              = "${azurerm_api_management_identity_provider_facebook.test.app_id}"
-  app_secret	      = "${azurerm_api_management_identity_provider_facebook.test.app_secret}"
+  app_secret          = "${azurerm_api_management_identity_provider_facebook.test.app_secret}"
 }
 `, template)
 }

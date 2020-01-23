@@ -264,7 +264,7 @@ func testAccAzureRMNetAppVolume_requiresImport(data acceptance.TestData) string 
 resource "azurerm_netapp_volume" "import" {
   name                = "${azurerm_netapp_volume.test.name}"
   location            = "${azurerm_netapp_volume.test.location}"
-  resource_group_name = "${azurerm_netapp_volume.test.name}"
+  resource_group_name = "${azurerm_netapp_volume.test.resource_group_name}"
 }
 `, testAccAzureRMNetAppVolume_basic(data))
 }

@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
 
-echo "==> Checking website Terraform blocks are formatted..."
+echo "==> Checking documentation terraform blocks are formatted..."
 
 files=$(find ./website -type f -name "*.html.markdown")
-tofmt=()
 error=false
 
 for f in $files; do
   terrafmt diff -c -q "$f" || error=true
 done
 
-echo $tofmt
-
-if $error; then
+if ${error}; then
   echo "------------------------------------------------"
   echo ""
   echo "The preceding files contain terraform blocks that are not correctly formatted or contain errors."
@@ -25,8 +22,7 @@ if $error; then
   echo "$ find . | egrep html.markdown | sort | while read f; do terrafmt fmt \$f; done"
   echo ""
   echo "on windows:"
-  echo "$ Get-ChildItem -Path $path -Recurse -Filter \"*html.markdown\" | foreach {terrafmt fmt $.name}"
-  echo ""
+  echo "$ Get-ChildItem -Path . -Recurse -Filter \"*html.markdown\" | foreach {terrafmt fmt $.name}"
   echo ""
   exit 1
 fi

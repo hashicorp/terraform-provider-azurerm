@@ -1,6 +1,7 @@
 TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=azurerm
+TESTTIMEOUT=180m
 
 #make sure we catch schema errors during testing
 TF_SCHEMA_PANIC_ON_ERROR=1
@@ -12,9 +13,10 @@ default: build
 tools:
 	@echo "==> installing required tooling..."
 	@sh "$(CURDIR)/scripts/gogetcookie.sh"
-	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
 	GO111MODULE=off go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
 	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
+	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
 	GO111MODULE=off go get -u github.com/katbyte/terrafmt
 
 build: fmtcheck
@@ -66,9 +68,11 @@ depscheck:
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."
 	@tfproviderlint \
-        -R001 -R002 -R003 -R004\
-        -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019\
-        ./$(PKG_NAME)
+        -AT001 -AT004 -AT005 -AT006 -AT007\
+        -R001 -R002 -R003 -R004 -R006\
+        -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019 -S020 -S021 -S022 -S023\
+        ./$(PKG_NAME)/...
+	@sh -c "'$(CURDIR)/scripts/terrafmt-acctests.sh'"
 
 whitespace:
 	@echo "==> Fixing source code with whitespace linter..."
@@ -91,16 +95,21 @@ test-compile:
 	go test -c $(TEST) $(TESTARGS)
 
 testacc: fmtcheck
-	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 180m -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
+	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
+
+acctests: fmtcheck
+	TF_ACC=1 go test -v ./azurerm/internal/services/$(SERVICE)/tests/ $(TESTARGS) -timeout $(TESTTIMEOUT) -ldflags="-X=github.com/terraform-providers/terraform-provider-azurerm/version.ProviderVersion=acc"
 
 debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
 
 website-lint:
-	@echo "==> Checking website spelling..."
+	@echo "==> Checking documentation spelling..."
 	@misspell -error -source=text -i hdinsight website/
-	@sh -c "$(CURDIR)/scripts/website-registrycheck.sh"
-	@sh -c "'$(CURDIR)/scripts/website-tf-formatcheck.sh'"
+	@echo "==> Checking documentation for errors..."
+	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
+		-allowed-resource-subcategories-file website/allowed-subcategories
+	@sh -c "'$(CURDIR)/scripts/terrafmt-website.sh'"
 
 website:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))

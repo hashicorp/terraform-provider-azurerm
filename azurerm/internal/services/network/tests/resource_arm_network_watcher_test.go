@@ -73,6 +73,7 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"retentionPolicy":      testAccAzureRMNetworkWatcherFlowLog_retentionPolicy,
 			"updateStorageAccount": testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount,
 			"trafficAnalytics":     testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics,
+			"version":              testAccAzureRMNetworkWatcherFlowLog_version,
 		},
 	}
 
@@ -91,6 +92,7 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 
 func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,

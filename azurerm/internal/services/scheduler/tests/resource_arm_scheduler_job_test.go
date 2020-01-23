@@ -536,7 +536,7 @@ resource "azurerm_scheduler_job" "import" {
 func testAccAzureRMSchedulerJob_web_put(data acceptance.TestData) string {
 	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
@@ -673,7 +673,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_recurringDaily(data acceptance.TestData) string {
 	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
@@ -698,7 +698,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_recurringWeekly(data acceptance.TestData) string {
 	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
@@ -722,7 +722,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_recurringMonthly(data acceptance.TestData) string {
 	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"
@@ -782,7 +782,7 @@ resource "azurerm_scheduler_job" "test" {
 func testAccAzureRMSchedulerJob_web_errorAction(data acceptance.TestData) string {
 	template := testAccAzureRMSchedulerJob_template(data)
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_scheduler_job" "test" {
   name                = "acctest-%d-job"

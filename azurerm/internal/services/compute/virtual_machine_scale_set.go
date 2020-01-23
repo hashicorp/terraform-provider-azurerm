@@ -811,16 +811,29 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 						string(compute.CachingTypesReadWrite),
 					}, false),
 				},
+
+				"disk_encryption_set_id": {
+					Type:     schema.TypeString,
+					Optional: true,
+					// whilst the API allows updating this value, it's never actually set at Azure's end
+					// presumably this'll take effect once key rotation is supported a few months post-GA?
+					// however for now let's make this ForceNew since it can't be (successfully) updated
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(0, 1023),
 				},
+
 				"lun": {
 					Type:         schema.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(0, 2000), // TODO: confirm upper bounds
 				},
+
 				"storage_account_type": {
 					Type:     schema.TypeString,
 					Required: true,
@@ -861,6 +874,12 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}) *[]compute.Virtua
 			CreateOption: compute.DiskCreateOptionTypesEmpty,
 		}
 
+		if id := raw["disk_encryption_set_id"].(string); id != "" {
+			disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+				ID: utils.String(id),
+			}
+		}
+
 		disks = append(disks, disk)
 	}
 
@@ -885,9 +904,13 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			lun = int(*v.Lun)
 		}
 
-		var storageAccountType string
+		storageAccountType := ""
+		diskEncryptionSetId := ""
 		if v.ManagedDisk != nil {
 			storageAccountType = string(v.ManagedDisk.StorageAccountType)
+			if v.ManagedDisk.DiskEncryptionSet != nil && v.ManagedDisk.DiskEncryptionSet.ID != nil {
+				diskEncryptionSetId = *v.ManagedDisk.DiskEncryptionSet.ID
+			}
 		}
 
 		writeAcceleratorEnabled := false
@@ -898,6 +921,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 		output = append(output, map[string]interface{}{
 			"caching":                   string(v.Caching),
 			"lun":                       lun,
+			"disk_encryption_set_id":    diskEncryptionSetId,
 			"disk_size_gb":              diskSizeGb,
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
@@ -956,9 +980,20 @@ func VirtualMachineScaleSetOSDiskSchema() *schema.Schema {
 					},
 				},
 
+				"disk_encryption_set_id": {
+					Type:     schema.TypeString,
+					Optional: true,
+					// whilst the API allows updating this value, it's never actually set at Azure's end
+					// presumably this'll take effect once key rotation is supported a few months post-GA?
+					// however for now let's make this ForceNew since it can't be (successfully) updated
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
 					Optional:     true,
+					Computed:     true,
 					ValidateFunc: validation.IntBetween(0, 1023),
 				},
 
@@ -986,6 +1021,12 @@ func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.Oper
 		OsType:       osType,
 	}
 
+	if diskEncryptionSetId := raw["disk_encryption_set_id"].(string); diskEncryptionSetId != "" {
+		disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+			ID: utils.String(diskEncryptionSetId),
+		}
+	}
+
 	if osDiskSize := raw["disk_size_gb"].(int); osDiskSize > 0 {
 		disk.DiskSizeGB = utils.Int32(int32(osDiskSize))
 	}
@@ -1008,6 +1049,12 @@ func ExpandVirtualMachineScaleSetOSDiskUpdate(input []interface{}) *compute.Virt
 			StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
 		},
 		WriteAcceleratorEnabled: utils.Bool(raw["write_accelerator_enabled"].(bool)),
+	}
+
+	if diskEncryptionSetId := raw["disk_encryption_set_id"].(string); diskEncryptionSetId != "" {
+		disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+			ID: utils.String(diskEncryptionSetId),
+		}
 	}
 
 	if osDiskSize := raw["disk_size_gb"].(int); osDiskSize > 0 {
@@ -1034,15 +1081,20 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 		diskSizeGb = int(*input.DiskSizeGB)
 	}
 
-	var storageAccountType string
+	storageAccountType := ""
+	diskEncryptionSetId := ""
 	if input.ManagedDisk != nil {
 		storageAccountType = string(input.ManagedDisk.StorageAccountType)
+		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.ID != nil {
+			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.ID
+		}
 	}
 
 	writeAcceleratorEnabled := false
 	if input.WriteAcceleratorEnabled != nil {
 		writeAcceleratorEnabled = *input.WriteAcceleratorEnabled
 	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"caching":                   string(input.Caching),
@@ -1050,6 +1102,7 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 			"diff_disk_settings":        diffDiskSettings,
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
+			"disk_encryption_set_id":    diskEncryptionSetId,
 		},
 	}
 }

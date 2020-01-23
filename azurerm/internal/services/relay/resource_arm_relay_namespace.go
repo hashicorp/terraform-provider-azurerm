@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -27,9 +29,10 @@ func resourceArmRelayNamespace() *schema.Resource {
 		Read:   resourceArmRelayNamespaceRead,
 		Update: resourceArmRelayNamespaceCreateUpdate,
 		Delete: resourceArmRelayNamespaceDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := ParseNamespaceID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

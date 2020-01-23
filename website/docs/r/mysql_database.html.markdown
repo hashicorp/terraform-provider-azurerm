@@ -23,12 +23,7 @@ resource "azurerm_mysql_server" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 
-  sku {
-    name     = "B_Gen5_2"
-    capacity = 2
-    tier     = "Basic"
-    family   = "Gen5"
-  }
+  sku_name = "B_Gen5_2"
 
   storage_profile {
     storage_mb            = 5120

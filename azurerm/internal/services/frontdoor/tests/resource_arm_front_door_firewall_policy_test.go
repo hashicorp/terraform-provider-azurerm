@@ -271,7 +271,7 @@ func testAccAzureRMFrontDoorFirewallPolicy_updated(data acceptance.TestData) str
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testAccRG-%d"
-  location = "%s"
+  location = "%[2]s"
 }
 
 resource "azurerm_frontdoor_firewall_policy" "test" {

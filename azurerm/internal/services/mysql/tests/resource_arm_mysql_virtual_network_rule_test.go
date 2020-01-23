@@ -110,7 +110,7 @@ func TestAccAzureRMMySqlVirtualNetworkRule_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "rule1")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "rule1")
 
 	resourceName2 := "azurerm_mysql_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_mysql_virtual_network_rule.rule3"
@@ -257,12 +257,7 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -332,12 +327,7 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -394,12 +384,7 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -471,12 +456,7 @@ resource "azurerm_mysql_server" "test" {
   version                      = "5.6"
   ssl_enforcement              = "Enabled"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
