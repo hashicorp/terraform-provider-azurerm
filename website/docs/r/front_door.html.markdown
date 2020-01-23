@@ -20,6 +20,11 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "FrontDoorExampleResourceGroup"
+  location = "EastUS2"
+}
+
 resource "azurerm_frontdoor" "example" {
   name                                         = "example-FrontDoor"
   location                                     = "${azurerm_resource_group.example.location}"
@@ -109,6 +114,8 @@ The `backend_pool` block supports the following:
 ---
 
 The `backend` block supports the following:
+
+* `enabled` - (Optional) Specifies if the backend is enabled or not. Valid options are `true` or `false`. Defaults to `true`.
 
 * `address` - (Required) Location of the backend (IP address or FQDN)
 
