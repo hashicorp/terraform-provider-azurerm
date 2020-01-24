@@ -103,7 +103,9 @@ The following arguments are supported:
 
 -> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
-* `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
+* `role_based_access_control` - (Optional) A `role_based_access_control` block.
+
+-> **NOTE:** Adding this block to, or removing it from, an existing cluster configuration will recreate the cluster. 
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -121,7 +123,7 @@ A `aci_connector_linux` block supports the following:
 
 * `subnet_name` - (Optional) The subnet name for the virtual nodes to run. This is required when `aci_connector_linux` `enabled` argument is set to `true`.
 
--> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
+-> **NOTE:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
 
 ```
 resource "azurerm_subnet" "virtual" {
@@ -200,13 +202,13 @@ A `agent_pool_profile` block supports the following:
 
 A `azure_active_directory` block supports the following:
 
-* `client_app_id` - (Required) The Client ID of an Azure Active Directory Application. Changing this forces a new resource to be created.
+* `client_app_id` - (Required) The Client ID of an Azure Active Directory Application.
 
-* `server_app_id` - (Required) The Server ID of an Azure Active Directory Application. Changing this forces a new resource to be created.
+* `server_app_id` - (Required) The Server ID of an Azure Active Directory Application.
 
-* `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application. Changing this forces a new resource to be created.
+* `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application.
 
-* `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used. Changing this forces a new resource to be created.
+* `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
 
 
 ---
@@ -325,7 +327,7 @@ A `oms_agent` block supports the following:
 
 A `role_based_access_control` block supports the following:
 
-* `azure_active_directory` - (Optional) An `azure_active_directory` block. Changing this forces a new resource to be created.
+* `azure_active_directory` - (Optional) An `azure_active_directory` block.
 
 * `enabled` - (Required) Is Role Based Access Control Enabled? Changing this forces a new resource to be created.
 

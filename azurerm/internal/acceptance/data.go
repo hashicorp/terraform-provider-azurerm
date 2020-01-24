@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -16,6 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
+
+var once sync.Once
 
 type TestData struct {
 	// Locations is a set of Azure Regions which should be used for this Test
@@ -48,13 +51,15 @@ type TestData struct {
 
 // BuildTestData generates some test data for the given resource
 func BuildTestData(t *testing.T, resourceType string, resourceLabel string) TestData {
-	azureProvider := provider.AzureProvider().(*schema.Provider)
+	once.Do(func() {
+		azureProvider := provider.AzureProvider().(*schema.Provider)
 
-	AzureProvider = azureProvider
-	SupportedProviders = map[string]terraform.ResourceProvider{
-		"azurerm": azureProvider,
-		"azuread": azuread.Provider().(*schema.Provider),
-	}
+		AzureProvider = azureProvider
+		SupportedProviders = map[string]terraform.ResourceProvider{
+			"azurerm": azureProvider,
+			"azuread": azuread.Provider().(*schema.Provider),
+		}
+	})
 
 	env, err := Environment()
 	if err != nil {
