@@ -120,8 +120,10 @@ func resourceArmSubnet() *schema.Resource {
 										}, false),
 									},
 									"actions": {
-										Type:     schema.TypeList,
-										Optional: true,
+										Type:       schema.TypeList,
+										Optional:   true,
+										Computed:   true,
+										ConfigMode: schema.SchemaConfigModeAttr,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
