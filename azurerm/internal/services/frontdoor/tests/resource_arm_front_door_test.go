@@ -129,12 +129,21 @@ func TestAccAzureRMFrontDoor_EnableDisableCache(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMFrontDoor_EnableCache(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFrontDoorExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
+				),
+			},
+			{
 				Config: testAccAzureRMFrontDoor_DisableCache(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFrontDoorExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_enabled", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
 				),
 			},
 			{
@@ -142,17 +151,8 @@ func TestAccAzureRMFrontDoor_EnableDisableCache(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFrontDoorExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripAll"),
-				),
-			},
-			{
-				Config: testAccAzureRMFrontDoor_DisableCache(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFrontDoorExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_enabled", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
 				),
 			},
 			data.ImportStep(),
@@ -478,6 +478,7 @@ resource "azurerm_frontdoor" "test" {
     forwarding_configuration {
       forwarding_protocol = "MatchRequest"
       backend_pool_name   = local.backend_name
+      cache_enabled       = false
     }
   }
 
@@ -540,9 +541,6 @@ resource "azurerm_frontdoor" "test" {
     forwarding_configuration {
       forwarding_protocol                   = "MatchRequest"
       backend_pool_name                     = local.backend_name
-      cache_enabled                         = true
-      cache_query_parameter_strip_directive = "StripAll"
-      cache_use_dynamic_compression         = true
     }
   }
 
