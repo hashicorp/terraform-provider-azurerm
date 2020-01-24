@@ -436,7 +436,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -448,27 +447,23 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"azure_active_directory": {
 							Type:     schema.TypeList,
 							Optional: true,
-							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"client_app_id": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ForceNew:     true,
 										ValidateFunc: validate.UUID,
 									},
 
 									"server_app_id": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ForceNew:     true,
 										ValidateFunc: validate.UUID,
 									},
 
 									"server_app_secret": {
 										Type:         schema.TypeString,
-										ForceNew:     true,
 										Required:     true,
 										Sensitive:    true,
 										ValidateFunc: validate.NoEmptyStrings,
@@ -478,7 +473,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 										Computed: true,
-										ForceNew: true,
 										// OrEmpty since this can be sourced from the client config if it's not specified
 										ValidateFunc: validate.UUIDOrEmpty,
 									},
@@ -789,6 +783,34 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	// since there's multiple reasons why we could be called into Update, we use this to only update if something's changed that's not SP/Version
 	updateCluster := false
 
+	// RBAC profile updates need to be handled atomically before any call to createUpdate as a diff there will create a PropertyChangeNotAllowed error
+	if d.HasChange("role_based_access_control") {
+		props := existing.ManagedClusterProperties
+		// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
+		if props.EnableRBAC == nil {
+			return fmt.Errorf("Error reading current state of RBAC Enabled, expected bool got %+v", props.EnableRBAC)
+		}
+		rbacRaw := d.Get("role_based_access_control").([]interface{})
+		rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+		// changing rbacEnabled must still force cluster recreation
+		if *props.EnableRBAC == rbacEnabled {
+			props.AadProfile = azureADProfile
+			props.EnableRBAC = utils.Bool(rbacEnabled)
+
+			log.Printf("[DEBUG] Updating the RBAC AAD profile")
+			future, err := clusterClient.ResetAADProfile(ctx, resourceGroup, name, *props.AadProfile)
+			if err != nil {
+				return fmt.Errorf("Error updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+
+			if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
+				return fmt.Errorf("Error waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", name, resourceGroup, err)
+			}
+		} else {
+			updateCluster = true
+		}
+	}
+
 	if d.HasChange("addon_profile") {
 		updateCluster = true
 		addOnProfilesRaw := d.Get("addon_profile").([]interface{})
@@ -824,14 +846,6 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		networkProfileRaw := d.Get("network_profile").([]interface{})
 		networkProfile := expandKubernetesClusterNetworkProfile(networkProfileRaw)
 		existing.ManagedClusterProperties.NetworkProfile = networkProfile
-	}
-
-	if d.HasChange("role_based_access_control") {
-		updateCluster = true
-		rbacRaw := d.Get("role_based_access_control").([]interface{})
-		rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
-		existing.ManagedClusterProperties.AadProfile = azureADProfile
-		existing.ManagedClusterProperties.EnableRBAC = utils.Bool(rbacEnabled)
 	}
 
 	if d.HasChange("tags") {
