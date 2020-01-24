@@ -28,7 +28,7 @@ func dataSourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 
 			"namespace_name": {
 				Type:         schema.TypeString,
-				Computed:     true,
+				Required:     true,
 				ValidateFunc: azure.ValidateEventHubNamespaceName(),
 			},
 

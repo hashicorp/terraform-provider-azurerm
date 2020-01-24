@@ -52,3 +52,4 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The Secondary Connection String for the Event Hubs authorization Rule.
 
+
