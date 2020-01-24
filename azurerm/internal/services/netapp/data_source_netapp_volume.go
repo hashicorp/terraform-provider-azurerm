@@ -63,7 +63,7 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 				Computed: true,
 			},
 
-			"protocol_types": {
+			"protocol": {
 				Type:     schema.TypeList,
 				Computed: true,
 				MaxItems: 1,
