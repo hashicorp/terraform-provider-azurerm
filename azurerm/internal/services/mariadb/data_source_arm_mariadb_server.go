@@ -24,10 +24,10 @@ import (
 
 func dataSourceArmMariaDbServer() *schema.Resource {
 	return &schema.Resource{
-		Read:   resourceArmMariaDbServerRead,
+		Read: resourceArmMariaDbServerRead,
 
 		Timeouts: &schema.ResourceTimeout{
-			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -200,11 +200,10 @@ func dataSourceArmMariaDbServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
-
 
 func dataSourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MariaDB.ServersClient
@@ -257,115 +256,4 @@ func dataSourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func expandServerSkuName(skuName string) (*mariadb.Sku, error) {
-	parts := strings.Split(skuName, "_")
-	if len(parts) != 3 {
-		return nil, fmt.Errorf("sku_name (%s) has the worng number of parts (%d) after splitting on _", skuName, len(parts))
-	}
-
-	var tier mariadb.SkuTier
-	switch parts[0] {
-	case "B":
-		tier = mariadb.Basic
-	case "GP":
-		tier = mariadb.GeneralPurpose
-	case "MO":
-		tier = mariadb.MemoryOptimized
-	default:
-		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
-	}
-
-	capacity, err := strconv.Atoi(parts[2])
-	if err != nil {
-		return nil, fmt.Errorf("cannot convert skuname %s capcity %s to int", skuName, parts[2])
-	}
-
-	return &mariadb.Sku{
-		Name:     utils.String(skuName),
-		Tier:     tier,
-		Capacity: utils.Int32(int32(capacity)),
-		Family:   utils.String(parts[1]),
-	}, nil
-}
-
-func expandAzureRmMariaDbServerSku(d *schema.ResourceData) *mariadb.Sku {
-	skus := d.Get("sku").([]interface{})
-	sku := skus[0].(map[string]interface{})
-
-	name := sku["name"].(string)
-	capacity := sku["capacity"].(int)
-	tier := sku["tier"].(string)
-	family := sku["family"].(string)
-
-	return &mariadb.Sku{
-		Name:     utils.String(name),
-		Tier:     mariadb.SkuTier(tier),
-		Capacity: utils.Int32(int32(capacity)),
-		Family:   utils.String(family),
-	}
-}
-
-func expandAzureRmMariaDbStorageProfile(d *schema.ResourceData) *mariadb.StorageProfile {
-	storageprofiles := d.Get("storage_profile").([]interface{})
-	storageprofile := storageprofiles[0].(map[string]interface{})
-
-	backupRetentionDays := storageprofile["backup_retention_days"].(int)
-	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
-	storageMB := storageprofile["storage_mb"].(int)
-	autoGrow := storageprofile["auto_grow"].(string)
-
-	return &mariadb.StorageProfile{
-		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
-		GeoRedundantBackup:  mariadb.GeoRedundantBackup(geoRedundantBackup),
-		StorageMB:           utils.Int32(int32(storageMB)),
-		StorageAutogrow:     mariadb.StorageAutogrow(autoGrow),
-	}
-}
-
-func flattenMariaDbServerSku(sku *mariadb.Sku) []interface{} {
-	values := map[string]interface{}{}
-
-	if sku == nil {
-		return []interface{}{}
-	}
-
-	if name := sku.Name; name != nil {
-		values["name"] = *name
-	}
-
-	if capacity := sku.Capacity; capacity != nil {
-		values["capacity"] = *capacity
-	}
-
-	values["tier"] = string(sku.Tier)
-
-	if family := sku.Family; family != nil {
-		values["family"] = *family
-	}
-
-	return []interface{}{values}
-}
-
-func flattenMariaDbStorageProfile(storage *mariadb.StorageProfile) []interface{} {
-	values := map[string]interface{}{}
-
-	if storage == nil {
-		return []interface{}{}
-	}
-
-	if storageMB := storage.StorageMB; storageMB != nil {
-		values["storage_mb"] = *storageMB
-	}
-
-	if backupRetentionDays := storage.BackupRetentionDays; backupRetentionDays != nil {
-		values["backup_retention_days"] = *backupRetentionDays
-	}
-
-	values["geo_redundant_backup"] = string(storage.GeoRedundantBackup)
-
-	values["auto_grow"] = string(storage.StorageAutogrow)
-
-	return []interface{}{values}
 }

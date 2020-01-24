@@ -14,7 +14,7 @@ func (r Registration) Name() string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_mariadb_server":               dataSourceArmMariaDbServer(),
+		"azurerm_mariadb_server": dataSourceArmMariaDbServer(),
 	}
 }
 
