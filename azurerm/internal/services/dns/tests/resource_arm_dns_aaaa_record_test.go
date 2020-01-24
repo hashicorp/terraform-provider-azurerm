@@ -517,7 +517,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
-
+	
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -528,7 +528,7 @@ resource "azurerm_dns_aaaa_record" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_name           = "${azurerm_dns_zone.test.name}"
   ttl                 = 300
-  records             = ["2607:f8b0:4005:0800:0000:0000:0000:1003","2201:1234:1234::1"]
+  records             = ["2607:f8b0:4005:0800:0000:0000:0000:1003", "2201:1234:1234::1"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
