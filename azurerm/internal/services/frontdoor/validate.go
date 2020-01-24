@@ -62,28 +62,10 @@ func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
 		// Check 2. routing rule is a forwarding_configuration type make sure the backend_pool_name exists in the configuration file
 		if len(forwardConfig) > 0 {
 			fc := forwardConfig[0].(map[string]interface{})
-			//cacheEnabled := fc["cache_enabled"].(bool)
 
 			if err := VerifyBackendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
 				return fmt.Errorf(`routing_rule %s is invalid. %+v`, routingRuleName, err)
 			}
-
-			// check existence of attributes in config based off cache enabled state
-			/*if !cacheEnabled {
-				if stripDirective := fc["cache_query_parameter_strip_directive"]; stripDirective != "" {
-					return fmt.Errorf(`routing_rule %s forwarding_configuration block is invalid. Please make sure that the "cache_query_parameter_strip_directive" attribute does not exist in the configuration file`, routingRuleName)
-				}
-
-				// Since dynamic compression is type bool it will always be initialized as false and I will not know if it is really in the config or not, the only one I can validate here is in the true case
-				if dynamicCompression := fc["cache_use_dynamic_compression"]; dynamicCompression == true {
-					return fmt.Errorf(`routing_rule %s forwarding_configuration block is invalid. Please make sure that the "cache_use_dynamic_compression" attribute does not exist in the configuration file or is set its value to false`, routingRuleName)
-				}
-			} else {
-				// Don't need to worry about dynamic compression in this case because it's data type is bool and will always initialize to false if not present in the config
-				if stripDirective := fc["cache_query_parameter_strip_directive"]; stripDirective == "" {
-					return fmt.Errorf(`routing_rule %s forwarding_configuration block is invalid. Please make sure that the "cache_query_parameter_strip_directive" attribute is defined in the configuration file`, routingRuleName)
-				}
-			}*/
 		}
 
 		// Check 3. validate that each routing rule frontend_endpoints are actually defined in the resource schema
