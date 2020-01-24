@@ -42,20 +42,14 @@ func dataSourceEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	name := id.Path["AuthorizationRules"] //this is different then eventhub where its authorizationRules
-	resourceGroup := id.ResourceGroup
-	namespaceName := id.Path["namespaces"]
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	namespaceName := d.Get("namespace_name").(string)
 
 	resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: Azure EventHub Authorization Rule %q (Resource Group %q / Namespace Name %q) was not found", name, resourceGroup, namespaceName)
 		}
 		return fmt.Errorf("Error making Read request on Azure EventHub Authorization Rule %s: %+v", name, err)
 	}

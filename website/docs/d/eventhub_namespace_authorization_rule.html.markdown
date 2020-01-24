@@ -16,9 +16,10 @@ Use this data source to access information about an Authorization Rule for an Ev
 data "azurerm_eventhub_namespace_authorization_rule" "example" {
   name                = "navi"
   resource_group_name = "${azurerm_eventhub_authorization_rule.example.resource_group_name}"
+}
 
 output "eventhub_authorization_rule_id" {
-  value = "${data.azurem_eventhub_namespace_authorization_rule.example.id}"}
+  value = "${data.azurem_eventhub_namespace_authorization_rule.example.id}"
 }
 ```
 
