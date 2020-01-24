@@ -30,38 +30,38 @@ func TestAccDataSourceAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 func testAccDataSourceAzureRMEventHubConsumerGroup_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-	name                = "acctesteventhubnamespace-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	sku                 = "Standard"
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
-	name                = "acctesteventhub-%d"
-	namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	partition_count     = 2
-	message_retention   = 7
+  name                = "acctesteventhub-%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  partition_count     = 2
+  message_retention   = 7
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {
-	name                = "acctesteventhubcg-%d"
-	namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-	eventhub_name       = "${azurerm_eventhub.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	user_metadata       = "some-meta-data"
+  name                = "acctesteventhubcg-%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  eventhub_name       = "${azurerm_eventhub.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  user_metadata       = "some-meta-data"
 }
 
 data "azurerm_eventhub_consumer_group" "test" {
-	name                = "${azurerm_eventhub_consumer_group.test.name}"
-	namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-	eventhub_name       = "${azurerm_eventhub.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "${azurerm_eventhub_consumer_group.test.name}"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  eventhub_name       = "${azurerm_eventhub.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
