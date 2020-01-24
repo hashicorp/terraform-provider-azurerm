@@ -4,6 +4,11 @@ NOTES:
 
 * `azurerm_cosmosdb_account` - the `capabilities` is now force new as it cannot be updated once set [GH-5453]
 
+FEATURES:
+
+* **New Data Source:** `azurerm_dedicated_host` [GH-5513]
+* **New Resource:** `azurerm_dedicated_host` [GH-5513]
+
 IMPROVEMENTS:
 
 * dependencies: upgrading to `v38.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-5385]
