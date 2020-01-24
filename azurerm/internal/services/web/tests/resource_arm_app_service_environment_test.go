@@ -108,7 +108,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
-	  
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
@@ -118,8 +118,8 @@ resource "azurerm_virtual_network" "test" {
   subnet {
     name           = "asesubnet"
     address_prefix = "10.0.1.0/24"
-	}
-	  
+  }
+
   subnet {
     name           = "gatewaysubnet"
     address_prefix = "10.0.2.0/24"
@@ -145,7 +145,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
-	  
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
@@ -155,8 +155,8 @@ resource "azurerm_virtual_network" "test" {
   subnet {
     name           = "asesubnet"
     address_prefix = "10.0.1.0/24"
-	}
-	  
+  }
+
   subnet {
     name           = "gatewaysubnet"
     address_prefix = "10.0.2.0/24"
@@ -187,7 +187,7 @@ func testAccAzureRMAppServiceEnvironment_withAppServicePlan(data acceptance.Test
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_app_service_plan" "test"{
+resource "azurerm_app_service_plan" "test" {
   name                       = "acctest-ASP-%d"
   location                   = "${azurerm_resource_group.test.location}"
   resource_group_name        = "${azurerm_resource_group.test.name}"
@@ -197,7 +197,6 @@ resource "azurerm_app_service_plan" "test"{
     tier = "Basic"
     size = "B1"
   }
-
 }
 `, template, data.RandomInteger)
 }
