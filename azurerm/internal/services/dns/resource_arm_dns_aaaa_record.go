@@ -2,7 +2,6 @@ package dns
 
 import (
 	"fmt"
-	"net"
 	"net/http"
 	"time"
 
