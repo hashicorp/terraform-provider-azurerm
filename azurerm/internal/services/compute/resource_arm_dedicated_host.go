@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 
 	"github.com/hashicorp/go-azure-helpers/response"
 
@@ -54,13 +55,11 @@ func resourceArmDedicatedHost() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"host_group_name": {
+			"dedicated_host_group_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateDedicatedHostGroupName(),
+				ValidateFunc: validate.DedicatedHostGroupID,
 			},
 
 			"sku_name": {
@@ -108,8 +107,13 @@ func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 	defer cancel()
 
 	name := d.Get("name").(string)
-	resourceGroupName := d.Get("resource_group_name").(string)
-	hostGroupName := d.Get("host_group_name").(string)
+	dedicatedHostGroupId, err := parse.DedicatedHostGroupID(d.Get("dedicated_host_group_id").(string))
+	if err != nil {
+		return err
+	}
+
+	resourceGroupName := dedicatedHostGroupId.ResourceGroup
+	hostGroupName := dedicatedHostGroupId.Name
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
@@ -128,14 +132,12 @@ func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 		DedicatedHostProperties: &compute.DedicatedHostProperties{
 			AutoReplaceOnFailure: utils.Bool(d.Get("auto_replace_on_failure").(bool)),
 			LicenseType:          compute.DedicatedHostLicenseTypes(d.Get("license_type").(string)),
+			PlatformFaultDomain:  utils.Int32(int32(d.Get("platform_fault_domain").(int))),
 		},
 		Sku: &compute.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-	if platformFaultDomain, ok := d.GetOk("platform_fault_domain"); ok {
-		parameters.DedicatedHostProperties.PlatformFaultDomain = utils.Int32(int32(platformFaultDomain.(int)))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, hostGroupName, name, parameters)
@@ -151,7 +153,7 @@ func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error retrieving Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Dedicated Host %q (Host Group Name %q / Resource Group %q) ID", name, hostGroupName, resourceGroupName)
+		return fmt.Errorf("Cannot read ID for Dedicated Host %q (Host Group Name %q / Resource Group %q)", name, hostGroupName, resourceGroupName)
 	}
 	d.SetId(*resp.ID)
 
@@ -159,7 +161,8 @@ func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.DedicatedHostsClient
+	groupsClient := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
+	hostsClient := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -168,27 +171,44 @@ func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, "")
+	group, err := groupsClient.Get(ctx, id.ResourceGroup, id.HostGroup)
+	if err != nil {
+		if utils.ResponseWasNotFound(group.Response) {
+			log.Printf("[INFO] Parent Dedicated Host Group %q does not exist - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving Dedicated Host Group %q (Resource Group %q): %+v", id.HostGroup, id.ResourceGroup, err)
+	}
+
+	resp, err := hostsClient.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Dedicated Host %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
+
+		return fmt.Errorf("Error retrieving Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("dedicated_host_group_id", group.ID)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	d.Set("host_group_name", id.HostGroup)
 	d.Set("sku_name", resp.Sku.Name)
 	if props := resp.DedicatedHostProperties; props != nil {
-		d.Set("platform_fault_domain", props.PlatformFaultDomain)
 		d.Set("auto_replace_on_failure", props.AutoReplaceOnFailure)
 		d.Set("license_type", props.LicenseType)
+
+		platformFaultDomain := 0
+		if props.PlatformFaultDomain != nil {
+			platformFaultDomain = int(*props.PlatformFaultDomain)
+		}
+		d.Set("platform_fault_domain", platformFaultDomain)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -199,9 +219,10 @@ func resourceArmDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroupName := d.Get("resource_group_name").(string)
-	hostGroupName := d.Get("host_group_name").(string)
+	id, err := parse.DedicatedHostID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	parameters := compute.DedicatedHostUpdate{
 		DedicatedHostProperties: &compute.DedicatedHostProperties{
@@ -211,12 +232,12 @@ func resourceArmDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) er
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Update(ctx, resourceGroupName, hostGroupName, name, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.HostGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+		return fmt.Errorf("Error updating Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+		return fmt.Errorf("Error waiting for update of Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", id.Name, id.HostGroup, id.ResourceGroup, err)
 	}
 
 	return resourceArmDedicatedHostRead(d, meta)
@@ -250,7 +271,7 @@ func resourceArmDedicatedHostDelete(d *schema.ResourceData, meta interface{}) er
 		Target:                    []string{"NotFound"},
 		Refresh:                   dedicatedHostDeletedRefreshFunc(ctx, client, id),
 		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 5,
+		ContinuousTargetOccurence: 10,
 	}
 
 	if features.SupportsCustomTimeouts() {
@@ -273,7 +294,8 @@ func dedicatedHostDeletedRefreshFunc(ctx context.Context, client *compute.Dedica
 			if utils.ResponseWasNotFound(res.Response) {
 				return "NotFound", "NotFound", nil
 			}
-			return nil, "", fmt.Errorf("Error issuing read request in  dedicatedHostDeletedRefreshFunc: %+v", err)
+
+			return nil, "", fmt.Errorf("Error polling to check if the Dedicated Host has been deleted: %+v", err)
 		}
 
 		return res, "Exists", nil

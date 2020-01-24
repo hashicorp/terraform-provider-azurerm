@@ -19,7 +19,8 @@ func TestAccDataSourceAzureRMDedicatedHost_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceDedicatedHost_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "tags.%"),
 				),
 			},
 		},
@@ -32,9 +33,9 @@ func testAccDataSourceDedicatedHost_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_dedicated_host" "test" {
-  name                = azurerm_dedicated_host.test.name
-  resource_group_name = azurerm_dedicated_host.test.resource_group_name
-  host_group_name     = azurerm_dedicated_host.test.host_group_name
+  name                      = azurerm_dedicated_host.test.name
+  dedicated_host_group_name = azurerm_dedicated_host_group.test.name
+  resource_group_name       = azurerm_dedicated_host_group.test.resource_group_name
 }
 `, config)
 }

@@ -28,15 +28,15 @@ func dataSourceArmDedicatedHost() *schema.Resource {
 				ValidateFunc: validateDedicatedHostName(),
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
-
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-
-			"host_group_name": {
+			"dedicated_host_group_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validateDedicatedHostGroupName(),
 			},
+
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
+			"location": azure.SchemaLocationForDataSource(),
 
 			"tags": tags.SchemaDataSource(),
 		},
@@ -50,7 +50,7 @@ func dataSourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) er
 
 	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
-	hostGroupName := d.Get("host_group_name").(string)
+	hostGroupName := d.Get("dedicated_host_group_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
 	if err != nil {
@@ -66,7 +66,7 @@ func dataSourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) er
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	d.Set("host_group_name", hostGroupName)
+	d.Set("dedicated_host_group_name", hostGroupName)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

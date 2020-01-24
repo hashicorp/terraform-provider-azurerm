@@ -14,13 +14,13 @@ Use this data source to access information about an existing Dedicated Host.
 
 ```hcl
 data "azurerm_dedicated_host" "example" {
-  name                = "example-dh"
-  resource_group_name = "example-rg"
-  host_group_name     = "example-dhg"
+  name                      = "example-host"
+  dedicated_host_group_name = "example-host-group"
+  resource_group_name       = "example-resources"
 }
 
 output "dedicated_host_id" {
-  value = "${data.azurerm_dedicated_host.example.id}"
+  value = data.azurerm_dedicated_host.example.id
 }
 ```
 
@@ -30,9 +30,9 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Dedicated Host.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the Dedicated Host is located in.
+* `dedicated_host_group_name` - (Required) Specifies the name of the Dedicated Host Group the Dedicated Host is located in.
 
-* `host_group_name` - (Required) Specifies the name of the Dedicated Host Group the Dedicated Host is located in.
+* `resource_group_name` - (Required) Specifies the name of the resource group the Dedicated Host is located in.
 
 ## Attributes Reference
 
