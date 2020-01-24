@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_network_watcher_flow_log` - support for the `version` property [GH-5419]
 * `azurerm_traffic_manager_profile` - add the `expected_status_code_ranges` [GH-5471]
 * `azurerm_traffic_manager_profile` - switch `dns_config` and `monitor_config` to type list and limit to `1` [GH-5471]
+* `azurerm_kubernetes_cluster` - support updating AKS AAD RBAC profile without rebuilding cluster [GH-5410]
 
 BUG FIXES:
 
