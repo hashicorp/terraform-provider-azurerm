@@ -539,8 +539,8 @@ resource "azurerm_frontdoor" "test" {
     frontend_endpoints = [local.endpoint_name]
 
     forwarding_configuration {
-      forwarding_protocol                   = "MatchRequest"
-      backend_pool_name                     = local.backend_name
+      forwarding_protocol = "MatchRequest"
+      backend_pool_name   = local.backend_name
     }
   }
 
