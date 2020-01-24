@@ -371,6 +371,9 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
+  event_hub_retention_in_days = 7
+  event_hub_partition_count   = 77
+
   endpoint {
     type                       = "AzureIotHub.StorageContainer"
     connection_string          = "${azurerm_storage_account.test.primary_blob_connection_string}"
