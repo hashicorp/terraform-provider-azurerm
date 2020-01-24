@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,6 +33,29 @@ func TestAccAzureRMAppServiceEnvironment_basicWindows(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceEnvironment_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppService_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
+				),
+			},
+			data.RequiresImportErrorStep(testAccAzureRMAppServiceEnvironment_requiresImport),
+		},
+	})
+}
+
 func TestAccAzureRMAppServiceEnvironment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 
@@ -49,7 +72,6 @@ func TestAccAzureRMAppServiceEnvironment_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "front_end_scale_factor", "15"),
 				),
 			},
-			data.ImportStep(),
 			{
 				Config: testAccAzureRMAppServiceEnvironment_update(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -57,7 +79,6 @@ func TestAccAzureRMAppServiceEnvironment_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "front_end_scale_factor", "10"),
 				),
 			},
-			data.ImportStep(),
 		},
 	})
 }
@@ -137,6 +158,19 @@ resource "azurerm_app_service_environment" "test" {
   subnet_id = "${data.azurerm_subnet.test.id}"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMAppServiceEnvironment_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceEnvironment_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_environment" "import" {
+  name      = "${azurerm_app_service_environment.test.name}"
+  subnet_id = "${azurerm_app_service_environment.test.subnet_id}"
+
+}
+`, template)
 }
 
 func testAccAzureRMAppServiceEnvironment_tierAndScaleFactor(data acceptance.TestData) string {
