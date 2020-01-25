@@ -89,17 +89,17 @@ func resourceArmApplicationInsights() *schema.Resource {
 
 			"tags": tags.Schema(),
 
-			"daily_cap": {
+			"daily_data_cap_in_gb": {
 				Type:         schema.TypeFloat,
 				Optional:     true,
-				Default:      100,
+				Computed:     true,
 				ValidateFunc: validation.FloatBetween(0, 1000),
 			},
 
-			"stop_send_notification_when_hit_cap": {
+			"daily_data_cap_notifications_disabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 
 			"app_id": {
@@ -118,7 +118,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 
 func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
-	billingFeatureClient := meta.(*clients.Client).AppInsights.BillingFeatureClient
+	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 
 	defer cancel()
@@ -143,8 +143,6 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 
 	applicationType := d.Get("application_type").(string)
 	samplingPercentage := utils.Float(d.Get("sampling_percentage").(float64))
-	dailyCap := utils.Float(d.Get("daily_cap").(float64))
-	stopSendNotificationWhenHitCap := utils.Bool(d.Get("stop_send_notification_when_hit_cap").(bool))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
@@ -184,21 +182,25 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
 	}
 
-	billingFeatureRead, err := billingFeatureClient.Get(ctx, resGroup, name)
+	billingFeatureRead, err := billingClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error read Application Insights Billing Features %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	applicationInsightsComponentBillingFeatures := insights.ApplicationInsightsComponentBillingFeatures{
 		CurrentBillingFeatures: billingFeatureRead.CurrentBillingFeatures,
-		DataVolumeCap: &insights.ApplicationInsightsComponentDataVolumeCap{
-			Cap:                            dailyCap,
-			StopSendNotificationWhenHitCap: stopSendNotificationWhenHitCap,
-		},
+		DataVolumeCap:          billingFeatureRead.DataVolumeCap,
 	}
 
-	_, err = billingFeatureClient.Update(ctx, resGroup, name, applicationInsightsComponentBillingFeatures)
-	if err != nil {
+	if v, ok := d.GetOk("daily_data_cap_in_gb"); ok {
+		applicationInsightsComponentBillingFeatures.DataVolumeCap.Cap = utils.Float(v.(float64))
+	}
+
+	if v, ok := d.GetOk("daily_data_cap_notifications_disabled"); ok {
+		applicationInsightsComponentBillingFeatures.DataVolumeCap.StopSendNotificationWhenHitCap = utils.Bool(v.(bool))
+	}
+
+	if _, err = billingClient.Update(ctx, resGroup, name, applicationInsightsComponentBillingFeatures); err != nil {
 		return fmt.Errorf("Error update Application Insights Billing Feature %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
@@ -209,7 +211,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 
 func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
-	billingFeatureClient := meta.(*clients.Client).AppInsights.BillingFeatureClient
+	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -232,7 +234,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", name, err)
 	}
 
-	billingFeatureResp, err := billingFeatureClient.Get(ctx, resGroup, name)
+	billingFeatureResp, err := billingClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", name, err)
 	}
@@ -254,8 +256,8 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if billingFeatureProps := billingFeatureResp.DataVolumeCap; billingFeatureProps != nil {
-		d.Set("daily_cap", billingFeatureProps.Cap)
-		d.Set("stop_send_notification_when_hit_cap", billingFeatureProps.StopSendNotificationWhenHitCap)
+		d.Set("daily_data_cap_in_gb", billingFeatureProps.Cap)
+		d.Set("daily_data_cap_notifications_disabled", billingFeatureProps.StopSendNotificationWhenHitCap)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
