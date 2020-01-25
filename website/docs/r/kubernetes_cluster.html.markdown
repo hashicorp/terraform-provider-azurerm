@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `agent_pool_profile` - (Optional) One or more `agent_pool_profile` blocks as defined below.
 
-~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0
+~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0. For additional node pools beyond default, see [azurerm_kubernetes_cluster_node_pool](https://www.terraform.io/docs/providers/azurerm/r/kubernetes_cluster_node_pool.html).
 
 * `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
@@ -160,7 +160,7 @@ A `addon_profile` block supports the following:
 
 A `agent_pool_profile` block supports the following:
 
-~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0
+~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0. For additional node pools beyond default, see [azurerm_kubernetes_cluster_node_pool](https://www.terraform.io/docs/providers/azurerm/r/kubernetes_cluster_node_pool.html).
 
 * `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group. Changing this forces a new resource to be created.
 
