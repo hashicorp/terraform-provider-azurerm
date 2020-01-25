@@ -2,7 +2,6 @@
 subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_sql_container"
-sidebar_current: "docs-azurerm-resource-cosmosdb-sql-container"
 description: |-
   Manages a SQL Container within a Cosmos DB Account.
 ---
@@ -22,7 +21,7 @@ resource "azurerm_cosmosdb_sql_container" "example" {
   database_name       = "${azurerm_cosmosdb_sql_database.example.name}"
   partition_key_path  = "/definition/id"
   throughput          = 400
- 
+
   unique_key {
     paths = ["/definition/idlong", "/definition/idshort"]
   }
@@ -47,6 +46,8 @@ The following arguments are supported:
 * `unique_key` - (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 
 * `throughput` - (Optional) The throughput of SQL container (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
+
+* `default_ttl` - (Optional) The default time to live of SQL container. If missing, items are not expired automatically. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
 ---
 A `unique_key` block supports the following:

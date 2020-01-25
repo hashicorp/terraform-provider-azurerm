@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_scale_set"
-sidebar_current: "docs-azurerm-resource-compute-virtualmachine-scale-set"
 description: |-
   Manages a Virtual Machine scale set.
 ---
@@ -20,7 +19,7 @@ Manages a virtual machine scale set.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "West US 2"
 }
 
@@ -170,7 +169,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "West US"
 }
 

@@ -69,6 +69,41 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
+			"custom_parameters": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"no_public_ip": {
+							Type:     schema.TypeBool,
+							ForceNew: true,
+							Optional: true,
+						},
+
+						"public_subnet_name": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+
+						"private_subnet_name": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+
+						"virtual_network_id": {
+							Type:         schema.TypeString,
+							ForceNew:     true,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						},
+					},
+				},
+			},
+
 			"managed_resource_group_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -125,6 +160,7 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 		Location: utils.String(location),
 		WorkspaceProperties: &databricks.WorkspaceProperties{
 			ManagedResourceGroupID: &managedResourceGroupID,
+			Parameters:             expandWorkspaceCustomParameters(d),
 		},
 		Tags: expandedTags,
 	}
@@ -193,6 +229,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
+		d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -223,6 +260,75 @@ func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func flattenWorkspaceCustomParameters(p *databricks.WorkspaceCustomParameters) []interface{} {
+	if p == nil {
+		return nil
+	}
+
+	parameters := make(map[string]interface{})
+
+	if v := p.EnableNoPublicIP; v != nil {
+		if v.Value != nil {
+			parameters["no_public_ip"] = *v.Value
+		}
+	}
+
+	if v := p.CustomPrivateSubnetName; v != nil {
+		if v.Value != nil {
+			parameters["private_subnet_name"] = *v.Value
+		}
+	}
+
+	if v := p.CustomPublicSubnetName; v != nil {
+		if v.Value != nil {
+			parameters["public_subnet_name"] = *v.Value
+		}
+	}
+
+	if v := p.CustomVirtualNetworkID; v != nil {
+		if v.Value != nil {
+			parameters["virtual_network_id"] = *v.Value
+		}
+	}
+
+	return []interface{}{parameters}
+}
+
+func expandWorkspaceCustomParameters(d *schema.ResourceData) *databricks.WorkspaceCustomParameters {
+	configList, ok := d.GetOkExists("custom_parameters")
+	if !ok {
+		return nil
+	}
+	config := configList.([]interface{})[0].(map[string]interface{})
+	parameters := databricks.WorkspaceCustomParameters{}
+
+	if v, ok := config["no_public_ip"].(bool); ok {
+		parameters.EnableNoPublicIP = &databricks.WorkspaceCustomBooleanParameter{
+			Value: &v,
+		}
+	}
+
+	if v := config["public_subnet_name"].(string); v != "" {
+		parameters.CustomPublicSubnetName = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v := config["private_subnet_name"].(string); v != "" {
+		parameters.CustomPrivateSubnetName = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	if v := config["virtual_network_id"].(string); v != "" {
+		parameters.CustomVirtualNetworkID = &databricks.WorkspaceCustomStringParameter{
+			Value: &v,
+		}
+	}
+
+	return &parameters
 }
 
 func ValidateDatabricksWorkspaceName(i interface{}, k string) (warnings []string, errors []error) {

@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_authorization_server"
-sidebar_current: "docs-azurerm-resource-api-management-authorization-server"
 description: |-
   Manages an Authorization Server within an API Management Service.
 ---

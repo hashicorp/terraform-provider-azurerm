@@ -6,7 +6,7 @@ cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
 cloud.google.com/go/storage
-# github.com/Azure/azure-sdk-for-go v36.2.0+incompatible => github.com/hashicorp/azure-sdk-for-go v36.2.2-hashi+incompatible
+# github.com/Azure/azure-sdk-for-go v38.1.0+incompatible
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement
@@ -29,8 +29,9 @@ github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/accoun
 github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration
 github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces
 github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl
+github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns
 github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub
-github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-04-01/frontdoor
+github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-11-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
 github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2019-09-16/healthcareapis
 github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault
@@ -48,7 +49,6 @@ github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/noti
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization
 github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice
-github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns
 github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid
 github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight
 github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices
@@ -61,13 +61,12 @@ github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-pre
 github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security
 github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
-github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql
-github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql
+github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql
 github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
 github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices
-github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery
+github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup
 github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis
 github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-02-01/resources
@@ -231,8 +230,6 @@ github.com/hashicorp/hcl2/hclwrite
 github.com/hashicorp/hil/ast
 # github.com/hashicorp/logutils v1.0.0
 github.com/hashicorp/logutils
-# github.com/hashicorp/terraform v0.12.9
-github.com/hashicorp/terraform/helper/acctest
 # github.com/hashicorp/terraform-config-inspect v0.0.0-20190821133035-82a99dc22ef4
 github.com/hashicorp/terraform-config-inspect/tfconfig
 # github.com/hashicorp/terraform-plugin-sdk v1.1.1

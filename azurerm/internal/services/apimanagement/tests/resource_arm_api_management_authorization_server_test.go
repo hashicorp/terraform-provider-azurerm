@@ -26,11 +26,7 @@ func TestAccAzureRMAPIManagementAuthorizationServer_basic(t *testing.T) {
 					testCheckAzureRMAPIManagementAuthorizationServerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -72,17 +68,15 @@ func TestAccAzureRMAPIManagementAuthorizationServer_complete(t *testing.T) {
 					testCheckAzureRMAPIManagementAuthorizationServerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func testCheckAzureRMAPIManagementAuthorizationServerDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.AuthorizationServersClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_authorization_server" {
 			continue
@@ -92,7 +86,6 @@ func testCheckAzureRMAPIManagementAuthorizationServerDestroy(s *terraform.State)
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 
 		if err != nil {
@@ -108,6 +101,9 @@ func testCheckAzureRMAPIManagementAuthorizationServerDestroy(s *terraform.State)
 
 func testCheckAzureRMAPIManagementAuthorizationServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.AuthorizationServersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -117,8 +113,6 @@ func testCheckAzureRMAPIManagementAuthorizationServerExists(resourceName string)
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.AuthorizationServersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

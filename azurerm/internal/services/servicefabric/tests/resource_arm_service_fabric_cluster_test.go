@@ -173,7 +173,6 @@ func TestAccAzureRMServiceFabricCluster_manualLatest(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
-	config := testAccAzureRMServiceFabricCluster_addOnFeatures(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -181,7 +180,7 @@ func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceFabricCluster_addOnFeatures(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "add_on_features.#", "2"),
@@ -248,7 +247,6 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 
 func TestAccAzureRMServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
-	config := testAccAzureRMServiceFabricCluster_basic(data, 3)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -256,7 +254,7 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceFabricCluster_basic(data, 3),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceFabricClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "management_endpoint", "http://example:80"),
@@ -750,6 +748,9 @@ func testCheckAzureRMServiceFabricClusterDestroy(s *terraform.State) error {
 
 func testCheckAzureRMServiceFabricClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceFabric.ClustersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -761,9 +762,6 @@ func testCheckAzureRMServiceFabricClusterExists(resourceName string) resource.Te
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Service Fabric Cluster %q", clusterName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceFabric.ClustersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, clusterName)
 		if err != nil {

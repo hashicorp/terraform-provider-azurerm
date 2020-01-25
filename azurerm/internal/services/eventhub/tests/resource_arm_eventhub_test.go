@@ -239,8 +239,6 @@ func TestAccAzureRMEventHub_requiresImport(t *testing.T) {
 
 func TestAccAzureRMEventHub_partitionCountUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	preConfig := testAccAzureRMEventHub_basic(data, 2)
-	postConfig := testAccAzureRMEventHub_partitionCountUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -248,14 +246,14 @@ func TestAccAzureRMEventHub_partitionCountUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMEventHub_basic(data, 2),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "partition_count", "2"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMEventHub_partitionCountUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "partition_count", "10"),
@@ -308,23 +306,20 @@ func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
 func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 
-	config := testAccAzureRMEventHub_captureDescription(data, true)
-	updatedConfig := testAccAzureRMEventHub_captureDescription(data, false)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMEventHub_captureDescription(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "capture_description.0.enabled", "true"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMEventHub_captureDescription(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "capture_description.0.enabled", "false"),
@@ -336,8 +331,6 @@ func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 
 func TestAccAzureRMEventHub_messageRetentionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
-	preConfig := testAccAzureRMEventHub_standard(data)
-	postConfig := testAccAzureRMEventHub_messageRetentionUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -345,14 +338,14 @@ func TestAccAzureRMEventHub_messageRetentionUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMEventHub_standard(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "message_retention", "7"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMEventHub_messageRetentionUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "message_retention", "5"),
@@ -391,6 +384,9 @@ func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
 
 func testCheckAzureRMEventHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -403,9 +399,6 @@ func testCheckAzureRMEventHubExists(resourceName string) resource.TestCheckFunc 
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub: %s", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {

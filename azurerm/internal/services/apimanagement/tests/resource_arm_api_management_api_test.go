@@ -29,11 +29,7 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -56,11 +52,7 @@ func TestAccAzureRMApiManagementApi_basicClassic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -80,11 +72,7 @@ func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "revision", "one-point-oh"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -104,11 +92,7 @@ func TestAccAzureRMApiManagementApi_version(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "version", "v1"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -150,11 +134,7 @@ func TestAccAzureRMApiManagementApi_soapPassthrough(t *testing.T) {
 					testCheckAzureRMApiManagementApiExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -269,17 +249,14 @@ func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
 					testCheckAzureRMApiManagementApiExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api" {
@@ -290,7 +267,6 @@ func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		revision := rs.Primary.Attributes["revision"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiId)
@@ -310,6 +286,9 @@ func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
 
 func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -320,9 +299,6 @@ func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc 
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		revision := rs.Primary.Attributes["revision"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiId)
@@ -519,8 +495,8 @@ resource "azurerm_api_management_api" "test" {
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
-  version			  = "v1"
-  version_set_id	  = "${azurerm_api_management_api_version_set.test.id}"
+  version             = "v1"
+  version_set_id      = "${azurerm_api_management_api_version_set.test.id}"
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -548,7 +524,7 @@ resource "azurerm_api_management" "test" {
 func testAccAzureRMApiManagementApi_templateClassic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

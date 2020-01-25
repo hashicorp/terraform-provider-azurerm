@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mariadb_firewall_rule"
-sidebar_current: "docs-azurerm-resource-database-mariadb-firewall-rule"
 description: |-
   Manages a Firewall Rule for a MariaDB Server.
 ---

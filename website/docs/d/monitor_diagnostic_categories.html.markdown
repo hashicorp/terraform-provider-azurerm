@@ -2,7 +2,6 @@
 subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_diagnostic_categories"
-sidebar_current: "docs-azurerm-datasource-monitor-diagnostic-categories"
 description: |-
   Gets information about an the Monitor Diagnostics Categories supported by an existing Resource.
 

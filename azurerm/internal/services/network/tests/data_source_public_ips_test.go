@@ -11,20 +11,17 @@ import (
 func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ips", "test")
 
-	resourceConfig := testAccDataSourceAzureRMPublicIPs_prefix(data)
-	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_prefixDataSource(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfig,
+				Config: testAccDataSourceAzureRMPublicIPs_prefix(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 			{
-				Config: dataSourceConfig,
+				Config: testAccDataSourceAzureRMPublicIPs_prefixDataSource(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "public_ips.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "public_ips.0.name", fmt.Sprintf("acctestpipa%s-0", data.RandomString)),
@@ -40,20 +37,17 @@ func TestAccDataSourceAzureRMPublicIPs_assigned(t *testing.T) {
 	attachedDataSourceName := "data.azurerm_public_ips.attached"
 	unattachedDataSourceName := "data.azurerm_public_ips.unattached"
 
-	resourceConfig := testAccDataSourceAzureRMPublicIPs_attached(data)
-	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_attachedDataSource(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfig,
+				Config: testAccDataSourceAzureRMPublicIPs_attached(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 			{
-				Config: dataSourceConfig,
+				Config: testAccDataSourceAzureRMPublicIPs_attachedDataSource(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(attachedDataSourceName, "public_ips.#", "3"),
 					resource.TestCheckResourceAttr(attachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-0", data.RandomString)),
@@ -71,20 +65,17 @@ func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 	staticDataSourceName := "data.azurerm_public_ips.static"
 	dynamicDataSourceName := "data.azurerm_public_ips.dynamic"
 
-	resourceConfig := testAccDataSourceAzureRMPublicIPs_allocationType(data)
-	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_allocationTypeDataSources(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfig,
+				Config: testAccDataSourceAzureRMPublicIPs_allocationType(data),
 				Check:  resource.ComposeTestCheckFunc(),
 			},
 			{
-				Config: dataSourceConfig,
+				Config: testAccDataSourceAzureRMPublicIPs_allocationTypeDataSources(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(staticDataSourceName, "public_ips.#", "3"),
 					resource.TestCheckResourceAttr(staticDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpips%s-0", data.RandomString)),

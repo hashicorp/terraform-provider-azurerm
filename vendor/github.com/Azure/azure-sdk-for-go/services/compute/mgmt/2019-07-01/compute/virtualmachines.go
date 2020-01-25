@@ -207,7 +207,8 @@ func (client VirtualMachinesClient) ConvertToManagedDisksResponder(resp *http.Re
 	return
 }
 
-// CreateOrUpdate the operation to create or update a virtual machine.
+// CreateOrUpdate the operation to create or update a virtual machine. Please note some properties can be set only
+// during virtual machine creation.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // VMName - the name of the virtual machine.
@@ -462,7 +463,11 @@ func (client VirtualMachinesClient) DeleteResponder(resp *http.Response) (result
 	return
 }
 
-// Generalize sets the state of the virtual machine to generalized.
+// Generalize sets the OS state of the virtual machine to generalized. It is recommended to sysprep the virtual machine
+// before performing this operation. <br>For Windows, please refer to [Create a managed image of a generalized VM in
+// Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/capture-image-resource).<br>For Linux, please
+// refer to [How to create an image of a virtual machine or
+// VHD](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/capture-image).
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // VMName - the name of the virtual machine.

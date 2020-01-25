@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_extension"
-sidebar_current: "docs-azurerm-resource-compute-virtualmachine-extension"
 description: |-
     Manages a Virtual Machine Extension to provide post deployment
     configuration and run automated tasks.
@@ -21,7 +20,7 @@ and run automated tasks.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "West US"
 }
 
@@ -108,9 +107,7 @@ resource "azurerm_virtual_machine" "example" {
 
 resource "azurerm_virtual_machine_extension" "example" {
   name                 = "hostname"
-  location             = "${azurerm_resource_group.example.location}"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_machine_name = "${azurerm_virtual_machine.example.name}"
+  virtual_machine_id   = "${azurerm_virtual_machine.example.id}"
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
@@ -134,15 +131,19 @@ The following arguments are supported:
 * `name` - (Required) The name of the virtual machine extension peering. Changing
     this forces a new resource to be created.
 
-* `location` - (Required) The location where the extension is created. Changing
+* `location` - (Optional / **Deprecated**) The location where the extension is created. Changing
     this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
+* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to
     create the virtual network. Changing this forces a new resource to be
     created.
 
-* `virtual_machine_name` - (Required) The name of the virtual machine. Changing
+* `virtual_machine_name` - (Optional / **Deprecated**) The name of the virtual machine. Changing
     this forces a new resource to be created.
+    
+* `virtual_machine_id` - (Optional) The resource ID of the virtual machine. This value replaces 
+    `location`, `resource_group_name` and `virtual_machine_name`. Changing this forces a new 
+    resource to be created
 
 * `publisher` - (Required) The publisher of the extension, available publishers
     can be found by using the Azure CLI.

@@ -45,7 +45,7 @@ func dataSourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta inter
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Proximity Placement Group %q (Resource Group %q) was not found", name, resourceGroup)

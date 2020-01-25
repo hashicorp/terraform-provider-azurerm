@@ -91,6 +91,9 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_update(t *testing.T) {
 
 func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationPoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -102,8 +105,6 @@ func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		operationID := rs.Primary.Attributes["operation_id"]
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationPoliciesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationID)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -119,6 +120,7 @@ func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) 
 
 func testCheckAzureRMApiManagementAPIOperationPolicyDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationPoliciesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api_operation_policy" {
@@ -130,7 +132,6 @@ func testCheckAzureRMApiManagementAPIOperationPolicyDestroy(s *terraform.State) 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		operationID := rs.Primary.Attributes["operation_id"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationID)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

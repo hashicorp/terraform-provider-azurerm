@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_share_directory"
-sidebar_current: "docs-azurerm-resource-storage-share-directory"
 description: |-
   Manages a Directory within an Azure Storage File Share.
 ---

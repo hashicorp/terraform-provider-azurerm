@@ -178,13 +178,13 @@ func TestAccAzureRMStorageContainer_web(t *testing.T) {
 
 func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
@@ -217,13 +217,13 @@ func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCh
 
 func testAccARMStorageContainerDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
@@ -250,13 +250,13 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
+	storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_container" {
 			continue
 		}
-
-		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]

@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_blob"
-sidebar_current: "docs-azurerm-resource-storage-blob"
 description: |-
   Manages a Blob within a Storage Container.
 ---

@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_slot"
-sidebar_current: "docs-azurerm-resource-app-service-slot"
 description: |-
   Manages an App Service Slot (within an App Service).
 

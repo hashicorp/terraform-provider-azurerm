@@ -62,6 +62,9 @@ func TestAccAzureRMDataFactoryTriggerSchedule_complete(t *testing.T) {
 
 func testCheckAzureRMDataFactoryTriggerScheduleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.TriggersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -74,9 +77,6 @@ func testCheckAzureRMDataFactoryTriggerScheduleExists(name string) resource.Test
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.TriggersClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {

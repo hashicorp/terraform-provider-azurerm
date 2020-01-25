@@ -609,7 +609,8 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
 
@@ -1512,6 +1513,10 @@ func expandAzureRmVirtualMachineOsProfileSecrets(d *schema.ResourceData) *[]comp
 	secrets := make([]compute.VaultSecretGroup, 0, len(secretsConfig))
 
 	for _, secretConfig := range secretsConfig {
+		if secretConfig == nil {
+			continue
+		}
+
 		config := secretConfig.(map[string]interface{})
 		sourceVaultId := config["source_vault_id"].(string)
 
@@ -1525,6 +1530,9 @@ func expandAzureRmVirtualMachineOsProfileSecrets(d *schema.ResourceData) *[]comp
 			certsConfig := v.([]interface{})
 			certs := make([]compute.VaultCertificate, 0, len(certsConfig))
 			for _, certConfig := range certsConfig {
+				if certConfig == nil {
+					continue
+				}
 				config := certConfig.(map[string]interface{})
 
 				certUrl := config["certificate_url"].(string)
@@ -1792,16 +1800,18 @@ func expandAzureRmVirtualMachineNetworkProfile(d *schema.ResourceData) compute.N
 	network_profile := compute.NetworkProfile{}
 
 	for _, nic := range nicIds {
-		id := nic.(string)
-		primary := id == primaryNicId
+		if nic != nil {
+			id := nic.(string)
+			primary := id == primaryNicId
 
-		network_interface := compute.NetworkInterfaceReference{
-			ID: &id,
-			NetworkInterfaceReferenceProperties: &compute.NetworkInterfaceReferenceProperties{
-				Primary: &primary,
-			},
+			network_interface := compute.NetworkInterfaceReference{
+				ID: &id,
+				NetworkInterfaceReferenceProperties: &compute.NetworkInterfaceReferenceProperties{
+					Primary: &primary,
+				},
+			}
+			network_interfaces = append(network_interfaces, network_interface)
 		}
-		network_interfaces = append(network_interfaces, network_interface)
 	}
 
 	network_profile.NetworkInterfaces = &network_interfaces

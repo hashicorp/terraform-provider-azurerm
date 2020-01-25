@@ -2,7 +2,6 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_backup_container_storage_account"
-sidebar_current: "docs-azurerm-backup-container-storage-account"
 description: |-
     Manages a storage account container in an Azure Recovery Vault
 ---

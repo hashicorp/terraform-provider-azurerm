@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_custom_hostname_binding"
-sidebar_current: "docs-azurerm-resource-app-service-custom-hostname-binding"
 description: |-
   Manages a Hostname Binding within an App Service.
 

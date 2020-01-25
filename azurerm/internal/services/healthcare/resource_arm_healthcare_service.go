@@ -130,17 +130,14 @@ func resourceArmHealthcareService() *schema.Resource {
 							MaxItems: 64,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
-									ValidateFunc: validation.StringInSlice([]string{
-										"DELETE",
-										"GET",
-										"HEAD",
-										"MERGE",
-										"POST",
-										"OPTIONS",
-										"PUT"}, false),
-								},
+								ValidateFunc: validation.StringInSlice([]string{
+									"DELETE",
+									"GET",
+									"HEAD",
+									"MERGE",
+									"POST",
+									"OPTIONS",
+									"PUT"}, false),
 							},
 						},
 						"max_age_in_seconds": {

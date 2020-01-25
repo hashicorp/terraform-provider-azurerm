@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_certificate"
-sidebar_current: "docs-azurerm-resource-api-management-certificate"
 description: |-
   Manages an Certificate within an API Management Service.
 ---

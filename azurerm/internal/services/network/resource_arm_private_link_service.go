@@ -279,12 +279,22 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 		d.Set("alias", props.Alias)
 		d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
 
-		if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(props.AutoApproval.Subscriptions)); err != nil {
+		var autoApprovalSub []interface{}
+		if autoApproval := props.AutoApproval; autoApproval != nil {
+			autoApprovalSub = utils.FlattenStringSlice(autoApproval.Subscriptions)
+		}
+		if err := d.Set("auto_approval_subscription_ids", autoApprovalSub); err != nil {
 			return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
 		}
-		if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(props.Visibility.Subscriptions)); err != nil {
+
+		var subscriptions []interface{}
+		if visibility := props.Visibility; visibility != nil {
+			subscriptions = utils.FlattenStringSlice(visibility.Subscriptions)
+		}
+		if err := d.Set("visibility_subscription_ids", subscriptions); err != nil {
 			return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 		}
+
 		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 		}

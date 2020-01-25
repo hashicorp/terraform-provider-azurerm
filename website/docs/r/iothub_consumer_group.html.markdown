@@ -2,7 +2,6 @@
 subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_consumer_group"
-sidebar_current: "docs-azurerm-resource-iothub-consumer-group"
 description: |-
   Manages a Consumer Group within an IotHub
 ---
@@ -26,7 +25,6 @@ resource "azurerm_iothub" "example" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 

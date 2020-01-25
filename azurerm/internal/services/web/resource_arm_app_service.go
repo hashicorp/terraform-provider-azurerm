@@ -26,6 +26,7 @@ func resourceArmAppService() *schema.Resource {
 		Read:   resourceArmAppServiceRead,
 		Update: resourceArmAppServiceUpdate,
 		Delete: resourceArmAppServiceDelete,
+
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := ParseAppServiceID(id)
 			return err

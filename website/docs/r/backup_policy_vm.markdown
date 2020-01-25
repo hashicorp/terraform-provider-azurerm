@@ -2,7 +2,6 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_backup_policy_vm"
-sidebar_current: "docs-azurerm-backup-policy-vm"
 description: |-
   Manages an Azure Backup VM Backup Policy.
 ---

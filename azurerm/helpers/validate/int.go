@@ -29,6 +29,29 @@ func IntBetweenAndNot(min, max, not int) schema.SchemaValidateFunc {
 	}
 }
 
+// IntBetweenAndNotInRange returns a SchemaValidateFunc which tests if the provided value
+// is of type int and is between min and max (inclusive) and is not between rangeMin and rangeMax (inclusive)
+func IntBetweenAndNotInRange(min, max, rangeMin, rangeMax int) schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (_ []string, errors []error) {
+		v, ok := i.(int)
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected type of %q to be int", k))
+			return
+		}
+		if v < min || v > max {
+			errors = append(errors, fmt.Errorf("expected %s to be in the range (%d - %d), got %d", k, min, max, v))
+			return
+		}
+
+		if v >= rangeMin && v <= rangeMax {
+			errors = append(errors, fmt.Errorf("expected %s to not be in the range (%d - %d), got %d", k, rangeMin, rangeMax, v))
+			return
+		}
+
+		return
+	}
+}
+
 // IntBetweenAndDivisibleBy returns a SchemaValidateFunc which tests if the provided value
 // is of type int and is between min and max (inclusive) and is divisible by a given number
 func IntBetweenAndDivisibleBy(min, max, divisor int) schema.SchemaValidateFunc { // nolint: unparam

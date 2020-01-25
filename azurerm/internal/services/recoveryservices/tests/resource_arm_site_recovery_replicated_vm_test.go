@@ -209,6 +209,8 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 
 func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -222,7 +224,6 @@ func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceName string) resourc
 		replicationName := state.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, replicationName)
 		if err != nil {
@@ -238,6 +239,8 @@ func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceName string) resourc
 }
 
 func testCheckAzureRMSiteRecoveryReplicatedVmDestroy(s *terraform.State) error {
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_site_recovery_replicated_vm" {
 			continue
@@ -250,7 +253,6 @@ func testCheckAzureRMSiteRecoveryReplicatedVmDestroy(s *terraform.State) error {
 		replicationName := rs.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, replicationName)
 		if err != nil {

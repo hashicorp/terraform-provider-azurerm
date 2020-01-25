@@ -127,8 +127,6 @@ func TestAccAzureRMSnapshot_encryption(t *testing.T) {
 
 func TestAccAzureRMSnapshot_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
-	config := testAccAzureRMSnapshot_fromManagedDisk(data)
-	updatedConfig := testAccAzureRMSnapshot_fromManagedDiskUpdated(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -136,13 +134,13 @@ func TestAccAzureRMSnapshot_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSnapshot_fromManagedDisk(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(data.ResourceName),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMSnapshot_fromManagedDiskUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(data.ResourceName),
 				),
@@ -153,7 +151,6 @@ func TestAccAzureRMSnapshot_update(t *testing.T) {
 
 func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
-	config := testAccAzureRMSnapshot_extendingManagedDisk(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -161,7 +158,7 @@ func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSnapshot_extendingManagedDisk(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(data.ResourceName),
 				),
@@ -172,7 +169,6 @@ func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 
 func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "second")
-	config := testAccAzureRMSnapshot_fromExistingSnapshot(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -180,7 +176,7 @@ func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSnapshot_fromExistingSnapshot(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(data.ResourceName),
 				),
@@ -191,7 +187,6 @@ func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
 
 func TestAccAzureRMSnapshot_fromUnmanagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
-	config := testAccAzureRMSnapshot_fromUnmanagedDisk(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -199,7 +194,7 @@ func TestAccAzureRMSnapshot_fromUnmanagedDisk(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSnapshot_fromUnmanagedDisk(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(data.ResourceName),
 				),
@@ -209,6 +204,9 @@ func TestAccAzureRMSnapshot_fromUnmanagedDisk(t *testing.T) {
 }
 
 func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_snapshot" {
 			continue
@@ -217,8 +215,6 @@ func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -235,6 +231,9 @@ func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
 
 func testCheckAzureRMSnapshotExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -246,9 +245,6 @@ func testCheckAzureRMSnapshotExists(resourceName string) resource.TestCheckFunc 
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Snapshot: %q", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -584,7 +580,7 @@ resource "azurerm_snapshot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   create_option       = "Import"
   source_uri          = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-  depends_on          = ["azurerm_virtual_machine", "test")]
+  depends_on          = ["azurerm_virtual_machine", "test"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

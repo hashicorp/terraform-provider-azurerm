@@ -2,7 +2,6 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_site_recovery_network_mapping"
-sidebar_current: "docs-azurerm-site-recovery-network-mapping"
 description: |-
     Manages a site recovery network mapping on Azure.
 ---

@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_plan"
-sidebar_current: "docs-azurerm-resource-app-service-plan"
 description: |-
   Manages an App Service Plan component.
 ---
@@ -145,5 +144,5 @@ The following attributes are exported:
 App Service Plan instances can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_plan.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/serverFarms/instance1
+terraform import azurerm_app_service_plan.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/serverfarms/instance1
 ```

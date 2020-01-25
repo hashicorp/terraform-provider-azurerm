@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_server_security_alert_policy"
-sidebar_current: "docs-azurerm-resource-database-mssql-server-security-alert-policy-x"
 description: |-
   Manages a Security Alert Policy for a MS SQL Server.
 
@@ -45,11 +44,11 @@ resource "azurerm_mssql_server_security_alert_policy" "example" {
   state                      = "Enabled"
   storage_endpoint           = azurerm_storage_account.example.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
-  disabled_alerts            = [
+  disabled_alerts = [
     "Sql_Injection",
     "Data_Exfiltration"
   ]
-  retention_days             = 20
+  retention_days = 20
 }
 ```
 

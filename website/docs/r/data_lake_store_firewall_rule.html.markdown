@@ -2,7 +2,6 @@
 subcategory: "Data Lake"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store_firewall_rule"
-sidebar_current: "docs-azurerm-resource-data-lake-store-firewall-rule"
 description: |-
   Manages a Azure Data Lake Store Firewall Rule.
 ---
@@ -15,7 +14,7 @@ Manages a Azure Data Lake Store Firewall Rule.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

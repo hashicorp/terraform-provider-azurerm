@@ -2,7 +2,6 @@
 subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_postgresql"
-sidebar_current: "docs-azurerm-resource-data-factory-linked-service-postgresql"
 description: |-
   Manages a Linked Service (connection) between PostgreSQL and Azure Data Factory.
 ---
@@ -17,7 +16,7 @@ Manages a Linked Service (connection) between PostgreSQL and Azure Data Factory.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

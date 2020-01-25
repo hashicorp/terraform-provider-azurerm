@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_profile"
-sidebar_current: "docs-azurerm-resource-network-traffic-manager-profile"
 description: |-
   Manages a Traffic Manager Profile.
 
@@ -94,12 +93,13 @@ The `dns_config` block supports:
 
 The `monitor_config` block supports:
 
-* `protocol` - (Required) The protocol used by the monitoring checks, supported
-    values are `HTTP`, `HTTPS` and `TCP`.
+* `protocol` - (Required) The protocol used by the monitoring checks, supported values are `HTTP`, `HTTPS` and `TCP`.
 
 * `port` - (Required) The port number used by the monitoring checks.
 
 * `path` - (Optional) The path used by the monitoring checks. Required when `protocol` is set to `HTTP` or `HTTPS` - cannot be set when `protocol` is set to `TCP`.
+
+* `expected_status_code_ranges` - (Optional) A list of status code ranges in the format of `100-101`.
 
 * `interval_in_seconds` - (Optional) The interval used to check the endpoint health from a Traffic Manager probing agent. You can specify two values here: `30` (normal probing) and `10` (fast probing). The default value is `30`.
 

@@ -138,6 +138,7 @@ func testCheckAzureRMIotDPSDestroy(s *terraform.State) error {
 func testCheckAzureRMIotDPSExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -149,7 +150,6 @@ func testCheckAzureRMIotDPSExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for IoT Device Provisioning Service: %s", iotdpsName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DPSResourceClient
 		resp, err := client.Get(ctx, iotdpsName, resourceGroup)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
@@ -177,7 +177,6 @@ resource "azurerm_iot_dps" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }
@@ -191,12 +190,11 @@ func testAccAzureRMIotDPS_requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_iot_dps" "import" {
   name                = "${azurerm_iot_dps.test.name}"
-  resource_group_name = "${azurerm_iot_dps.test.name}"
+  resource_group_name = "${azurerm_iot_dps.test.resource_group_name}"
   location            = "${azurerm_iot_dps.test.location}"
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }
@@ -217,7 +215,6 @@ resource "azurerm_iot_dps" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
@@ -242,7 +239,6 @@ resource "azurerm_iot_dps" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
@@ -275,7 +271,6 @@ resource "azurerm_iot_dps" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 

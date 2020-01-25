@@ -71,7 +71,7 @@ func (client WCFRelaysClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 			Constraints: []validation.Constraint{{Target: "parameters.WcfRelayProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.WcfRelayProperties.ListenerCount", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "parameters.WcfRelayProperties.ListenerCount", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-						{Target: "parameters.WcfRelayProperties.ListenerCount", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil},
+						{Target: "parameters.WcfRelayProperties.ListenerCount", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil},
 					}},
 				}}}}}); err != nil {
 		return result, validation.NewError("relay.WCFRelaysClient", "CreateOrUpdate", err.Error())

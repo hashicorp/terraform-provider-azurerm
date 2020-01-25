@@ -2,7 +2,6 @@
 subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_autoscale_setting"
-sidebar_current: "docs-azurerm-resource-monitor-autoscale-setting"
 description: |-
     Manages an AutoScale Setting which can be applied to Virtual Machine Scale Sets, App Services and other scalable resources.
 ---

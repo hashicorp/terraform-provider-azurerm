@@ -2,7 +2,6 @@
 subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_sql_server"
-sidebar_current: "docs-azurerm-resource-data-factory-linked-service-sql-server"
 description: |-
   Manages a Linked Service (connection) between a SQL Server and Azure Data Factory.
 ---
@@ -17,7 +16,7 @@ Manages a Linked Service (connection) between a SQL Server and Azure Data Factor
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 

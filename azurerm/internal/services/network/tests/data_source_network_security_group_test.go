@@ -10,7 +10,6 @@ import (
 
 func TestAccDataSourceAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
-	config := testAccDataSourceAzureRMNetworkSecurityGroupBasic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -18,7 +17,7 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMNetworkSecurityGroupBasic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
 					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "0"),
@@ -31,7 +30,6 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMNetworkSecurityGroup_rules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
-	config := testAccDataSourceAzureRMNetworkSecurityGroupWithRules(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -39,7 +37,7 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_rules(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMNetworkSecurityGroupWithRules(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
 					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "1"),
@@ -61,7 +59,6 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_rules(t *testing.T) {
 
 func TestAccDataSourceAzureRMNetworkSecurityGroup_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
-	config := testAccDataSourceAzureRMNetworkSecurityGroupTags(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,7 +66,7 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_tags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMNetworkSecurityGroupTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
 					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "0"),

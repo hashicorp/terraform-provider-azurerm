@@ -74,7 +74,6 @@ func TestAccAzureRMKeyVault_name(t *testing.T) {
 
 func TestAccAzureRMKeyVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
-	config := testAccAzureRMKeyVault_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -82,7 +81,7 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVault_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "premium"),
@@ -96,7 +95,6 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 // Remove in 2.0
 func TestAccAzureRMKeyVault_basicNotDefined(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
-	config := testAccAzureRMKeyVault_basicNotDefined(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -104,7 +102,7 @@ func TestAccAzureRMKeyVault_basicNotDefined(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      config,
+				Config:      testAccAzureRMKeyVault_basicNotDefined(data),
 				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
 			},
 		},
@@ -114,7 +112,6 @@ func TestAccAzureRMKeyVault_basicNotDefined(t *testing.T) {
 // Remove in 2.0
 func TestAccAzureRMKeyVault_basicClassic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
-	config := testAccAzureRMKeyVault_basicClassic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -122,7 +119,7 @@ func TestAccAzureRMKeyVault_basicClassic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKeyVault_basicClassic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "premium"),
@@ -267,10 +264,6 @@ func TestAccAzureRMKeyVault_complete(t *testing.T) {
 
 func TestAccAzureRMKeyVault_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
-	preConfig := testAccAzureRMKeyVault_basic(data)
-	postConfig := testAccAzureRMKeyVault_update(data)
-	noAccessPolicyConfig := testAccAzureRMKeyVault_noAccessPolicyBlocks(data)
-	forceZeroAccessPolicyConfig := testAccAzureRMKeyVault_accessPolicyExplicitZero(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -278,7 +271,7 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMKeyVault_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_policy.0.key_permissions.0", "create"),
@@ -287,7 +280,7 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMKeyVault_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "access_policy.0.key_permissions.0", "get"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_policy.0.secret_permissions.0", "get"),
@@ -298,7 +291,7 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 				),
 			},
 			{
-				Config: noAccessPolicyConfig,
+				Config: testAccAzureRMKeyVault_noAccessPolicyBlocks(data),
 				Check: resource.ComposeTestCheckFunc(
 					// There are no access_policy blocks in this configuration
 					// at all, which means to ignore any existing policies and
@@ -307,7 +300,7 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 				),
 			},
 			{
-				Config: forceZeroAccessPolicyConfig,
+				Config: testAccAzureRMKeyVault_accessPolicyExplicitZero(data),
 				Check: resource.ComposeTestCheckFunc(
 					// This config explicitly sets access_policy = [], which
 					// means to delete any existing policies.
@@ -899,7 +892,7 @@ resource "azurerm_key_vault" "test" {
 
 func testAccAzureRMKeyVault_generateStorageAccountConfigs(accountNum int, rs string) string {
 	return fmt.Sprintf(`
-resource "azurerm_storage_account" "testsa%d" {
+resource "azurerm_storage_account" "test%d" {
   name                     = "testsa%s%d"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
@@ -918,13 +911,22 @@ resource "azurerm_storage_account" "testsa%d" {
 }
 
 func testAccAzureRMKeyVault_generateAccessPolicyConfigs(accountNum int) string {
+	// due to a weird terraform fmt issue where:
+	//   "${azurerm_storage_account.test%d.identity.0.principal_id}"
+	// becomes
+	//   "${azurerm_storage_account.test % d.identity.0.principal_id}"
+	//
+	// lets inject this separately so we can run terrafmt on this file
+
+	oid := fmt.Sprintf("${azurerm_storage_account.test%d.identity.0.principal_id}", accountNum)
+
 	return fmt.Sprintf(`
 access_policy {
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-  object_id = "${azurerm_storage_account.testsa%d.identity.0.principal_id}"
+  object_id = "%s"
 
   key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
 }
-`, accountNum)
+`, oid)
 }

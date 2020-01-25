@@ -48,7 +48,7 @@ func NewClientWithBaseURI(baseURI string, subscriptionID string) Client {
 // parentResourcePath - resource identity.
 // resourceType - resource identity.
 // resourceName - resource identity.
-func (client Client) CheckExistence(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string) (result autorest.Response, err error) {
+func (client Client) CheckExistence(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, APIVersion string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.CheckExistence")
 		defer func() {
@@ -67,7 +67,7 @@ func (client Client) CheckExistence(ctx context.Context, resourceGroupName strin
 		return result, validation.NewError("resources.Client", "CheckExistence", err.Error())
 	}
 
-	req, err := client.CheckExistencePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName)
+	req, err := client.CheckExistencePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, APIVersion)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.Client", "CheckExistence", nil, "Failure preparing request")
 		return
@@ -89,7 +89,7 @@ func (client Client) CheckExistence(ctx context.Context, resourceGroupName strin
 }
 
 // CheckExistencePreparer prepares the CheckExistence request.
-func (client Client) CheckExistencePreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string) (*http.Request, error) {
+func (client Client) CheckExistencePreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, APIVersion string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"parentResourcePath":        parentResourcePath,
 		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
@@ -99,7 +99,6 @@ func (client Client) CheckExistencePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -139,7 +138,7 @@ func (client Client) CheckExistenceResponder(resp *http.Response) (result autore
 // resourceType - resource identity.
 // resourceName - resource identity.
 // parameters - create or update resource parameters.
-func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, parameters GenericResource) (result GenericResource, err error) {
+func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, APIVersion string, parameters GenericResource) (result GenericResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.CreateOrUpdate")
 		defer func() {
@@ -158,7 +157,7 @@ func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName strin
 		return result, validation.NewError("resources.Client", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, parameters)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, APIVersion, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.Client", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -180,7 +179,7 @@ func (client Client) CreateOrUpdate(ctx context.Context, resourceGroupName strin
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client Client) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, parameters GenericResource) (*http.Request, error) {
+func (client Client) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, APIVersion string, parameters GenericResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"parentResourcePath":        parentResourcePath,
 		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
@@ -190,7 +189,6 @@ func (client Client) CreateOrUpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -232,7 +230,7 @@ func (client Client) CreateOrUpdateResponder(resp *http.Response) (result Generi
 // parentResourcePath - resource identity.
 // resourceType - resource identity.
 // resourceName - resource identity.
-func (client Client) Delete(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string) (result autorest.Response, err error) {
+func (client Client) Delete(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, APIVersion string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.Delete")
 		defer func() {
@@ -251,7 +249,7 @@ func (client Client) Delete(ctx context.Context, resourceGroupName string, resou
 		return result, validation.NewError("resources.Client", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, APIVersion)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.Client", "Delete", nil, "Failure preparing request")
 		return
@@ -273,7 +271,7 @@ func (client Client) Delete(ctx context.Context, resourceGroupName string, resou
 }
 
 // DeletePreparer prepares the Delete request.
-func (client Client) DeletePreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string) (*http.Request, error) {
+func (client Client) DeletePreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, APIVersion string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"parentResourcePath":        parentResourcePath,
 		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
@@ -283,7 +281,6 @@ func (client Client) DeletePreparer(ctx context.Context, resourceGroupName strin
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -322,7 +319,7 @@ func (client Client) DeleteResponder(resp *http.Response) (result autorest.Respo
 // parentResourcePath - resource identity.
 // resourceType - resource identity.
 // resourceName - resource identity.
-func (client Client) Get(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string) (result GenericResource, err error) {
+func (client Client) Get(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, APIVersion string) (result GenericResource, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.Get")
 		defer func() {
@@ -341,7 +338,7 @@ func (client Client) Get(ctx context.Context, resourceGroupName string, resource
 		return result, validation.NewError("resources.Client", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, APIVersion)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.Client", "Get", nil, "Failure preparing request")
 		return
@@ -363,7 +360,7 @@ func (client Client) Get(ctx context.Context, resourceGroupName string, resource
 }
 
 // GetPreparer prepares the Get request.
-func (client Client) GetPreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string) (*http.Request, error) {
+func (client Client) GetPreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, APIVersion string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"parentResourcePath":        parentResourcePath,
 		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
@@ -373,7 +370,6 @@ func (client Client) GetPreparer(ctx context.Context, resourceGroupName string, 
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -622,8 +618,9 @@ func (client Client) MoveResourcesResponder(resp *http.Response) (result autores
 // parentResourcePath - the parent resource identity.
 // resourceType - the resource type of the resource to update.
 // resourceName - the name of the resource to update.
+// APIVersion - the API version to use for the operation.
 // parameters - parameters for updating the resource.
-func (client Client) Update(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, parameters GenericResource) (result UpdateFuture, err error) {
+func (client Client) Update(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, APIVersion string, parameters GenericResource) (result UpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.Update")
 		defer func() {
@@ -642,7 +639,7 @@ func (client Client) Update(ctx context.Context, resourceGroupName string, resou
 		return result, validation.NewError("resources.Client", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, parameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, APIVersion, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.Client", "Update", nil, "Failure preparing request")
 		return
@@ -658,7 +655,7 @@ func (client Client) Update(ctx context.Context, resourceGroupName string, resou
 }
 
 // UpdatePreparer prepares the Update request.
-func (client Client) UpdatePreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, parameters GenericResource) (*http.Request, error) {
+func (client Client) UpdatePreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, APIVersion string, parameters GenericResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"parentResourcePath":        parentResourcePath,
 		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
@@ -668,7 +665,6 @@ func (client Client) UpdatePreparer(ctx context.Context, resourceGroupName strin
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

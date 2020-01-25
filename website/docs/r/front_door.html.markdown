@@ -2,7 +2,6 @@
 subcategory: "Front Door"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor"
-sidebar_current: "docs-azurerm-resource-front-door"
 description: |-
   Manages an Azure Front Door instance.
 ---
@@ -21,6 +20,11 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "FrontDoorExampleResourceGroup"
+  location = "EastUS2"
+}
+
 resource "azurerm_frontdoor" "example" {
   name                                         = "example-FrontDoor"
   location                                     = "${azurerm_resource_group.example.location}"
@@ -71,11 +75,11 @@ resource "azurerm_frontdoor" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Name of the Front Door which is globally unique. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Front Door service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Name of the Resource group within the Azure subscription. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) Resource location. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `backend_pool` - (Required) A `backend_pool` block as defined below.
 
@@ -83,9 +87,9 @@ The following arguments are supported:
 
 * `backend_pool_load_balancing` - (Required) A `backend_pool_load_balancing` block as defined below.
 
-* `enforce_backend_pools_certificate_name_check` - (Required) Whether to enforce certificate name check on HTTPS requests to all backend pools. No effect on non-HTTPS requests. Permitted values are `true` or `false`.
+* `enforce_backend_pools_certificate_name_check` - (Required) Enforce certificate name check on `HTTPS` requests to all backend pools, this setting will have no effect on `HTTP` requests. Permitted values are `true` or `false`.
 
-* `load_balancer_enabled` - (Optional) Operational status of the Front Door load balancer. Permitted values are `true` or `false` Defaults to `true`.
+* `load_balancer_enabled` - (Optional) Should the Front Door Load Balancer be Enabled? Defaults to `true`.
 
 * `friendly_name` - (Optional) A friendly name for the Front Door service.
 
@@ -93,23 +97,25 @@ The following arguments are supported:
 
 * `routing_rule` - (Required) A `routing_rule` block as defined below.
 
-* `tags` - (Optional) Resource tags.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
 The `backend_pool` block supports the following:
 
-* `name` - (Required) The name of the `Backend Pool`.
+* `name` - (Required) Specifies the name of the Backend Pool.
 
 * `backend` - (Required) A `backend` block as defined below.
 
-* `load_balancing_name` - (Required) The name property of the `backend_pool_load_balancing` block whithin this resource to use for the `Backend Pool`.
+* `load_balancing_name` - (Required) Specifies the name of the `backend_pool_load_balancing` block within this resource to use for this `Backend Pool`.
 
-* `health_probe_name` - (Required) The name property of a `backend_pool_health_probe` block whithin this resource to use for the `Backend Pool`.
+* `health_probe_name` - (Required) Specifies the name of the `backend_pool_health_probe` block whithin this resource to use for this `Backend Pool`.
 
 ---
 
 The `backend` block supports the following:
+
+* `enabled` - (Optional) Specifies if the backend is enabled or not. Valid options are `true` or `false`. Defaults to `true`.
 
 * `address` - (Required) Location of the backend (IP address or FQDN)
 
@@ -127,15 +133,19 @@ The `backend` block supports the following:
 
 The `frontend_endpoint` block supports the following:
 
-* `name` - (Required) The name of the Frontend Endpoint.
+* `name` - (Required) Specifies the name of the `frontend_endpoint`.
 
-* `host_name` - (Required) The host name of the Frontend Endpoint. Must be a domain name.
-
-* `custom_https_provisioning_enabled` - (Required) Whether to allow HTTPS protocol for a custom domain that's associated with Front Door to ensure sensitive data is delivered securely via TLS/SSL encryption when sent across the internet. Valid options are `true` or `false`.
+* `host_name` - (Required) Specifies the host name of the `frontend_endpoint`. Must be a domain name.
 
 * `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Valid options are `true` or `false` Defaults to `false`.
 
 * `session_affinity_ttl_seconds` - (Optional) The TTL to use in seconds for session affinity, if applicable. Defaults to `0`.
+
+* `custom_https_provisioning_enabled` - (Required) Should the HTTPS protocol be enabled for a custom domain associated with the Front Door?
+
+* `custom_https_configuration` - (Optional) A `custom_https_configuration` block as defined below.
+
+-> **NOTE:** This block is required when `custom_https_provisioning_enabled` is set to `true`.
 
 * `web_application_firewall_policy_link_id` - (Optional) Defines the Web Application Firewall policy `ID` for each host.
 
@@ -143,19 +153,19 @@ The `frontend_endpoint` block supports the following:
 
 The `backend_pool_health_probe` block supports the following:
 
-* `name` - (Required) The name of the Azure Front Door Backend Health Probe.
+* `name` - (Required) Specifies the name of the Health Probe.
 
-* `path` - (Optional) The path to use for the Backend Health Probe. Default is `/`.
+* `path` - (Optional) The path to use for the Health Probe. Default is `/`.
 
-* `protocol` - (Optional) Protocol scheme to use for the Backend Health Probe. Defaults to `Http`.
+* `protocol` - (Optional) Protocol scheme to use for the Health Probe. Defaults to `Http`.
 
-* `interval_in_seconds` - (Optional) The number of seconds between health probes. Defaults to `120`.
+* `interval_in_seconds` - (Optional) The number of seconds between each Health Probe. Defaults to `120`.
 
 ---
 
 The `backend_pool_load_balancing` block supports the following:
 
-* `name` - (Required) The name of the Azure Front Door Backend Load Balancer.
+* `name` - (Required) Specifies the name of the Load Balancer.
 
 * `sample_size` - (Optional) The number of samples to consider for load balancing decisions. Defaults to `4`.
 
@@ -167,7 +177,7 @@ The `backend_pool_load_balancing` block supports the following:
 
 The `routing_rule` block supports the following:
 
-* `name` - (Required) The name of the Front Door Backend Routing Rule.
+* `name` - (Required) Specifies the name of the Routing Rule.
 
 * `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks whithin this resource to associate with this `routing_rule`.
 
@@ -185,11 +195,13 @@ The `routing_rule` block supports the following:
 
 The `forwarding_configuration` block supports the following:
 
-* `backend_pool_name` - (Required) The name of the Front Door Backend Pool. 
+* `backend_pool_name` - (Required) Specifies the name of the Backend Pool to forward the incoming traffic to. 
 
-* `cache_use_dynamic_compression` - (Optional) Whether to use dynamic compression when caching. Valid options are `true` or `false`. Defaults to `true`.
+* `cache_enabled` - (Optional) Specifies whether to Enable caching or not. Valid options are `true` or `false`. Defaults to `true`.
 
-* `cache_query_parameter_strip_directive` - (Optional) Defines cache behavior in releation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripNone`
+* `cache_use_dynamic_compression` - (Optional) Whether to use dynamic compression when caching. Valid options are `true` or `false`. Defaults to `false`.
+
+* `cache_query_parameter_strip_directive` - (Optional) Defines cache behavior in releation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripNone`.
 
 * `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behavior preserves the URL path.
 
@@ -201,7 +213,7 @@ The `redirect_configuration` block supports the following:
 
 * `custom_host` - (Optional)  Set this to change the URL for the redirection. 
 
-* `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, `MatchRequest`. Defaults to `MatchRequest`
+* `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`
 
 * `redirect_type` - (Optional) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`. Defaults to `Found`
 
@@ -219,7 +231,7 @@ The `custom_https_configuration` block supports the following:
 
 The following attributes are only valid if `certificate_source` is set to `AzureKeyVault`:
 
-* `azure_key_vault_certificate_vault_id` - (Required) The `id` of the Key Vault containing the SSL certificate.
+* `azure_key_vault_certificate_vault_id` - (Required) The ID of the Key Vault containing the SSL certificate.
 
 * `azure_key_vault_certificate_secret_name` - (Required) The name of the Key Vault secret representing the full certificate PFX.
 

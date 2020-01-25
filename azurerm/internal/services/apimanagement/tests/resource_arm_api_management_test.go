@@ -15,7 +15,6 @@ import (
 
 func TestAccAzureRMApiManagement_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-	config := testAccAzureRMApiManagement_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,16 +22,12 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagement_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -40,7 +35,6 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 // Remove in 2.0
 func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-	config := testAccAzureRMApiManagement_basicClassic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -48,16 +42,12 @@ func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagement_basicClassic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -65,7 +55,6 @@ func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
 // Remove in 2.0
 func TestAccAzureRMApiManagement_basicNotDefined(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-	config := testAccAzureRMApiManagement_basicNotDefined(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -73,7 +62,7 @@ func TestAccAzureRMApiManagement_basicNotDefined(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      config,
+				Config:      testAccAzureRMApiManagement_basicNotDefined(data),
 				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
 			},
 		},
@@ -106,31 +95,24 @@ func TestAccAzureRMApiManagement_requiresImport(t *testing.T) {
 func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
-	config := testAccAzureRMApiManagement_customProps(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagement_customProps(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMApiManagement_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-	config := testAccAzureRMApiManagement_complete(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -138,7 +120,7 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApiManagement_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
@@ -177,11 +159,7 @@ func TestAccAzureRMApiManagement_signInSignUpSettings(t *testing.T) {
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -200,11 +178,7 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagement_policyXmlLink(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -225,17 +199,14 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ServiceClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management" {
@@ -244,7 +215,6 @@ func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
@@ -263,6 +233,9 @@ func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
 
 func testCheckAzureRMApiManagementExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ServiceClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -275,8 +248,6 @@ func testCheckAzureRMApiManagementExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for Api Management: %s", apiMangementName)
 		}
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ServiceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, apiMangementName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -347,7 +318,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 }
-`, data.RandomInteger, data.Locations, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMApiManagement_policyXmlContent(data acceptance.TestData) string {
@@ -399,7 +370,7 @@ resource "azurerm_api_management" "test" {
     xml_link = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
   }
 }
-`, data.RandomInteger, data.Locations, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMApiManagement_policyRemoved(data acceptance.TestData) string {

@@ -2,7 +2,6 @@
 subcategory: "Log Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_linked_service"
-sidebar_current: "docs-azurerm-log-analytics-linked-service"
 description: |-
   Manages a Log Analytics (formally Operational Insights) Linked Service.
 ---

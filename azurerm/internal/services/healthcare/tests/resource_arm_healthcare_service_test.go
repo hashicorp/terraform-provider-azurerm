@@ -14,6 +14,7 @@ import (
 
 func TestAccAzureRMHealthCareService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -37,6 +38,7 @@ func TestAccAzureRMHealthCareService_requiresImport(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -55,6 +57,7 @@ func TestAccAzureRMHealthCareService_requiresImport(t *testing.T) {
 
 func TestAccAzureRMHealthCareService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_healthcare_service", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -73,6 +76,9 @@ func TestAccAzureRMHealthCareService_complete(t *testing.T) {
 
 func testCheckAzureRMHealthCareServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).HealthCare.HealthcareServiceClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -83,9 +89,6 @@ func testCheckAzureRMHealthCareServiceExists(resourceName string) resource.TestC
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for healthcare service: %s", healthcareServiceName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).HealthCare.HealthcareServiceClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, healthcareServiceName)
 		if err != nil {
@@ -146,7 +149,7 @@ resource "azurerm_healthcare_service" "test" {
     "${data.azurerm_client_config.current.service_principal_object_id}",
   ]
 }
-`, data.RandomInteger, location, data.RandomInteger)
+`, data.RandomInteger, location, data.RandomIntOfLength(17)) //name can only be 24 chars long
 }
 
 func testAccAzureRMHealthCareService_requiresImport(data acceptance.TestData) string {
@@ -206,5 +209,5 @@ resource "azurerm_healthcare_service" "test" {
     allow_credentials  = true
   }
 }
-`, data.RandomInteger, location, data.RandomInteger)
+`, data.RandomInteger, location, data.RandomIntOfLength(17)) //name can only be 24 chars long
 }

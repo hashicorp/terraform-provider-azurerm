@@ -201,6 +201,9 @@ func TestAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(t *testing.T) {
 
 func testCheckAzureRMManagementLockExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.LocksClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -209,9 +212,6 @@ func testCheckAzureRMManagementLockExists(resourceName string) resource.TestChec
 
 		name := rs.Primary.Attributes["name"]
 		scope := rs.Primary.Attributes["scope"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.LocksClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.GetByScope(ctx, scope, name)
 		if err != nil {

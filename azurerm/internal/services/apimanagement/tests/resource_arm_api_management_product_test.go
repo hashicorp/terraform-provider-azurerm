@@ -34,11 +34,7 @@ func TestAccAzureRMApiManagementProduct_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "terms", ""),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -68,6 +64,7 @@ func TestAccAzureRMApiManagementProduct_requiresImport(t *testing.T) {
 
 func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product" {
@@ -77,7 +74,6 @@ func testCheckAzureRMApiManagementProductDestroy(s *terraform.State) error {
 		productId := rs.Primary.Attributes["product_id"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -114,11 +110,7 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "terms", ""),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagementProduct_updated(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -132,11 +124,7 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "terms", ""),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagementProduct_basic(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -170,11 +158,7 @@ func TestAccAzureRMApiManagementProduct_subscriptionsLimit(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "subscriptions_limit", "2"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -201,11 +185,7 @@ func TestAccAzureRMApiManagementProduct_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "terms", "These are some example terms and conditions"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -230,6 +210,9 @@ func TestAccAzureRMApiManagementProduct_approvalRequiredError(t *testing.T) {
 
 func testCheckAzureRMApiManagementProductExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -240,8 +223,6 @@ func testCheckAzureRMApiManagementProductExists(resourceName string) resource.Te
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ProductsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

@@ -92,7 +92,19 @@ func resourceArmIotHubDPSSharedAccessPolicy() *schema.Resource {
 				Computed:  true,
 			},
 
+			"primary_connection_string": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
+			},
+
 			"secondary_key": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
+			},
+
+			"secondary_connection_string": {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Computed:  true,
@@ -201,6 +213,11 @@ func resourceArmIotHubDPSSharedAccessPolicyRead(d *schema.ResourceData, meta int
 	iothubDpsName := id.Path["provisioningServices"]
 	keyName := id.Path["keys"]
 
+	iothubDps, err := client.Get(ctx, iothubDpsName, resourceGroup)
+	if err != nil {
+		return fmt.Errorf("Error retrieving IotHub DPS %q (Resource Group %q): %+v", iothubDpsName, resourceGroup, err)
+	}
+
 	accessPolicy, err := client.ListKeysForKeyName(ctx, iothubDpsName, keyName, resourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(accessPolicy.Response) {
@@ -216,6 +233,22 @@ func resourceArmIotHubDPSSharedAccessPolicyRead(d *schema.ResourceData, meta int
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("primary_key", accessPolicy.PrimaryKey)
 	d.Set("secondary_key", accessPolicy.SecondaryKey)
+
+	if props := iothubDps.Properties; props != nil {
+		if host := props.ServiceOperationsHostName; host != nil {
+			if pKey := accessPolicy.PrimaryKey; pKey != nil {
+				if err := d.Set("primary_connection_string", getSAPConnectionString(*host, keyName, *pKey)); err != nil {
+					return fmt.Errorf("error setting `primary_connection_string`: %v", err)
+				}
+			}
+
+			if sKey := accessPolicy.SecondaryKey; sKey != nil {
+				if err := d.Set("secondary_connection_string", getSAPConnectionString(*host, keyName, *sKey)); err != nil {
+					return fmt.Errorf("error setting `secondary_connection_string`: %v", err)
+				}
+			}
+		}
+	}
 
 	rights := flattenDpsAccessRights(accessPolicy.Rights)
 	d.Set("enrollment_read", rights.enrollmentRead)
@@ -368,4 +401,8 @@ func flattenDpsAccessRights(r iothub.AccessRightsDescription) dpsAccessRights {
 	}
 
 	return rights
+}
+
+func getSAPConnectionString(iothubDpsHostName string, keyName string, key string) string {
+	return fmt.Sprintf("HostName=%s;SharedAccessKeyName=%s;SharedAccessKey=%s", iothubDpsHostName, keyName, key)
 }

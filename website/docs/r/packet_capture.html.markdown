@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_packet_capture"
-sidebar_current: "docs-azurerm-resource-packet-capture"
 description: |-
   Configures Packet Capturing against a Virtual Machine using a Network Watcher.
 

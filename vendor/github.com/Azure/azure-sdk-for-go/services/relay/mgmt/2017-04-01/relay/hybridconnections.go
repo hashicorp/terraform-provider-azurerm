@@ -71,7 +71,7 @@ func (client HybridConnectionsClient) CreateOrUpdate(ctx context.Context, resour
 			Constraints: []validation.Constraint{{Target: "parameters.HybridConnectionProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.HybridConnectionProperties.ListenerCount", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "parameters.HybridConnectionProperties.ListenerCount", Name: validation.InclusiveMaximum, Rule: int64(25), Chain: nil},
-						{Target: "parameters.HybridConnectionProperties.ListenerCount", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil},
+						{Target: "parameters.HybridConnectionProperties.ListenerCount", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil},
 					}},
 				}}}}}); err != nil {
 		return result, validation.NewError("relay.HybridConnectionsClient", "CreateOrUpdate", err.Error())
