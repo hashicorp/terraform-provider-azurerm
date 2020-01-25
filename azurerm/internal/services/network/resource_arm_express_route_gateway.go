@@ -19,8 +19,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var expressRouteGatewayResourceName = "azurerm_express_route_gateway"
-
 func resourceArmExpressRouteGateway() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmExpressRouteGatewayCreateUpdate,
@@ -196,7 +194,6 @@ func resourceArmExpressRouteGatewayDelete(d *schema.ResourceData, meta interface
 }
 
 func expandExpressRouteGatewayAutoScaleConfigurationBounds(d *schema.ResourceData) *network.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds {
-
 	minScaleUnits := int32(d.Get("scale_units").(int))
 	configuration := network.ExpressRouteGatewayPropertiesAutoScaleConfigurationBounds{
 		Min: &minScaleUnits,
