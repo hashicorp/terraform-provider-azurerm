@@ -14,8 +14,8 @@ Uses this data source to access information about an API Version Set within an A
 
 ```hcl
 data "azurerm_api_management_api_version_set" "example" {
-  resource_group_name = "acctestRG"
-  api_management_name = "acctestApiManagement"
+  resource_group_name = "example-resources"
+  api_management_name = "example-api"
   name                = "example-api-version-set"
 }
 
@@ -30,7 +30,7 @@ output "api_management_api_version_set_id" {
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the parent API Management Service exists.
 
-* `api_management_name` - (Required) The name of the [API Management Service](api_management.html) in which the API Version Set should exist.
+* `api_management_name` - (Required) The name of the [API Management Service](api_management.html) where the API Version Set exists.
 
 ## Attributes Reference
 
@@ -40,7 +40,7 @@ output "api_management_api_version_set_id" {
 
 * `display_name` - The display name of this API Version Set.
 
-* `versioning_schema` - The value that determines where the API Version identifer will be located in a HTTP request. Possible values are `Header`, `Query` and `Segment`.
+* `versioning_schema` - The value that determines where the API Version identifer will be located in a HTTP request.
 
 * `version_header_name` - The name of the Header which should be read from Inbound Requests which defines the API Version.
 
