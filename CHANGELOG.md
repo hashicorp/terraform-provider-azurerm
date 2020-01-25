@@ -32,6 +32,7 @@ BUG FIXES:
 
 * `azurerm_app_service` - fixing a crash when `logs` was nil [GH-5414]
 * `azurerm_container_group` - fixing a crash when `IPAddress.Ports` was nil in the response from the Azure API [GH-5415]
+* `azurerm_frontdoor` - fixing issue where the `forwarding_configuration` cache could not be disabled [GH-5358]
 * `azurerm_postgresql_server` - correctly validate the `name` property [GH-5443]
 * `azurerm_postgresql_database` - correctly validate the `server_name` property [GH-5443]
 * `azurerm_postgresql_firewall` - correctly validate the `server_name` property [GH-5443]
