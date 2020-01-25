@@ -7,6 +7,7 @@ NOTES:
 FEATURES:
 
 * **New Data Source:** `azurerm_dedicated_host` [GH-5513]
+* **New Data Source:** `azurerm_api_management_api_version_set` [GH-5470]
 * **New Resource:** `azurerm_dedicated_host` [GH-5513]
 
 IMPROVEMENTS:
