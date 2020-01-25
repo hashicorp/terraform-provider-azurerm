@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net"
 	"strings"
 	"time"
 
@@ -242,17 +241,6 @@ func resourceArmFunctionApp() *schema.Resource {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validate.NoEmptyStrings,
-									},
-									"subnet_mask": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Computed: true,
-										// TODO we should fix this in 2.0
-										// This attribute was made with the assumption that `ip_address` was the only valid option
-										// but `subnet_id` is being added and doesn't need a `subnet_mask`.
-										// We'll assume a default of "255.255.255.255" in the expand code when `ip_address` is specified
-										// and `subnet_mask` is not.
-										// Default:  "255.255.255.255",
 									},
 								},
 							},
@@ -797,31 +785,16 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 			ipAddress := restriction["ip_address"].(string)
 			vNetSubnetID := restriction["subnet_id"].(string)
 			if vNetSubnetID != "" && ipAddress != "" {
-				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set set for `site_config.0.ip_restriction.%d`", i))
+				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
 			}
 
 			if vNetSubnetID == "" && ipAddress == "" {
-				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set set for `site_config.0.ip_restriction.%d`", i))
+				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
 			}
 
 			ipSecurityRestriction := web.IPSecurityRestriction{}
 			if ipAddress != "" {
-				mask := restriction["subnet_mask"].(string)
-				if mask == "" {
-					mask = "255.255.255.255"
-				}
-				// the 2018-02-01 API expects a blank subnet mask and an IP address in CIDR format: a.b.c.d/x
-				// so translate the IP and mask if necessary
-				restrictionMask := ""
-				cidrAddress := ipAddress
-				if mask != "" {
-					ipNet := net.IPNet{IP: net.ParseIP(ipAddress), Mask: net.IPMask(net.ParseIP(mask))}
-					cidrAddress = ipNet.String()
-				} else if !strings.Contains(ipAddress, "/") {
-					cidrAddress += "/32"
-				}
-				ipSecurityRestriction.IPAddress = &cidrAddress
-				ipSecurityRestriction.SubnetMask = &restrictionMask
+				ipSecurityRestriction.IPAddress = &ipAddress
 			}
 
 			if vNetSubnetID != "" {
@@ -882,18 +855,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 		for _, v := range *vs {
 			block := make(map[string]interface{})
 			if ip := v.IPAddress; ip != nil {
-				// the 2018-02-01 API uses CIDR format (a.b.c.d/x), so translate that back to IP and mask
-				if strings.Contains(*ip, "/") {
-					ipAddr, ipNet, _ := net.ParseCIDR(*ip)
-					block["ip_address"] = ipAddr.String()
-					mask := net.IP(ipNet.Mask)
-					block["subnet_mask"] = mask.String()
-				} else {
-					block["ip_address"] = *ip
-				}
-			}
-			if subnet := v.SubnetMask; subnet != nil {
-				block["subnet_mask"] = *subnet
+				block["ip_address"] = *ip
 			}
 			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
 				block["subnet_id"] = *vNetSubnetID

@@ -640,8 +640,7 @@ func TestAccAzureRMFunctionApp_oneIpRestriction(t *testing.T) {
 				Config: testAccAzureRMFunctionApp_oneIpRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
 				),
 			},
 			data.ImportStep(),
@@ -716,14 +715,10 @@ func TestAccAzureRMFunctionApp_manyIpRestrictions(t *testing.T) {
 				Config: testAccAzureRMFunctionApp_manyIpRestrictions(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.ip_address", "20.20.20.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.subnet_mask", "255.255.255.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.0.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.subnet_mask", "255.255.0.0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.3.ip_address", "192.168.1.2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.3.subnet_mask", "255.255.255.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.ip_address", "20.20.20.0/24"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.0.0/16"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.3.ip_address", "192.168.1.2/24"),
 				),
 			},
 			data.ImportStep(),
@@ -1868,7 +1863,7 @@ resource "azurerm_function_app" "test" {
 
   site_config {
     ip_restriction {
-      ip_address = "10.10.10.10"
+      ip_address = "10.10.10.10/32"
     }
   }
 }
@@ -1966,22 +1961,19 @@ resource "azurerm_function_app" "test" {
 
   site_config {
     ip_restriction {
-      ip_address = "10.10.10.10"
+      ip_address = "10.10.10.10/32"
     }
 
     ip_restriction {
-      ip_address  = "20.20.20.0"
-      subnet_mask = "255.255.255.0"
+      ip_address  = "20.20.20.0/24"
     }
 
     ip_restriction {
-      ip_address  = "30.30.0.0"
-      subnet_mask = "255.255.0.0"
+      ip_address  = "30.30.0.0/16"
     }
 
     ip_restriction {
-      ip_address  = "192.168.1.2"
-      subnet_mask = "255.255.255.0"
+      ip_address  = "192.168.1.2/24"
     }
   }
 }
