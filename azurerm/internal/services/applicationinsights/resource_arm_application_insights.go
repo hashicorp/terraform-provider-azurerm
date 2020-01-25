@@ -182,14 +182,14 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
 	}
 
-	billingFeatureRead, err := billingClient.Get(ctx, resGroup, name)
+	billingRead, err := billingClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error read Application Insights Billing Features %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	applicationInsightsComponentBillingFeatures := insights.ApplicationInsightsComponentBillingFeatures{
-		CurrentBillingFeatures: billingFeatureRead.CurrentBillingFeatures,
-		DataVolumeCap:          billingFeatureRead.DataVolumeCap,
+		CurrentBillingFeatures: billingRead.CurrentBillingFeatures,
+		DataVolumeCap:          billingRead.DataVolumeCap,
 	}
 
 	if v, ok := d.GetOk("daily_data_cap_in_gb"); ok {
@@ -234,7 +234,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", name, err)
 	}
 
-	billingFeatureResp, err := billingClient.Get(ctx, resGroup, name)
+	billingResp, err := billingClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", name, err)
 	}
@@ -255,9 +255,9 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	if billingFeatureProps := billingFeatureResp.DataVolumeCap; billingFeatureProps != nil {
-		d.Set("daily_data_cap_in_gb", billingFeatureProps.Cap)
-		d.Set("daily_data_cap_notifications_disabled", billingFeatureProps.StopSendNotificationWhenHitCap)
+	if billingProps := billingResp.DataVolumeCap; billingProps != nil {
+		d.Set("daily_data_cap_in_gb", billingProps.Cap)
+		d.Set("daily_data_cap_notifications_disabled", billingProps.StopSendNotificationWhenHitCap)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
