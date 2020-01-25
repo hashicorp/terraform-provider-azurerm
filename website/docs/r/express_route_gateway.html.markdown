@@ -1,0 +1,76 @@
+---
+subcategory: "Network"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_express_route_gateway"
+description: |-
+  Manages an ExpressRoute gateway.
+---
+
+# azurerm_express_route_gateway
+
+Manages an ExpressRoute gateway.
+
+## Example Usage
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "exprtTest"
+  location = "West US"
+}
+
+resource "azurerm_virtual_wan" "example" {
+  name                = "example-virtualwan"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_virtual_hub" "example" {
+  name                = "example-virtualhub"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  virtual_wan_id      = azurerm_virtual_wan.example.id
+  address_prefix      = "10.0.1.0/24"
+}
+
+resource "azurerm_express_route_gateway" "example" {
+  name                  = "expressRoute1"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
+  virtual_hub_id        = azurerm_virtual_hub.example.id
+  scale_unts            = 1
+
+  tags = {
+    environment = "Production"
+  }
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required) The name of the ExpressRoute circuit. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the resource group in which to create the ExpressRoute circuit. Changing this forces a new resource to be created.
+
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `virtual_hub_id` - (Required) The ID of a Virtual WAN within which the Virtual Hub should be created.
+
+* `scale_units` - (Required) The name of the peering location and **not** the Azure resource location.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The Resource ID of the ExpressRoute gateway.
+
+## Import
+
+ExpressRoute gateways can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_express_route_gateway.myExpressRouteGateway /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/expressRouteGateways/myExpressRouteGateway
+```
