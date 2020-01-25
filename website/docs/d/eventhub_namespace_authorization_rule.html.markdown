@@ -15,7 +15,7 @@ Use this data source to access information about an Authorization Rule for an Ev
 ```hcl
 data "azurerm_eventhub_namespace_authorization_rule" "example" {
   name                = "navi"
-  resource_group_name = "${azurerm_eventhub_authorization_rule.example.resource_group_name}"
+  resource_group_name = "example-resources"
 }
 
 output "eventhub_authorization_rule_id" {
@@ -52,5 +52,4 @@ The following attributes are exported:
 * `secondary_key` - The Secondary Key for the Event Hubs authorization Rule.
 
 * `secondary_connection_string` - The Secondary Connection String for the Event Hubs authorization Rule.
-
 
