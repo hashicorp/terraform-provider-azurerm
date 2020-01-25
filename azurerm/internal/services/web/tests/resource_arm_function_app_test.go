@@ -668,7 +668,7 @@ func TestAccAzureRMFunctionApp_oneVNetSubnetIpRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_zeroedIpRestriction(t *testing.T) {
+func TestAccAzureRMFunctionApp_ipRestrictionRemoved(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -694,7 +694,7 @@ func TestAccAzureRMFunctionApp_zeroedIpRestriction(t *testing.T) {
 			},
 			{
 				// This configuration explicitly sets ip_restriction to [] using attribute syntax.
-				Config: testAccAzureRMFunctionApp_zeroedIpRestriction(data),
+				Config: testAccAzureRMFunctionApp_ipRestrictionRemoved(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "0"),
@@ -1988,7 +1988,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFunctionApp_zeroedIpRestriction(data acceptance.TestData) string {
+func testAccAzureRMFunctionApp_ipRestrictionRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
