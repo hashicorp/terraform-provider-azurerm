@@ -238,7 +238,7 @@ func resourceArmFunctionApp() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
-									"virtual_network_subnet_id": {
+									"subnet_id": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: validate.NoEmptyStrings,
@@ -249,7 +249,7 @@ func resourceArmFunctionApp() *schema.Resource {
 										Computed: true,
 										// TODO we should fix this in 2.0
 										// This attribute was made with the assumption that `ip_address` was the only valid option
-										// but `virtual_network_subnet_id` is being added and doesn't need a `subnet_mask`.
+										// but `subnet_id` is being added and doesn't need a `subnet_mask`.
 										// We'll assume a default of "255.255.255.255" in the expand code when `ip_address` is specified
 										// and `subnet_mask` is not.
 										// Default:  "255.255.255.255",
@@ -795,13 +795,13 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 			restriction := ipSecurityRestriction.(map[string]interface{})
 
 			ipAddress := restriction["ip_address"].(string)
-			vNetSubnetID := restriction["virtual_network_subnet_id"].(string)
+			vNetSubnetID := restriction["subnet_id"].(string)
 			if vNetSubnetID != "" && ipAddress != "" {
-				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can set set for `site_config.0.ip_restriction.%d`", i))
+				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set set for `site_config.0.ip_restriction.%d`", i))
 			}
 
 			if vNetSubnetID == "" && ipAddress == "" {
-				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set set for `site_config.0.ip_restriction.%d`", i))
+				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set set for `site_config.0.ip_restriction.%d`", i))
 			}
 
 			ipSecurityRestriction := web.IPSecurityRestriction{}
@@ -896,7 +896,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 				block["subnet_mask"] = *subnet
 			}
 			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
-				block["virtual_network_subnet_id"] = *vNetSubnetID
+				block["subnet_id"] = *vNetSubnetID
 			}
 			restrictions = append(restrictions, block)
 		}

@@ -1924,7 +1924,7 @@ resource "azurerm_function_app" "test" {
 
   site_config {
     ip_restriction {
-      virtual_network_subnet_id = "${azurerm_subnet.test.id}"
+      subnet_id = "${azurerm_subnet.test.id}"
     }
   }
 }
