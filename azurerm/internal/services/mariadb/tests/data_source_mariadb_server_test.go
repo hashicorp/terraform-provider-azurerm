@@ -56,7 +56,7 @@ resource "azurerm_mariadb_server" "test" {
 }
 
 data "azurerm_mariadb_server" "test" {
-  name                = "${azurerm_mariadb.test.name}"
+  name                = "${azurerm_mariadb_server.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
