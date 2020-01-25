@@ -1411,14 +1411,16 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks in
 					} else {
 						c["cache_enabled"] = false
 
-						//get `forwarding_configuration`
-						if o, ok := oldByName[*name]; ok {
-							ofcs := o["forwarding_configuration"].([]interface{})
-							if len(ofcs) > 0 {
-								ofc := ofcs[0].(map[string]interface{})
+						if name != nil {
+							//get `forwarding_configuration`
+							if o, ok := oldByName[*name]; ok {
+								ofcs := o["forwarding_configuration"].([]interface{})
+								if len(ofcs) > 0 {
+									ofc := ofcs[0].(map[string]interface{})
 
-								c["cache_query_parameter_strip_directive"] = ofc["cache_query_parameter_strip_directive"]
-								c["cache_use_dynamic_compression"] = ofc["cache_use_dynamic_compression"]
+									c["cache_query_parameter_strip_directive"] = ofc["cache_query_parameter_strip_directive"]
+									c["cache_use_dynamic_compression"] = ofc["cache_use_dynamic_compression"]
+								}
 							}
 						}
 					}
