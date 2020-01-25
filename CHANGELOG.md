@@ -21,6 +21,7 @@ IMPROVEMENTS:
 * `azurerm_databricks_workspace` - support for the `custom_parameters` property and `public_subnet_name`, `private_subnet_name`, and `virtual_network_id` parameters [GH-3889]
 * `azurerm_databricks_workspace` - support for the `no_public_ip` custom parameter [GH-5469]
 * `azurerm_express_route_circuit` - support for the `Basic` and `Local` tiers [GH-5456]
+* `azurerm_frontdoor_firewall_policy` - support for exclusions [GH-5407]
 * `azurerm_iothub` - support for the `event_hub_retention_in_days` and `event_hub_partition_count` properties [GH-5505]
 * `azurerm_kubernetes_cluster` - Add support for `load_balancer_profile` [GH-5394]
 * `azurerm_network_watcher_flow_log` - support for the `version` property [GH-5419]
