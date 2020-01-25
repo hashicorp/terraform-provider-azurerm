@@ -132,7 +132,6 @@ func dataSourceMariaDbServerRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("administrator_login", properties.AdministratorLogin)
 		d.Set("version", string(properties.Version))
 		d.Set("ssl_enforcement", string(properties.SslEnforcement))
-		// Computed
 		d.Set("fqdn", properties.FullyQualifiedDomainName)
 
 		if err := d.Set("storage_profile", flattenMariaDbStorageProfile(properties.StorageProfile)); err != nil {
