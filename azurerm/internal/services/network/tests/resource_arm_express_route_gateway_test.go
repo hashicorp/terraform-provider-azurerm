@@ -2,10 +2,8 @@ package tests
 
 import (
 	"fmt"
-	//"net/http"
 	"testing"
 
-	//"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -158,12 +156,13 @@ func testAccAzureRMExpressRouteGateway_basic(data acceptance.TestData) string {
 	template := testAccAzureRMExpressRouteGateway_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_express_route_gateway" "test" {
   name                = "acctestER-gateway-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-	virtual_hub_id      = azurerm_virtual_hub.test.id
-	scale_units         = 1
+  virtual_hub_id      = azurerm_virtual_hub.test.id
+  scale_units         = 1
 }
 `, template, data.RandomInteger)
 }
@@ -172,11 +171,12 @@ func testAccAzureRMExpressRouteGateway_requiresImport(data acceptance.TestData) 
 	template := testAccAzureRMExpressRouteGateway_basic(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_express_route_gateway" "test" {
   name                = azurerm_express_route_gateway.test.name
   resource_group_name = azurerm_express_route_gateway.test.name
   location            = azurerm_express_route_gateway.test.location
-	scale_units         = 1
+  scale_units         = 1
 }
 `, template)
 }
@@ -185,12 +185,13 @@ func testAccAzureRMExpressRouteGateway_updateScaleUnits(data acceptance.TestData
 	template := testAccAzureRMExpressRouteGateway_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_express_route_gateway" "test" {
   name                = "acctestER-gateway-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-	virtual_hub_id      = azurerm_virtual_hub.test.id
-	scale_units         = %d
+  virtual_hub_id      = azurerm_virtual_hub.test.id
+  scale_units         = %d
 }
 `, template, data.RandomInteger, scaleUnits)
 }
@@ -199,12 +200,13 @@ func testAccAzureRMExpressRouteGateway_tags(data acceptance.TestData) string {
 	template := testAccAzureRMExpressRouteGateway_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_express_route_gateway" "test" {
   name                = "acctestER-gateway-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-	virtual_hub_id      = azurerm_virtual_hub.test.id
-	scale_units         = 1
+  virtual_hub_id      = azurerm_virtual_hub.test.id
+  scale_units         = 1
   tags = {
     Hello = "World"
   }
@@ -218,11 +220,13 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_virtual_wan" "test" {
   name                = "acctestvwan-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
+
 resource "azurerm_virtual_hub" "test" {
   name                = "acctestvhub-%d"
   resource_group_name = azurerm_resource_group.test.name
