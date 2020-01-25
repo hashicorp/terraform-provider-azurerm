@@ -38,7 +38,7 @@ func dataSourceMariaDbServer() *schema.Resource {
 
 			"sku_name": {
 				Type:     schema.TypeString,
-				Computed: true, // remove in 2.0
+				Computed: true,
 			},
 
 			"administrator_login": {
