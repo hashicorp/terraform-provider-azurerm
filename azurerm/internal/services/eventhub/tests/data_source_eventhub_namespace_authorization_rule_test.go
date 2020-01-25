@@ -25,12 +25,6 @@ func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_basic(t *testing
 
 func testAccDataSourceEventHubNamespaceAuthorizationRule_basic(data acceptance.TestData, listen, send, manage bool) string {
 	return fmt.Sprintf(`
-data "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "${azurerm_eventhub_namespace_authorization_rule.test.name}"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
@@ -52,6 +46,12 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   listen = %[3]t
   send   = %[4]t
   manage = %[5]t
+}
+
+data "azurerm_eventhub_namespace_authorization_rule" "test" {
+  name                = "${azurerm_eventhub_namespace_authorization_rule.test.name}"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, data.RandomInteger, data.Locations.Primary, listen, send, manage)
 }
