@@ -17,6 +17,7 @@ IMPROVEMENTS:
 * `azurerm_batch_pool` - support for the `network_configuration` property [GH-5392]
 * `azurerm_cosmosdb_account` - support for the `EnableMongo` capability [GH-5325]
 * `azurerm_cosmosdb_account` - support for the `Parse` kind [GH-5453]
+* `azurerm_cosmosdb_sql_container` - support for `default_ttl` property [GH-5492]
 * `azurerm_databricks_workspace` - support for the `custom_parameters` property and `public_subnet_name`, `private_subnet_name`, and `virtual_network_id` parameters [GH-3889]
 * `azurerm_databricks_workspace` - support for the `no_public_ip` custom parameter [GH-5469]
 * `azurerm_express_route_circuit` - support for the `Basic` and `Local` tiers [GH-5456]
