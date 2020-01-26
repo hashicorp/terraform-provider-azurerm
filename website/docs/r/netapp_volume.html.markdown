@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `service_level` - (Required) The target performance of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
 
-* `protocols` - (Optional) The target volume protocol expressed as an array. Valid single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`.
+* `protocols` - (Optional) The target volume protocol expressed as a list. Supported single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`.
 
 * `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new resource to be created.
 
