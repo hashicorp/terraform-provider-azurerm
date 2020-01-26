@@ -61,6 +61,7 @@ import (
 	signalr "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/client"
 	sql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/client"
 	storage "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/client"
+	storagecache "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storagecache/client"
 	streamAnalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/client"
 	subscription "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/client"
 	trafficManager "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/client"
@@ -129,6 +130,7 @@ type Client struct {
 	ServiceFabric    *serviceFabric.Client
 	SignalR          *signalr.Client
 	Storage          *storage.Client
+	StorageCache     *storagecache.Client
 	StreamAnalytics  *streamAnalytics.Client
 	Subscription     *subscription.Client
 	Sql              *sql.Client
@@ -198,6 +200,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.SignalR = signalr.NewClient(o)
 	client.Sql = sql.NewClient(o)
 	client.Storage = storage.NewClient(o)
+	client.StorageCache = storagecache.NewClient(o)
 	client.StreamAnalytics = streamAnalytics.NewClient(o)
 	client.Subscription = subscription.NewClient(o)
 	client.TrafficManager = trafficManager.NewClient(o)

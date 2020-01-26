@@ -59,6 +59,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storagecache"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
@@ -124,6 +125,7 @@ func SupportedServices() []common.ServiceRegistration {
 		signalr.Registration{},
 		sql.Registration{},
 		storage.Registration{},
+		storagecache.Registration{},
 		streamanalytics.Registration{},
 		subscription.Registration{},
 		trafficmanager.Registration{},
