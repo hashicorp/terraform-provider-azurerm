@@ -63,10 +63,10 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 				Computed: true,
 			},
 
-			"protocol": {
+			"protocols": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
+				MaxItems: 2,
 				Elem: &schema.Schema{Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						"NFSv3",
@@ -116,11 +116,9 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 
 		protocolTypes := make([]string, 0)
 		if prtclTypes := props.ProtocolTypes; prtclTypes != nil {
-			for _, protocol := range *prtclTypes {
-				protocolTypes = append(protocolTypes, protocol)
-			}
+			protocolTypes = append(protocolTypes, *prtclTypes...)
 		}
-		d.Set("protocol_types", protocolTypes)
+		d.Set("protocols", protocolTypes)
 
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)

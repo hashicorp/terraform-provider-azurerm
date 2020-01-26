@@ -15,6 +15,7 @@ require (
 	github.com/hashicorp/go-uuid v1.0.1
 	github.com/hashicorp/go-version v1.2.0
 	github.com/hashicorp/terraform-plugin-sdk v1.1.1
+	github.com/katbyte/terrafmt v0.0.0-20200121065851-91f419e9b3a8 // indirect
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/satori/go.uuid v1.2.0
 	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07

@@ -25,28 +25,9 @@ func TestAccAzureRMNetAppVolume_basic(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocol_types.0", "NFSv3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0", "NFSv3"),
 				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMNetAppVolume_defaultProtocolType(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetAppVolume_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocol_types.0", "NFSv3"),
-				),
+				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},
@@ -65,7 +46,7 @@ func TestAccAzureRMNetAppVolume_nfsv41(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_nfsv41(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocol_types.0", "NFSv4.1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0", "NFSv4.1"),
 				),
 			},
 			data.ImportStep(),
@@ -293,26 +274,6 @@ resource "azurerm_netapp_volume" "test" {
   volume_path         = "my-unique-file-path-%d"
   service_level       = "Standard"
   subnet_id           = "${azurerm_subnet.test.id}"
-  protocol_types      = ["NFSv3"]
-  storage_quota_in_gb = 100
-}
-`, template, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMNetAppVolume_defaultProtocolType(data acceptance.TestData) string {
-	template := testAccAzureRMNetAppVolume_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_netapp_volume" "test" {
-  name                = "acctest-NetAppVolume-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_netapp_account.test.name}"
-  pool_name           = "${azurerm_netapp_pool.test.name}"
-  volume_path         = "my-unique-file-path-%d"
-  service_level       = "Standard"
-  subnet_id           = "${azurerm_subnet.test.id}"
   storage_quota_in_gb = 100
 }
 `, template, data.RandomInteger, data.RandomInteger)
@@ -332,7 +293,7 @@ resource "azurerm_netapp_volume" "test" {
   volume_path         = "my-unique-file-path-%d"
   service_level       = "Standard"
   subnet_id           = "${azurerm_subnet.test.id}"
-  protocol_types      = ["NFSv4.1"]
+  protocols           = ["NFSv4.1"]
   storage_quota_in_gb = 100
 }
 `, template, data.RandomInteger, data.RandomInteger)
@@ -364,27 +325,23 @@ resource "azurerm_netapp_volume" "test" {
   service_level       = "Standard"
   volume_path         = "my-unique-file-path-%d"
   subnet_id           = "${azurerm_subnet.test.id}"
-  protocol_types      = ["NFSv3"]
+  protocols           = ["NFSv3"]
   storage_quota_in_gb = 101
 
   export_policy_rule {
-    rule_index      = 1
-    allowed_clients = ["1.2.3.0/24"]
-    cifs_enabled    = false
-    nfsv3_enabled   = true
-    nfsv41_enabled  = false
-    unix_read_only  = false
-    unix_read_write = true
+    rule_index        = 1
+    allowed_clients   = ["1.2.3.0/24"]
+	protocols_enabled = ["NFSv3"]
+    unix_read_only    = false
+    unix_read_write   = true
   }
 
   export_policy_rule {
-    rule_index      = 2
-    allowed_clients = ["1.2.5.0"]
-    cifs_enabled    = false
-    nfsv3_enabled   = true
-    nfsv41_enabled  = false
-    unix_read_only  = true
-    unix_read_write = false
+    rule_index        = 2
+	allowed_clients   = ["1.2.5.0"]
+	protocols_enabled = ["NFSv3"]
+    unix_read_only    = true
+    unix_read_write   = false
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
@@ -427,7 +384,7 @@ resource "azurerm_netapp_volume" "test" {
   volume_path         = "my-updated-unique-file-path-%d"
   service_level       = "Standard"
   subnet_id           = "${azurerm_subnet.updated.id}"
-  protocol_types      = ["NFSv3"]
+  protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -447,17 +404,15 @@ resource "azurerm_netapp_volume" "test" {
   service_level       = "Standard"
   volume_path         = "my-unique-file-path-%d"
   subnet_id           = "${azurerm_subnet.test.id}"
-  protocol_types      = ["NFSv3"]
+  protocols           = ["NFSv3"]
   storage_quota_in_gb = 101
 
   export_policy_rule {
-    rule_index      = 1
-    allowed_clients = ["1.2.4.0/24", "1.3.4.0"]
-    cifs_enabled    = false
-    nfsv3_enabled   = true
-    nfsv41_enabled  = false
-    unix_read_only  = false
-    unix_read_write = true
+    rule_index        = 1
+    allowed_clients   = ["1.2.4.0/24", "1.3.4.0"]
+	protocols_enabled = ["NFSv3"]
+    unix_read_only    = false
+    unix_read_write   = true
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
