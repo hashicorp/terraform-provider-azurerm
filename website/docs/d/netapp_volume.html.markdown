@@ -43,6 +43,8 @@ The following attributes are exported:
 
 * `location` - The Azure Region where the NetApp Volume exists.
 
+* `mount_targets` - The `mount_targets` block as defined below.
+
 * `volume_path` - The unique file path of the volume.
 
 * `service_level` - The service level of the file system.
@@ -50,3 +52,9 @@ The following attributes are exported:
 * `subnet_id` - The ID of a Subnet in which the NetApp Volume resides.
 
 * `storage_quota_in_gb` - The maximum Storage Quota in Gigabytes allowed for a file system.
+
+---
+
+The `mount_targets` block exports the following:
+
+* `ip_address` - The IPv4 address of mount target.

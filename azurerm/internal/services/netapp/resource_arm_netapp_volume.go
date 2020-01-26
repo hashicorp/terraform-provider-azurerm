@@ -388,3 +388,26 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 
 	return results
 }
+
+func flattenArmNetAppVolumeMountTargets(input *interface{}) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	mountTargets := *input
+	if mountTargets != nil {
+		for _, item := range mountTargets.([]interface{}) {
+			if item != nil {
+				v := item.(map[string]interface{})
+				ipAddress := v["ipAddress"]
+
+				results = append(results, map[string]interface{}{
+					"ip_address": ipAddress,
+				})
+			}
+		}
+	}
+
+	return results
+}
