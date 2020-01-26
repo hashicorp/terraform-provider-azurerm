@@ -1965,15 +1965,15 @@ resource "azurerm_function_app" "test" {
     }
 
     ip_restriction {
-      ip_address  = "20.20.20.0/24"
+      ip_address = "20.20.20.0/24"
     }
 
     ip_restriction {
-      ip_address  = "30.30.0.0/16"
+      ip_address = "30.30.0.0/16"
     }
 
     ip_restriction {
-      ip_address  = "192.168.1.2/24"
+      ip_address = "192.168.1.2/24"
     }
   }
 }
