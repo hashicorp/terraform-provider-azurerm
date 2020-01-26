@@ -32,6 +32,25 @@ func testAccAzureRMBotChannelDirectline_basic(t *testing.T) {
 	})
 }
 
+func testAccAzureRMBotChannelDirectline_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMBotChannelDirectlineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMBotChannelDirectline_completeConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBotChannelDirectlineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testAccAzureRMBotChannelDirectline_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 
@@ -42,6 +61,13 @@ func testAccAzureRMBotChannelDirectline_update(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBotChannelDirectline_basicConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBotChannelDirectlineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMBotChannelDirectline_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotChannelDirectlineExists(data.ResourceName),
 				),
@@ -123,6 +149,27 @@ resource "azurerm_bot_channel_directline" "test" {
 	bot_name            = "${azurerm_bot_channels_registration.test.name}"
 	location            = "${azurerm_bot_channels_registration.test.location}"
 	resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, template)
+}
+
+func testAccAzureRMBotChannelDirectline_completeConfig(data acceptance.TestData) string {
+	template := testAccAzureRMBotChannelsRegistration_basicConfig(data)
+	return fmt.Sprintf(` 
+%s
+
+resource "azurerm_bot_channel_directline" "test" {
+	bot_name            = "${azurerm_bot_channels_registration.test.name}"
+	location            = "${azurerm_bot_channels_registration.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	site {
+		site_name 				= "test"
+		is_enabled 				= true
+		is_v1_enabled 			= true
+		is_v3_enabled 			= true
+		is_secure_site_enabled 	= true
+		trusted_origins 		= ["https://example.com"]
+	}
 }
 `, template)
 }

@@ -50,7 +50,21 @@ The following arguments are supported:
 
 - `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-- `site` - (Optional) The sites that belong to this channel.
+- `site` - (Optional) A site represents a client application that you want to connect to your bot. Multiple `site` blocks may be defined as below
+
+A `site` block as the following properties:
+
+- `site_name` - (Required) The name of the site
+
+- `is_enabled` - (Optional) Enables/Disables this site. Enabled by default
+
+- `is_v1_enabled` - (Optional) Enables v1 of the Directline protocol for this site. Enabled by default
+
+- `is_v3_enabled` - (Optional) Enables v3 of the Directline protocol for this site. Enabled by default
+
+- `is_secure_site_enabled` - (Optional) Enables additional security measures for this site, see [Enhanced Directline Authentication Features](https://blog.botframework.com/2018/09/25/enhanced-direct-line-authentication-features). Disabled by default.
+
+- `trusted_origins` - (Optional) This field is required when `is_secure_site_enabled` is enabled. Determines which origins can establish a Directline conversation for this site.
 
 ## Attributes Reference
 

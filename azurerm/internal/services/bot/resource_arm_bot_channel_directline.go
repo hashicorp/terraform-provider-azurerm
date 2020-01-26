@@ -53,25 +53,9 @@ func resourceArmBotChannelDirectline() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 
 						"site_name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"site_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"key": {
-							Type:      schema.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-
-						"key2": {
-							Type:      schema.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"is_enabled": {
@@ -102,72 +86,32 @@ func resourceArmBotChannelDirectline() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
+						},
+
+						"key": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+
+						"key2": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+
+						"site_id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
 			},
 		},
 	}
-}
-
-func expandSites(input []interface{}) (*[]botservice.DirectLineSite, error) {
-	sites := make([]botservice.DirectLineSite, len(input))
-
-	for i, element := range input {
-		site := element.(map[string]interface{})
-		if v, ok := site["site_name"]; ok {
-			siteName := v.(string)
-			sites[i].SiteName = &siteName
-		}
-		if v, ok := site["is_enabled"]; ok {
-			isEnabled := v.(bool)
-			sites[i].IsEnabled = &isEnabled
-		}
-		if v, ok := site["is_v1_enabled"]; ok {
-			isV1Enabled := v.(bool)
-			sites[i].IsV1Enabled = &isV1Enabled
-		}
-		if v, ok := site["is_v3_enabled"]; ok {
-			isV3Enabled := v.(bool)
-			sites[i].IsV3Enabled = &isV3Enabled
-		}
-		if v, ok := site["is_secure_site_enabled"]; ok {
-			isSecureSiteEnabled := v.(bool)
-			sites[i].IsSecureSiteEnabled = &isSecureSiteEnabled
-		}
-		if v, ok := site["trusted_origins"]; ok {
-			trustedOrigins := v.([]interface{})
-			items := make([]string, len(trustedOrigins))
-			for i, raw := range trustedOrigins {
-				items[i] = raw.(string)
-			}
-			sites[i].TrustedOrigins = &items
-		}
-	}
-
-	return &sites, nil
-}
-
-func unExpandSites(input []botservice.DirectLineSite) []interface{} {
-	sites := make([]interface{}, len(input))
-
-	for i, element := range input {
-		site := make(map[string]interface{})
-		site["site_name"] = element.SiteName
-		site["key"] = element.Key
-		site["key2"] = element.Key2
-		site["is_enabled"] = element.IsEnabled
-		site["is_v1_enabled"] = element.IsV1Enabled
-		site["is_v3_enabled"] = element.IsV3Enabled
-		site["is_secure_site_enabled"] = element.IsSecureSiteEnabled
-		site["trusted_origins"] = element.TrustedOrigins
-
-		sites[i] = site
-	}
-
-	return sites
 }
 
 func resourceArmBotChannelDirectlineCreate(d *schema.ResourceData, meta interface{}) error {
@@ -317,4 +261,81 @@ func resourceArmBotChannelDirectlineDelete(d *schema.ResourceData, meta interfac
 	}
 
 	return nil
+}
+
+func expandSites(input []interface{}) (*[]botservice.DirectLineSite, error) {
+	sites := make([]botservice.DirectLineSite, len(input))
+
+	for i, element := range input {
+		site := element.(map[string]interface{})
+
+		if v, ok := site["site_name"].(string); ok {
+			sites[i].SiteName = &v
+		}
+		if v, ok := site["is_enabled"].(bool); ok {
+			sites[i].IsEnabled = &v
+		}
+		if v, ok := site["is_v1_enabled"].(bool); ok {
+			sites[i].IsV1Enabled = &v
+		}
+		if v, ok := site["is_v3_enabled"].(bool); ok {
+			sites[i].IsV3Enabled = &v
+		}
+		if v, ok := site["is_secure_site_enabled"].(bool); ok {
+			sites[i].IsSecureSiteEnabled = &v
+		}
+		if v, ok := site["trusted_origins"].([]interface{}); ok {
+			items := make([]string, len(v))
+			for i, raw := range v {
+				items[i] = raw.(string)
+			}
+			sites[i].TrustedOrigins = &items
+		}
+	}
+
+	return &sites, nil
+}
+
+func unExpandSites(input []botservice.DirectLineSite) []interface{} {
+	sites := make([]interface{}, len(input))
+
+	for i, element := range input {
+		site := make(map[string]interface{})
+
+		if element.SiteName != nil {
+			site["site_name"] = *element.SiteName
+		}
+
+		if element.Key != nil {
+			site["key"] = *element.Key
+		}
+
+		if element.Key2 != nil {
+			site["key2"] = *element.Key2
+		}
+
+		if element.IsEnabled != nil {
+			site["is_enabled"] = *element.IsEnabled
+		}
+
+		if element.IsV1Enabled != nil {
+			site["is_v1_enabled"] = *element.IsV1Enabled
+		}
+
+		if element.IsV3Enabled != nil {
+			site["is_v3_enabled"] = *element.IsV3Enabled
+		}
+
+		if element.IsSecureSiteEnabled != nil {
+			site["is_secure_site_enabled"] = *element.IsSecureSiteEnabled
+		}
+
+		if element.TrustedOrigins != nil {
+			site["trusted_origins"] = *element.TrustedOrigins
+		}
+
+		sites[i] = site
+	}
+
+	return sites
 }
