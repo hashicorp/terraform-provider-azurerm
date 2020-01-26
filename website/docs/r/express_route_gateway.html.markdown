@@ -14,7 +14,7 @@ Manages an ExpressRoute gateway.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "exprtTest"
+  name     = "example-resources"
   location = "West US"
 }
 
@@ -49,15 +49,15 @@ resource "azurerm_express_route_gateway" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the ExpressRoute circuit. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the ExpressRoute gateway. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the ExpressRoute circuit. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the ExpressRoute gateway. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `virtual_hub_id` - (Required) The ID of a Virtual WAN within which the Virtual Hub should be created.
+* `virtual_hub_id` - (Required) The ID of a Virtual HUB within which the ExpressRoute gateway should be created.
 
-* `scale_units` - (Required) The name of the peering location and **not** the Azure resource location.
+* `scale_units` - (Required) The number of scale units with which to provision the ExpressRoute gateway. Each scale unit is equal to 2Gbps, with support for up to 10 scale units (20Gbps).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -72,5 +72,5 @@ The following attributes are exported:
 ExpressRoute gateways can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_express_route_gateway.myExpressRouteGateway /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/expressRouteGateways/myExpressRouteGateway
+terraform import azurerm_express_route_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/expressRouteGateways/myExpressRouteGateway
 ```

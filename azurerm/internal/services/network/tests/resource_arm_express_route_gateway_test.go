@@ -74,27 +74,15 @@ func TestAccAzureRMExpressRouteGateway_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMExpressRouteGateway_updateScaleUnits(data, 2),
+				Config: testAccAzureRMExpressRouteGateway_complete(data, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "scale_units", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "scale_units", "10"),
 				),
 			},
 			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMExpressRouteGateway_tags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_express_route_gateway", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteGatewayDestroy,
-		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteGateway_tags(data),
+				Config: testAccAzureRMExpressRouteGateway_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteGatewayExists(data.ResourceName),
 				),
@@ -167,21 +155,7 @@ resource "azurerm_express_route_gateway" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMExpressRouteGateway_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMExpressRouteGateway_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_express_route_gateway" "test" {
-  name                = azurerm_express_route_gateway.test.name
-  resource_group_name = azurerm_express_route_gateway.test.name
-  location            = azurerm_express_route_gateway.test.location
-  scale_units         = 1
-}
-`, template)
-}
-
-func testAccAzureRMExpressRouteGateway_updateScaleUnits(data acceptance.TestData, scaleUnits int) string {
+func testAccAzureRMExpressRouteGateway_complete(data acceptance.TestData, scaleUnits int) string {
 	template := testAccAzureRMExpressRouteGateway_template(data)
 	return fmt.Sprintf(`
 %s
@@ -192,43 +166,43 @@ resource "azurerm_express_route_gateway" "test" {
   location            = azurerm_resource_group.test.location
   virtual_hub_id      = azurerm_virtual_hub.test.id
   scale_units         = %d
-}
-`, template, data.RandomInteger, scaleUnits)
-}
 
-func testAccAzureRMExpressRouteGateway_tags(data acceptance.TestData) string {
-	template := testAccAzureRMExpressRouteGateway_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_express_route_gateway" "test" {
-  name                = "acctestER-gateway-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  virtual_hub_id      = azurerm_virtual_hub.test.id
-  scale_units         = 1
   tags = {
     Hello = "World"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, scaleUnits)
+}
+
+func testAccAzureRMExpressRouteGateway_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMExpressRouteGateway_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_express_route_gateway" "test" {
+  name                = azurerm_express_route_gateway.test.name
+  resource_group_name = azurerm_express_route_gateway.test.name
+  location            = azurerm_express_route_gateway.test.location
+  scale_units         = azurerm_express_route_gateway.test.scale_units
+}
+`, template)
 }
 
 func testAccAzureRMExpressRouteGateway_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-express-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_wan" "test" {
-  name                = "acctestvwan-%d"
+  name                = "acctest-VWAN-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_virtual_hub" "test" {
-  name                = "acctestvhub-%d"
+  name                = "acctest-VHUB-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id

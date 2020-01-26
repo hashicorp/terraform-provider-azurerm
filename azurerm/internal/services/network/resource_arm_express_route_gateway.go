@@ -58,7 +58,7 @@ func resourceArmExpressRouteGateway() *schema.Resource {
 			"scale_units": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(1, 6),
+				ValidateFunc: validation.IntBetween(1, 10),
 			},
 
 			"tags": tags.Schema(),
