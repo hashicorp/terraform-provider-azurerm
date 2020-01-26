@@ -133,7 +133,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 						"protocols_enabled": {
 							Type:     schema.TypeList,
 							Required: true,
-							MaxItems: 2,
+							MaxItems: 1,
 							MinItems: 1,
 							Elem: &schema.Schema{Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
