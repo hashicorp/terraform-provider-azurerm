@@ -74,10 +74,10 @@ func TestAccAzureRMExpressRouteGateway_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMExpressRouteGateway_complete(data, 10),
+				Config: testAccAzureRMExpressRouteGateway_complete(data, 2),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "scale_units", "10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "scale_units", "2"),
 				),
 			},
 			data.ImportStep(),
