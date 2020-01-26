@@ -395,8 +395,7 @@ func flattenArmNetAppVolumeMountTargets(input *interface{}) []interface{} {
 		return results
 	}
 
-	mountTargets := *input
-	if mountTargets != nil {
+	if mountTargets := *input; mountTargets != nil {
 		for _, item := range mountTargets.([]interface{}) {
 			if item != nil {
 				v := item.(map[string]interface{})
