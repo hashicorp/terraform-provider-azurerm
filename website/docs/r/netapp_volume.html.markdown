@@ -64,6 +64,7 @@ resource "azurerm_netapp_volume" "example" {
   pool_name           = "${azurerm_netapp_pool.example.name}"
   volume_path         = "my-unique-file-path"
   service_level       = "Premium"
+  protocols           = ["NFSv4.1"]
   subnet_id           = "${azurerm_subnet.example.id}"
   storage_quota_in_gb = 100
 }
@@ -87,6 +88,8 @@ The following arguments are supported:
 
 * `service_level` - (Required) The target performance of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
 
+* `protocols` - (Optional) The target volume protocol expressed as an array. Valid single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`.
+
 * `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new resource to be created.
 
 * `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
@@ -101,11 +104,7 @@ An `export_policy_rule` block supports the following:
 
 * `allowed_clients` - (Required) A list of allowed clients IPv4 addresses.
 
-* `cifs_enabled` - (Required) Is the CIFS protocol allowed?
-
-* `nfsv3_enabled` - (Required) Is the NFSv3 protocol allowed?
-
-* `nfsv4_enabled` - (Required) Is the NFSv4 protocol allowed?
+* `protocols_enabled` - (Required) A list of allowed protocols. Valid values include `CIFS`, `NFSv3`, or `NFSv4.1`. Only one value is supported at this time. This replaces the previous arguments: `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled`
 
 * `unix_read_only` - (Optional) Is the file system on unix read only?
 
