@@ -189,7 +189,6 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	if len(protocols) == 0 {
 		// Adding NFSv3 as default protocol
 		protocols = append(protocols, "NFSv3")
-
 	}
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
 	exportPolicyRule := d.Get("export_policy_rule").(*schema.Set).List()
@@ -344,20 +343,6 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 			nfsv3Enabled := false
 			nfsv41Enabled := false
 
-			// protocolTypes := make([]string, 0)
-			// if protocolsEnabled := v["protocols_enabled"].(*schema.Set).List(); protocolsEnabled != nil {
-			// 	for _, protocol := range protocolsEnabled {
-			// 		switch strings.ToLower(protocol) {
-			// 		case "cifs":
-			// 			cifsEnabled = true
-			// 		case "nfsv3":
-			// 			nfsv3Enabled = true
-			// 		case "nfsv41":
-			// 			nfsv41Enabled = true
-			// 		}
-			// 	}
-			// }
-
 			protocolsEnabled := v["protocols_enabled"].([]interface{})
 			for _, protocol := range protocolsEnabled {
 				if protocol != nil {
@@ -370,7 +355,6 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 					case "nfsv41":
 						nfsv41Enabled = true
 					}
-
 				}
 			}
 
