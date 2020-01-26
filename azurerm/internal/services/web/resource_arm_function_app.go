@@ -234,8 +234,9 @@ func resourceArmFunctionApp() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"ip_address": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"subnet_id": {
 										Type:         schema.TypeString,
@@ -777,31 +778,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 	}
 
 	if v, ok := config["ip_restriction"]; ok {
-		ipSecurityRestrictions := v.([]interface{})
-		restrictions := make([]web.IPSecurityRestriction, 0)
-		for i, ipSecurityRestriction := range ipSecurityRestrictions {
-			restriction := ipSecurityRestriction.(map[string]interface{})
-
-			ipAddress := restriction["ip_address"].(string)
-			vNetSubnetID := restriction["subnet_id"].(string)
-			if vNetSubnetID != "" && ipAddress != "" {
-				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
-			}
-
-			if vNetSubnetID == "" && ipAddress == "" {
-				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
-			}
-
-			ipSecurityRestriction := web.IPSecurityRestriction{}
-			if ipAddress != "" {
-				ipSecurityRestriction.IPAddress = &ipAddress
-			}
-
-			if vNetSubnetID != "" {
-				ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
-			}
-
-			restrictions = append(restrictions, ipSecurityRestriction)
+		ipSecurityRestrictions := v.(interface{})
+		restrictions, err := expandFunctionAppIpRestriction(ipSecurityRestrictions)
+		if err != nil {
+			return siteConfig, err
 		}
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}
@@ -850,20 +830,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 		result["http2_enabled"] = *input.HTTP20Enabled
 	}
 
-	restrictions := make([]interface{}, 0)
-	if vs := input.IPSecurityRestrictions; vs != nil {
-		for _, v := range *vs {
-			block := make(map[string]interface{})
-			if ip := v.IPAddress; ip != nil {
-				block["ip_address"] = *ip
-			}
-			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
-				block["subnet_id"] = *vNetSubnetID
-			}
-			restrictions = append(restrictions, block)
-		}
-	}
-	result["ip_restriction"] = restrictions
+	result["ip_restriction"] = flattenFunctionAppIpRestriction(input.IPSecurityRestrictions)
 
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)
@@ -892,6 +859,39 @@ func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.
 	}
 
 	return output
+}
+
+func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
+	ipSecurityRestrictions := input.([]interface{})
+	restrictions := make([]web.IPSecurityRestriction, 0)
+
+	for i, ipSecurityRestriction := range ipSecurityRestrictions {
+		restriction := ipSecurityRestriction.(map[string]interface{})
+
+		ipAddress := restriction["ip_address"].(string)
+		vNetSubnetID := restriction["subnet_id"].(string)
+
+		if vNetSubnetID != "" && ipAddress != "" {
+			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
+		}
+
+		if vNetSubnetID == "" && ipAddress == "" {
+			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
+		}
+
+		ipSecurityRestriction := web.IPSecurityRestriction{}
+		if ipAddress != "" {
+			ipSecurityRestriction.IPAddress = &ipAddress
+		}
+
+		if vNetSubnetID != "" {
+			ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+		}
+
+		restrictions = append(restrictions, ipSecurityRestriction)
+	}
+
+	return restrictions, nil
 }
 
 func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
@@ -944,4 +944,25 @@ func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
 	}
 
 	return append(results, result)
+}
+
+func flattenFunctionAppIpRestriction(input *[]web.IPSecurityRestriction) []interface{} {
+	restrictions := make([]interface{}, 0)
+
+	if input == nil {
+		return restrictions
+	}
+
+	for _, v := range *input {
+		block := make(map[string]interface{})
+		if ip := v.IPAddress; ip != nil {
+			block["ip_address"] = *ip
+		}
+		if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
+			block["subnet_id"] = *vNetSubnetID
+		}
+		restrictions = append(restrictions, block)
+	}
+
+	return restrictions
 }
