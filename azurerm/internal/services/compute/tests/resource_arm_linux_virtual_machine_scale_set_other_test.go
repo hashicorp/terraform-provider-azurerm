@@ -144,7 +144,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProv
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowDeallocate(t *testing.T) {
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpotDeallocate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -153,7 +153,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowDeallocate(t *tes
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLow(data, "Deallocate"),
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpot(data, "Deallocate"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
@@ -166,7 +166,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowDeallocate(t *tes
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowDelete(t *testing.T) {
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpotDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -175,7 +175,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowDelete(t *testing
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLow(data, "Delete"),
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpot(data, "Delete"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
@@ -188,7 +188,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowDelete(t *testing
 	})
 }
 
-func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(t *testing.T) {
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -198,7 +198,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(t *te
 		Steps: []resource.TestStep{
 			{
 				// expensive, but guarantees this test will pass
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(data, "0.5000"),
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(data, "0.5000"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
@@ -208,7 +208,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(t *te
 				"terraform_should_roll_instances_when_required",
 			),
 			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(data, "-1"),
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(data, "-1"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
@@ -660,7 +660,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLow(data acceptance.TestData, evictionPolicy string) string {
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpot(data acceptance.TestData, evictionPolicy string) string {
 	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %s
@@ -674,7 +674,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
   eviction_policy     = %q
-  priority            = "Low"
+  priority            = "Spot"
 
   disable_password_authentication = false
 
@@ -704,7 +704,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, template, data.RandomInteger, evictionPolicy)
 }
 
-func testAccAzureRMLinuxVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(data acceptance.TestData, maxBid string) string {
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(data acceptance.TestData, maxBid string) string {
 	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %s
@@ -718,7 +718,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
   eviction_policy     = "Delete"
-  priority            = "Low"
+  priority            = "Spot"
   max_bid_price       = %q
 
   disable_password_authentication = false

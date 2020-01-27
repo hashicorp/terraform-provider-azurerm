@@ -210,7 +210,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherEnableAutomaticUpdatesDisa
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowDeallocate(t *testing.T) {
+func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpotDeallocate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -219,7 +219,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowDeallocate(t *t
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLow(data, "Deallocate"),
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpot(data, "Deallocate"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
 				),
@@ -232,7 +232,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowDeallocate(t *t
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowDelete(t *testing.T) {
+func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpotDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -241,7 +241,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowDelete(t *testi
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLow(data, "Delete"),
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpot(data, "Delete"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
 				),
@@ -254,7 +254,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowDelete(t *testi
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(t *testing.T) {
+func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -264,7 +264,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(t *
 		Steps: []resource.TestStep{
 			{
 				// expensive, but guarantees this test will pass
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(data, "0.5000"),
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(data, "0.5000"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
 				),
@@ -274,7 +274,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(t *
 				"terraform_should_roll_instances_when_required",
 			),
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(data, "-1"),
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(data, "-1"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
 				),
@@ -869,7 +869,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, template)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLow(data acceptance.TestData, evictionPolicy string) string {
+func testAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpot(data acceptance.TestData, evictionPolicy string) string {
 	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %s
@@ -883,7 +883,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
   eviction_policy     = %q
-  priority            = "Low"
+  priority            = "Spot"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -911,7 +911,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, template, evictionPolicy)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityLowMaxBidPrice(data acceptance.TestData, maxBid string) string {
+func testAccAzureRMWindowsVirtualMachineScaleSet_otherPrioritySpotMaxBidPrice(data acceptance.TestData, maxBid string) string {
 	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %s
@@ -925,7 +925,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
   eviction_policy     = "Delete"
-  priority            = "Low"
+  priority            = "Spot"
   max_bid_price       = %q
 
   source_image_reference {
