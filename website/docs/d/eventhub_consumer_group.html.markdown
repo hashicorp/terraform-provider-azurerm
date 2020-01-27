@@ -23,15 +23,13 @@ data "azurerm_eventhub_consumer_group" "test" {
 
 ## Argument Reference
 
-The following arguments are supported:
+* `name` - Specifies the name of the EventHub Consumer Group resource.
 
-* `name` - (Required) Specifies the name of the EventHub Consumer Group resource.
+* `namespace_name` - Specifies the name of the grandparent EventHub Namespace.
 
-* `namespace_name` - (Required) Specifies the name of the grandparent EventHub Namespace.
+* `eventhub_name` - Specifies the name of the EventHub.
 
-* `eventhub_name` - (Required) Specifies the name of the EventHub.
-
-* `resource_group_name` - (Required) The name of the resource group in which the EventHub Consumer Group's grandparent Namespace exists.
+* `resource_group_name` - The name of the resource group in which the EventHub Consumer Group's grandparent Namespace exists.
 
 ## Attributes Reference
 
