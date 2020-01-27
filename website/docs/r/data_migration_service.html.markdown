@@ -2,7 +2,6 @@
 subcategory: "Data Migration"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_migration_service"
-sidebar_current: "docs-azurerm-resource-data-migration-service"
 description: |-
   Manage Azure Service instance.
 ---

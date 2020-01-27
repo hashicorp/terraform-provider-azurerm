@@ -2,7 +2,6 @@
 subcategory: "Data Migration"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_migration_service"
-sidebar_current: "docs-azurerm-datasource-data-migration-service"
 description: |-
   Gets information about an existing Data Migration Service
 ---
