@@ -211,7 +211,7 @@ func TestAccAzureRMServiceBusNamespace_rule_set_standardSKU(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMServiceBusNamespace_rule_set_basicSKU(data),
+				Config:      testAccAzureRMServiceBusNamespace_rule_set_standardSKU(data),
 				ExpectError: regexp.MustCompile("network_rulesets cannot be used when the SKU is Basic or \"Standard\" "),
 			},
 		},
