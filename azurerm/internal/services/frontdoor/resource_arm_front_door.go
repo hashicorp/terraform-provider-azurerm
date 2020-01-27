@@ -415,7 +415,7 @@ func resourceArmFrontDoor() *schema.Resource {
 											string(frontdoor.OneFullStopTwo),
 											string(frontdoor.OneFullStopZero),
 										}, false),
-										Default: string(frontdoor.OneFullStopTwo),
+										Default: string(frontdoor.OneFullStopZero), // TODO: Update default to TLS 1.2 in version 2.0
 									},
 									"provisioning_state": {
 										Type:     schema.TypeString,

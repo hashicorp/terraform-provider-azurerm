@@ -229,7 +229,7 @@ The `custom_https_configuration` block supports the following:
 
 * `certificate_source` - (Optional) Certificate source to encrypted `HTTPS` traffic with. Allowed values are `FrontDoor` or `AzureKeyVault`. Defaults to `FrontDoor`.
 
-* `minimum_tls_version` - (Optional) Minimum TLS version required for clients to connect. Allowed values are `1.0` or `1.2`. Defaults to `1.2`.
+* `minimum_tls_version` - (Optional) Minimum TLS version required for clients to connect. Allowed values are `1.0` or `1.2`. Defaults to `1.0`.
 
 The following attributes are only valid if `certificate_source` is set to `AzureKeyVault`:
 

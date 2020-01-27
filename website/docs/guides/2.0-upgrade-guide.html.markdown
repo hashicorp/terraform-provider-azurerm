@@ -299,6 +299,10 @@ The deprecated `location` field will be removed, since this is no longer used.
 
 The deprecated `internal_public_ip_address_id` field in the `ip_configuration` block will be removed. This field has been replaced by the `public_ip_address_id` field in the `ip_configuration` block.
 
+### Resource: `azurerm_frontdoor`
+
+The default value of the `minimum_tls_version` field in the `custom_https_configuration` block will be changed from `1.0` to `1.2` to align with [updates to the Azure platform defaults](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-faq#what-tls-versions-are-supported-by-azure-front-door-service)
+
 ### Resource: `azurerm_iothub`
 
 The deprecated `sku.tier` property will be remove.
