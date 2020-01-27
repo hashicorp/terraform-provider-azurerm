@@ -3,10 +3,11 @@ WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=azurerm
 TESTTIMEOUT=180m
 
-#make sure we catch schema errors during testing
-TF_SCHEMA_PANIC_ON_ERROR=1
-GO111MODULE=on
-GOFLAGS=-mod=vendor
+
+.EXPORT_ALL_VARIABLES:
+  TF_SCHEMA_PANIC_ON_ERROR=1
+  GO111MODULE=on
+  GOFLAGS=-mod=vendor
 
 default: build
 
