@@ -408,6 +408,15 @@ func resourceArmFrontDoor() *schema.Resource {
 										}, false),
 										Default: string(frontdoor.CertificateSourceFrontDoor),
 									},
+									"minimum_tls_version": {
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(frontdoor.OneFullStopTwo),
+											string(frontdoor.OneFullStopZero),
+										}, false),
+										Default: string(frontdoor.OneFullStopTwo),
+									},
 									"provisioning_state": {
 										Type:     schema.TypeString,
 										Computed: true,
@@ -1265,6 +1274,8 @@ func flattenArmFrontDoorFrontendEndpoint(d *schema.ResourceData, input *[]frontd
 						chc["certificate_source"] = string(frontdoor.CertificateSourceFrontDoor)
 					}
 
+					chc["minimum_tls_version"] = string(customHTTPSConfiguration.MinimumTLSVersion)
+
 					if provisioningState := properties.CustomHTTPSProvisioningState; provisioningState != "" {
 						chc["provisioning_state"] = provisioningState
 						if provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled || provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabling {
@@ -1502,8 +1513,11 @@ func makeCustomHttpsConfiguration(customHttpsConfiguration map[string]interface{
 	// https://github.com/Azure/azure-sdk-for-go/issues/6882
 	defaultProtocolType := "ServerNameIndication"
 
+	minTLSVersion := customHttpsConfiguration["minimum_tls_version"].(string)
+
 	customHTTPSConfigurationUpdate := frontdoor.CustomHTTPSConfiguration{
-		ProtocolType: &defaultProtocolType,
+		ProtocolType:      &defaultProtocolType,
+		MinimumTLSVersion: frontdoor.MinimumTLSVersion(minTLSVersion),
 	}
 
 	if customHttpsConfiguration["certificate_source"].(string) == "AzureKeyVault" {
