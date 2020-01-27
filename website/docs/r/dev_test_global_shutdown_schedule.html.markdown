@@ -24,7 +24,7 @@ resource "azurerm_virtual_network" "sample" {
   location            = "${azurerm_resource_group.sample.location}"
   resource_group_name = "${azurerm_resource_group.sample.name}"
 }
-  
+
 resource "azurerm_subnet" "sample" {
   name                 = "sample-subnet"
   resource_group_name  = "${azurerm_resource_group.sample.name}"
@@ -93,7 +93,6 @@ resource "azurerm_dev_test_global_shutdown_schedule" "sample" {
     webhook_url     = "https://sample-webhook-url.example.com"
   }
 }
-
 ```
 
 ## Argument Reference

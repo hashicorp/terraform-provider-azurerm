@@ -132,7 +132,7 @@ resource "azurerm_virtual_network" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-  
+
 resource "azurerm_subnet" "test" {
   name                 = "acctsub-%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
@@ -165,6 +165,7 @@ resource "azurerm_virtual_machine" "test" {
     sku       = "18.04-LTS"
     version   = "latest"
   }
+
   storage_os_disk {
     name              = "myosdisk-%d"
     caching           = "ReadWrite"
@@ -191,13 +192,13 @@ func testAccAzureRMDevTestLabGlobalShutdownSchedule_autoShutdownBasic(data accep
 %s
 
 resource "azurerm_dev_test_global_shutdown_schedule" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine.test.id}"
+  location           = "${azurerm_resource_group.test.location}"
+  target_resource_id = "${azurerm_virtual_machine.test.id}"
 
   daily_recurrence {
     time = "0100"
   }
-  
+
   time_zone_id = "Pacific Standard Time"
 
   notification_settings {
@@ -217,9 +218,9 @@ func testAccAzureRMDevTestLabGlobalShutdownSchedule_autoShutdownBasicUpdate(data
 %s
 
 resource "azurerm_dev_test_global_shutdown_schedule" "test" {
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine.test.id}"
-  status              = "Disabled"
+  location           = "${azurerm_resource_group.test.location}"
+  target_resource_id = "${azurerm_virtual_machine.test.id}"
+  status             = "Disabled"
 
   daily_recurrence {
     time = "1100"
