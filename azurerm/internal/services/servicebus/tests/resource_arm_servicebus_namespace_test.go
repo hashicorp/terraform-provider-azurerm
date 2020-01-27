@@ -191,8 +191,9 @@ func TestAccAzureRMServiceBusNamespace_networkrule_vnetrule(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_rule_set_basicSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMServiceBusNamespace_rule_set_basicSKU(data),
@@ -205,8 +206,9 @@ func TestAccAzureRMServiceBusNamespace_rule_set_basicSKU(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_rule_set_standardSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMServiceBusNamespace_rule_set_basicSKU(data),
