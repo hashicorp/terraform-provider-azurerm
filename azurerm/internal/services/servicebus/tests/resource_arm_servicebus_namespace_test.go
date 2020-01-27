@@ -196,7 +196,7 @@ func TestAccAzureRMServiceBusNamespace_rule_set_basicSKU(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMServiceBusNamespace_rule_set_basicSKU(data),
-				ExpectError: regex.MustCompile("network_rulesets cannot be used when the SKU is Basic or \"Standard\" "),
+				ExpectError: regexp.MustCompile("network_rulesets cannot be used when the SKU is Basic or \"Standard\" "),
 			},
 		},
 	})
@@ -210,7 +210,7 @@ func TestAccAzureRMServiceBusNamespace_rule_set_standardSKU(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMServiceBusNamespace_rule_set_basicSKU(data),
-				ExpectError: regex.MustCompile("network_rulesets cannot be used when the SKU is Basic or \"Standard\" "),
+				ExpectError: regexp.MustCompile("network_rulesets cannot be used when the SKU is Basic or \"Standard\" "),
 			},
 		},
 	})
