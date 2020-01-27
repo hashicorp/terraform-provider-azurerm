@@ -32,8 +32,8 @@ func testAccDataSourceDataMigrationService_basic(data acceptance.TestData) strin
 %s
 
 data "azurerm_data_migration_service" "test" {
-  resource_group_name   = "${azurerm_data_migration_service.test.resource_group_name}"
-  name                  = "${azurerm_data_migration_service.test.name}"
+  resource_group_name = "${azurerm_data_migration_service.test.resource_group_name}"
+  name                = "${azurerm_data_migration_service.test.name}"
 }
 `, config)
 }

@@ -169,7 +169,7 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name 				   = "acctestSubnet-dms-%d"
+  name                 = "acctestSubnet-dms-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
@@ -184,11 +184,11 @@ func testAccAzureRMDataMigrationService_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_data_migration_service" "test" {
-	name                = "acctestDms-%d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	subnet_id   		= azurerm_subnet.test.id
-	sku_name            = "Standard_1vCores"
+  name                = "acctestDms-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_1vCores"
 }
 `, template, data.RandomInteger)
 }
@@ -200,14 +200,14 @@ func testAccAzureRMDataMigrationService_complete(data acceptance.TestData) strin
 %s
 
 resource "azurerm_data_migration_service" "test" {
-	name                = "acctestDms-%d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	subnet_id   		= azurerm_subnet.test.id
-	sku_name            = "Standard_1vCores"
-	tags 				= {
-		name			= "test"
-	}
+  name                = "acctestDms-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test.id
+  sku_name            = "Standard_1vCores"
+  tags = {
+    name = "test"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -221,7 +221,7 @@ resource "azurerm_data_migration_service" "import" {
   name                = azurerm_data_migration_service.test.name
   location            = azurerm_data_migration_service.test.location
   resource_group_name = azurerm_data_migration_service.test.resource_group_name
-  subnet_id   		  = azurerm_data_migration_service.test.subnet_id
+  subnet_id           = azurerm_data_migration_service.test.subnet_id
   sku_name            = azurerm_data_migration_service.test.sku_name
 }
 `, template)
