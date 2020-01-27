@@ -24,11 +24,11 @@ data "azurerm_iothub_dps_shared_access_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the IotHub Shared Access Policy resource.
+* `name` - (Required) Specifies the name of the IotHub Shared Access Policy.
 
-* `resource_group_name` - (Required) The name of the resource group under which the IotHub Shared Access Policy resource has to be created.
+* `resource_group_name` - (Required) Specifies the name of the resource group under which the IotHub Shared Access Policy resource exists.
 
-* `iothub_dps_name` - (Required) The name of the IoT Hub Device Provisioning service to which this Shared Access Policy belongs.
+* `iothub_dps_name` - (Required) Specifies the name of the IoT Hub Device Provisioning service to which the Shared Access Policy belongs.
 
 ## Attributes Reference
 

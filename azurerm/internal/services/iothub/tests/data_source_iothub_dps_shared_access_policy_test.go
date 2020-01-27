@@ -17,7 +17,7 @@ func TestAccDataSourceAzureRMIotHubDpsSharedAccessPolicy_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDatasourceAzureRMIotHubDpsSharedAccessPolicy_basic(data),
+				Config: testAccDataSourceAzureRMIotHubDpsSharedAccessPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubDpsSharedAccessPolicyExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
@@ -30,16 +30,32 @@ func TestAccDataSourceAzureRMIotHubDpsSharedAccessPolicy_basic(t *testing.T) {
 	})
 }
 
-func testAccDatasourceAzureRMIotHubDpsSharedAccessPolicy_basic(data acceptance.TestData) string {
-	template := testAccAzureRMIotHubDpsSharedAccessPolicy_basic(data)
-
+func testAccDataSourceAzureRMIotHubDpsSharedAccessPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_iothub_dps" "test" {
+  name                = "acctestIoTDPS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 
+  sku {
+    name     = "S1"
+    capacity = "1"
+  }
+}
+resource "azurerm_iothub_dps_shared_access_policy" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
+  name                = "acctest"
+  service_config      = true
+}
 data "azurerm_iothub_dps_shared_access_policy" "test" {
   name                = "${azurerm_iothub_dps_shared_access_policy.test.name}"
-  iothub_dps_name 	  = "${azurerm_iothub_dps.test.name}"
+  iothub_dps_name     = "${azurerm_iothub_dps.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, template)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
