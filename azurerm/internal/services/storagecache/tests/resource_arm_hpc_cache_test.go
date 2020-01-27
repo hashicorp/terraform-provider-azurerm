@@ -130,7 +130,7 @@ resource "azurerm_hpc_cache" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cache_size          = 3
-  subnet_id			  = "${azurerm_subnet.test.id}"
+  subnet_id           = "${azurerm_subnet.test.id}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -145,7 +145,7 @@ resource "azurerm_hpc_cache" "import" {
   resource_group_name = "${azurerm_hpc_cache.test.resource_group_name}"
   location            = "${azurerm_hpc_cache.test.location}"
   cache_size          = "${azurerm_hpc_cache.test.cache_size}"
-  subnet_id			  = "${azurerm_hpc_cache.test.subnet_id}"
+  subnet_id           = "${azurerm_hpc_cache.test.subnet_id}"
 }
 `, template)
 }
