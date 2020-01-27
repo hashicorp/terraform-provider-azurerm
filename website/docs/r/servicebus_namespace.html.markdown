@@ -50,6 +50,34 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `network_rulesets` - (Optional) A `network_rulesets` block as defined below. Need to have `sku` set to `Premium`
+
+---
+
+A `network_rulesets` block supports the following:
+
+* `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
+
+* `virtual_network_rule` - (Optional) One or more `virtual_network_rule` blocks as defined below.
+
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
+
+---
+    
+A `virtual_network_rule` block supports the following:
+
+* `subnet_id` - (Required) The id of the subnet to match on.
+
+* `ignore_missing_virtual_network_service_endpoint` - (Optional) Are missing virtual network service endpoints ignored? Defaults to `false`.
+
+---
+
+A `ip_rule` block supports the following:
+
+* `ip_mask` - (Required) The ip mask to match on.
+
+* `action` - (Optional) The action to take when the rule is  matched. Possible values are `Allow`.
+
 ## Attributes Reference
 
 The following attributes are exported:
