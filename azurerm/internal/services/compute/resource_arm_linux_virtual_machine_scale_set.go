@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -88,9 +89,11 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				Optional:  true,
 				ForceNew:  true,
 				Sensitive: true,
+				// TODO: does this want:
+				// DiffSuppressFunc: linuxAdminPasswordDiffSuppressFunc,
 			},
 
-			"admin_ssh_key": SSHKeysSchema(),
+			"admin_ssh_key": SSHKeysSchema(false),
 
 			"automatic_os_upgrade_policy": VirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
 
@@ -108,7 +111,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				ValidateFunc: ValidateLinuxName,
 			},
 
-			"custom_data": base64.OptionalSchema(),
+			"custom_data": base64.OptionalSchema(false),
 
 			"data_disk": VirtualMachineScaleSetDataDiskSchema(),
 
@@ -180,7 +183,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: computeValidate.ProximityPlacementGroupID,
 				// the Compute API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -198,10 +201,10 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			"source_image_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: computeValidate.ImageID,
 			},
 
-			"source_image_reference": sourceImageReferenceSchema(),
+			"source_image_reference": sourceImageReferenceSchema(false),
 
 			"tags": tags.Schema(),
 
