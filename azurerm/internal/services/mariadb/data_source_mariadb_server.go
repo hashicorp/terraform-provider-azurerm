@@ -138,10 +138,5 @@ func dataSourceMariaDbServerRead(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("Error setting `storage_profile`: %+v", err)
 		}
 	}
-
-	if err := d.Set("sku", flattenMariaDbServerSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
-	}
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
