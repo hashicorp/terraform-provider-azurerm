@@ -25,6 +25,22 @@ resource "azurerm_cosmosdb_sql_container" "example" {
   unique_key {
     paths = ["/definition/idlong", "/definition/idshort"]
   }
+
+  indexing_policy {
+    indexing_mode = "consistent"
+    automatic = true
+    included_paths = [
+      {
+        path = "/test/?"
+        indexes = []
+      }
+    ]
+    excluded_paths = [
+      { path = "/*" },
+		  { path = "/\"_etag\"/?"}
+    ]
+  }
+
 }
 
 ```
@@ -49,10 +65,27 @@ The following arguments are supported:
 
 * `default_ttl` - (Optional) The default time to live of SQL container. If missing, items are not expired automatically. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
+* `indexing_policy` - (Optional) The indexing policy block as defined below.
+
 ---
 A `unique_key` block supports the following:
 
 * `paths` - (Required) A list of paths to use for this unique key.
+
+---
+A `indexing_policy` block supports the following: 
+
+* `indexing_mode` - (Optional) Indexing Mode. Default is set to `consistent`. Can be set to `None`
+* `automatic` - (Optional) Boolean. Default value is true. This allow Azure CosmosDB to automatically index documents as they are written.
+* `included_path` - (Optional) Block as defined below
+  * `path`: path to include. If `/*` is set in included path, it can't be set in excluded path
+  * `indexes` : block as defined below. Can be empty. 
+    * `data_type` : can be either `String` or `Number`
+    * `precision` : Is a number defined at the index level for included paths. A value of `-1` indicates maximum precision. Recommanded to always use `-1`
+    * `kind` : can be either `range` or `hash` (default: range)
+* `excluded_path` - (Optional) Bloak as defined below :
+  * `path`: path to exclude. If `/*` is set in excluded path, it can't be set in included path
+---
 
 
 ## Attributes Reference

@@ -75,6 +75,81 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
+			"indexing_policy": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+
+						"indexing_mode": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"automatic": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"included_paths": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"path": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"indexes": {
+										Type:       schema.TypeList,
+										Optional:   true,
+										Computed:   true,
+										ConfigMode: schema.SchemaConfigModeAttr,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"data_type": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"precision": {
+													Type:     schema.TypeInt,
+													Required: true,
+												},
+												"kind": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"excluded_paths": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"path": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"default_ttl": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -153,6 +228,10 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
+	if indexingpolicy := expandCosmosSQLContainerIndexingPolicy(d.Get("indexing_policy").([]interface{})); indexingpolicy != nil {
+		db.SQLContainerCreateUpdateProperties.Resource.IndexingPolicy = indexingpolicy
+	}
+
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
 		db.SQLContainerCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
 	}
@@ -218,6 +297,10 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 		db.SQLContainerCreateUpdateProperties.Resource.UniqueKeyPolicy = &documentdb.UniqueKeyPolicy{
 			UniqueKeys: keys,
 		}
+	}
+
+	if indexingPolicy := expandCosmosSQLContainerIndexingPolicy(d.Get("indexing_policy").([]interface{})); indexingPolicy != nil {
+		db.SQLContainerCreateUpdateProperties.Resource.IndexingPolicy = indexingPolicy
 	}
 
 	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
@@ -298,6 +381,12 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 		if ukp := props.UniqueKeyPolicy; ukp != nil {
 			if err := d.Set("unique_key", flattenCosmosSQLContainerUniqueKeys(ukp.UniqueKeys)); err != nil {
 				return fmt.Errorf("Error setting `unique_key`: %+v", err)
+			}
+		}
+
+		if ip := props.IndexingPolicy; ip != nil {
+			if err := d.Set("indexing_policy", flattenCosmosSQLContainerIndexingPolicy(ip)); err != nil {
+				return fmt.Errorf("Error setting `indexing_policy`: %+v", err)
 			}
 		}
 
@@ -385,4 +474,155 @@ func flattenCosmosSQLContainerUniqueKeys(keys *[]documentdb.UniqueKey) *[]map[st
 	}
 
 	return &slice
+}
+
+func expandCosmosSQLContainerIndexingPolicy(input []interface{}) *documentdb.IndexingPolicy {
+
+	if len(input) == 0 {
+		return nil
+	}
+
+	policy := input[0].(map[string]interface{})
+	automatic := policy["automatic"].(bool)
+
+	indexingPolicy := documentdb.IndexingPolicy{
+
+		Automatic:     &automatic,
+		IndexingMode:  documentdb.IndexingMode(policy["indexing_mode"].(string)),
+		IncludedPaths: expandCosmosSQLContainerIncludedPaths(policy["included_paths"].([]interface{})),
+		ExcludedPaths: expandCosmosSQLContainerExcludedPaths(policy["excluded_paths"].([]interface{})),
+	}
+
+	return &indexingPolicy
+
+}
+
+func expandCosmosSQLContainerIndexes(input []interface{}) *[]documentdb.Indexes {
+	if len(input) == 0 {
+		return nil
+	}
+	var indexes []documentdb.Indexes
+
+	for _, i := range input {
+		index := i.(map[string]interface{})
+		precision := index["precision"].(int32)
+		indexes = append(indexes, documentdb.Indexes{
+			DataType:  index["data_type"].(documentdb.DataType),
+			Precision: &precision,
+			Kind:      index["kind"].(documentdb.IndexKind),
+		})
+	}
+
+	return &indexes
+}
+
+func expandCosmosSQLContainerIncludedPaths(input []interface{}) *[]documentdb.IncludedPath {
+	if len(input) == 0 {
+		return nil
+	}
+	var paths []documentdb.IncludedPath
+
+	for _, p := range input {
+		path := p.(map[string]interface{})
+		paths = append(paths, documentdb.IncludedPath{
+			Path:    utils.String(path["path"].(string)),
+			Indexes: expandCosmosSQLContainerIndexes(path["indexes"].([]interface{})),
+		})
+	}
+
+	return &paths
+
+}
+
+func expandCosmosSQLContainerExcludedPaths(input []interface{}) *[]documentdb.ExcludedPath {
+	if len(input) == 0 {
+		return nil
+	}
+
+	var paths []documentdb.ExcludedPath
+
+	for _, p := range input {
+		path := p.(map[string]interface{})
+		paths = append(paths, documentdb.ExcludedPath{
+			Path: utils.String(path["path"].(string)),
+		})
+	}
+
+	return &paths
+}
+
+func flattenCosmosSQLContainerIndexingPolicy(indexingpolicy *documentdb.IndexingPolicy) []interface{} {
+
+	if indexingpolicy == nil {
+		return nil
+	}
+
+	indexingPolicy := make([]interface{}, 0)
+
+	block := make(map[string]interface{})
+
+	block["indexing_mode"] = indexingpolicy.IndexingMode
+	block["automatic"] = indexingpolicy.Automatic
+	block["included_paths"] = flattenCosmosSQLContainerIncludedPaths(indexingpolicy.IncludedPaths)
+	block["excluded_paths"] = flattenCosmosSQLContainerExcludedPaths(indexingpolicy.ExcludedPaths)
+	indexingPolicy = append(indexingPolicy, block)
+
+	return indexingPolicy
+}
+
+func flattenCosmosSQLContainerIndexes(indexes *[]documentdb.Indexes) []interface{} {
+
+	if indexes == nil {
+		return nil
+	}
+
+	indexesBlocks := make([]interface{}, 0)
+
+	for _, index := range *indexes {
+		block := make(map[string]interface{})
+
+		block["data_type"] = index.DataType
+		block["precision"] = index.Precision
+		block["kind"] = index.Kind
+
+		indexesBlocks = append(indexesBlocks, block)
+	}
+
+	return indexesBlocks
+
+}
+
+func flattenCosmosSQLContainerIncludedPaths(paths *[]documentdb.IncludedPath) []interface{} {
+	if paths == nil {
+		return nil
+	}
+
+	includedPaths := make([]interface{}, 0)
+
+	for _, path := range *paths {
+		block := make(map[string]interface{})
+		block["path"] = path.Path
+		block["indexes"] = flattenCosmosSQLContainerIndexes(path.Indexes)
+		includedPaths = append(includedPaths, block)
+	}
+
+	return includedPaths
+
+}
+
+func flattenCosmosSQLContainerExcludedPaths(paths *[]documentdb.ExcludedPath) []interface{} {
+	if paths == nil {
+		return nil
+	}
+
+	excludedPaths := make([]interface{}, 0)
+
+	for _, path := range *paths {
+		block := make(map[string]interface{})
+		block["path"] = path.Path
+
+		excludedPaths = append(excludedPaths, block)
+	}
+
+	return excludedPaths
 }

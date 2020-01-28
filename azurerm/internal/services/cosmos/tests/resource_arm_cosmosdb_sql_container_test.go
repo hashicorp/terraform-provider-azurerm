@@ -84,6 +84,25 @@ func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBSqlContainer_create_with_index_policy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBSQLContainer_create_with_index_policy(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMCosmosDbSqlContainerDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -192,6 +211,38 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   }
   default_ttl = 1000
   throughput  = 400
+}
+
+`, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
+}
+
+func testAccAzureRMCosmosDBSQLContainer_create_with_index_policy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-CSQLC-%[2]d"
+  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
+  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  database_name       = "${azurerm_cosmosdb_sql_database.test.name}"
+  partition_key_path  = "/definition/id"
+  unique_key {
+    paths = ["/definition/id1", "/definition/id2"]
+  }
+  default_ttl = 1000
+  throughput  = 400
+  indexing_policy {
+    indexing_mode = "consistent"
+    automatic = true
+	included_paths = [{
+      path = "/test/?"
+      indexes = []
+	}]
+    excluded_paths = [
+	  { path = "/*" },
+      { path = "/\"_etag\"/?"}
+    ]
+  }
 }
 
 `, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
