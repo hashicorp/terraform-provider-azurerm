@@ -28,16 +28,16 @@ resource "azurerm_cosmosdb_sql_container" "example" {
 
   indexing_policy {
     indexing_mode = "consistent"
-    automatic = true
+    automatic     = true
     included_paths = [
       {
-        path = "/test/?"
+        path    = "/test/?"
         indexes = []
       }
     ]
     excluded_paths = [
       { path = "/*" },
-		  { path = "/\"_etag\"/?"}
+      { path = "/\"_etag\"/?" }
     ]
   }
 

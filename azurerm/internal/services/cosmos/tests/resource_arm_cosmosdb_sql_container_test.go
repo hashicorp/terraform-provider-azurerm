@@ -233,14 +233,14 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   throughput  = 400
   indexing_policy {
     indexing_mode = "consistent"
-    automatic = true
-	included_paths = [{
-      path = "/test/?"
+    automatic     = true
+    included_paths = [{
+      path    = "/test/?"
       indexes = []
-	}]
+    }]
     excluded_paths = [
-	  { path = "/*" },
-      { path = "/\"_etag\"/?"}
+      { path = "/*" },
+      { path = "/\"_etag\"/?" }
     ]
   }
 }
