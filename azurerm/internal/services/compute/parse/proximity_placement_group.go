@@ -6,22 +6,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DedicatedHostGroupId struct {
+type ProximityPlacementGroupId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
+func ProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Dedicated Host Group ID %q: %+v", input, err)
+		return nil, fmt.Errorf("[ERROR] Unable to parse Proximity Placement Group ID %q: %+v", input, err)
 	}
 
-	group := DedicatedHostGroupId{
+	server := ProximityPlacementGroupId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if group.Name, err = id.PopSegment("hostGroups"); err != nil {
+	if server.Name, err = id.PopSegment("proximityPlacementGroups"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +29,5 @@ func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 		return nil, err
 	}
 
-	return &group, nil
+	return &server, nil
 }
