@@ -19,7 +19,7 @@ func dataSourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
-		Schema: azure.EventHubAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
+		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -33,7 +33,46 @@ func dataSourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-		}),
+
+			"listen": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"send": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"manage": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"primary_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+		},
 	}
 }
 
