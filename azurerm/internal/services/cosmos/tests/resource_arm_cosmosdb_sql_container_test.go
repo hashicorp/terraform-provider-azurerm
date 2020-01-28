@@ -220,7 +220,7 @@ func testAccAzureRMCosmosDBSQLContainer_create_with_index_policy(data acceptance
 	return fmt.Sprintf(`
 %[1]s
 
-resource azurerm_cosmosdb_sql_container" "test" {
+resource "azurerm_cosmosdb_sql_container" "test" {
   name                = "acctest-CSQLC-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
