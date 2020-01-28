@@ -477,7 +477,6 @@ func flattenCosmosSQLContainerUniqueKeys(keys *[]documentdb.UniqueKey) *[]map[st
 }
 
 func expandCosmosSQLContainerIndexingPolicy(input []interface{}) *documentdb.IndexingPolicy {
-
 	if len(input) == 0 {
 		return nil
 	}
@@ -494,7 +493,6 @@ func expandCosmosSQLContainerIndexingPolicy(input []interface{}) *documentdb.Ind
 	}
 
 	return &indexingPolicy
-
 }
 
 func expandCosmosSQLContainerIndexes(input []interface{}) *[]documentdb.Indexes {
@@ -531,7 +529,6 @@ func expandCosmosSQLContainerIncludedPaths(input []interface{}) *[]documentdb.In
 	}
 
 	return &paths
-
 }
 
 func expandCosmosSQLContainerExcludedPaths(input []interface{}) *[]documentdb.ExcludedPath {
@@ -552,7 +549,6 @@ func expandCosmosSQLContainerExcludedPaths(input []interface{}) *[]documentdb.Ex
 }
 
 func flattenCosmosSQLContainerIndexingPolicy(indexingpolicy *documentdb.IndexingPolicy) []interface{} {
-
 	if indexingpolicy == nil {
 		return nil
 	}
@@ -571,7 +567,6 @@ func flattenCosmosSQLContainerIndexingPolicy(indexingpolicy *documentdb.Indexing
 }
 
 func flattenCosmosSQLContainerIndexes(indexes *[]documentdb.Indexes) []interface{} {
-
 	if indexes == nil {
 		return nil
 	}
@@ -589,7 +584,6 @@ func flattenCosmosSQLContainerIndexes(indexes *[]documentdb.Indexes) []interface
 	}
 
 	return indexesBlocks
-
 }
 
 func flattenCosmosSQLContainerIncludedPaths(paths *[]documentdb.IncludedPath) []interface{} {
@@ -607,7 +601,6 @@ func flattenCosmosSQLContainerIncludedPaths(paths *[]documentdb.IncludedPath) []
 	}
 
 	return includedPaths
-
 }
 
 func flattenCosmosSQLContainerExcludedPaths(paths *[]documentdb.ExcludedPath) []interface{} {
