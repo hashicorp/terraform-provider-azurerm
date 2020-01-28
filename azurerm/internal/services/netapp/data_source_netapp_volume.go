@@ -117,7 +117,7 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
-		if err := d.Set("mount_targets", flattenArmNetAppVolumeMountTargets(&props.MountTargets)); err != nil {
+		if err := d.Set("mount_targets", flattenArmNetAppVolumeMountTargets(props.MountTargets)); err != nil {
 			return fmt.Errorf("Error setting `mount_targets`: %+v", err)
 		}
 	}
