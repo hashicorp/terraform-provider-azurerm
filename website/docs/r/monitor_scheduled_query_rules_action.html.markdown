@@ -1,15 +1,15 @@
 ---
 subcategory: "Monitor"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules"
-sidebar_current: "docs-azurerm-resource-monitor-scheduled-query-rules"
+page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_action"
+sidebar_current: "docs-azurerm-resource-monitor-scheduled-query-rules-action"
 description: |-
-  Manages a Scheduled Query Rule within Azure Monitor
+  Manages an AlertingAction Scheduled Query Rule within Azure Monitor
 ---
 
-# azurerm_monitor_action_group
+# azurerm_monitor_scheduled_query_rules_action
 
-Manages a Scheduled Query Rule within Azure Monitor.
+Manages an AlertingAction Scheduled Query Rule within Azure Monitor.
 
 ## Example Usage
 
@@ -35,12 +35,11 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 # Example: Alerting Action
-resource "azurerm_scheduled_query_rule" "example" {
+resource "azurerm_scheduled_query_rule_action" "example" {
   name                   = format("%s-queryrule", var.prefix)
   location               = azurerm_resource_group.example.location
   resource_group_name    = azurerm_resource_group.example.name
 
-  action_type              = "Alerting"
   azns_action {
     action_group           = []
     email_subject          = "Email Header"
@@ -67,12 +66,11 @@ resource "azurerm_scheduled_query_rule" "example" {
 }
 
 # Example: Alerting Action Cross-Resource
-resource "azurerm_scheduled_query_rule" "example2" {
+resource "azurerm_scheduled_query_rule_action" "example2" {
   name                   = format("%s-queryrule2", var.prefix)
   location               = azurerm_resource_group.example.location
   resource_group_name    = azurerm_resource_group.example.name
 
-  action_type              = "Alerting"
   authorized_resources     = [azurerm_application_insights.example.id,
                               azurerm_log_analytics_workspace.example.id]
   azns_action {
@@ -93,26 +91,6 @@ resource "azurerm_scheduled_query_rule" "example2" {
     threshold              = 3
   }
 }
-
-# Example: LogToMetric Action
-resource "azurerm_scheduled_query_rule" "example3" {
-  name                   = format("%s-queryrule3", var.prefix)
-  location               = azurerm_resource_group.example.location
-  resource_group_name    = azurerm_resource_group.example.name
-
-  action_type            = "LogToMetric"
-  criteria {
-      metric_name        = "Average_% Idle Time"
-      dimensions {
-        name             = "InstanceName"
-        operator         = "Include"
-        values           = [""]
-      }
-  }
-  data_source_id         = azurerm_application_insights.example.id
-  description            = "Scheduled query rule LogToMetric example"
-  enabled                = true
-}
 ```
 
 ## Argument Reference
@@ -121,26 +99,18 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Scheduled Query Rule. Changing this forces a new resource to be created.
 * `resource_group_name` - (Required) The name of the resource group in which to create the Scheduled Query Rule instance.
-* `action_type` - (Required) Must equal ether `AlertingAction` or `LogToMetricAction`.
 * `authorized_resources` - (Optional) List of Resource IDs referred into query.
+* `azns_action` - (Optional) An `azns_action` block as defined below.
 * `data_source_id` - (Required) The resource uri over which log search query is to be run.
 * `description` - (Optional) The description of the Scheduled Query Rule.
 * `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
-* `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed.
-
-The following arguments are only supported when `action_type` is `AlertingAction`:
-
-* `azns_action` - (Optional) An `azns_action` block as defined below.
-* `frequency` - (Optional) Frequency (in minutes) at which rule condition should be evaluated.  Required when `action_type` is `AlertingAction`.
-* `query` - (Optional) Log search query.  Required when `action_type` is `AlertingAction`.
-* `query_type` - (Optional) Must equal "ResultCount" for now.  Required when `action_type` is `AlertingAction`.
+* `frequency` - (Required) Frequency (in minutes) at which rule condition should be evaluated.
+* `query` - (Required) Log search query.
+* `query_type` - (Required) Must equal "ResultCount" for now.
 * `severity` - (Optional) Severity of the alert. Possible values include: 0, 1, 2, 3, or 4.
-* `time_window` - (Optional) Time window for which data needs to be fetched for query (should be greater than or equal to `frequency`).  Required when `action_type` is `AlertingAction`.
-* `trigger` - (Optional) The condition that results in the alert rule being run.  Required when `action_type` is `AlertingAction`.
-
-The following arguments are only supported when `action_type` is `LogToMetricAction`:
-
-* `criteria` - (Optional) A `criteria` block as defined below. Required when `action_type` is `LogToMetricAction`.
+* `time_window` - (Required) Time window for which data needs to be fetched for query (should be greater than or equal to `frequency`).
+* `throttling` - (Optional) Time (in minutes) for which Alerts should be throttled or suppressed.
+* `trigger` - (Required) The condition that results in the alert rule being run.
 
 ---
 
@@ -149,21 +119,6 @@ The following arguments are only supported when `action_type` is `LogToMetricAct
 * `action_group` - (Optional) List of action group reference resource IDs.
 * `custom_webhook_payload` - (Optional) Custom payload to be sent for all webhook payloads in alerting action.
 * `email_subject` - (Optional) Custom subject override for all email ids in Azure action group.
-
----
-
-`criteria` supports the following:
-
-* `dimension` - (Required) A `dimension` block as defined below.
-* `metric_name` - (Required) Name of the metric.
-
----
-
-`dimension` supports the following:
-
-* `name` - (Required) Name of the dimension.
-* `operator` - (Required) Operator for dimension values, - 'Include'.
-* `values` - (Required) List of dimension values.
 
 ---
 
@@ -195,5 +150,5 @@ The following attributes are exported:
 Scheduled Query Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_scheduled_query_rules.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/scheduledQueryRules/myrulename
+terraform import azurerm_monitor_scheduled_query_rules_action.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/scheduledQueryRules/myrulename
 ```

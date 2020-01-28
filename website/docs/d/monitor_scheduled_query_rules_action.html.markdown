@@ -1,26 +1,26 @@
 ---
 subcategory: "Monitor"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules"
-sidebar_current: "docs-azurerm-datasource-monitor-scheduled-query-rules"
+page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_action"
+sidebar_current: "docs-azurerm-datasource-monitor-scheduled-query-rules-action"
 description: |-
-  Get information about the specified Scheduled Query Rule.
+  Get information about the specified AlertingAction Scheduled Query Rule.
 ---
 
 # Data Source: azurerm_monitor_scheduled_query_rules
 
-Use this data source to access the properties of a Scheduled Query Rule.
+Use this data source to access the properties of an AlertingAction Scheduled Query Rule.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_monitor_scheduled_query_rules" "example" {
+data "azurerm_monitor_scheduled_query_rules_action" "example" {
   resource_group_name = "terraform-example-rg"
   name                = "tfex-queryrule"
 }
 
 output "query_rule_id" {
-  value = "${data.azurerm_monitor_scheduled_query_rules.example.id}"
+  value = "${data.azurerm_monitor_scheduled_query_rules_action.example.id}"
 }
 ```
 
@@ -33,9 +33,7 @@ output "query_rule_id" {
 
 * `id` - The ID of the Scheduled Query Rule.
 * `azns_action` - An `azns_action` block as defined below.
-* `action_type` - Must equal ether `AlertingAction` or `LogToMetricAction`.
 * `authorized_resources` - List of Resource IDs referred into query.
-* `criteria` - A `criteria` block as defined below.
 * `data_source_id` - The resource uri over which log search query is to be run.
 * `description` - The description of the Scheduled Query Rule.
 * `enabled` - Whether this scheduled query rule is enabled.
@@ -54,21 +52,6 @@ output "query_rule_id" {
 * `action_group` - (Optional) List of action group reference resource IDs.
 * `custom_webhook_payload` - Custom payload to be sent for all webhook URI in Azure action group.
 * `email_subject` - Custom subject override for all email ids in Azure action group.
-
----
-
-`criteria` supports the following:
-
-* `dimension` - (Required) A `dimension` block as defined below.
-* `metric_name` - (Required) Name of the metric.
-
----
-
-`dimension` supports the following:
-
-* `name` - (Required) Name of the dimension.
-* `operator` - (Required) Operator for dimension values, - 'Include'.
-* `values` - (Required) List of dimension values.
 
 ---
 
