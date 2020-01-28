@@ -3,7 +3,6 @@ package monitor
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
@@ -20,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorScheduledQueryRules() *schema.Resource {
+func resourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorScheduledQueryRulesCreateUpdate,
-		Read:   resourceArmMonitorScheduledQueryRulesRead,
-		Update: resourceArmMonitorScheduledQueryRulesCreateUpdate,
-		Delete: resourceArmMonitorScheduledQueryRulesDelete,
+		Create: resourceArmMonitorScheduledQueryRulesLogCreateUpdate,
+		Read:   resourceArmMonitorScheduledQueryRulesLogRead,
+		Update: resourceArmMonitorScheduledQueryRulesLogCreateUpdate,
+		Delete: resourceArmMonitorScheduledQueryRulesLogDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,14 +48,6 @@ func resourceArmMonitorScheduledQueryRules() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"action_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Alerting",
-					"LogToMetric",
-				}, false),
-			},
 			"authorized_resources": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -245,7 +236,7 @@ func resourceArmMonitorScheduledQueryRules() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorScheduledQueryRulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorScheduledQueryRulesLogCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -262,11 +253,10 @@ func resourceArmMonitorScheduledQueryRulesCreateUpdate(d *schema.ResourceData, m
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_scheduled_query_rules", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_monitor_scheduled_query_rules_log", *existing.ID)
 		}
 	}
 
-	actionType := d.Get("action_type").(string)
 	description := d.Get("description").(string)
 	enabledRaw := d.Get("enabled").(bool)
 
@@ -278,15 +268,7 @@ func resourceArmMonitorScheduledQueryRulesCreateUpdate(d *schema.ResourceData, m
 	location := azure.NormalizeLocation(d.Get("location"))
 
 	var action insights.BasicAction
-	switch actionType {
-	case "Alerting":
-		action = expandMonitorScheduledQueryRulesAlertingAction(d)
-	case "LogToMetric":
-		action = expandMonitorScheduledQueryRulesLogToMetricAction(d)
-	default:
-		return fmt.Errorf("Invalid action_type %q. Value must be either 'Alerting' or 'LogToMetric'", actionType)
-	}
-
+	action = expandMonitorScheduledQueryRulesLogToMetricAction(d)
 	source := expandMonitorScheduledQueryRulesSource(d)
 	schedule := expandMonitorScheduledQueryRulesSchedule(d)
 
@@ -318,10 +300,10 @@ func resourceArmMonitorScheduledQueryRulesCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmMonitorScheduledQueryRulesRead(d, meta)
+	return resourceArmMonitorScheduledQueryRulesLogRead(d, meta)
 }
 
-func resourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorScheduledQueryRulesLogRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -362,23 +344,8 @@ func resourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta inte
 	d.Set("description", resp.Description)
 
 	switch action := resp.Action.(type) {
-	case insights.AlertingAction:
-		d.Set("action_type", "Alerting")
-		if err = d.Set("azns_action", flattenAzureRmScheduledQueryRulesAznsAction(action.AznsAction)); err != nil {
-			return fmt.Errorf("Error setting `azns_action`: %+v", err)
-		}
-		severity, err := strconv.Atoi(string(action.Severity))
-		if err != nil {
-			return fmt.Errorf("Error converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
-		}
-		d.Set("severity", severity)
-		d.Set("throttling", action.ThrottlingInMin)
-		if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesTrigger(action.Trigger)); err != nil {
-			return fmt.Errorf("Error setting `trigger`: %+v", err)
-		}
 	case insights.LogToMetricAction:
-		d.Set("action_type", "LogToMetric")
-		if err = d.Set("criteria", flattenAzureRmScheduledQueryRulesCriteria(action.Criteria)); err != nil {
+		if err = d.Set("criteria", flattenAzureRmScheduledQueryRulesLogCriteria(action.Criteria)); err != nil {
 			return fmt.Errorf("Error setting `criteria`: %+v", err)
 		}
 	default:
@@ -410,7 +377,7 @@ func resourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta inte
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorScheduledQueryRulesDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorScheduledQueryRulesLogDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -431,43 +398,7 @@ func resourceArmMonitorScheduledQueryRulesDelete(d *schema.ResourceData, meta in
 	return nil
 }
 
-func expandMonitorScheduledQueryRulesAlertingAction(d *schema.ResourceData) *insights.AlertingAction {
-	aznsActionRaw := d.Get("azns_action").(*schema.Set).List()
-	aznsAction := expandMonitorScheduledQueryRulesAznsAction(aznsActionRaw)
-	severityRaw := d.Get("severity").(int)
-	severity := strconv.Itoa(severityRaw)
-	throttling := d.Get("throttling").(int)
-
-	triggerRaw := d.Get("trigger").(*schema.Set).List()
-	trigger := expandMonitorScheduledQueryRulesTrigger(triggerRaw)
-
-	action := insights.AlertingAction{
-		AznsAction:      aznsAction,
-		Severity:        insights.AlertSeverity(severity),
-		ThrottlingInMin: utils.Int32(int32(throttling)),
-		Trigger:         trigger,
-		OdataType:       insights.OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction,
-	}
-
-	return &action
-}
-
-func expandMonitorScheduledQueryRulesAznsAction(input []interface{}) *insights.AzNsActionGroup {
-	result := insights.AzNsActionGroup{}
-
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		actionGroups := v["action_group"].(*schema.Set).List()
-
-		result.ActionGroup = utils.ExpandStringSlice(actionGroups)
-		result.EmailSubject = utils.String(v["email_subject"].(string))
-		result.CustomWebhookPayload = utils.String(v["custom_webhook_payload"].(string))
-	}
-
-	return &result
-}
-
-func expandMonitorScheduledQueryRulesCriteria(input []interface{}) *[]insights.Criteria {
+func expandMonitorScheduledQueryRulesLogCriteria(input []interface{}) *[]insights.Criteria {
 	criteria := make([]insights.Criteria, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
@@ -492,7 +423,7 @@ func expandMonitorScheduledQueryRulesCriteria(input []interface{}) *[]insights.C
 
 func expandMonitorScheduledQueryRulesLogToMetricAction(d *schema.ResourceData) *insights.LogToMetricAction {
 	criteriaRaw := d.Get("criteria").(*schema.Set).List()
-	criteria := expandMonitorScheduledQueryRulesCriteria(criteriaRaw)
+	criteria := expandMonitorScheduledQueryRulesLogCriteria(criteriaRaw)
 
 	action := insights.LogToMetricAction{
 		Criteria:  criteria,
@@ -502,89 +433,14 @@ func expandMonitorScheduledQueryRulesLogToMetricAction(d *schema.ResourceData) *
 	return &action
 }
 
-func expandMonitorScheduledQueryRulesSchedule(d *schema.ResourceData) *insights.Schedule {
-	frequency := d.Get("frequency").(int)
-	timeWindow := d.Get("time_window").(int)
-
-	schedule := insights.Schedule{
-		FrequencyInMinutes:  utils.Int32(int32(frequency)),
-		TimeWindowInMinutes: utils.Int32(int32(timeWindow)),
-	}
-
-	return &schedule
-}
-
-func expandMonitorScheduledQueryRulesMetricTrigger(input []interface{}) *insights.LogMetricTrigger {
-	if len(input) == 0 {
-		return nil
-	}
-
-	result := insights.LogMetricTrigger{}
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		result.ThresholdOperator = insights.ConditionalOperator(v["operator"].(string))
-		result.Threshold = utils.Float(v["threshold"].(float64))
-		result.MetricTriggerType = insights.MetricTriggerType(v["metric_trigger_type"].(string))
-		result.MetricColumn = utils.String(v["metric_column"].(string))
-	}
-
-	return &result
-}
-
-func expandMonitorScheduledQueryRulesSource(d *schema.ResourceData) *insights.Source {
-	authorizedResources := d.Get("authorized_resources").(*schema.Set).List()
-	dataSourceID := d.Get("data_source_id").(string)
-	query := d.Get("query").(string)
-
-	source := insights.Source{
-		AuthorizedResources: utils.ExpandStringSlice(authorizedResources),
-		DataSourceID:        utils.String(dataSourceID),
-		Query:               utils.String(query),
-		QueryType:           insights.ResultCount,
-	}
-
-	return &source
-}
-
-func expandMonitorScheduledQueryRulesTrigger(input []interface{}) *insights.TriggerCondition {
-	result := insights.TriggerCondition{}
-
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		metricTriggerRaw := v["metric_trigger"].(*schema.Set).List()
-
-		result.ThresholdOperator = insights.ConditionalOperator(v["operator"].(string))
-		result.Threshold = utils.Float(v["threshold"].(float64))
-		result.MetricTrigger = expandMonitorScheduledQueryRulesMetricTrigger(metricTriggerRaw)
-	}
-
-	return &result
-}
-
-func flattenAzureRmScheduledQueryRulesAznsAction(input *insights.AzNsActionGroup) []interface{} {
-	result := make([]interface{}, 0)
-	v := make(map[string]interface{})
-
-	if input != nil {
-		if input.ActionGroup != nil {
-			v["action_group"] = *input.ActionGroup
-		}
-		v["email_subject"] = input.EmailSubject
-		v["custom_webhook_payload"] = input.CustomWebhookPayload
-	}
-	result = append(result, v)
-
-	return result
-}
-
-func flattenAzureRmScheduledQueryRulesCriteria(input *[]insights.Criteria) []interface{} {
+func flattenAzureRmScheduledQueryRulesLogCriteria(input *[]insights.Criteria) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input != nil {
 		for _, criteria := range *input {
 			v := make(map[string]interface{})
 
-			v["dimension"] = flattenAzureRmScheduledQueryRulesDimension(criteria.Dimensions)
+			v["dimension"] = flattenAzureRmScheduledQueryRulesLogDimension(criteria.Dimensions)
 			v["metric_name"] = *criteria.MetricName
 
 			result = append(result, v)
@@ -594,7 +450,7 @@ func flattenAzureRmScheduledQueryRulesCriteria(input *[]insights.Criteria) []int
 	return result
 }
 
-func flattenAzureRmScheduledQueryRulesDimension(input *[]insights.Dimension) []interface{} {
+func flattenAzureRmScheduledQueryRulesLogDimension(input *[]insights.Dimension) []interface{} {
 	result := make([]interface{}, 0)
 
 	if input != nil {
@@ -618,41 +474,4 @@ func flattenAzureRmScheduledQueryRulesDimension(input *[]insights.Dimension) []i
 	}
 
 	return result
-}
-
-func flattenAzureRmScheduledQueryRulesMetricTrigger(input *insights.LogMetricTrigger) []interface{} {
-	result := make(map[string]interface{})
-
-	if input == nil {
-		return []interface{}{}
-	}
-
-	result["operator"] = string(input.ThresholdOperator)
-
-	if input.Threshold != nil {
-		result["threshold"] = *input.Threshold
-	}
-
-	result["metric_trigger_type"] = string(input.MetricTriggerType)
-
-	if input.MetricColumn != nil {
-		result["metric_column"] = *input.MetricColumn
-	}
-	return []interface{}{result}
-}
-
-func flattenAzureRmScheduledQueryRulesTrigger(input *insights.TriggerCondition) []interface{} {
-	result := make(map[string]interface{})
-
-	result["operator"] = string(input.ThresholdOperator)
-
-	if input.Threshold != nil {
-		result["threshold"] = *input.Threshold
-	}
-
-	if input.MetricTrigger != nil {
-		result["metric_trigger"] = flattenAzureRmScheduledQueryRulesMetricTrigger(input.MetricTrigger)
-	}
-
-	return []interface{}{result}
 }

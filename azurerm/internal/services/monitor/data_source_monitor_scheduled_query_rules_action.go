@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmMonitorScheduledQueryRules() *schema.Resource {
+func dataSourceArmMonitorScheduledQueryRulesAction() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmMonitorScheduledQueryRulesRead,
+		Read: dataSourceArmMonitorScheduledQueryRulesActionRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -32,10 +32,6 @@ func dataSourceArmMonitorScheduledQueryRules() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"action_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"authorized_resources": {
 				Type:     schema.TypeSet,
 				Computed: true,
@@ -192,7 +188,7 @@ func dataSourceArmMonitorScheduledQueryRules() *schema.Resource {
 	}
 }
 
-func dataSourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmMonitorScheduledQueryRulesActionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -221,28 +217,18 @@ func dataSourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta in
 		d.Set("enabled", false)
 	}
 
-	switch action := resp.Action.(type) {
-	case insights.AlertingAction:
-		d.Set("action_type", "Alerting")
-		if err = d.Set("azns_action", flattenAzureRmScheduledQueryRulesAznsAction(action.AznsAction)); err != nil {
-			return fmt.Errorf("Error setting `azns_action`: %+v", err)
-		}
-		severity, err := strconv.Atoi(string(action.Severity))
-		if err != nil {
-			return fmt.Errorf("Error converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
-		}
-		d.Set("severity", severity)
-		d.Set("throttling", action.ThrottlingInMin)
-		if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesTrigger(action.Trigger)); err != nil {
-			return fmt.Errorf("Error setting `trigger`: %+v", err)
-		}
-	case insights.LogToMetricAction:
-		d.Set("action_type", "LogToMetric")
-		if err = d.Set("criteria", flattenAzureRmScheduledQueryRulesCriteria(action.Criteria)); err != nil {
-			return fmt.Errorf("Error setting `criteria`: %+v", err)
-		}
-	default:
-		return fmt.Errorf("Unknown action type in scheduled query rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
+	var action insights.AlertingAction
+	if err = d.Set("azns_action", flattenAzureRmScheduledQueryRulesActionAznsAction(action.AznsAction)); err != nil {
+		return fmt.Errorf("Error setting `azns_action`: %+v", err)
+	}
+	severity, err := strconv.Atoi(string(action.Severity))
+	if err != nil {
+		return fmt.Errorf("Error converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
+	}
+	d.Set("severity", severity)
+	d.Set("throttling", action.ThrottlingInMin)
+	if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesActionTrigger(action.Trigger)); err != nil {
+		return fmt.Errorf("Error setting `trigger`: %+v", err)
 	}
 
 	if schedule := resp.Schedule; schedule != nil {

@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAzureRMMonitorScheduledQueryRules_AlertingAction(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_action", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -36,7 +36,7 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingAction(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorScheduledQueryRules_AlertingActionCrossResource(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_action", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -45,29 +45,6 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingActionCrossResource(t *tes
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorScheduledQueryRules_alertingActionCrossResource(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorScheduledQueryRulesExists(data.ResourceName),
-				),
-			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricAction(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorScheduledQueryRules_logToMetricAction(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorScheduledQueryRulesExists(data.ResourceName),
 				),
@@ -103,7 +80,7 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
 }
 
-resource "azurerm_monitor_scheduled_query_rules" "test" {
+resource "azurerm_monitor_scheduled_query_rules_action" "test" {
   name                = "acctestsqr-%d"
 	resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -167,7 +144,7 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
 }
 
-resource "azurerm_monitor_scheduled_query_rules" "test" {
+resource "azurerm_monitor_scheduled_query_rules_action" "test" {
   name                = "acctestsqr-%d"
 	resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -197,54 +174,12 @@ resource "azurerm_monitor_scheduled_query_rules" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorScheduledQueryRules_logToMetricAction(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_application_insights" "test" {
-  name                = "acctestAppInsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  application_type    = "web"
-}
-
-resource "azurerm_monitor_action_group" "test" {
-	name                = "acctestActionGroup-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  short_name          = "acctestag"
-}
-
-resource "azurerm_monitor_scheduled_query_rules" "test" {
-  name                = "acctestsqr-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-	description         = "test log to metric action"
-	enabled             = true
-	action_type         = "LogToMetric"
-
-	data_source_id = "${azurerm_application_insights.test.id}"
-
-	criteria {
-		metric_name        = "Average_%% Idle Time"
-		dimension {
-			name             = "InstanceName"
-			operator         = "Include"
-			values           = [""]
-		}
-	}
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
 func testCheckAzureRMMonitorScheduledQueryRulesDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_monitor_scheduled_query_rules" {
+		if rs.Type != "azurerm_monitor_scheduled_query_rules_action" {
 			continue
 		}
 
