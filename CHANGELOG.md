@@ -1,4 +1,10 @@
 ## 1.43.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_eventhub_namespace_authorization_rule` [GH-5489]
+* **New Data Source:** `azurerm_mariadb_server` [GH-5506]
+
 ## 1.42.0 (January 27, 2020)
 
 NOTES:
