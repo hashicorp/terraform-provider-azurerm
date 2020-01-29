@@ -16,6 +16,8 @@ Version 2.0 of the AzureRM Provider is a major release and as such includes some
 
 -> **NOTE:** This guide is a Work In Progress and additional information may be added to this guide until version 2.0 of the AzureRM Provider is released.
 
+!> **NOTE:** Version 2.0 of the AzureRM Provider will support Terraform 0.12 and later - Terraform 0.10 & 0.11 are no longer supported with this release.
+
 ### Pinning your Provider Version
 
 We recommend pinning the version of each Provider you use in Terraform - you can do this using the `version` attribute in the `provider` block, either to a specific version of the AzureRM Provider, like so:
