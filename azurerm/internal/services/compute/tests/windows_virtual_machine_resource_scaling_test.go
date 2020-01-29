@@ -159,12 +159,12 @@ func testWindowsVirtualMachine_scalingAdditionalCapabilitiesUltraSSD(data accept
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                  = local.vm_name
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  size                  = "Standard_D2S_V3"
-  admin_username        = "adminuser"
-  admin_password        = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2S_V3"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -202,13 +202,13 @@ resource "azurerm_availability_set" "test" {
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                  = local.vm_name
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  size                  = "Standard_F2"
-  admin_username        = "adminuser"
-  admin_password        = "P@$$w0rd1234!"
-  availability_set_id   = azurerm_availability_set.test.id
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  availability_set_id = azurerm_availability_set.test.id
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -249,13 +249,13 @@ resource "azurerm_dedicated_host" "test" {
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                  = local.vm_name
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  size                  = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
-  admin_username        = "adminuser"
-  admin_password        = "P@$$w0rd1234!"
-  dedicated_host_id     = azurerm_dedicated_host.test.id
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  dedicated_host_id   = azurerm_dedicated_host.test.id
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -294,7 +294,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   admin_username               = "adminuser"
   admin_password               = "P@$$w0rd1234!"
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
-  network_interface_ids        = [
+  network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
 
@@ -319,12 +319,12 @@ func testWindowsVirtualMachine_scalingMachineSize(data acceptance.TestData, size
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                  = local.vm_name
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  size                  = %q
-  admin_username        = "adminuser"
-  admin_password        = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = %q
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -350,16 +350,16 @@ func testWindowsVirtualMachine_scalingZone(data acceptance.TestData) string {
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                  = local.vm_name
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  size                  = "Standard_F2"
-  admin_username        = "adminuser"
-  admin_password        = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
-  zone                  = 1
+  zone = 1
 
   os_disk {
     caching              = "ReadWrite"

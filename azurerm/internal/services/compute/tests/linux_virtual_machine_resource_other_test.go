@@ -321,11 +321,11 @@ func testLinuxVirtualMachine_otherAllowExtensionOperationsDefault(data acceptanc
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -356,12 +356,12 @@ func testLinuxVirtualMachine_otherAllowExtensionOperationsDisabled(data acceptan
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  allow_extension_operations      = false
+  name                       = "acctestVM-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_F2"
+  admin_username             = "adminuser"
+  allow_extension_operations = false
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -392,11 +392,11 @@ func testLinuxVirtualMachine_otherBootDiagnostics(data acceptance.TestData) stri
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -431,11 +431,11 @@ func testLinuxVirtualMachine_otherBootDiagnosticsDisabled(data acceptance.TestDa
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -481,11 +481,11 @@ func testLinuxVirtualMachine_otherComputerNameDefault(data acceptance.TestData) 
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -516,12 +516,12 @@ func testLinuxVirtualMachine_otherComputerNameCustom(data acceptance.TestData) s
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  computer_name                   = "custom123"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  computer_name       = "custom123"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -552,12 +552,12 @@ func testLinuxVirtualMachine_otherCustomData(data acceptance.TestData) string {
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  custom_data                     = base64encode("/bin/bash")
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  custom_data         = base64encode("/bin/bash")
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -588,13 +588,13 @@ func testLinuxVirtualMachine_otherPrioritySpot(data acceptance.TestData) string 
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                 = "acctestVM-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  size                 = "Standard_F2"
-  admin_username       = "adminuser"
-  eviction_policy      = "Deallocate"
-  priority             = "Spot"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  eviction_policy     = "Deallocate"
+  priority            = "Spot"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -625,14 +625,14 @@ func testLinuxVirtualMachine_otherPrioritySpotMaxBidPrice(data acceptance.TestDa
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                 = "acctestVM-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  size                 = "Standard_F2"
-  admin_username       = "adminuser"
-  eviction_policy      = "Deallocate"
-  priority             = "Spot"
-  max_bid_price        = %q
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  eviction_policy     = "Deallocate"
+  priority            = "Spot"
+  max_bid_price       = %q
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -663,11 +663,11 @@ func testLinuxVirtualMachine_otherProvisionVMAgentDefault(data acceptance.TestDa
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -698,13 +698,13 @@ func testLinuxVirtualMachine_otherProvisionVMAgentDisabled(data acceptance.TestD
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  provision_vm_agent              = false
-  allow_extension_operations      = false
-  admin_username                  = "adminuser"
+  name                       = "acctestVM-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_F2"
+  provision_vm_agent         = false
+  allow_extension_operations = false
+  admin_username             = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -904,11 +904,11 @@ func testLinuxVirtualMachine_otherSecret(data acceptance.TestData) string {
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -947,11 +947,11 @@ func testLinuxVirtualMachine_otherSecretRemoved(data acceptance.TestData) string
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -982,11 +982,11 @@ func testLinuxVirtualMachine_otherSecretUpdated(data acceptance.TestData) string
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1029,11 +1029,11 @@ func testLinuxVirtualMachine_otherTags(data acceptance.TestData) string {
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1068,11 +1068,11 @@ func testLinuxVirtualMachine_otherTagsUpdated(data acceptance.TestData) string {
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

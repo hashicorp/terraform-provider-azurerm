@@ -126,12 +126,12 @@ func testLinuxVirtualMachine_authPasswordAndSSH(data acceptance.TestData) string
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -162,11 +162,11 @@ func testLinuxVirtualMachine_authSSH(data acceptance.TestData) string {
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -197,11 +197,11 @@ func testLinuxVirtualMachine_authSSHMultiple(data acceptance.TestData) string {
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

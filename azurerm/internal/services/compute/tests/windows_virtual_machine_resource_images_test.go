@@ -151,10 +151,10 @@ resource "azurerm_network_interface" "public" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-	name                          = "testconfigurationsource"
-	subnet_id                     = "${azurerm_subnet.test.id}"
-	private_ip_address_allocation = "Dynamic"
-	public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    name                          = "testconfigurationsource"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
 
@@ -184,12 +184,12 @@ func testWindowsVirtualMachine_imageFromExistingMachinePrep(data acceptance.Test
 %s
 
 resource "azurerm_windows_virtual_machine" "source" {
-  name                            = "${local.vm_name}1"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = "${local.vm_name}1"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.public.id,
   ]
@@ -222,13 +222,13 @@ resource "azurerm_image" "test" {
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = "${local.vm_name}2"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
-  source_image_id                 = azurerm_image.test.id
+  name                = "${local.vm_name}2"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  source_image_id     = azurerm_image.test.id
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -253,12 +253,12 @@ resource "azurerm_marketplace_agreement" "test" {
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -334,13 +334,13 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
-  source_image_id                 = azurerm_shared_image_version.test.id
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  source_image_id     = azurerm_shared_image_version.test.id
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -359,12 +359,12 @@ func testWindowsVirtualMachine_imageFromSourceImageReference(data acceptance.Tes
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

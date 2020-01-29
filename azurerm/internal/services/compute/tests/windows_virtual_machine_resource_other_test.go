@@ -547,12 +547,12 @@ func testWindowsVirtualMachine_otherAdditionalUnattendContent(data acceptance.Te
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -583,12 +583,12 @@ func testWindowsVirtualMachine_otherAllowExtensionOperationsDefault(data accepta
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -614,13 +614,13 @@ func testWindowsVirtualMachine_otherAllowExtensionOperationsDisabled(data accept
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
-  allow_extension_operations      = false
+  name                       = local.vm_name
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_F2"
+  admin_username             = "adminuser"
+  admin_password             = "P@$$w0rd1234!"
+  allow_extension_operations = false
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -646,12 +646,12 @@ func testWindowsVirtualMachine_otherBootDiagnostics(data acceptance.TestData) st
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -681,12 +681,12 @@ func testWindowsVirtualMachine_otherBootDiagnosticsDisabled(data acceptance.Test
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -727,12 +727,12 @@ func testWindowsVirtualMachine_otherComputerNameDefault(data acceptance.TestData
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -758,13 +758,13 @@ func testWindowsVirtualMachine_otherComputerNameCustom(data acceptance.TestData)
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
-  computer_name                   = "custom123"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  computer_name       = "custom123"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -790,13 +790,13 @@ func testWindowsVirtualMachine_otherCustomData(data acceptance.TestData) string 
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
-  custom_data                     = base64encode("/bin/bash")
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  custom_data         = base64encode("/bin/bash")
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -822,13 +822,13 @@ func testWindowsVirtualMachine_otherEnableAutomaticUpdatesDefault(data acceptanc
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                     = local.vm_name
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  size                     = "Standard_F2"
-  admin_username           = "adminuser"
-  admin_password           = "P@$$w0rd1234!"
-  network_interface_ids    = [
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
 
@@ -885,13 +885,13 @@ func testWindowsVirtualMachine_otherLicenseType(data acceptance.TestData, licens
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
-  license_type                    = %q
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  license_type        = %q
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -917,13 +917,13 @@ func testWindowsVirtualMachine_otherLicenseTypeWindowsClient(data acceptance.Tes
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
-  license_type                    = "Windows_Client"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  license_type        = "Windows_Client"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -949,14 +949,14 @@ func testWindowsVirtualMachine_otherPrioritySpot(data acceptance.TestData) strin
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  size                 = "Standard_F2"
-  admin_username       = "adminuser"
-  admin_password       = "P@$$w0rd1234!"
-  eviction_policy      = "Deallocate"
-  priority             = "Spot"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  eviction_policy     = "Deallocate"
+  priority            = "Spot"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -982,15 +982,15 @@ func testWindowsVirtualMachine_otherPrioritySpotMaxBidPrice(data acceptance.Test
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  size                 = "Standard_F2"
-  admin_username       = "adminuser"
-  admin_password       = "P@$$w0rd1234!"
-  eviction_policy      = "Deallocate"
-  priority             = "Spot"
-  max_bid_price        = %q
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  eviction_policy     = "Deallocate"
+  priority            = "Spot"
+  max_bid_price       = %q
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1016,12 +1016,12 @@ func testWindowsVirtualMachine_otherProvisionVMAgentDefault(data acceptance.Test
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1047,14 +1047,14 @@ func testWindowsVirtualMachine_otherProvisionVMAgentDisabled(data acceptance.Tes
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  provision_vm_agent              = false
-  allow_extension_operations      = false
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                       = local.vm_name
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_F2"
+  provision_vm_agent         = false
+  allow_extension_operations = false
+  admin_username             = "adminuser"
+  admin_password             = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1245,12 +1245,12 @@ func testWindowsVirtualMachine_otherSecret(data acceptance.TestData) string {
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1285,12 +1285,12 @@ func testWindowsVirtualMachine_otherSecretRemoved(data acceptance.TestData) stri
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1316,12 +1316,12 @@ func testWindowsVirtualMachine_otherSecretUpdated(data acceptance.TestData) stri
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1361,12 +1361,12 @@ func testWindowsVirtualMachine_otherTags(data acceptance.TestData) string {
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1396,12 +1396,12 @@ func testWindowsVirtualMachine_otherTagsUpdated(data acceptance.TestData) string
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1432,13 +1432,13 @@ func testWindowsVirtualMachine_otherTimeZone(data acceptance.TestData) string {
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
-  timezone                        = "Hawaiian Standard Time"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  timezone            = "Hawaiian Standard Time"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1464,12 +1464,12 @@ func testWindowsVirtualMachine_otherWinRMHTTP(data acceptance.TestData) string {
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -1608,12 +1608,12 @@ resource "azurerm_key_vault_certificate" "test" {
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

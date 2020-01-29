@@ -311,11 +311,11 @@ func testLinuxVirtualMachine_diskOSBasic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -346,11 +346,11 @@ func testLinuxVirtualMachine_diskOSCachingType(data acceptance.TestData, caching
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -381,11 +381,11 @@ func testLinuxVirtualMachine_diskOSCustomName(data acceptance.TestData) string {
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -417,11 +417,11 @@ func testLinuxVirtualMachine_diskOSCustomSize(data acceptance.TestData, size int
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -479,8 +479,8 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.service_principal_object_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.service_principal_object_id
 
   key_permissions = [
     "create",
@@ -529,15 +529,15 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
- name                = "acctestnic-%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestnic-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
- ip_configuration {
-   name                          = "internal"
-   subnet_id                     = azurerm_subnet.test.id
-   private_ip_address_allocation = "Dynamic"
- }
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
 }
 `, data.RandomInteger, location, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
@@ -585,11 +585,11 @@ func testLinuxVirtualMachine_diskOSDiskDiskEncryptionSet(data acceptance.TestDat
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -600,9 +600,9 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   os_disk {
-    caching                 = "ReadWrite"
-    disk_encryption_set_id  = azurerm_disk_encryption_set.test.id
-    storage_account_type    = "Standard_LRS"
+    caching                = "ReadWrite"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+    storage_account_type   = "Standard_LRS"
   }
 
   source_image_reference {
@@ -626,11 +626,11 @@ func testLinuxVirtualMachine_diskOSEphemeral(data acceptance.TestData) string {
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2s_v2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2s_v2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -665,11 +665,11 @@ func testLinuxVirtualMachine_diskOSStorageAccountType(data acceptance.TestData, 
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2s_v2"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2s_v2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -700,11 +700,11 @@ func testLinuxVirtualMachine_diskOSWriteAcceleratorEnabled(data acceptance.TestD
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_M8ms"
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_M8ms"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

@@ -143,11 +143,11 @@ func testLinuxVirtualMachine_scalingAdditionalCapabilitiesUltraSSD(data acceptan
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                  = "acctestVM-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  size                  = "Standard_D2S_V3"
-  admin_username        = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2S_V3"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -190,12 +190,12 @@ resource "azurerm_availability_set" "test" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                  = "acctestVM-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  size                  = "Standard_F2"
-  admin_username        = "adminuser"
-  availability_set_id   = azurerm_availability_set.test.id
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  availability_set_id = azurerm_availability_set.test.id
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -241,12 +241,12 @@ resource "azurerm_dedicated_host" "test" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                  = "acctestVM-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  size                  = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
-  admin_username        = "adminuser"
-  dedicated_host_id     = azurerm_dedicated_host.test.id
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3" # NOTE: SKU's are limited by the Dedicated Host
+  admin_username      = "adminuser"
+  dedicated_host_id   = azurerm_dedicated_host.test.id
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -289,7 +289,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   size                         = "Standard_F2"
   admin_username               = "adminuser"
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
-  network_interface_ids        = [
+  network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
 
@@ -319,11 +319,11 @@ func testLinuxVirtualMachine_scalingMachineSize(data acceptance.TestData, size s
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = %q
-  admin_username                  = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = %q
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -354,15 +354,15 @@ func testLinuxVirtualMachine_scalingZone(data acceptance.TestData) string {
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                  = "acctestVM-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  size                  = "Standard_F2"
-  admin_username        = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
-  zone                  = 1
+  zone = 1
 
   admin_ssh_key {
     username   = "adminuser"

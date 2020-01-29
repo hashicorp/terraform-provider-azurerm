@@ -94,15 +94,15 @@ func testLinuxVirtualMachine_template(data acceptance.TestData) string {
 %s
 
 resource "azurerm_network_interface" "test" {
- name                = "acctestnic-%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestnic-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
- ip_configuration {
-   name                          = "internal"
-   subnet_id                     = azurerm_subnet.test.id
-   private_ip_address_allocation = "Dynamic"
- }
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
 }
 `, template, data.RandomInteger)
 }

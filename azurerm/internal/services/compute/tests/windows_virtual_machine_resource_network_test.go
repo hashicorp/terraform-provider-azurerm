@@ -408,12 +408,12 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -439,27 +439,27 @@ func testWindowsVirtualMachine_networkMultipleTemplate(data acceptance.TestData)
 %s
 
 resource "azurerm_network_interface" "first" {
- name                = "acctestnic1-%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestnic1-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
- ip_configuration {
-   name                          = "internal"
-   subnet_id                     = azurerm_subnet.test.id
-   private_ip_address_allocation = "Dynamic"
- }
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
 }
 
 resource "azurerm_network_interface" "second" {
- name                = "acctestnic2-%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestnic2-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
- ip_configuration {
-   name                          = "internal"
-   subnet_id                     = azurerm_subnet.test.id
-   private_ip_address_allocation = "Dynamic"
- }
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -470,12 +470,12 @@ func testWindowsVirtualMachine_networkMultiple(data acceptance.TestData) string 
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.first.id,
     azurerm_network_interface.second.id,
@@ -502,12 +502,12 @@ func testWindowsVirtualMachine_networkMultipleUpdated(data acceptance.TestData) 
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.second.id,
     azurerm_network_interface.first.id,
@@ -534,12 +534,12 @@ func testWindowsVirtualMachine_networkMultipleRemoved(data acceptance.TestData) 
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.second.id,
   ]
@@ -612,12 +612,12 @@ func testWindowsVirtualMachine_networkMultiplePublic(data acceptance.TestData) s
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.first.id,
     azurerm_network_interface.second.id,
@@ -644,12 +644,12 @@ func testWindowsVirtualMachine_networkMultiplePublicUpdated(data acceptance.Test
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.second.id,
     azurerm_network_interface.first.id,
@@ -676,12 +676,12 @@ func testWindowsVirtualMachine_networkMultiplePublicRemoved(data acceptance.Test
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.second.id,
   ]
@@ -707,12 +707,12 @@ func testWindowsVirtualMachine_networkPrivateDynamicIP(data acceptance.TestData)
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -738,12 +738,12 @@ func testWindowsVirtualMachine_networkPrivateStaticIP(data acceptance.TestData) 
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -770,12 +770,12 @@ func testWindowsVirtualMachine_networkPublicDynamicPrivateDynamicIP(data accepta
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -802,12 +802,12 @@ func testWindowsVirtualMachine_networkPublicDynamicPrivateStaticIP(data acceptan
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -835,12 +835,12 @@ func testWindowsVirtualMachine_networkPublicStaticPrivateDynamicIP(data acceptan
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -868,12 +868,12 @@ func testWindowsVirtualMachine_networkPublicStaticPrivateStaticIP(data acceptanc
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = local.vm_name
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@$$w0rd1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -907,9 +907,9 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Static" 
+    private_ip_address_allocation = "Static"
     private_ip_address            = "10.0.2.30"
- }
+  }
 }
 `, template, data.RandomInteger)
 	}
@@ -918,15 +918,15 @@ resource "azurerm_network_interface" "test" {
 %s
 
 resource "azurerm_network_interface" "test" {
- name                = "acctestnic-%d"
- location            = azurerm_resource_group.test.location
- resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestnic-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
- ip_configuration {
-   name                          = "internal"
-   subnet_id                     = azurerm_subnet.test.id
-   private_ip_address_allocation = "Dynamic"
- }
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
 }
 `, template, data.RandomInteger)
 }
