@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -53,11 +52,10 @@ func resourceArmDnsAAAARecord() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type:             schema.TypeString,
-					DiffSuppressFunc: suppress.IPv6Compression,
-					ValidateFunc:     validate.IPv6Address,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.IPv6Address,
 				},
-				Set:           schema.HashString,
+				Set:           azure.HashIPv6Address,
 				ConflictsWith: []string{"target_resource_id"},
 			},
 
@@ -217,7 +215,7 @@ func expandAzureRmDnsAaaaRecords(input []interface{}) *[]dns.AaaaRecord {
 	records := make([]dns.AaaaRecord, len(input))
 
 	for i, v := range input {
-		ipv6 := v.(string)
+		ipv6 := azure.NormalizeIPv6Address(v)
 		records[i] = dns.AaaaRecord{
 			Ipv6Address: &ipv6,
 		}
@@ -237,7 +235,7 @@ func flattenAzureRmDnsAaaaRecords(records *[]dns.AaaaRecord) []string {
 			continue
 		}
 
-		results = append(results, *record.Ipv6Address)
+		results = append(results, azure.NormalizeIPv6Address(*record.Ipv6Address))
 	}
 	return results
 }

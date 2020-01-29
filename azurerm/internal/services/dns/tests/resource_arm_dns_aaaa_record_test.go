@@ -517,7 +517,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
-	
+
 resource "azurerm_dns_zone" "test" {
   name                = "acctestzone%d.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
