@@ -1,26 +1,26 @@
 ---
 subcategory: "Monitor"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_action"
-sidebar_current: "docs-azurerm-datasource-monitor-scheduled-query-rules-action"
+page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_alert"
+sidebar_current: "docs-azurerm-datasource-monitor-scheduled-query-rules-alert"
 description: |-
   Get information about the specified AlertingAction Scheduled Query Rule.
 ---
 
-# Data Source: azurerm_monitor_scheduled_query_rules
+# Data Source: azurerm_monitor_scheduled_query_rules_alert
 
 Use this data source to access the properties of an AlertingAction Scheduled Query Rule.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_monitor_scheduled_query_rules_action" "example" {
+data "azurerm_monitor_scheduled_query_rules_alert" "example" {
   resource_group_name = "terraform-example-rg"
   name                = "tfex-queryrule"
 }
 
 output "query_rule_id" {
-  value = "${data.azurerm_monitor_scheduled_query_rules_action.example.id}"
+  value = "${data.azurerm_monitor_scheduled_query_rules_alert.example.id}"
 }
 ```
 

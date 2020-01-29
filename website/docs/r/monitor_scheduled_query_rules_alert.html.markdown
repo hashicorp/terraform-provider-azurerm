@@ -1,13 +1,13 @@
 ---
 subcategory: "Monitor"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_action"
-sidebar_current: "docs-azurerm-resource-monitor-scheduled-query-rules-action"
+page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_alert"
+sidebar_current: "docs-azurerm-resource-monitor-scheduled-query-rules-alert"
 description: |-
   Manages an AlertingAction Scheduled Query Rule within Azure Monitor
 ---
 
-# azurerm_monitor_scheduled_query_rules_action
+# azurerm_monitor_scheduled_query_rules_alert
 
 Manages an AlertingAction Scheduled Query Rule within Azure Monitor.
 
@@ -35,7 +35,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 # Example: Alerting Action
-resource "azurerm_scheduled_query_rule_action" "example" {
+resource "azurerm_scheduled_query_rule_alert" "example" {
   name                   = format("%s-queryrule", var.prefix)
   location               = azurerm_resource_group.example.location
   resource_group_name    = azurerm_resource_group.example.name
@@ -66,7 +66,7 @@ resource "azurerm_scheduled_query_rule_action" "example" {
 }
 
 # Example: Alerting Action Cross-Resource
-resource "azurerm_scheduled_query_rule_action" "example2" {
+resource "azurerm_scheduled_query_rule_alert" "example2" {
   name                   = format("%s-queryrule2", var.prefix)
   location               = azurerm_resource_group.example.location
   resource_group_name    = azurerm_resource_group.example.name
@@ -150,5 +150,5 @@ The following attributes are exported:
 Scheduled Query Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_scheduled_query_rules_action.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/scheduledQueryRules/myrulename
+terraform import azurerm_monitor_scheduled_query_rules_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/scheduledQueryRules/myrulename
 ```
