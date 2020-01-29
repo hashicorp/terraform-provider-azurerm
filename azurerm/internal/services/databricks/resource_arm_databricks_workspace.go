@@ -346,7 +346,7 @@ func ValidateDatabricksWorkspaceName(i interface{}, k string) (warnings []string
 
 	// First, second, and last characters must be a letter or number with a total length between 3 to 64 characters
 	// NOTE: Restricted name to 30 characters because that is the restriction in Azure Portal even though the API supports 64 characters
-	if !regexp.MustCompile("^[a-zA-Z0-9]{2}[_-a-zA-Z0-9]{0,27}[a-zA-Z0-9]{1}$").MatchString(v) {
+	if !regexp.MustCompile("^[a-zA-Z0-9]{2}[-_a-zA-Z0-9]{0,27}[a-zA-Z0-9]{1}$").MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q must be 3 - 30 characters in length", k))
 		errors = append(errors, fmt.Errorf("%q first, second, and last characters must be a letter or number", k))
 		errors = append(errors, fmt.Errorf("%q can only contain letters, numbers, underscores, and hyphens", k))
