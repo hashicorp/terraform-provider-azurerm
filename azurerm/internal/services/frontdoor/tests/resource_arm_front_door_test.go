@@ -665,7 +665,9 @@ resource "azurerm_frontdoor" "test" {
     name                              = local.endpoint_name
     host_name                         = "acctestfd-%d.azurefd.net"
     custom_https_provisioning_enabled = true
-    certificate_source                = "FrontDoor"
+    custom_https_configuration {
+      certificate_source = "FrontDoor"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
