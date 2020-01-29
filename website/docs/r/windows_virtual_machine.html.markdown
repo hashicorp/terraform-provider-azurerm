@@ -24,6 +24,7 @@ Manages a Windows Virtual Machine.
 
 ~> In this Beta release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
 
+
 ## Example Usage
 
 This example provisions a basic Windows Virtual Machine on an internal network. Additional examples of how to use the `azurerm_windows_virtual_machine` resource can be found [in the ./examples/virtual-machine/windows` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/virtual-machine/windows).
