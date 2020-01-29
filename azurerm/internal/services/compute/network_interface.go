@@ -24,6 +24,7 @@ type connectionInfo struct {
 }
 
 // retrieveConnectionInformation retrieves all of the Public and Private IP Addresses assigned to a Virtual Machine
+// nolint: deadcode unused
 func retrieveConnectionInformation(ctx context.Context, nicsClient *network.InterfacesClient, pipsClient *network.PublicIPAddressesClient, input *compute.VirtualMachineProperties) connectionInfo {
 	if input == nil || input.NetworkProfile == nil || input.NetworkProfile.NetworkInterfaces == nil {
 		return connectionInfo{}
@@ -94,7 +95,6 @@ func retrieveIPAddressesForNIC(ctx context.Context, nicClient *network.Interface
 	publicIPAddresses := make([]string, 0)
 	for _, config := range *nic.InterfacePropertiesFormat.IPConfigurations {
 		if props := config.InterfaceIPConfigurationPropertiesFormat; props != nil {
-
 			if props.PrivateIPAddress != nil {
 				privateIPAddresses = append(privateIPAddresses, *props.PrivateIPAddress)
 			}
@@ -145,6 +145,7 @@ func retrievePublicIPAddress(ctx context.Context, client *network.PublicIPAddres
 // setConnectionInformation sets the connection information required for Provisioners
 // to connect to the Virtual Machine. A Public IP Address is used if one is available
 // but this falls back to a Private IP Address (which should always exist)
+// nolint: deadcode unused
 func setConnectionInformation(d *schema.ResourceData, input connectionInfo, isWindows bool) {
 	provisionerType := "ssh"
 	if isWindows {
