@@ -410,12 +410,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									},
 									"minimum_tls_version": {
 										Type:     schema.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(frontdoor.OneFullStopTwo),
-											string(frontdoor.OneFullStopZero),
-										}, false),
-										Default: string(frontdoor.OneFullStopZero), // TODO: Update default to TLS 1.2 in version 2.0
+										Computed: true,
 									},
 									"provisioning_state": {
 										Type:     schema.TypeString,
@@ -558,9 +553,12 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 					// Build a custom Https configuration based off the config file to send to the enable call
 					// NOTE: I do not need to check to see if this exists since I already do that in the validation code
 					chc := frontendEndpoint["custom_https_configuration"].([]interface{})
-					customHttpsConfiguration := chc[0].(map[string]interface{})
-					customHTTPSConfigurationUpdate := makeCustomHttpsConfiguration(customHttpsConfiguration)
-
+					customHTTPSConfiguration := chc[0].(map[string]interface{})
+					minTLSVersion := frontdoor.OneFullStopTwo // Default to TLS 1.2
+					if httpsConfig := properties.CustomHTTPSConfiguration; httpsConfig != nil {
+						minTLSVersion = httpsConfig.MinimumTLSVersion
+					}
+					customHTTPSConfigurationUpdate := makeCustomHttpsConfiguration(customHTTPSConfiguration, minTLSVersion)
 					// Enable Custom Domain HTTPS for the Frontend Endpoint
 					if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(d, true, name, frontendEndpointName, resourceGroup, customHTTPSConfigurationUpdate, meta); err != nil {
 						return fmt.Errorf("Unable enable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
@@ -820,7 +818,6 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorPath strin
 		hostName := frontendEndpoint["host_name"].(string)
 		isSessionAffinityEnabled := frontendEndpoint["session_affinity_enabled"].(bool)
 		sessionAffinityTtlSeconds := int32(frontendEndpoint["session_affinity_ttl_seconds"].(int))
-		customHttpsConfiguration := frontendEndpoint["custom_https_configuration"].([]interface{})
 		waf := frontendEndpoint["web_application_firewall_policy_link_id"].(string)
 		name := frontendEndpoint["name"].(string)
 		id := utils.String(frontDoorPath + "/FrontendEndpoints/" + name)
@@ -834,7 +831,6 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorPath strin
 			ID:   id,
 			Name: utils.String(name),
 			FrontendEndpointProperties: &frontdoor.FrontendEndpointProperties{
-				CustomHTTPSConfiguration:    expandArmFrontDoorCustomHTTPSConfiguration(customHttpsConfiguration),
 				HostName:                    utils.String(hostName),
 				SessionAffinityEnabledState: sessionAffinityEnabled,
 				SessionAffinityTTLSeconds:   utils.Int32(sessionAffinityTtlSeconds),
@@ -851,27 +847,6 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorPath strin
 	}
 
 	return &output
-}
-
-func expandArmFrontDoorCustomHTTPSConfiguration(input []interface{}) *frontdoor.CustomHTTPSConfiguration {
-	if len(input) == 0 {
-		// https://github.com/Azure/azure-sdk-for-go/issues/6882
-		defaultProtocolType := "ServerNameIndication"
-
-		defaultHttpsConfiguration := frontdoor.CustomHTTPSConfiguration{
-			ProtocolType:      &defaultProtocolType,
-			CertificateSource: frontdoor.CertificateSourceFrontDoor,
-			CertificateSourceParameters: &frontdoor.CertificateSourceParameters{
-				CertificateType: frontdoor.Dedicated,
-			},
-		}
-		return &defaultHttpsConfiguration
-	}
-
-	v := input[0].(map[string]interface{})
-	customHttpsConfiguration := makeCustomHttpsConfiguration(v)
-
-	return &customHttpsConfiguration
 }
 
 func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorPath string) *[]frontdoor.HealthProbeSettingsModel {
@@ -1509,15 +1484,13 @@ func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubReso
 	return output
 }
 
-func makeCustomHttpsConfiguration(customHttpsConfiguration map[string]interface{}) frontdoor.CustomHTTPSConfiguration {
+func makeCustomHttpsConfiguration(customHttpsConfiguration map[string]interface{}, minTLSVersion frontdoor.MinimumTLSVersion) frontdoor.CustomHTTPSConfiguration {
 	// https://github.com/Azure/azure-sdk-for-go/issues/6882
 	defaultProtocolType := "ServerNameIndication"
 
-	minTLSVersion := customHttpsConfiguration["minimum_tls_version"].(string)
-
 	customHTTPSConfigurationUpdate := frontdoor.CustomHTTPSConfiguration{
 		ProtocolType:      &defaultProtocolType,
-		MinimumTLSVersion: frontdoor.MinimumTLSVersion(minTLSVersion),
+		MinimumTLSVersion: minTLSVersion,
 	}
 
 	if customHttpsConfiguration["certificate_source"].(string) == "AzureKeyVault" {
