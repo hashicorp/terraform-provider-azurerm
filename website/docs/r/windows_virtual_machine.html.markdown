@@ -1,14 +1,14 @@
 ---
 subcategory: "Beta"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_linux_virtual_machine"
+page_title: "Azure Resource Manager: azurerm_windows_virtual_machine"
 description: |-
-  Manages a Linux Virtual Machine.
+  Manages a Windows Virtual Machine.
 ---
 
-# azurerm_linux_virtual_machine
+# azurerm_windows_virtual_machine
 
-Manages a Linux Virtual Machine.
+Manages a Windows Virtual Machine.
 
 ## Disclaimers
 
@@ -22,7 +22,7 @@ Manages a Linux Virtual Machine.
 
 ## Example Usage
 
-This example provisions a basic Linux Virtual Machine on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine` resource can be found [in the ./examples/virtual-machine/linux` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/virtual-machine/linux).
+This example provisions a basic Windows Virtual Machine on an internal network. Additional examples of how to use the `azurerm_windows_virtual_machine` resource can be found [in the ./examples/virtual-machine/windows` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/virtual-machine/windows).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -56,20 +56,16 @@ resource "azurerm_network_interface" "example" {
  }
 }
 
-resource "azurerm_linux_virtual_machine" "example" {
-  name                            = "example-machine"
-  resource_group_name             = azurerm_resource_group.example.name
-  location                        = azurerm_resource_group.example.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
+resource "azurerm_windows_virtual_machine" "example" {
+  name                  = "example-machine"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
+  size                  = "Standard_F2"
+  admin_username        = "adminuser"
+  admin_password        = "P@$$w0rd1234!"
   network_interface_ids = [
     azurerm_network_interface.example.id,
   ]
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub")
-  }
 
   os_disk {
     caching              = "ReadWrite"
@@ -77,9 +73,9 @@ resource "azurerm_linux_virtual_machine" "example" {
   }
 
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
     version   = "latest"
   }
 }
@@ -89,17 +85,19 @@ resource "azurerm_linux_virtual_machine" "example" {
 
 The following arguments are supported:
 
+* `admin_password` - (Required) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
+
 * `admin_username` - (Required) The username of the local administrator used for the Virtual Machine. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location where the Linux Virtual Machine should exist. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure location where the Windows Virtual Machine should exist. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the Linux Virtual Machine. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Windows Virtual Machine. Changing this forces a new resource to be created.
 
 * `network_interface_ids` - (Required). A list of Network Interface ID's which should be attached to this Virtual Machine. The first Network Interface ID in this list will be the Primary Network Interface on the Virtual Machine.
 
 * `os_disk` - (Required) A `os_disk` block as defined below.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Linux Virtual Machine should be exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group in which the Windows Virtual Machine should be exist. Changing this forces a new resource to be created.
 
 * `size` - (Required) The SKU which should be used for this Virtual Machine, such as `Standard_F2`.
 
@@ -107,14 +105,7 @@ The following arguments are supported:
 
 * `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below.
 
-* `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
-
--> **NOTE:** When an `admin_password` is specified `disable_password_authentication` must be set to `false`.
-~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
-
-* `admin_ssh_key` - (Optional) One or more `admin_ssh_key` blocks as defined below.
-
-~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
+* `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below. Changing this forces a new resource to be created.
 
 * `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine? Changing this forces a new resource to be created.
 
@@ -128,17 +119,15 @@ The following arguments are supported:
 
 * `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on. Changing this forces a new resource to be created.
 
-* `disable_password_authentication` - (Optional) Should Password Authentication be disabled on this Virtual Machine? Defaults to `true`. Changing this forces a new resource to be created.
-
--> In general we'd recommend using SSH Keys for authentication rather than Passwords - but there's tradeoff's to each - please [see this thread for more information](https://security.stackexchange.com/questions/69407/why-is-using-an-ssh-key-more-secure-than-using-passwords).
-
--> **NOTE:** When an `admin_password` is specified `disable_password_authentication` must be set to `false`.
+* `enable_automatic_updates` - (Optional) Specifies if Automatic Updates are Enabled for the Windows Virtual Machine. Changing this forces a new resource to be created.
 
 * `eviction_policy` - (Optional) Specifies what should happen when the Virtual Machine is evicted for price reasons when using a Spot instance. At this time the only supported value is `Deallocate`. Changing this forces a new resource to be created.
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `license_type` - (Optional) Specifies the type of on-premise license (also known as [Azure Hybrid Use Benefit](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-hybrid-use-benefit-licensing)) which should be used for this Virtual Machine. Possible values are `None`, `Windows_Client` and `Windows_Server`. Changing this forces a new resource to be created.
 
 * `max_bid_price` - (Optional) The maximum price you're willing to pay for this Virtual Machine, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machine will be evicted using the `eviction_policy`. Defaults to `-1`, which means that the Virtual Machine should not be evicted for price reasons.
 
@@ -164,6 +153,10 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine.
 
+* `timezone` - (Optional) Specifies the Time Zone which should be used by the Virtual Machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
+
+* `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below.
+
 * `zone` - (Optional) The Zone in which this Virtual Machine should be created. Changing this forces a new resource to be created.
 
 ---
@@ -174,13 +167,11 @@ A `additional_capabilities` block supports the following:
 
 ---
 
-A `admin_ssh_key` block supports the following:
+A `additional_unattend_content` block supports the following:
 
-* `public_key` - (Required) The Public Key which should be used for authentication, which needs to be at least 2048-bit and in `ssh-rsa` format. Changing this forces a new resource to be created.
+* `content` - (Required) The XML formatted content that is added to the unattend.xml file for the specified path and component. Changing this forces a new resource to be created.
 
-* `username` - (Required) The Username for which this Public SSH Key should be configured. Changing this forces a new resource to be created.
-
--> **NOTE:** The Azure VM Agent only allows creating SSH Keys at the path `/home/{username}/.ssh/authorized_keys` - as such this public key will be written to the authorized keys file.
+* `setting` - (Required) The name of the setting to which the content applies. Possible values are `AutoLogon` and `FirstLogonCommands`. Changing this forces a new resource to be created.
 
 ---
 
@@ -191,6 +182,8 @@ A `boot_diagnostics` block supports the following:
 ---
 
 A `certificate` block supports the following:
+
+* `store` - (Required) The certificate store on the Virtual Machine where the certificate should be added.
 
 * `url` - (Required) The Secret URL of a Key Vault Certificate.
 
@@ -206,9 +199,9 @@ A `diff_disk_settings` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity which should be assigned to the Linux Virtual Machine. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+* `type` - (Required) The type of Managed Identity which should be assigned to the Windows Virtual Machine. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Linux Virtual Machine.
+* `identity_ids` - (Optional) A list of User Managed Identity ID's which should be assigned to the Windows Virtual Machine.
 
 ~> **NOTE:** This is required when `type` is set to `UserAssigned`.
 
@@ -256,11 +249,17 @@ A `secret` block supports the following:
 
 * `key_vault_id` - (Required) The ID of the Key Vault from which all Secrets should be sourced.
 
+---
+
+A `winrm_listener` block supports the following:
+
+* `certificate_url` - (Optional) The Secret URL of a Key Vault Certificate, which must be specified when `protocol` is set to `Https`.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of the Linux Virtual Machine.
+* `id` - The ID of the Windows Virtual Machine.
 
 * `identity` - An `identity` block as documented below.
 
@@ -284,14 +283,14 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 45 minutes) Used when creating the Linux Virtual Machine.
-* `update` - (Defaults to 45 minutes) Used when updating the Linux Virtual Machine.
-* `delete` - (Defaults to 45 minutes) Used when deleting the Linux Virtual Machine.
+* `create` - (Defaults to 45 minutes) Used when creating the Windows Virtual Machine.
+* `update` - (Defaults to 45 minutes) Used when updating the Windows Virtual Machine.
+* `delete` - (Defaults to 45 minutes) Used when deleting the Windows Virtual Machine.
 
 ## Import
 
-Linux Virtual Machines can be imported using the `resource id`, e.g.
+Windows Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_linux_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/Microsoft.Compute/virtualMachines/machine1
+terraform import azurerm_windows_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/Microsoft.Compute/virtualMachines/machine1
 ```

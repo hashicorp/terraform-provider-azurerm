@@ -150,6 +150,7 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"None",
 					"Windows_Client",
 					"Windows_Server",
 				}, false),
