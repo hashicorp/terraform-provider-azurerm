@@ -8,15 +8,19 @@ description: |-
 
 # azurerm_windows_virtual_machine_scale_set
 
-~> **NOTE:** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider.
-
-~> **NOTE**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
-
 Manages a Windows Virtual Machine Scale Set.
 
-~> **NOTE:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
+## Disclaimers
+
+~> **Note** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider.
+
+~> **Note:** Terraform will automatically update & reimage the nodes in the Scale Set if Required during an Update (for example, when changing Sku) - you can opt out of this by setting the `terraform_should_roll_instances_when_required` field to `false`.
+
+~> **Note**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 -> **Note** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://www.terraform.io/docs/providers/azurerm/index.html#features).
+
+~> **Note:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
 
 ## Example Usage
 
