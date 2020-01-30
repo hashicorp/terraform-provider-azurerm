@@ -7,6 +7,7 @@ FEATURES:
 
 BUGS:
 
+* `azurerm_databricks_workspace` - allow underscores in `name` [GH-5548]
 * `azurerm_dns_aaaa_record` - normalize IPv6 addresses [GH-5459]
 * `azurerm_virtual_network_gateway_connection` - increase `routing_weight` maximum to `32000` [GH-5540]
 
