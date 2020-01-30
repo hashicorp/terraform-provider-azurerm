@@ -28,6 +28,7 @@ func shouldBootVirtualMachine(instanceView compute.VirtualMachineInstanceView) b
 			case "deallocating":
 			case "deallocated":
 			case "stopped":
+			case "stopping":
 				return true
 			}
 		}
