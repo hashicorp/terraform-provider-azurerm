@@ -85,17 +85,19 @@ func resourceArmSubnet() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"Microsoft.Batch/batchAccounts",
-											"Microsoft.ContainerInstance/containerGroups",
-											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
-											"Microsoft.Logic/integrationServiceEnvironments",
-											"Microsoft.Netapp/volumes",
-											"Microsoft.ServiceFabricMesh/networks",
-											"Microsoft.Sql/managedInstances",
-											"Microsoft.Sql/servers",
-											"Microsoft.Web/serverFarms",
-										}, false),
+										// Removing this validation because of issues related to case sensitivity
+										// See https://luminal.atlassian.net/browse/RM-3243
+										// ValidateFunc: validation.StringInSlice([]string{
+										// 	"Microsoft.Batch/batchAccounts",
+										// 	"Microsoft.ContainerInstance/containerGroups",
+										// 	"Microsoft.HardwareSecurityModules/dedicatedHSMs",
+										// 	"Microsoft.Logic/integrationServiceEnvironments",
+										// 	"Microsoft.Netapp/volumes",
+										// 	"Microsoft.ServiceFabricMesh/networks",
+										// 	"Microsoft.Sql/managedInstances",
+										// 	"Microsoft.Sql/servers",
+										// 	"Microsoft.Web/serverFarms",
+										// }, false),
 									},
 									"actions": {
 										Type:     schema.TypeList,
