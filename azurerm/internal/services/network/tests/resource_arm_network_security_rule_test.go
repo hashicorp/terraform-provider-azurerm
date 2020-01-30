@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -136,6 +137,23 @@ func TestAccAzureRMNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMNetworkSecurityRule_resourceGroupNameCaseDiff(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkSecurityRule_resourceGroupNameCaseDiff(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkSecurityRuleExists(data.ResourceName),
+				),
+			},
 		},
 	})
 }
@@ -373,6 +391,37 @@ resource "azurerm_network_security_rule" "test1" {
   network_security_group_name  = "${azurerm_network_security_group.test1.name}"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMNetworkSecurityRule_resourceGroupNameCaseDiff(data acceptance.TestData) string {
+	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+	resourceGroupNameLower := strings.ToLower(resourceGroupName)
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "%s"
+  location = "%s"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "accTestSecurityGroup"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_network_security_rule" "test" {
+  name                         = "accTestSecurityRule"
+  priority                     = 100
+  direction                    = "Outbound"
+  access                       = "Allow"
+  protocol                     = "Tcp"
+  source_port_ranges           = ["10000-40000"]
+  destination_port_ranges      = ["80", "443", "8080", "8190"]
+  source_address_prefixes      = ["10.0.0.0/8", "192.168.0.0/16"]
+  destination_address_prefixes = ["172.16.0.0/20", "8.8.8.8"]
+  resource_group_name          = "%s"
+  network_security_group_name  = "${azurerm_network_security_group.test.name}"
+}
+`, resourceGroupName, data.Locations.Primary, resourceGroupNameLower)
 }
 
 func testAccAzureRMNetworkSecurityRule_applicationSecurityGroups(data acceptance.TestData) string {
