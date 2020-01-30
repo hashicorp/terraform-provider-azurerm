@@ -203,7 +203,7 @@ resource "azurerm_hpc_cache" "test" {
 
   tags = {
     label       = "test1"
-	environment = "Test"
+    environment = "Test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
