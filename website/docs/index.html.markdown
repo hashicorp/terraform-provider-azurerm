@@ -151,10 +151,18 @@ The `features` block supports the following:
 
 * `virtual_machine` - (Optional) A `virtual_machine` block as defined below.
 
+* `virtual_machine_scale_set` - (Optional) A `virtual_machine_scale_set` block as defined below.
+
 ---
 
 The `virtual_machine` block supports the following:
 
-* `delete_os_disk_on_deletion` - should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
+* `delete_os_disk_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
 
 ~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has it's own flags for managing this within the resource.
+
+---
+
+The `virtual_machine_scale_set` block supports the following:
+
+* `roll_instances_when_required` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources automatically roll the instances in the Scale Set when Required (for example when updating the Sku/Image). Defaults to `true`.
