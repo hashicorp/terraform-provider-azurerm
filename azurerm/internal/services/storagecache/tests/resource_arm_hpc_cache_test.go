@@ -166,7 +166,7 @@ resource "azurerm_hpc_cache" "test" {
   sku_name            = "Standard_2G"
 
   tags = {
-	label = "test"
+    label = "test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -202,7 +202,7 @@ resource "azurerm_hpc_cache" "test" {
   sku_name            = "Standard_2G"
 
   tags = {
-	label       = "test1"
+    label       = "test1"
 	environment = "Test"
   }
 }
