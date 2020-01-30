@@ -1,47 +1,54 @@
-## 1.42.0 (Unreleased)
-
-NOTES:
-
-* `azurerm_cosmosdb_account` - the `capabilities` is now force new as it cannot be updated once set [GH-5453]
+## 1.43.0 (Unreleased)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_dedicated_host` [GH-5513]
-* **New Data Source:** `azurerm_api_management_api_version_set` [GH-5470]
-* **New Resource:** `azurerm_dedicated_host` [GH-5513]
+* **New Data Source:** `azurerm_eventhub_namespace_authorization_rule` [GH-5489]
+* **New Data Source:** `azurerm_mariadb_server` [GH-5506]
+
+## 1.42.0 (January 27, 2020)
+
+NOTES:
+
+* `azurerm_cosmosdb_account` - the `capabilities` is now force new as it cannot be updated once set ([#5453](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5453))
+
+FEATURES:
+
+* **New Data Source:** `azurerm_dedicated_host` ([#5513](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5513))
+* **New Data Source:** `azurerm_api_management_api_version_set` ([#5470](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5470))
+* **New Resource:** `azurerm_dedicated_host` ([#5513](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5513))
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to `v38.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-5385]
-* frontdoor: updating to use API version `2019-11-01` [GH-5385]
-* `azurerm_application_insights` - add support for `retention_in_days` [GH-5457]
-* `azurerm_batch_pool` - support for the `network_configuration` property [GH-5392]
-* `azurerm_cosmosdb_account` - support for the `EnableMongo` capability [GH-5325]
-* `azurerm_cosmosdb_account` - support for the `Parse` kind [GH-5453]
-* `azurerm_cosmosdb_sql_container` - support for `default_ttl` property [GH-5492]
-* `azurerm_databricks_workspace` - support for the `custom_parameters` property and `public_subnet_name`, `private_subnet_name`, and `virtual_network_id` parameters [GH-3889]
-* `azurerm_databricks_workspace` - support for the `no_public_ip` custom parameter [GH-5469]
-* `azurerm_express_route_circuit` - support for the `Basic` and `Local` tiers [GH-5456]
-* `azurerm_frontdoor_firewall_policy` - support for exclusions [GH-5407]
-* `azurerm_iothub` - support for the `event_hub_retention_in_days` and `event_hub_partition_count` properties [GH-5505]
-* `azurerm_kubernetes_cluster` - Add support for `load_balancer_profile` [GH-5394]
-* `azurerm_network_watcher_flow_log` - support for the `version` property [GH-5419]
-* `azurerm_traffic_manager_profile` - add the `expected_status_code_ranges` [GH-5471]
-* `azurerm_traffic_manager_profile` - switch `dns_config` and `monitor_config` to type list and limit to `1` [GH-5471]
-* `azurerm_kubernetes_cluster` - support updating AKS AAD RBAC profile without rebuilding cluster [GH-5410]
+* dependencies: upgrading to `v38.1.0` of `github.com/Azure/azure-sdk-for-go` ([#5385](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5385))
+* frontdoor: updating to use API version `2019-11-01` ([#5385](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5385))
+* `azurerm_application_insights` - add support for `retention_in_days` ([#5457](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5457))
+* `azurerm_batch_pool` - support for the `network_configuration` property ([#5392](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5392))
+* `azurerm_cosmosdb_account` - support for the `EnableMongo` capability ([#5325](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5325))
+* `azurerm_cosmosdb_account` - support for the `Parse` kind ([#5453](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5453))
+* `azurerm_cosmosdb_sql_container` - support for `default_ttl` property ([#5492](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5492))
+* `azurerm_databricks_workspace` - support for the `custom_parameters` property and `public_subnet_name`, `private_subnet_name`, and `virtual_network_id` parameters ([#3889](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3889))
+* `azurerm_databricks_workspace` - support for the `no_public_ip` custom parameter ([#5469](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5469))
+* `azurerm_express_route_circuit` - support for the `Basic` and `Local` tiers ([#5456](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5456))
+* `azurerm_frontdoor_firewall_policy` - support for exclusions ([#5407](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5407))
+* `azurerm_iothub` - support for the `event_hub_retention_in_days` and `event_hub_partition_count` properties ([#5505](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5505))
+* `azurerm_kubernetes_cluster` - Add support for `load_balancer_profile` ([#5394](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5394))
+* `azurerm_network_watcher_flow_log` - support for the `version` property ([#5419](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5419))
+* `azurerm_traffic_manager_profile` - add the `expected_status_code_ranges` ([#5471](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5471))
+* `azurerm_traffic_manager_profile` - switch `dns_config` and `monitor_config` to type list and limit to `1` ([#5471](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5471))
+* `azurerm_kubernetes_cluster` - support updating AKS AAD RBAC profile without rebuilding cluster ([#5410](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5410))
 
 BUG FIXES:
 
-* `azurerm_app_service` - fixing a crash when `logs` was nil [GH-5414]
-* `azurerm_container_group` - fixing a crash when `IPAddress.Ports` was nil in the response from the Azure API [GH-5415]
-* `azurerm_frontdoor` - fixing issue where the `forwarding_configuration` cache could not be disabled [GH-5358]
-* `azurerm_postgresql_server` - correctly validate the `name` property [GH-5443]
-* `azurerm_postgresql_database` - correctly validate the `server_name` property [GH-5443]
-* `azurerm_postgresql_firewall` - correctly validate the `server_name` property [GH-5443]
-* `azurerm_postgresql_virtual_network_rule` - correctly validate the `server_name` property [GH-5443]
-* `azurerm_private_link_service` - fixing a crash when the `auto_approval` and `visibility` blocks aren't returned from the Azure API [GH-5428]
-* `azurerm_subnet` - the`delegations.#.actions` property is now computed to accommodate azure defaults [GH-5484]
-* `azurerm_virtual_machine` - will no longer panic if `network_interface_ids` is missing [GH-5413]
+* `azurerm_app_service` - fixing a crash when `logs` was nil ([#5414](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5414))
+* `azurerm_container_group` - fixing a crash when `IPAddress.Ports` was nil in the response from the Azure API ([#5415](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5415))
+* `azurerm_frontdoor` - fixing issue where the `forwarding_configuration` cache could not be disabled ([#5358](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5358))
+* `azurerm_postgresql_server` - correctly validate the `name` property ([#5443](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5443))
+* `azurerm_postgresql_database` - correctly validate the `server_name` property ([#5443](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5443))
+* `azurerm_postgresql_firewall` - correctly validate the `server_name` property ([#5443](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5443))
+* `azurerm_postgresql_virtual_network_rule` - correctly validate the `server_name` property ([#5443](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5443))
+* `azurerm_private_link_service` - fixing a crash when the `auto_approval` and `visibility` blocks aren't returned from the Azure API ([#5428](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5428))
+* `azurerm_subnet` - the`delegations.#.actions` property is now computed to accommodate azure defaults ([#5484](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5484))
+* `azurerm_virtual_machine` - will no longer panic if `network_interface_ids` is missing ([#5413](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5413))
 
 ## 1.41.0 (January 16, 2020)
 

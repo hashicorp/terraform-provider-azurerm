@@ -138,21 +138,21 @@ The following arguments are supported:
 
 * `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Changing this forces a new resource to be created.
 
--> **NOTE:** This can only be configured when `priority` is set to `Low`.
+-> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
 * `health_probe_id` - (Optional) The ID of a Load Balancer Probe which should be used to determine the health of an instance. Changing this forces a new resource to be created. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
 
 * `identity` - (Optional) A `identity` block as defined below.
 
-* `max_bid_price` - (Optional) The maximum price you're willing to pay for a low-priority VM Scale Set, in US Dollars; which must be greater than the current low-priority price. If this bid price falls below the current low-priority price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`. Defaults to `-1`, which means that this VM Scale Set should not be evicted for price reasons.
+* `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current low-priority price. If this bid price falls below the current low-priority price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`. Defaults to `-1`, which means that each Virtual Machine in this Scale Set should not be evicted for price reasons.
 
--> **NOTE:** This can only be configured when `priority` is set to `Low`.
+-> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
 * `overprovision` - (Optional) Should Azure over-provision Virtual Machines in this Scale Set? This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota. Defaults to `false`.
 
-* `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Low`. Defaults to `Regular`. Changing this value forces a new resource.
+* `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource.
 
--> **NOTE:** When `priority` is set to `Low` an `eviction_policy` must be specified.
+-> **NOTE:** When `priority` is set to `Spot` an `eviction_policy` must be specified.
 
 * `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set? Defaults to `true`. Changing this value forces a new resource to be created.
 
