@@ -54,7 +54,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		val = input[0].(map[string]interface{})
 	}
 
-	// these are the defaults if omited from the config
+	// these are the defaults if omitted from the config
 	features := features.UserFeatures{
 		// NOTE: ensure all nested objects are fully populated
 		VirtualMachine: features.VirtualMachineFeatures{
