@@ -243,12 +243,6 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 
 			"tags": tags.Schema(),
 
-			"terraform_should_roll_instances_when_required": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
 			"timezone": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -774,7 +768,8 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 
 	// if we update the SKU, we also need to subsequently roll the instances using the `UpdateInstances` API
 	if updateInstances {
-		if userWantsToRollInstances := d.Get("terraform_should_roll_instances_when_required").(bool); userWantsToRollInstances {
+		userWantsToRollInstances := meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired
+		if userWantsToRollInstances {
 			log.Printf("[DEBUG] Rolling the VM Instances for Windows Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 			instancesClient := meta.(*clients.Client).Compute.VMScaleSetVMsClient
 			instances, err := instancesClient.ListComplete(ctx, id.ResourceGroup, id.Name, "", "", "")

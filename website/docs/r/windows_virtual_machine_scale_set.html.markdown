@@ -16,7 +16,7 @@ Manages a Windows Virtual Machine Scale Set.
 
 ~> **NOTE:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
 
-~> **NOTE:** Terraform will automatically update & reimage the nodes in the Scale Set if Required during an Update (for example, when changing Sku) - you can opt out of this by setting the `terraform_should_roll_instances_when_required` field to `false`.
+-> **Note** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://www.terraform.io/docs/providers/azurerm/index.html#features).
 
 ## Example Usage
 
@@ -161,10 +161,6 @@ The following arguments are supported:
 -> **NOTE:** One of either `source_image_id` or `source_image_reference` must be set.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Scale Set.
-
-* `terraform_should_roll_instances_when_required` - (Optional) Should Terraform automatically roll instances within the Virtual Machine Scale Set when required? This happens when the `data_disk`, `os_disk`, `sku`, `source_image_id`, or `source_image_reference` fields change. This field defaults to `true`.
-
--> **NOTE:** This field is specific to Terraform, when required Terraform will automatically roll the instances in a Scale Set one at a time.
 
 * `timezone` - (Optional) Specifies the time zone of the virtual machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
 
