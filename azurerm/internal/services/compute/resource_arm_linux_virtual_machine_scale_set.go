@@ -208,12 +208,6 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 
 			"tags": tags.Schema(),
 
-			"terraform_should_roll_instances_when_required": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
 			"upgrade_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -688,7 +682,8 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 
 	// if we update the SKU, we also need to subsequently roll the instances using the `UpdateInstances` API
 	if updateInstances {
-		if userWantsToRollInstances := d.Get("terraform_should_roll_instances_when_required").(bool); userWantsToRollInstances {
+		userWantsToRollInstances := meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired
+		if userWantsToRollInstances {
 			log.Printf("[DEBUG] Rolling the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 			instancesClient := meta.(*clients.Client).Compute.VMScaleSetVMsClient
 			instances, err := instancesClient.ListComplete(ctx, id.ResourceGroup, id.Name, "", "", "")
