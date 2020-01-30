@@ -183,10 +183,6 @@ func TestAccAzureRMFrontDoor_CustomHttps(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFrontDoorExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "frontend_endpoint.0.custom_https_provisioning_enabled", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "frontend_endpoint.0.custom_https_configuration.0.certificate_source", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "frontend_endpoint.0.custom_https_configuration.0.minimum_tls_version", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "frontend_endpoint.0.custom_https_configuration.0.provisioning_state", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "frontend_endpoint.0.custom_https_configuration.0.provisioning_substate", ""),
 				),
 			},
 			data.ImportStep(),
