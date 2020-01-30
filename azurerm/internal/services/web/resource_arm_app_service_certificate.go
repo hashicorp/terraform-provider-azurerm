@@ -73,6 +73,12 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 				ConflictsWith: []string{"pfx_blob", "password"},
 			},
 
+			"hosting_environment_profile_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"friendly_name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -130,7 +136,15 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 	pfxBlob := d.Get("pfx_blob").(string)
 	password := d.Get("password").(string)
 	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
+	hostingEnvironmentProfileId := d.Get("hosting_environment_profile_id").(string)
 	t := d.Get("tags").(map[string]interface{})
+
+	var hep *web.HostingEnvironmentProfile
+	if len(hostingEnvironmentProfileId) > 0 {
+		hep = &web.HostingEnvironmentProfile{
+			ID: &hostingEnvironmentProfileId,
+		}
+	}
 
 	if pfxBlob == "" && keyVaultSecretId == "" {
 		return fmt.Errorf("Either `pfx_blob` or `key_vault_secret_id` must be set")
@@ -151,7 +165,8 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 
 	certificate := web.Certificate{
 		CertificateProperties: &web.CertificateProperties{
-			Password: utils.String(password),
+			Password:                  utils.String(password),
+			HostingEnvironmentProfile: hep,
 		},
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
@@ -237,6 +252,10 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 		d.Set("issue_date", props.IssueDate.Format(time.RFC3339))
 		d.Set("expiration_date", props.ExpirationDate.Format(time.RFC3339))
 		d.Set("thumbprint", props.Thumbprint)
+
+		if hep := props.HostingEnvironmentProfile; hep != nil {
+			d.Set("hosting_environment_profile_id", hep.ID)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
