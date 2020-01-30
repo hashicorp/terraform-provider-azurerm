@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2019-11-01/storagecache"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -48,10 +49,16 @@ func resourceArmHPCCache() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"cache_size": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IntAtLeast(1),
+				Type:     schema.TypeInt,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.IntInSlice([]int{
+					3072,
+					6144,
+					12288,
+					24576,
+					49152,
+				}),
 			},
 
 			"subnet_id": {
@@ -59,6 +66,17 @@ func resourceArmHPCCache() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+			},
+
+			"sku_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Standard_2G",
+					"Standard_4G",
+					"Standard_8G",
+				}, false),
 			},
 
 			"tags": tags.Schema(),
@@ -91,6 +109,7 @@ func resourceArmHPCCacheCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	location := d.Get("location").(string)
 	cacheSize := d.Get("cache_size").(int)
 	subnet := d.Get("subnet_id").(string)
+	skuName := d.Get("sku_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	cache := &storagecache.Cache{
@@ -100,12 +119,62 @@ func resourceArmHPCCacheCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			CacheSizeGB: utils.Int32(int32(cacheSize)),
 			Subnet:      utils.String(subnet),
 		},
+		Sku: &storagecache.CacheSku{
+			Name: utils.String(skuName),
+		},
 		Tags: tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache); err != nil {
 		return fmt.Errorf("Error creating or updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			string(storagecache.Creating),
+			string(storagecache.Updating),
+		},
+		Target: []string{
+			string(storagecache.Succeeded),
+		},
+		MinTimeout: 30 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.Get(ctx, resourceGroup, name)
+			if err != nil {
+				return resp, "Error", fmt.Errorf("Error retrieving HPC Cache %q (Resource Group %q): %+v", resourceGroup, name, err)
+			}
+
+			if properties := resp.CacheProperties; properties != nil {
+				return resp, string(properties.ProvisioningState), nil
+			}
+
+			return resp, "Unknown", nil
+		},
+	}
+
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
+	} else {
+		stateConf.Timeout = 30 * time.Minute
+	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("Error waiting for HPC Cache %q (Resource Group %q) to finish provisioning: %+v", resourceGroup, name, err)
+	}
+
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read ID for HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	d.SetId(*resp.ID)
 
 	return resourceArmHPCCacheRead(d, meta)
 }
@@ -142,7 +211,11 @@ func resourceArmHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("subnet_id", props.Subnet)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags.(map[string]*string))
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+	}
+
+	return tags.FlattenAndSet(d, convertTagValsToString(resp.Tags.(map[string]interface{})))
 }
 
 func resourceArmHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
@@ -167,4 +240,15 @@ func resourceArmHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func convertTagValsToString(tags map[string]interface{}) map[string]*string {
+	tagStrings := make(map[string]*string)
+
+	for key, value := range tags {
+		strValue := fmt.Sprintf("%v", value)
+		tagStrings[key] = &strValue
+	}
+
+	return tagStrings
 }
