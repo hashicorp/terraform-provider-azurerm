@@ -6,22 +6,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DedicatedHostGroupId struct {
+type ImageId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
+func ImageID(input string) (*ImageId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Dedicated Host Group ID %q: %+v", input, err)
+		return nil, fmt.Errorf("[ERROR] Unable to parse Image ID %q: %+v", input, err)
 	}
 
-	group := DedicatedHostGroupId{
+	set := ImageId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if group.Name, err = id.PopSegment("hostGroups"); err != nil {
+	if set.Name, err = id.PopSegment("images"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +29,5 @@ func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 		return nil, err
 	}
 
-	return &group, nil
+	return &set, nil
 }

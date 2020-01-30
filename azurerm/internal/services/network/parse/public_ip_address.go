@@ -6,22 +6,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DedicatedHostGroupId struct {
+type PublicIPAddressId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
+func PublicIPAddressID(input string) (*PublicIPAddressId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Dedicated Host Group ID %q: %+v", input, err)
+		return nil, fmt.Errorf("[ERROR] Unable to parse Public IP Address ID %q: %+v", input, err)
 	}
 
-	group := DedicatedHostGroupId{
+	ipAddress := PublicIPAddressId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if group.Name, err = id.PopSegment("hostGroups"); err != nil {
+	if ipAddress.Name, err = id.PopSegment("publicIPAddresses"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +29,5 @@ func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 		return nil, err
 	}
 
-	return &group, nil
+	return &ipAddress, nil
 }
