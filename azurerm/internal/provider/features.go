@@ -26,6 +26,20 @@ func schemaFeatures() *schema.Schema {
 						},
 					},
 				},
+
+				"virtual_machine_scale_set": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"roll_instances_when_required": {
+								Type:     schema.TypeBool,
+								Required: true,
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -40,10 +54,14 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		val = input[0].(map[string]interface{})
 	}
 
+	// these are the defaults if omited from the config
 	features := features.UserFeatures{
 		// NOTE: ensure all nested objects are fully populated
 		VirtualMachine: features.VirtualMachineFeatures{
 			DeleteOSDiskOnDeletion: true,
+		},
+		VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
+			RollInstancesWhenRequired: true,
 		},
 	}
 
@@ -53,6 +71,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			virtualMachinesRaw := items[0].(map[string]interface{})
 			if v, ok := virtualMachinesRaw["delete_os_disk_on_deletion"]; ok {
 				features.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["virtual_machine_scale_set"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			scaleSetRaw := items[0].(map[string]interface{})
+			if v, ok := scaleSetRaw["roll_instances_when_required"]; ok {
+				features.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
 			}
 		}
 	}
