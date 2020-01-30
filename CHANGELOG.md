@@ -8,6 +8,7 @@ FEATURES:
 BUGS:
 
 * `azurerm_dns_aaaa_record` - normalize IPv6 addresses [GH-5459]
+* `azurerm_virtual_network_gateway_connection` - increase `routing_weight` maximum to `32000` [GH-5540]
 
 ## 1.42.0 (January 27, 2020)
 
