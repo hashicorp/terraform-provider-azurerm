@@ -108,9 +108,9 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 			},
 
 			"routing_weight": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 32000),
 			},
 
