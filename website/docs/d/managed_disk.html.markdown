@@ -59,4 +59,4 @@ output "id" {
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the .
+* `read` - (Defaults to 5 minutes) Used when retrieving the Managed Disk.

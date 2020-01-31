@@ -57,7 +57,6 @@ output "contributor_role_definition_id" {
 * `role_definition_id` - (Optional) Specifies the ID of the Role Definition as a UUID/GUID.
 * `scope` - (Optional) Specifies the Scope at which the Custom Role Definition exists.
 
-
 ~> **Note:** One of `name` or `role_definition_id` must be specified.
 
 ## Attributes Reference
@@ -79,4 +78,4 @@ A `permissions` block contains:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the .
+* `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.

@@ -33,12 +33,10 @@ There are no arguments available for this data source.
 
 ---
 
-
 ~> **Note:** the following fields are only available when authenticating via a Service Principal (as opposed to using the Azure CLI) and have been deprecated:
 
 * `service_principal_application_id` is the Service Principal Application ID (same as `client_id`).
 * `service_principal_object_id` is the Service Principal Object ID (now available via `object_id`).
-
 
 ~> **Note:** To better understand "application" and "service principal", please read
 [Application and service principal objects in Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-application-objects).
@@ -49,4 +47,4 @@ There are no arguments available for this data source.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the   Gets information about the configuration of the azurerm provider.
+* `read` - (Defaults to 5 minutes) Used when retrieving the client config.

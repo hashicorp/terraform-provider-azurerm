@@ -43,4 +43,4 @@ A `public_ips` block contains:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the   Gets information about a set of existing Public IP Addresses.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Public IP Addresses.

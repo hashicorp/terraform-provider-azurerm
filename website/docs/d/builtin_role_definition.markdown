@@ -10,7 +10,6 @@ description: |-
 
 Use this data source to access information about a built-in Role Definition. To access information about a custom Role Definition, [please see the `azurerm_role_definition` data source](role_definition.html) instead.
 
-
 ~> **Note:** The this datasource has been deprecated in favour of `azurerm_role_definition` that now can look up role definitions by name. As such this data source will be removed in version 2.0 of the AzureRM Provider.
 
 ## Example Usage
@@ -51,4 +50,4 @@ A `permissions` block contains:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the .
+* `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.

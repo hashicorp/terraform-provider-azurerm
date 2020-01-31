@@ -3,7 +3,7 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace_authorization_rule"
 description: |-
-  Gets information about an Authorization Rule for an Event Hub Namespace.
+  Gets information about an existing Authorization Rule for an Event Hub Namespace.
 ---
 
 # Data Source: azurerm_eventhub_namespace_authorization_rule
@@ -60,4 +60,4 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the   Gets information about an Authorization Rule for an Event Hub Namespace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Authorization Rule.

@@ -3,7 +3,7 @@ subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_account"
 description: |-
-  Gets information about the specified CosmosDB (formally DocumentDB) Account.
+  Gets information about an existing CosmosDB (formally DocumentDB) Account.
 ---
 
 # Data Source: azurerm_cosmosdb_account
@@ -94,4 +94,4 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the   Gets information about the specified CosmosDB (formally DocumentDB) Account.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Account.

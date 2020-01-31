@@ -3,7 +3,7 @@ subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault"
 description: |-
-  Gets information about a Key Vault.
+  Gets information about an existing Key Vault.
 ---
 
 # Data Source: azurerm_key_vault
@@ -81,4 +81,4 @@ A `sku` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the   Gets information about a Key Vault.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault.

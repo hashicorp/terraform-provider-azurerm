@@ -3,7 +3,7 @@ subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory"
 description: |-
-  Manages an Azure Data Factory (Version 2).
+  Gets information about an existing Azure Data Factory (Version 2).
 ---
 
 # Data Source: azurerm_data_factory
@@ -94,4 +94,4 @@ A `vsts_configuration` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the .
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory.

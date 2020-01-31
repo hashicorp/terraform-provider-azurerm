@@ -11,7 +11,6 @@ description: |-
 
 Gets information about an existing Service Principal associated with an Application within Azure Active Directory.
 
-
 ~> **Note:** The Azure Active Directory resources have been split out into [a new AzureAD Provider](http://terraform.io/docs/providers/azuread/index.html) - as such the AzureAD resources within the AzureRM Provider are deprecated and will be removed in the next major version (2.0). Information on how to migrate from the existing resources to the new AzureAD Provider [can be found here](../guides/migrating-to-azuread.html).
 
 -> **NOTE:** If you're authenticating using a Service Principal then it must have permissions to both `Read and write all applications` and `Sign in and read user profile` within the `Windows Azure Active Directory` API.
@@ -64,4 +63,4 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the XXX.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Principal.

@@ -3,7 +3,7 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_endpoint_connection"
 description: |-
-  Gets the connecton status information about an existing Private Link Endpoint
+  Gets the connection status information about an existing Private Link Endpoint
 ---
 -> **NOTE:** The 'azurerm_private_link_endpoint_connection' resource is being deprecated in favour of the renamed version 'azurerm_private_endpoint_connection'.
 Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
@@ -60,4 +60,4 @@ A `private_service_connection` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the .
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Endpoint.

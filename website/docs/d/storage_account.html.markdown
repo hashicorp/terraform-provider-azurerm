@@ -124,7 +124,6 @@ output "storage_account_tier" {
 
 * `secondary_blob_connection_string` - The connection string associated with the secondary blob location
 
-
 ~> **Note:** If there's a Write Lock on the Storage Account, or the account doesn't have permission then these fields will have an empty value [due to a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/6363)
 ---
 

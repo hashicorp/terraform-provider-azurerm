@@ -10,7 +10,6 @@ description: |-
 
 Use this data source to access information about an existing Managed Kubernetes Cluster (AKS).
 
-
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 

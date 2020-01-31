@@ -42,4 +42,4 @@ data "azurerm_monitor_diagnostic_categories" "example" {
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the   Gets information about an the Monitor Diagnostics Categories supported by an existing Resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Monitor Diagnostics Categories.

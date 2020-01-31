@@ -73,7 +73,6 @@ A `patch_schedule` block supports the following (Requires Premium SKU's, attempt
 
 * `start_hour_utc` - The Start Hour for maintenance in UTC
 
-
 ~> **Note:** The Patch Window lasts for `5` hours from the `start_hour_utc`.
 
 ---
@@ -98,7 +97,6 @@ A `redis_configuration` block exports the following:
 
 * `rdb_storage_connection_string` - The Connection String to the Storage Account. Only supported for Premium SKU's.
 
-
 ~> **Note:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) e.g.:
 
 ### Timeouts
@@ -107,4 +105,4 @@ A `redis_configuration` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Redis Cache.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache.

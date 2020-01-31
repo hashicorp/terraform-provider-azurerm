@@ -43,7 +43,6 @@ in your subscription that matches `name` will be returned.
 * `tags` - A mapping of tags to assign to the EventHub Namespace.
 * `zone_type` - (**Deprecated**) The type of this DNS zone, such as `Public` or `Private`.
 
-
 ~> **Note:** This field is deprecated since Private DNS is now a separate resource and will be removed in 2.0 of the Azure Provider.
 
 ### Timeouts

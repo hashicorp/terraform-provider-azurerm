@@ -3,13 +3,13 @@ subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_certificate"
 description: |-
-  Gets information about an App Service certificate.
+  Gets information about an existing App Service Certificate.
 
 ---
 
 # Data Source: azurerm_app_service_certificate
 
-Use this data source to access information about an App Service certificate.
+Use this data source to access information about an App Service Certificate.
 
 ## Example Usage
 
@@ -58,4 +58,4 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the   Gets information about an App Service certificate.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate.

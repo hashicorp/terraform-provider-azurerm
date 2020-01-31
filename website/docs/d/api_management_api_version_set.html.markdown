@@ -3,7 +3,7 @@ subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api_version_set"
 description: |-
-  Gets information about an API Version Set within an existing API Management Service.
+  Gets information about an existing API Version Set within an existing API Management Service.
 ---
 
 # Data Source: azurerm_api_management_api_version_set
@@ -52,4 +52,4 @@ output "api_management_api_version_set_id" {
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the   Gets information about an API Version Set within an existing API Management Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Version Set.
