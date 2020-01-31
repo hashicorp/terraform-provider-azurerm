@@ -8,6 +8,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * `azurerm_application_insights` - support for the `daily_data_cap_in_gb` & `daily_data_cap_notifications_disabled` properties [GH-5480]
+* `azurerm_private_endpoint` - expose mapping between `group_id` and `subresource_names` [GH-5571]
 
 BUGS:
 
