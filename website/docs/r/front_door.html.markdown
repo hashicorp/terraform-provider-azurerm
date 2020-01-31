@@ -274,9 +274,13 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 * `id` - The Resource ID of the Azure Front Door Backend Load Balancer.
 
 
-`routing_rule`  exports the following:
+`routing_rule` exports the following:
 
 * `id` - The Resource ID of the Azure Front Door Backend Routing Rule.
+
+`custom_https_configuration` exports the following:
+
+* `minimum_tls_version` - Minimum client TLS version supported.
 
 
 The following attributes are exported:
