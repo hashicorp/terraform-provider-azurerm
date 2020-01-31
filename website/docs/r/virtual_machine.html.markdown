@@ -309,9 +309,9 @@ A `storage_data_disk` block supports the following:
 
 * `create_option` - (Required) Specifies how the data disk should be created. Possible values are `Attach`, `FromImage` and `Empty`.
 
-~> **NOTE:** If using an image that does not have data to be written to the Data Disk, use `Empty` as the create option in order to create the desired disk without any data. 
+~> **NOTE:** If using an image that does not have data to be written to the Data Disk, use `Empty` as the create option in order to create the desired disk without any data.
 
-* `disk_size_gb` - (Optional) Specifies the size of the data disk in gigabytes. 
+* `disk_size_gb` - (Optional) Specifies the size of the data disk in gigabytes.
 
 * `lun` - (Required) Specifies the logical unit number of the data disk. This needs to be unique within all the Data Disks on the Virtual Machine.
 
@@ -400,6 +400,17 @@ A `identity` block exports the following:
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Virtual Machine.
 
 -> You can access the Principal ID via `${azurerm_virtual_machine.example.identity.0.principal_id}`
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Virtual Machine.
+* `update` - (Defaults to 60 minutes) Used when updating the Virtual Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Machine.
 
 ## Import
 

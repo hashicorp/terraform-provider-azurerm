@@ -69,6 +69,17 @@ The following attributes are exported only if there is an authorization rule nam
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Namespace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Namespace.
+
 ## Import
 
 Service Bus Namespace can be imported using the `resource id`, e.g.
