@@ -748,7 +748,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						"settings": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							ValidateFunc:     validation.ValidateJsonString,
+							ValidateFunc:     validation.StringIsJSON,
 							DiffSuppressFunc: structure.SuppressJsonDiff,
 						},
 
@@ -756,7 +756,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Sensitive:        true,
-							ValidateFunc:     validation.ValidateJsonString,
+							ValidateFunc:     validation.StringIsJSON,
 							DiffSuppressFunc: structure.SuppressJsonDiff,
 						},
 					},

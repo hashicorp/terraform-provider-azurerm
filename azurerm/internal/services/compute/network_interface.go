@@ -24,7 +24,7 @@ type connectionInfo struct {
 }
 
 // retrieveConnectionInformation retrieves all of the Public and Private IP Addresses assigned to a Virtual Machine
-// nolint: deadcode unused
+// nolint: unused
 func retrieveConnectionInformation(ctx context.Context, nicsClient *network.InterfacesClient, pipsClient *network.PublicIPAddressesClient, input *compute.VirtualMachineProperties) connectionInfo {
 	if input == nil || input.NetworkProfile == nil || input.NetworkProfile.NetworkInterfaces == nil {
 		return connectionInfo{}

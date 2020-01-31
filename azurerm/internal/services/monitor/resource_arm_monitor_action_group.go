@@ -103,7 +103,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"ticket_configuration": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateFunc:     validation.ValidateJsonString,
+							ValidateFunc:     validation.StringIsJSON,
 							DiffSuppressFunc: structure.SuppressJsonDiff,
 						},
 						"region": {

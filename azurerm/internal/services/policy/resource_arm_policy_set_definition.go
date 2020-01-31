@@ -79,21 +79,21 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 			"metadata": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
 			"parameters": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
 			"policy_definitions": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: policyDefinitionsDiffSuppressFunc,
 			},
 		},
