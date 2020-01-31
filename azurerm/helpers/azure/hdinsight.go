@@ -161,13 +161,13 @@ func SchemaHDInsightsStorageAccounts() *schema.Schema {
 					Required:     true,
 					ForceNew:     true,
 					Sensitive:    true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"storage_container_id": {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"is_default": {
 					Type:     schema.TypeBool,
@@ -197,7 +197,7 @@ func SchemaHDInsightsGen2StorageAccounts() *schema.Schema {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"managed_identity_resource_id": {
 					Type:         schema.TypeString,
@@ -405,7 +405,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			ForceNew: true,
 			Elem: &schema.Schema{
 				Type:         schema.TypeString,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			Set: schema.HashString,
 			ConflictsWith: []string{

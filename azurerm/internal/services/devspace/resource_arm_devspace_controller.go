@@ -98,7 +98,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				Sensitive:    true,
-				ValidateFunc: validate.Base64String(),
+				ValidateFunc: validation.StringIsBase64,
 			},
 
 			"tags": tags.Schema(),

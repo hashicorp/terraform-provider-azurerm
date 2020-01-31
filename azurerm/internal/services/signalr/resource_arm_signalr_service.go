@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -67,7 +66,7 @@ func resourceArmSignalRService() *schema.Resource {
 						"capacity": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validate.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
+							ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
 						},
 					},
 				},
