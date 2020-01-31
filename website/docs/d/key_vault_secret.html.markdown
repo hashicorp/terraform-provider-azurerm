@@ -11,6 +11,7 @@ description: |-
 
 Use this data source to access information about an existing Key Vault Secret.
 
+
 ~> **Note:** All arguments including the secret value will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -46,3 +47,11 @@ The following attributes are exported:
 * `version` - The current version of the Key Vault Secret.
 * `content_type` - The content type for the Key Vault Secret.
 * `tags` - Any tags assigned to this resource.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Secret.

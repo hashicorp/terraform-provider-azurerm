@@ -43,4 +43,13 @@ in your subscription that matches `name` will be returned.
 * `tags` - A mapping of tags to assign to the EventHub Namespace.
 * `zone_type` - (**Deprecated**) The type of this DNS zone, such as `Public` or `Private`.
 
-~> **NOTE:** This field is deprecated since Private DNS is now a separate resource and will be removed in 2.0 of the Azure Provider.
+
+~> **Note:** This field is deprecated since Private DNS is now a separate resource and will be removed in 2.0 of the Azure Provider.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the DNS Zone.

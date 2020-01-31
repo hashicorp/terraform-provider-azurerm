@@ -74,3 +74,11 @@ A `sku` block exports the following:
 * `secret_permissions` - A list of secret permissions applicable to this Access Policy.
 
 * `storage_permissions` - A list of storage permissions applicable to this Access Policy.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the   Gets information about a Key Vault.

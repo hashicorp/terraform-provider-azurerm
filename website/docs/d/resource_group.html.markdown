@@ -31,9 +31,18 @@ resource "azurerm_managed_disk" "example" {
 
 * `name` - (Required) Specifies the name of the resource group.
 
-~> **NOTE:** If the specified location doesn't match the actual resource group location, an error message with the actual location value will be shown.
+
+~> **Note:** If the specified location doesn't match the actual resource group location, an error message with the actual location value will be shown.
 
 ## Attributes Reference
 
 * `location` - The location of the resource group.
 * `tags` - A mapping of tags assigned to the resource group.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group.
