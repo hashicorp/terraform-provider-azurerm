@@ -112,7 +112,7 @@ As such the existing 'azurerm_iot_dps' resource is deprecated and will be remove
 						"connection_string": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 							ForceNew:     true,
 							// Azure returns the key as ****. We'll suppress that here.
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
@@ -125,7 +125,7 @@ As such the existing 'azurerm_iot_dps' resource is deprecated and will be remove
 						"location": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 							StateFunc:    azure.NormalizeLocation,
 							ForceNew:     true,
 						},

@@ -78,7 +78,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				Set: azure.HashAzureLocation,
 			},

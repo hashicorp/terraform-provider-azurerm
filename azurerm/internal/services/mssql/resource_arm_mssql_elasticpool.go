@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -118,13 +117,13 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 						"min_capacity": {
 							Type:         schema.TypeFloat,
 							Required:     true,
-							ValidateFunc: validate.FloatAtLeast(0.0),
+							ValidateFunc: validation.FloatAtLeast(0.0),
 						},
 
 						"max_capacity": {
 							Type:         schema.TypeFloat,
 							Required:     true,
-							ValidateFunc: validate.FloatAtLeast(0.0),
+							ValidateFunc: validation.FloatAtLeast(0.0),
 						},
 					},
 				},
@@ -183,7 +182,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"max_size_bytes"},
-				ValidateFunc:  validate.FloatAtLeast(0),
+				ValidateFunc:  validation.FloatAtLeast(0),
 			},
 
 			"zone_redundant": {

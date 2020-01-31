@@ -392,7 +392,7 @@ func resourceArmIotHub() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"ip_mask": {
 							Type:         schema.TypeString,

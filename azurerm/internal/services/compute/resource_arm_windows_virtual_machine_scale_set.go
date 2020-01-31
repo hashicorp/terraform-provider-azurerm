@@ -61,7 +61,7 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"admin_password": {
@@ -69,7 +69,7 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				Sensitive:    true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchema(),
@@ -85,7 +85,7 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			"sku": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Optional
