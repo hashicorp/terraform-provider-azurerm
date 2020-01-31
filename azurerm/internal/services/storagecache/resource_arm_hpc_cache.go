@@ -14,16 +14,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmHPCCache() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHPCCacheCreateUpdate,
+		Create: resourceArmHPCCacheCreate,
 		Read:   resourceArmHPCCacheRead,
-		Update: resourceArmHPCCacheCreateUpdate,
 		Delete: resourceArmHPCCacheDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -32,7 +30,6 @@ func resourceArmHPCCache() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -78,15 +75,13 @@ func resourceArmHPCCache() *schema.Resource {
 					"Standard_8G",
 				}, false),
 			},
-
-			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmHPCCacheCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHPCCacheCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StorageCache.CachesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure HPC Cache creation.")
@@ -110,7 +105,6 @@ func resourceArmHPCCacheCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	cacheSize := d.Get("cache_size").(int)
 	subnet := d.Get("subnet_id").(string)
 	skuName := d.Get("sku_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	cache := &storagecache.Cache{
 		Name:     utils.String(name),
@@ -122,21 +116,15 @@ func resourceArmHPCCacheCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		Sku: &storagecache.CacheSku{
 			Name: utils.String(skuName),
 		},
-		Tags: tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, cache); err != nil {
-		return fmt.Errorf("Error creating or updating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating HPC Cache %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{
-			string(storagecache.Creating),
-			string(storagecache.Updating),
-		},
-		Target: []string{
-			string(storagecache.Succeeded),
-		},
+		Pending:    []string{string(storagecache.Creating)},
+		Target:     []string{string(storagecache.Succeeded)},
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			resp, err := client.Get(ctx, resourceGroup, name)
@@ -155,8 +143,6 @@ func resourceArmHPCCacheCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	if features.SupportsCustomTimeouts() {
 		if d.IsNewResource() {
 			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 		}
 	} else {
 		stateConf.Timeout = 30 * time.Minute
@@ -215,7 +201,7 @@ func resourceArmHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku_name", sku.Name)
 	}
 
-	return tags.FlattenAndSet(d, convertTagValsToString(resp.Tags.(map[string]interface{})))
+	return nil
 }
 
 func resourceArmHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
@@ -240,15 +226,4 @@ func resourceArmHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func convertTagValsToString(tags map[string]interface{}) map[string]*string {
-	tagStrings := make(map[string]*string)
-
-	for key, value := range tags {
-		strValue := fmt.Sprintf("%v", value)
-		tagStrings[key] = &strValue
-	}
-
-	return tagStrings
 }

@@ -62,8 +62,6 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of HPC Chace to use. Possible values are `Standard_2G`, `Standard_4G` and `Standard_8G`. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
 ## Attributes Reference
 
 The following attributes are exported:

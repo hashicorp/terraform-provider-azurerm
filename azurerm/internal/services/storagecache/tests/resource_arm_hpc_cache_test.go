@@ -31,37 +31,6 @@ func TestAccAzureRMHPCCache_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHPCCache_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHPCCache_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMHPCCache_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHPCCacheExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Test"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMStreamAnalyticsJob_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -164,47 +133,6 @@ resource "azurerm_hpc_cache" "test" {
   cache_size          = 3072
   subnet_id           = "${azurerm_subnet.test.id}"
   sku_name            = "Standard_2G"
-
-  tags = {
-    label = "test"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMHPCCache_update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsub-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_hpc_cache" "test" {
-  name                = "acctesthpcc-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  cache_size          = 3072
-  subnet_id           = "${azurerm_subnet.test.id}"
-  sku_name            = "Standard_2G"
-
-  tags = {
-    label       = "test1"
-    environment = "Test"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -221,7 +149,6 @@ resource "azurerm_hpc_cache" "import" {
   cache_size          = "${azurerm_hpc_cache.test.cache_size}"
   subnet_id           = "${azurerm_hpc_cache.test.subnet_id}"
   sku_name            = "${azurerm_hpc_cache.test.sku_name}"
-  tags                = "${azurerm_hpc_cache.test.tags}"
 }
 `, template)
 }
