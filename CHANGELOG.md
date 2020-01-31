@@ -5,6 +5,10 @@ FEATURES:
 * **New Data Source:** `azurerm_eventhub_namespace_authorization_rule` [GH-5489]
 * **New Data Source:** `azurerm_mariadb_server` [GH-5506]
 
+IMPROVEMENTS:
+
+* `azurerm_application_insights` - support for the `daily_data_cap_in_gb` & `daily_data_cap_notifications_disabled` properties [GH-5480]
+
 BUGS:
 
 * `azurerm_databricks_workspace` - allow underscores in `name` [GH-5548]
