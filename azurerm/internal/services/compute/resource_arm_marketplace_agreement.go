@@ -153,6 +153,10 @@ func resourceArmMarketplaceAgreementRead(d *schema.ResourceData, meta interface{
 	d.Set("plan", plan)
 
 	if props := resp.AgreementProperties; props != nil {
+		if accepted := props.Accepted != nil && *props.Accepted; !accepted {
+			// if props.Accepted is not true, the agreement does not exist
+			d.SetId("")
+		}
 		d.Set("license_text_link", props.LicenseTextLink)
 		d.Set("privacy_policy_link", props.PrivacyPolicyLink)
 	}
