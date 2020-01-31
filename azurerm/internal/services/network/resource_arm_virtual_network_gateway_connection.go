@@ -111,7 +111,7 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntBetween(0, 1000),
+				ValidateFunc: validation.IntBetween(0, 32000),
 			},
 
 			"shared_key": {

@@ -31,11 +31,23 @@ func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
 			ShouldError: false,
 		},
 		{
+			Value:       "hello_1_2_3_there",
+			ShouldError: false,
+		},
+		{
 			Value:       "hello-1-2-3-",
 			ShouldError: true,
 		},
 		{
 			Value:       "-hello-1-2-3",
+			ShouldError: true,
+		},
+		{
+			Value:       "hello_1_2_3_",
+			ShouldError: true,
+		},
+		{
+			Value:       "_hello_1_2_3",
 			ShouldError: true,
 		},
 		{
