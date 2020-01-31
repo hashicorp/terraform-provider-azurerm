@@ -143,7 +143,7 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		if azure.StringContains(err.Error(), "is missing required parameter 'group Id'") {
-			return fmt.Errorf("Error creating Private Endpoint %q (Resource Group %q) due to missing group ID, ensure that the `subresource_names` type is populated: %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", name, resourceGroup, err)
 		} else {
 			return fmt.Errorf("Error creating Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
