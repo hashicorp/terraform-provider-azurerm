@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `zone_type` - (Optional / **Deprecated**) Specifies the type of this DNS zone. Possible values are `Public` or `Private` (Defaults to `Public`).
 
-~> **NOTE:** This field was part of the initial Preview for Private DNS Zones - which has been [replaced by the separate resource `azurerm_private_dns_zone`](private_dns_zone.html) and will be removed in v2.0 of the Azure Provider. 
+~> **NOTE:** This field was part of the initial Preview for Private DNS Zones - which has been [replaced by the separate resource `azurerm_private_dns_zone`](private_dns_zone.html) and will be removed in v2.0 of the Azure Provider.
 
 ## Attributes Reference
 
@@ -57,6 +57,16 @@ The following attributes are exported:
 * `number_of_record_sets` - (Optional) The number of records already in the zone.
 * `name_servers` - (Optional) A list of values that make up the NS record for the zone.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DNS Zone.
+* `update` - (Defaults to 30 minutes) Used when updating the DNS Zone.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DNS Zone.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DNS Zone.
 
 ## Import
 

@@ -69,11 +69,22 @@ An `indexes` block supports the following:
 
 The following attributes are exported:
 
-* `id` - the Cosmos DB Mongo Collection ID.
+* `id` - The ID of the Cosmos DB Mongo Collection.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the CosmosDB Mongo Collection.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Mongo Collection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Mongo Collection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB Mongo Collection.
 
 ## Import
 
-Cosmos DB Mongo Collection can be imported using the `resource id`, e.g.
+CosmosDB Mongo Collection can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cosmosdb_mongo_collection.collection1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/apis/mongodb/databases/db1/collections/collection1

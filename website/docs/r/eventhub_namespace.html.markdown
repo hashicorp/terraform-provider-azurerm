@@ -68,7 +68,7 @@ A `network_rulesets` block supports the following:
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
 ---
-    
+
 A `virtual_network_rule` block supports the following:
 
 * `subnet_id` - (Required) The id of the subnet to match on.
@@ -101,6 +101,17 @@ The following attributes are exported only if there is an authorization rule nam
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the EventHub Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the EventHub Namespace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Namespace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the EventHub Namespace.
 
 ## Import
 

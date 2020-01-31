@@ -28,6 +28,7 @@ func resourceArmKustoDatabasePrincipal() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
+			// TODO: confirm these
 			Create: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(60 * time.Minute),
