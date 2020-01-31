@@ -23,6 +23,8 @@ resource "azurerm_recovery_services_vault" "vault" {
   location            = "${azurerm_resource_group.rg.location}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   sku                 = "Standard"
+
+  soft_delete_enagled = true
 }
 ```
 
@@ -40,6 +42,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Sets the vault's SKU. Possible values include: `Standard`, `RS0`.
 
+* `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
 
 ## Attributes Reference
 
