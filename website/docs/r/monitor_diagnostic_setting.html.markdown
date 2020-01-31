@@ -132,6 +132,17 @@ The following attributes are exported:
 
 * `id` - The ID of the Diagnostic Setting.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Diagnostics Setting.
+* `update` - (Defaults to 30 minutes) Used when updating the Diagnostics Setting.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Diagnostics Setting.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Diagnostics Setting.
+
 ## Import
 
 Diagnostic Settings can be imported using the `resource id`, e.g.

@@ -69,7 +69,7 @@ The following arguments are supported:
     new resource to be created.
 
 * `categories` - (Required) List of categories of the logs.
-  
+
 * `locations` - (Required) List of regions for which Activity Log events are stored or streamed.
 
 * `storage_account_id` - (Optional) The resource ID of the storage account in which the Activity Log is stored. At least one of `storage_account_id` or `servicebus_rule_id` must be set.
@@ -90,7 +90,18 @@ The `retention_policy` block supports:
 
 The following attributes are exported:
 
-* `id` - The Log Profile resource ID.
+* `id` - The ID of the Log Profile.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Log Profile.
+* `update` - (Defaults to 30 minutes) Used when updating the Log Profile.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Log Profile.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Log Profile.
 
 ## Import
 

@@ -79,9 +79,9 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which the Network Watcher was deployed. Changing this forces a new resource to be created.
 
 * `network_security_group_id` - (Required) The ID of the Network Security Group for which to enable flow logs for. Changing this forces a new resource to be created.
-  
+
 * `storage_account_id` - (Required) The ID of the Storage Account where flow logs are stored.
-  
+
 * `enabled` - (Required) Should Network Flow Logging be Enabled?
 
 * `retention_policy` - (Required) A `retention_policy` block as documented below.
@@ -110,7 +110,18 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Network Watcher ID.
+* `id` - The ID of the Network Watcher.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Watcher Flow Log.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Watcher Flow Log.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Watcher Flow Log.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Watcher Flow Log.
 
 ## Import
 
