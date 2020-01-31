@@ -1,0 +1,9 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: 2.0 Beta"
+description: |-
+    Azure Resource Manager: 2.0 Beta
+
+---
+
+# Coming Soon
