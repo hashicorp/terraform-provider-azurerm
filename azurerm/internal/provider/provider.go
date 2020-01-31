@@ -159,6 +159,8 @@ func AzureProvider() terraform.ResourceProvider {
 				Description: "This will disable the Terraform Partner ID which is used if a custom `partner_id` isn't specified.",
 			},
 
+			"features": schemaFeatures(),
+
 			// Advanced feature flags
 			"skip_credentials_validation": {
 				Type:        schema.TypeBool,
@@ -241,6 +243,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			PartnerId:                   d.Get("partner_id").(string),
 			DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
 			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
+			Features:                    expandFeatures(d.Get("features").([]interface{})),
 		}
 		client, err := clients.Build(p.StopContext(), clientBuilder)
 		if err != nil {

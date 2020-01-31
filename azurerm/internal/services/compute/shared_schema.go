@@ -238,7 +238,7 @@ func flattenPlan(input *compute.Plan) []interface{} {
 	}
 }
 
-func sourceImageReferenceSchema() *schema.Schema {
+func sourceImageReferenceSchema(isVirtualMachine bool) *schema.Schema {
 	// whilst originally I was hoping we could use the 'id' from `azurerm_platform_image' unfortunately Azure doesn't
 	// like this as a value for the 'id' field:
 	// Id /...../Versions/16.04.201909091 is not a valid resource reference."
@@ -246,6 +246,7 @@ func sourceImageReferenceSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:          schema.TypeList,
 		Optional:      true,
+		ForceNew:      isVirtualMachine,
 		MaxItems:      1,
 		ConflictsWith: []string{"source_image_id"},
 		Elem: &schema.Resource{
@@ -253,18 +254,22 @@ func sourceImageReferenceSchema() *schema.Schema {
 				"publisher": {
 					Type:     schema.TypeString,
 					Required: true,
+					ForceNew: isVirtualMachine,
 				},
 				"offer": {
 					Type:     schema.TypeString,
 					Required: true,
+					ForceNew: isVirtualMachine,
 				},
 				"sku": {
 					Type:     schema.TypeString,
 					Required: true,
+					ForceNew: isVirtualMachine,
 				},
 				"version": {
 					Type:     schema.TypeString,
 					Required: true,
+					ForceNew: isVirtualMachine,
 				},
 			},
 		},
