@@ -225,7 +225,7 @@ func testCheckAzureRMBackupProtectedVmExists(resourceName string) resource.TestC
 func testAccAzureRMBackupProtectedVm_base(data acceptance.TestData) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery-%d"
+  name     = "acctestRG-backup-%d"
   location = "%s"
 }
 
@@ -371,7 +371,7 @@ resource "azurerm_backup_protected_vm" "test" {
 func testAccAzureRMBackupProtectedVm_basePolicyTest(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery-%d-1"
+  name     = "acctestRG-backup-%d-1"
   location = "%s"
 }
 
@@ -597,7 +597,7 @@ func testAccAzureRMBackupProtectedVm_additionalVault(data acceptance.TestData) s
 %s
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-recovery-%d-2"
+  name     = "acctestRG-backup-%d-2"
   location = "%s"
 }
 
