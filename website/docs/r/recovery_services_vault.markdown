@@ -24,7 +24,7 @@ resource "azurerm_recovery_services_vault" "vault" {
   resource_group_name = "${azurerm_resource_group.rg.name}"
   sku                 = "Standard"
 
-  soft_delete_enagled = true
+  soft_delete_enabled = true
 }
 ```
 
