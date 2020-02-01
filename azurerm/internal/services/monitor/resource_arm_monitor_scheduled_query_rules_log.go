@@ -149,19 +149,6 @@ func expandMonitorScheduledQueryRulesLogCriteria(input []interface{}) *[]insight
 	return &criteria
 }
 
-func expandMonitorScheduledQueryRulesLogSource(d *schema.ResourceData) *insights.Source {
-	authorizedResourceIDs := d.Get("authorized_resource_ids").(*schema.Set).List()
-	dataSourceID := d.Get("data_source_id").(string)
-
-	source := insights.Source{
-		AuthorizedResources: utils.ExpandStringSlice(authorizedResourceIDs),
-		DataSourceID:        utils.String(dataSourceID),
-		QueryType:           insights.ResultCount,
-	}
-
-	return &source
-}
-
 func expandMonitorScheduledQueryRulesLogToMetricAction(d *schema.ResourceData) *insights.LogToMetricAction {
 	criteriaRaw := d.Get("criteria").(*schema.Set).List()
 	criteria := expandMonitorScheduledQueryRulesLogCriteria(criteriaRaw)

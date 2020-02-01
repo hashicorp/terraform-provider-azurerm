@@ -17,12 +17,12 @@ func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricAction(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesDestroy,
+		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesLogDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorScheduledQueryRules_logToMetricAction(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorScheduledQueryRulesExists(data.ResourceName),
+					testCheckAzureRMMonitorScheduledQueryRulesLogExists(data.ResourceName),
 				),
 			},
 			{
@@ -94,14 +94,14 @@ func testCheckAzureRMMonitorScheduledQueryRulesLogDestroy(s *terraform.State) er
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Activity log alert still exists:\n%#v", resp)
+			return fmt.Errorf("Scheduled Query Rule still exists:\n%#v", resp)
 		}
 	}
 
 	return nil
 }
 
-func testCheckAzureRMMonitorScheduledQueryRulesExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMMonitorScheduledQueryRulesLogExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -112,7 +112,7 @@ func testCheckAzureRMMonitorScheduledQueryRulesExists(resourceName string) resou
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Activity Log Alert Instance: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for Scheduled Query Rule Instance: %s", name)
 		}
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ScheduledQueryRulesClient
@@ -124,7 +124,7 @@ func testCheckAzureRMMonitorScheduledQueryRulesExists(resourceName string) resou
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Activity Log Alert Instance %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Scheduled Query Rule Instance %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil

@@ -18,12 +18,12 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingAction(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesDestroy,
+		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesAlertDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorScheduledQueryRules_alertingAction(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorScheduledQueryRulesExists(data.ResourceName),
+					testCheckAzureRMMonitorScheduledQueryRulesAlertExists(data.ResourceName),
 				),
 			},
 			{
@@ -41,12 +41,12 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingActionCrossResource(t *tes
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesDestroy,
+		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesAlertDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorScheduledQueryRules_alertingActionCrossResource(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorScheduledQueryRulesExists(data.ResourceName),
+					testCheckAzureRMMonitorScheduledQueryRulesAlertExists(data.ResourceName),
 				),
 			},
 			{
@@ -172,7 +172,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testCheckAzureRMMonitorScheduledQueryRulesDestroy(s *terraform.State) error {
+func testCheckAzureRMMonitorScheduledQueryRulesAlertDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -191,7 +191,7 @@ func testCheckAzureRMMonitorScheduledQueryRulesDestroy(s *terraform.State) error
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Activity log alert still exists:\n%#v", resp)
+			return fmt.Errorf("Scheduled Query Rule still exists:\n%#v", resp)
 		}
 	}
 
@@ -209,7 +209,7 @@ func testCheckAzureRMMonitorScheduledQueryRulesAlertExists(resourceName string) 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Activity Log Alert Instance: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for Scheduled Query Rule Instance: %s", name)
 		}
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ScheduledQueryRulesClient
@@ -221,7 +221,7 @@ func testCheckAzureRMMonitorScheduledQueryRulesAlertExists(resourceName string) 
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Activity Log Alert Instance %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Scheduled Query Rule Instance %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil

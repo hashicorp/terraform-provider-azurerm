@@ -195,8 +195,7 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 }
 
 func resourceArmMonitorScheduledQueryRulesAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	var action insights.BasicAction
-	action = expandMonitorScheduledQueryRulesAlertingAction(d)
+	action := expandMonitorScheduledQueryRulesAlertingAction(d)
 	schedule := expandMonitorScheduledQueryRulesAlertSchedule(d)
 
 	return resourceArmMonitorScheduledQueryRulesCreateUpdate(d, meta, action, schedule)
