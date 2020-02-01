@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
-func dataSourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
+func dataSourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmMonitorScheduledQueryRulesRead,
 
@@ -33,36 +33,23 @@ func dataSourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"criteria": {
+			"action": {
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"dimension": {
+						"action_group": {
 							Type:     schema.TypeSet,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:     schema.TypeString,
-										Computed: true,
-										Elem:     schema.TypeString,
-									},
-									"operator": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"values": {
-										Type:     schema.TypeList,
-										Computed: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
 							},
 						},
-						"metric_name": {
+						"custom_webhook_payload": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"email_subject": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -81,6 +68,10 @@ func dataSourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"frequency": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"last_updated_time": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -96,6 +87,58 @@ func dataSourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 			"query_type": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"severity": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"throttling": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"time_window": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"trigger": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"metric_trigger": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"metric_column": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"metric_trigger_type": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"operator": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"threshold": {
+										Type:     schema.TypeFloat,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"operator": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"threshold": {
+							Type:     schema.TypeFloat,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"tags": tags.SchemaDataSource(),

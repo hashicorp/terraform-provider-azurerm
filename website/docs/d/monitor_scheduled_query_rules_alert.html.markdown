@@ -32,8 +32,8 @@ output "query_rule_id" {
 ## Attributes Reference
 
 * `id` - The ID of the Scheduled Query Rule.
-* `azns_action` - An `azns_action` block as defined below.
-* `authorized_resources` - List of Resource IDs referred into query.
+* `action` - An `action` block as defined below.
+* `authorized_resource_ids` - List of Resource IDs referred into query.
 * `data_source_id` - The resource uri over which log search query is to be run.
 * `description` - The description of the Scheduled Query Rule.
 * `enabled` - Whether this scheduled query rule is enabled.
@@ -47,9 +47,9 @@ output "query_rule_id" {
 
 ---
 
-* `azns_action` supports the following:
+* `action` supports the following:
 
-* `action_group` - (Optional) List of action group reference resource IDs.
+* `action_group` - List of action group reference resource IDs.
 * `custom_webhook_payload` - Custom payload to be sent for all webhook URI in Azure action group.
 * `email_subject` - Custom subject override for all email ids in Azure action group.
 
@@ -57,15 +57,15 @@ output "query_rule_id" {
 
 `metricTrigger` supports the following:
 
-* `metricColumn` - (Required) Evaluation of metric on a particular column.
-* `metricTriggerType` - (Required) Metric Trigger Type - 'Consecutive' or 'Total'.
-* `operator` - (Required) Evaluation operation for rule - 'Equal', 'GreaterThan' or 'LessThan'.
-* `threshold` - (Required) The threshold of the metric trigger.
+* `metricColumn` - Evaluation of metric on a particular column.
+* `metricTriggerType` - Metric Trigger Type - 'Consecutive' or 'Total'.
+* `operator` - Evaluation operation for rule - 'Equal', 'GreaterThan' or 'LessThan'.
+* `threshold` - The threshold of the metric trigger.
 
 ---
 
 `trigger` supports the following:
 
-* `metricTrigger` - (Optional) A `metricTrigger` block as defined above. Trigger condition for metric query rule.
-* `operator` - (Required) Evaluation operation for rule - 'Equal', 'GreaterThan' or 'LessThan'.
-* `threshold` - (Required) Result or count threshold based on which rule should be triggered.
+* `metricTrigger` - A `metricTrigger` block as defined above. Trigger condition for metric query rule.
+* `operator` - Evaluation operation for rule - 'Equal', 'GreaterThan' or 'LessThan'.
+* `threshold` - Result or count threshold based on which rule should be triggered.

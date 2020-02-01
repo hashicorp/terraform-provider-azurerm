@@ -40,7 +40,7 @@ resource "azurerm_scheduled_query_rule_alert" "example" {
   location               = azurerm_resource_group.example.location
   resource_group_name    = azurerm_resource_group.example.name
 
-  azns_action {
+  action {
     action_group           = []
     email_subject          = "Email Header"
     custom_webhook_payload = "{}"
@@ -71,9 +71,9 @@ resource "azurerm_scheduled_query_rule_alert" "example2" {
   location               = azurerm_resource_group.example.location
   resource_group_name    = azurerm_resource_group.example.name
 
-  authorized_resources     = [azurerm_application_insights.example.id,
+  authorized_resource_ids = [azurerm_application_insights.example.id,
                               azurerm_log_analytics_workspace.example.id]
-  azns_action {
+  action {
     action_group           = []
     email_subject          = "Email Header"
     custom_webhook_payload = "{}"
@@ -99,8 +99,8 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Scheduled Query Rule. Changing this forces a new resource to be created.
 * `resource_group_name` - (Required) The name of the resource group in which to create the Scheduled Query Rule instance.
-* `authorized_resources` - (Optional) List of Resource IDs referred into query.
-* `azns_action` - (Optional) An `azns_action` block as defined below.
+* `authorized_resource_ids` - (Optional) List of Resource IDs referred into query.
+* `action` - (Optional) An `action` block as defined below.
 * `data_source_id` - (Required) The resource uri over which log search query is to be run.
 * `description` - (Optional) The description of the Scheduled Query Rule.
 * `enabled` - (Optional) Whether this scheduled query rule is enabled.  Default is `true`.
@@ -114,9 +114,9 @@ The following arguments are supported:
 
 ---
 
-* `azns_action` supports the following:
+* `action` supports the following:
 
-* `action_group` - (Optional) List of action group reference resource IDs.
+* `action_group` - (Required) List of action group reference resource IDs.
 * `custom_webhook_payload` - (Optional) Custom payload to be sent for all webhook payloads in alerting action.
 * `email_subject` - (Optional) Custom subject override for all email ids in Azure action group.
 

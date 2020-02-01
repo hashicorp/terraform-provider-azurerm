@@ -37,7 +37,7 @@ func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricAction(t *testing.T) {
 func testAccAzureRMMonitorScheduledQueryRules_logToMetricAction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-monitor-%d"
   location = "%s"
 }
 
@@ -60,7 +60,6 @@ resource "azurerm_monitor_scheduled_query_rules_log" "test" {
   location            = "${azurerm_resource_group.test.location}"
 	description         = "test log to metric action"
 	enabled             = true
-	action_type         = "LogToMetric"
 
 	data_source_id = "${azurerm_application_insights.test.id}"
 
@@ -69,14 +68,14 @@ resource "azurerm_monitor_scheduled_query_rules_log" "test" {
 		dimension {
 			name             = "InstanceName"
 			operator         = "Include"
-			values           = [""]
+			values           = ["50"]
 		}
 	}
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testCheckAzureRMMonitorScheduledQueryRulesDestroy(s *terraform.State) error {
+func testCheckAzureRMMonitorScheduledQueryRulesLogDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.ScheduledQueryRulesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 

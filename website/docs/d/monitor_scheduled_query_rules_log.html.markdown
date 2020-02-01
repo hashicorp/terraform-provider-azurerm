@@ -42,13 +42,13 @@ output "query_rule_id" {
 
 `criteria` supports the following:
 
-* `dimension` - (Required) A `dimension` block as defined below.
-* `metric_name` - (Required) Name of the metric.
+* `dimension` - A `dimension` block as defined below.
+* `metric_name` - Name of the metric.
 
 ---
 
 `dimension` supports the following:
 
-* `name` - (Required) Name of the dimension.
-* `operator` - (Required) Operator for dimension values, - 'Include'.
-* `values` - (Required) List of dimension values.
+* `name` - Name of the dimension.
+* `operator` - Operator for dimension values, - 'Include'.
+* `values` - List of dimension values.

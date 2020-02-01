@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAzureRMMonitorScheduledQueryRules_AlertingAction(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_action", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -36,7 +36,7 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingAction(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorScheduledQueryRules_AlertingActionCrossResource(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_action", "test")
+	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -63,7 +63,7 @@ func testAccAzureRMMonitorScheduledQueryRules_alertingAction(data acceptance.Tes
 
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-monitor-%d"
   location = "%s"
 }
 
@@ -80,13 +80,12 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
 }
 
-resource "azurerm_monitor_scheduled_query_rules_action" "test" {
+resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
   name                = "acctestsqr-%d"
 	resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 	description         = "test alerting action"
 	enabled             = true
-	action_type         = "Alerting"
 
 	data_source_id = "${azurerm_application_insights.test.id}"
   query          = "let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ]; d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)"
@@ -96,7 +95,7 @@ resource "azurerm_monitor_scheduled_query_rules_action" "test" {
   time_window = 60
 
 	severity     = 3
-	azns_action {
+	action {
 		action_group = ["${azurerm_monitor_action_group.test.id}"]
 		email_subject = "Custom alert email subject"
 		custom_webhook_payload = "{}"
@@ -119,7 +118,7 @@ resource "azurerm_monitor_scheduled_query_rules_action" "test" {
 func testAccAzureRMMonitorScheduledQueryRules_alertingActionCrossResource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-monitor-%d"
   location = "%s"
 }
 
@@ -144,24 +143,23 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
 }
 
-resource "azurerm_monitor_scheduled_query_rules_action" "test" {
+resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
   name                = "acctestsqr-%d"
 	resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 	description         = "test alerting action cross-resource"
 	enabled             = true
-	action_type         = "Alerting"
 
-	authorized_resources = ["${azurerm_application_insights.test.id}", "${azurerm_log_analytics_workspace.test.id}"]
-	data_source_id       = "${azurerm_application_insights.test.id}"
-	query                = format("let a=workspace('%%s').Perf | where Computer='dependency' and TimeGenerated > ago(1h) | where ObjectName == 'Processor' and CounterName == '%%%% Processor Time' | summarize cpu=avg(CounterValue) by bin(TimeGenerated, 1m) | extend ts=tostring(TimeGenerated); let b=requests | where resultCode == '200' and timestamp > ago(1h) | summarize reqs=count() by bin(timestamp, 1m) | extend ts = tostring(timestamp); a | join b on $left.ts == $right.ts | where cpu > 50 and reqs > 5", azurerm_log_analytics_workspace.test.id)
+	authorized_resource_ids = ["${azurerm_application_insights.test.id}", "${azurerm_log_analytics_workspace.test.id}"]
+	data_source_id          = "${azurerm_application_insights.test.id}"
+	query                   = format("let a=workspace('%%s').Perf | where Computer='dependency' and TimeGenerated > ago(1h) | where ObjectName == 'Processor' and CounterName == '%%%% Processor Time' | summarize cpu=avg(CounterValue) by bin(TimeGenerated, 1m) | extend ts=tostring(TimeGenerated); let b=requests | where resultCode == '200' and timestamp > ago(1h) | summarize reqs=count() by bin(timestamp, 1m) | extend ts = tostring(timestamp); a | join b on $left.ts == $right.ts | where cpu > 50 and reqs > 5", azurerm_log_analytics_workspace.test.id)
 	query_type           = "ResultCount"
 
 	frequency   = 60
 	time_window = 60
 
 	severity     = 3
-	azns_action {
+	action {
 		action_group = ["${azurerm_monitor_action_group.test.id}"]
 		email_subject = "Custom alert email subject"
 	}
@@ -179,7 +177,7 @@ func testCheckAzureRMMonitorScheduledQueryRulesDestroy(s *terraform.State) error
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_monitor_scheduled_query_rules_action" {
+		if rs.Type != "azurerm_monitor_scheduled_query_rules_alert" {
 			continue
 		}
 
@@ -200,7 +198,7 @@ func testCheckAzureRMMonitorScheduledQueryRulesDestroy(s *terraform.State) error
 	return nil
 }
 
-func testCheckAzureRMMonitorScheduledQueryRulesExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMMonitorScheduledQueryRulesAlertExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
