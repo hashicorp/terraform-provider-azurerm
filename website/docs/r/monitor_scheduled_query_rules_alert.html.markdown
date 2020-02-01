@@ -2,7 +2,6 @@
 subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_alert"
-sidebar_current: "docs-azurerm-resource-monitor-scheduled-query-rules-alert"
 description: |-
   Manages an AlertingAction Scheduled Query Rule within Azure Monitor
 ---

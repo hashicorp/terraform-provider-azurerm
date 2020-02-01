@@ -46,27 +46,27 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 resource "azurerm_monitor_scheduled_query_rules_log" "test" {
-	name                = "acctestsqr-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location            = "${azurerm_resource_group.test.location}"
-	description         = "test log to metric action"
-	enabled             = true
+  name                = "acctestsqr-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  description         = "test log to metric action"
+  enabled             = true
 
-	data_source_id = "${azurerm_application_insights.test.id}"
+  data_source_id = "${azurerm_application_insights.test.id}"
 
-	criteria {
-		metric_name        = "Average_%% Idle Time"
-		dimension {
-			name             = "InstanceName"
-			operator         = "Include"
-			values           = ["50"]
-		}
-	}
+  criteria {
+    metric_name = "Average_%% Idle Time"
+    dimension {
+      name     = "InstanceName"
+      operator = "Include"
+      values   = ["50"]
+    }
+  }
 }
 
 data "azurerm_monitor_scheduled_query_rules_log" "test" {
-	name = "${azurerm_monitor_scheduled_query_rules_log.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "${azurerm_monitor_scheduled_query_rules_log.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

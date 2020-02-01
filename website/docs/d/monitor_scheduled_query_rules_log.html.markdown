@@ -2,7 +2,6 @@
 subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules_log"
-sidebar_current: "docs-azurerm-datasource-monitor-scheduled-query-rules-log"
 description: |-
   Get information about the specified LogToMetricAction Scheduled Query Rule.
 ---
