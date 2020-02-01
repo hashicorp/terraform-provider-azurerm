@@ -67,7 +67,7 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "{}",
-							ValidateFunc: validation.ValidateJsonString,
+							ValidateFunc: validation.StringIsJSON,
 						},
 						"email_subject": {
 							Type:     schema.TypeString,

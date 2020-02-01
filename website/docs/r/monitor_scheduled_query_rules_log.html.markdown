@@ -26,21 +26,21 @@ resource "azurerm_application_insights" "example" {
 }
 
 resource "azurerm_scheduled_query_rule_log" "example3" {
-  name                   = format("%s-queryrule3", var.prefix)
-  location               = azurerm_resource_group.example.location
-  resource_group_name    = azurerm_resource_group.example.name
+  name                = format("%s-queryrule3", var.prefix)
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   criteria {
-      metric_name        = "Average_% Idle Time"
-      dimensions {
-        name             = "InstanceName"
-        operator         = "Include"
-        values           = [""]
-      }
+    metric_name = "Average_% Idle Time"
+    dimensions {
+      name     = "InstanceName"
+      operator = "Include"
+      values   = [""]
+    }
   }
-  data_source_id         = azurerm_application_insights.example.id
-  description            = "Scheduled query rule LogToMetric example"
-  enabled                = true
+  data_source_id = azurerm_application_insights.example.id
+  description    = "Scheduled query rule LogToMetric example"
+  enabled        = true
 }
 ```
 

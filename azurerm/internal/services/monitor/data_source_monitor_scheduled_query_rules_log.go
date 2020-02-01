@@ -46,7 +46,6 @@ func dataSourceArmMonitorScheduledQueryRulesLog() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Computed: true,
-										Elem:     schema.TypeString,
 									},
 									"operator": {
 										Type:     schema.TypeString,

@@ -35,26 +35,26 @@ resource "azurerm_log_analytics_workspace" "example" {
 
 # Example: Alerting Action
 resource "azurerm_scheduled_query_rule_alert" "example" {
-  name                   = format("%s-queryrule", var.prefix)
-  location               = azurerm_resource_group.example.location
-  resource_group_name    = azurerm_resource_group.example.name
+  name                = format("%s-queryrule", var.prefix)
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   action {
     action_group           = []
     email_subject          = "Email Header"
     custom_webhook_payload = "{}"
   }
-  data_source_id           = azurerm_application_insights.example.id
-  description              = "Scheduled query rule Alerting Action example"
-  enabled                  = true
-  frequency                = 5
-  query                    = "requests | where status_code >= 500 | summarize AggregatedValue = count() by bin(timestamp, 5m)"
-  query_type               = "ResultCount"
-  severity                 = 1
-  time_window              = 30
+  data_source_id = azurerm_application_insights.example.id
+  description    = "Scheduled query rule Alerting Action example"
+  enabled        = true
+  frequency      = 5
+  query          = "requests | where status_code >= 500 | summarize AggregatedValue = count() by bin(timestamp, 5m)"
+  query_type     = "ResultCount"
+  severity       = 1
+  time_window    = 30
   trigger {
-    threshold_operator     = "GreaterThan"
-    threshold              = 3
+    threshold_operator = "GreaterThan"
+    threshold          = 3
     metric_trigger {
       operator            = "GreaterThan"
       threshold           = 1
@@ -66,28 +66,28 @@ resource "azurerm_scheduled_query_rule_alert" "example" {
 
 # Example: Alerting Action Cross-Resource
 resource "azurerm_scheduled_query_rule_alert" "example2" {
-  name                   = format("%s-queryrule2", var.prefix)
-  location               = azurerm_resource_group.example.location
-  resource_group_name    = azurerm_resource_group.example.name
+  name                = format("%s-queryrule2", var.prefix)
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   authorized_resource_ids = [azurerm_application_insights.example.id,
-                              azurerm_log_analytics_workspace.example.id]
+  azurerm_log_analytics_workspace.example.id]
   action {
     action_group           = []
     email_subject          = "Email Header"
     custom_webhook_payload = "{}"
   }
-  data_source_id           = azurerm_application_insights.example.id
-  description              = "Scheduled query rule Alerting Action cross-resource example"
-  enabled                  = true
-  frequency                = 5
-  query                    = format("let a=workspace('%s').Perf | where Computer='dependency' and TimeGenerated > ago(1h) | where ObjectName == 'Processor' and CounterName == '%% Processor Time' | summarize cpu=avg(CounterValue) by bin(TimeGenerated, 1m) | extend ts=tostring(TimeGenerated); let b=requests | where resultCode == '200' and timestamp > ago(1h) | summarize reqs=count() by bin(timestamp, 1m) | extend ts = tostring(timestamp); a | join b on $left.ts == $right.ts | where cpu > 50 and reqs > 5", azurerm_log_analytics_workspace.test.id)
-  query_type               = "ResultCount"
-  severity                 = "1"
-  time_window              = 30
+  data_source_id = azurerm_application_insights.example.id
+  description    = "Scheduled query rule Alerting Action cross-resource example"
+  enabled        = true
+  frequency      = 5
+  query          = format("let a=workspace('%s').Perf | where Computer='dependency' and TimeGenerated > ago(1h) | where ObjectName == 'Processor' and CounterName == '%% Processor Time' | summarize cpu=avg(CounterValue) by bin(TimeGenerated, 1m) | extend ts=tostring(TimeGenerated); let b=requests | where resultCode == '200' and timestamp > ago(1h) | summarize reqs=count() by bin(timestamp, 1m) | extend ts = tostring(timestamp); a | join b on $left.ts == $right.ts | where cpu > 50 and reqs > 5", azurerm_log_analytics_workspace.test.id)
+  query_type     = "ResultCount"
+  severity       = "1"
+  time_window    = 30
   trigger {
-    threshold_operator     = "GreaterThan"
-    threshold              = 3
+    threshold_operator = "GreaterThan"
+    threshold          = 3
   }
 }
 ```
