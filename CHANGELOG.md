@@ -15,6 +15,7 @@ BUGS:
 * `azurerm_databricks_workspace` - allow underscores in `name` [GH-5548]
 * `azurerm_dns_aaaa_record` - normalize IPv6 addresses [GH-5459]
 * `azurerm_frontdoor` - including required `minimum_tls_version` to the `custom_https_configuration` block [GH-5539]
+* `azurerm_marketplace_agreement` - recreate agreement if not accepted [GH-5582]
 * `azurerm_mysql_virtual_network_rule` - allow `subnet_id` to be in a different subscription then the database [GH-5568]
 * `azurerm_virtual_network_gateway_connection` - increase `routing_weight` maximum to `32000` [GH-5540]
 
