@@ -3,10 +3,12 @@ package recoveryservices
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -122,8 +124,35 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 		cfg.Properties.SoftDeleteFeatureState = backup.SoftDeleteFeatureStateDisabled
 	}
 
-	if _, err := cfgsClient.Update(ctx, name, resourceGroup, cfg); err != nil {
-		return fmt.Errorf("Error updating Recovery Service Vault Cfg %q (Resource Group %q): %+v", name, resourceGroup, err)
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"syncing"},
+		Target:     []string{"success"},
+		MinTimeout: 30 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			resp, err := cfgsClient.Update(ctx, name, resourceGroup, cfg)
+			if err != nil {
+				if strings.Contains(err.Error(), "ResourceNotYetSynced") {
+					return resp, "syncing", nil
+				}
+				return resp, "error", fmt.Errorf("Error updating Recovery Service Vault Cfg %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+
+			return resp, "success", nil
+		},
+	}
+
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
+	} else {
+		stateConf.Timeout = 30 * time.Minute
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for on update for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
