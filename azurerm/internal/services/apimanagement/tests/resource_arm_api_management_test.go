@@ -429,7 +429,7 @@ resource "azurerm_api_management" "test" {
   sku_name = "Developer_1"
 
   protocols {
-	enable_http2 = true
+    enable_http2 = true
   }
 
   security {
@@ -517,7 +517,7 @@ resource "azurerm_api_management" "test" {
   }
 
   protocols {
-	enable_http2 = true
+    enable_http2 = true
   }
 
   security {
