@@ -3,13 +3,13 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_profile"
 description: |-
-  Manages an Azure Network Profile.
+  Manages a Network Profile.
 
 ---
 
 # azurerm_network_profile
 
-Manages an Azure Network Profile.
+Manages a Network Profile.
 
 ## Example Usage
 
@@ -92,13 +92,24 @@ A `ip_configuration` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the Azure Network Profile.
+* `id` - The ID of the Network Profile.
 
-* `container_network_interface_ids` - One or more Resource IDs of Azure Container Network Interfaces.
+* `container_network_interface_ids` - A list of Container Network Interface ID's.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Profile.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Profile.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Profile.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Profile.
 
 ## Import
 
-Azure Network Profile can be imported using the `resource id`, e.g.
+Network Profile can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_network_profile.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkProfiles/examplenetprofile
