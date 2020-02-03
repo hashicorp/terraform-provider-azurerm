@@ -39,13 +39,13 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Azure resource ID of the Prviate Link Endpoint.
+* `id` - The Azure resource ID of the Private Link Endpoint.
 * `location` - The supported Azure location where the resource exists.
 
 A `private_service_connection` block exports the following:
 
-* `name` - The name of the private linke endpoint.
-* `status` - The current status of the private link endpoint request, possible values will be `Pending`, `Approved`, `Rejected`, or `Disconnected`.
+* `name` - The name of the Private Link endpoint.
+* `status` - The current status of the Private Link endpoint request, possible values will be `Pending`, `Approved`, `Rejected`, or `Disconnected`.
 * `private_ip_address` - The private IP address associated with the private link endpoint, note that you will have a private IP address assigned to the private link endpoint even if the connection request was `Rejected`.
 * `request_response` - Possible values are as follows:
   Value | Meaning

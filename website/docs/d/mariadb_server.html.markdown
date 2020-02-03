@@ -3,12 +3,12 @@ subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mariadb_server"
 description: |-
-  Gets information about am existing MariaDB Server.
+  Gets information about an existing MariaDB Server.
 ---
 
 # Data Source: azurerm_mariadb_server
 
-Use this data source to access information about a MariaDB Server.
+Use this data source to access information about an existing MariaDB Server.
 
 ## Example Usage
 

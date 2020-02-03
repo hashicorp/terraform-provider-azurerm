@@ -3,12 +3,12 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_endpoint_connection"
 description: |-
-  Gets the connecton status information about an existing Private Endpoint
+  Gets the connection status information about an existing Private Endpoint
 ---
 
 # Data Source: azurerm_private_endpoint_connection
 
-Use this data source to access the connection status information about an existing Private Endpoint.
+Use this data source to access the connection status information about an existing Private Endpoint Connection.
 
 -> **NOTE** Private Endpoint is currently in Public Preview.
 
@@ -36,7 +36,8 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Azure resource ID of the Prviate Endpoint.
+* `id` - The ID of the Private Endpoint.
+
 * `location` - The supported Azure location where the resource exists.
 
 A `private_service_connection` block exports the following:
@@ -57,4 +58,4 @@ A `private_service_connection` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the .
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private Endpoint.
