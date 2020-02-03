@@ -25,7 +25,7 @@ resource "azurerm_role_definition" "custom" {
 
 data "azurerm_role_definition" "custom" {
   role_definition_id = "${azurerm_role_definition.custom.role_definition_id}"
-  scope              = "${data.azurerm_subscription.primary.id}"              # /subscriptions/00000000-0000-0000-0000-000000000000
+  scope              = "${data.azurerm_subscription.primary.id}" # /subscriptions/00000000-0000-0000-0000-000000000000
 }
 
 data "azurerm_role_definition" "custom-byname" {
