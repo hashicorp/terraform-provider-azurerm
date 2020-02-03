@@ -104,6 +104,7 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 				Config: testAccAzureRMApiManagement_customProps(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0.enable_http2", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -427,6 +428,10 @@ resource "azurerm_api_management" "test" {
 
   sku_name = "Developer_1"
 
+  protocols {
+	enable_http2 = true
+  }
+
   security {
     enable_frontend_tls10     = true
     enable_triple_des_ciphers = true
@@ -509,6 +514,10 @@ resource "azurerm_api_management" "test" {
     encoded_certificate  = "${filebase64("testdata/api_management_api_test.pfx")}"
     certificate_password = "terraform"
     store_name           = "Root"
+  }
+
+  protocols {
+	enable_http2 = true
   }
 
   security {
