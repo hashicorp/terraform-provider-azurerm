@@ -8,7 +8,7 @@ description: |-
 
 # Opting into Beta Functionality coming in version 2.0 of the Azure Provider
 
-Version 2.0 of the Azure Provider will introduce several new features:
+Version 2.0 of the Azure Provider will introduce several new features ([full details can be found in the 2.0 Upgrade Guide](/docs/providers/azurerm/guides/2.0-upgrade-guide.html)):
 
 - Custom Timeouts for Data Sources & Resources
 - New Resources for Virtual Machines & Virtual Machine Scale Sets
