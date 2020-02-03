@@ -50,7 +50,7 @@ On a Windows System (in PowerShell) you can do this via:
 [System.Environment]::SetEnvironmentVariable('ARM_PROVIDER_CUSTOM_TIMEOUTS', 'true', [System.EnvironmentVariableTarget]::User)
 ```
 
--> **NOTE:** You may need to reload/re-open your Terminal after setting this Environment Variable.
+-> **Note:** You may need to reload/re-open your Terminal after setting this Environment Variable.
 
 Once this is done you should be able to specify Custom Timeouts in Terraform Resources, like so:
 
@@ -85,7 +85,7 @@ On a Windows System (in PowerShell) you can do this via:
 
 ---
 
--> **NOTE:** If this Environment Variable isn't specified, you'll see the following error, since support for Custom Timeouts will be Disabled:
+-> **Note:** If this Environment Variable isn't specified, you'll see the following error, since support for Custom Timeouts will be Disabled:
 
 ```
 $ terraform plan
@@ -110,7 +110,7 @@ Version 2.0 of the Azure Provider will introduce support for several new resourc
 
 More details about why we've added these new resources [can be found in this Github issue](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807).
 
-!> **NOTE:** The new Virtual Machine resources will automatically remove the OS Disk on Destroy - you can opt out of this by making your Provider block:
+!> **Note:** The new Virtual Machine resources will automatically remove the OS Disk on Destroy - you can opt out of this by making your Provider block:
 
 ```
 provider "azurerm" {
@@ -127,6 +127,8 @@ Since this is a Behavioural change, in 2.x versions of the Provider the `feature
 
 It's possible to opt into the Beta of these New Resources by setting the Environment Variable `ARM_PROVIDER_TWOPOINTZERO_RESOURCES` to `true`.
 
+-> **Note:** If you opt-into this Beta we also recommend opting into the `Requiring Existing Resources to be Imported` Beta too.
+
 On a macOS/Linux system you can do this via:
 
 ```bash
@@ -139,7 +141,7 @@ On a Windows System (in PowerShell) you can do this via:
 [System.Environment]::SetEnvironmentVariable('ARM_PROVIDER_TWOPOINTZERO_RESOURCES', 'true', [System.EnvironmentVariableTarget]::User)
 ```
 
--> **NOTE:** You may need to reload/re-open your Terminal after setting this Environment Variable.
+-> **Note:** You may need to reload/re-open your Terminal after setting this Environment Variable.
 
 Once this is done you should be able to use these New Resources as you would with any other resource:
 
@@ -191,7 +193,7 @@ On a Windows System (in PowerShell) you can do this via:
 
 ---
 
--> **NOTE:** If this Environment Variable isn't specified, you'll see the following error when trying to use any of these Resources, since the Azure Provider will Disable them:
+-> **Note:** If this Environment Variable isn't specified, you'll see the following error when trying to use any of these Resources, since the Azure Provider will Disable them:
 
 ```
 $ terraform plan
@@ -238,7 +240,7 @@ On a Windows System (in PowerShell) you can do this via:
 [System.Environment]::SetEnvironmentVariable('ARM_PROVIDER_STRICT', 'true', [System.EnvironmentVariableTarget]::User)
 ```
 
--> **NOTE:** You may need to reload/re-open your Terminal after setting this Environment Variable.
+-> **Note:** You may need to reload/re-open your Terminal after setting this Environment Variable.
 
 Once this feature is enabled, the Azure Provider will first check during creation of a resource if there's an existing resource which should be imported.
 
