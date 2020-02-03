@@ -12,7 +12,7 @@ Manages a Virtual Machine.
 
 ~> **NOTE:** Data Disks can be attached either directly on the `azurerm_virtual_machine` resource, or using the `azurerm_virtual_machine_data_disk_attachment` resource - but the two cannot be used together. If both are used against the same Virtual Machine, spurious changes will occur.
 
--> **NOTE:** The `azurerm_virtual_machine` resource will be superseded by two new resources in the next major version of the Azure Provider (2.0) - [you can find out more about these changes here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807).
+-> **NOTE:** The `azurerm_virtual_machine` resource will be superseded by two new resources in the next major version of the Azure Provider (2.0) - [you can find out more about these changes here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807) and [find out how to opt-into the Beta of the new resources here](/docs/providers/azurerm/guides/2.0-beta.html).
 
 ## Example Usage (from an Azure Platform Image)
 
