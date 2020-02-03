@@ -12,7 +12,7 @@ Manages a Windows Virtual Machine.
 
 ## Disclaimers
 
-~> **Note** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider.
+~> **Note** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider. You can find out [how to opt into the Beta in this guide](https://terraform.io/docs/providers/azurerm/guides/2.0-beta.html)
 
 -> **Note** Terraform will automatically remove the OS Disk by default - this behaviour can be configured [using the `features` setting within the Provider block](https://www.terraform.io/docs/providers/azurerm/index.html#argument-reference).
 
@@ -23,6 +23,7 @@ Manages a Windows Virtual Machine.
 ~> **Note** This resource does not support attaching existing OS Disks. You can instead [capture an image of the OS Disk](image.html) or continue to use [the `azurerm_virtual_machine` resource](virtual_machine.html) instead.
 
 ~> In this Beta release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
+
 
 ## Example Usage
 
