@@ -70,22 +70,22 @@ The following arguments are supported:
     create the namespace. Changing this forces a new resource to be created.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used
-    for authenticating requests to the key vault. Changing this forces a new resource 
+    for authenticating requests to the key vault. Changing this forces a new resource
     to be created.
 
 * `object_id` - (Required) The object ID of a user, service principal or security
     group in the Azure Active Directory tenant for the vault. The object ID must
-    be unique for the list of access policies. Changing this forces a new resource 
+    be unique for the list of access policies. Changing this forces a new resource
     to be created.
 
 * `application_id` - (Optional) The object ID of an Application in Azure Active Directory.
 
 * `certificate_permissions` - (Optional) List of certificate permissions, must be one or more from
-    the following: `backup`, `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`, 
+    the following: `backup`, `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`,
     `managecontacts`, `manageissuers`, `purge`, `recover`, `restore`, `setissuers` and `update`.
 
 * `key_permissions` - (Required) List of key permissions, must be one or more from
-    the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`, 
+    the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`,
     `recover`, `restore`, `sign`, `unwrapKey`, `update`, `verify` and `wrapKey`.
 
 * `secret_permissions` - (Required) List of secret permissions, must be one or more
@@ -100,6 +100,17 @@ The following attributes are exported:
 * `id` - Key Vault Access Policy ID.
 
 -> **NOTE:** This Identifier is unique to Terraform and doesn't map to an existing object within Azure.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Access Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Access Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Access Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Access Policy.
 
 ## Import
 

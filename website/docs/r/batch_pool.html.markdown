@@ -306,11 +306,23 @@ A `network_security_group_rules` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The Batch pool ID.
+* `id` - The ID of the Batch Pool.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Batch Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the Batch Pool.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Batch Pool.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Batch Pool.
 
 ## Import
-Batch pools can be imported using the `resource id`, e.g.
+
+Batch Pools can be imported using the `resource id`, e.g.
+
 ```shell
  terraform import azurerm_batch_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/myResourceGroups/myGroup1/providers/Microsoft.Batch/myBatchAccounts/myBatchAccount1/myBatchPools/myBatchPool1
 ```
