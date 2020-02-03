@@ -78,5 +78,4 @@ func TestVirtualMachineShouldBeStarted(t *testing.T) {
 			t.Fatalf("Expected %t but got %t", testCase.Expected, result)
 		}
 	}
-
 }
