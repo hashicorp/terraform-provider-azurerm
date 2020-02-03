@@ -136,3 +136,11 @@ A `ip_restriction` block exports the following:
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
 
 * `virtual_network_name` - The name of the Virtual Network which this App Service is attached to.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service.
