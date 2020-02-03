@@ -182,7 +182,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				Type:         schema.TypeFloat,
 				Optional:     true,
 				Default:      -1,
-				ValidateFunc: validation.IntAtLeast(-1),
+				ValidateFunc: validation.FloatAtLeast(-1.0),
 			},
 
 			"plan": planSchema(),
