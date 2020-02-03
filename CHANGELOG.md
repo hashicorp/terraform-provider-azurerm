@@ -18,6 +18,7 @@ BUGS:
 * `azurerm_marketplace_agreement` - recreate agreement if not accepted [GH-5582]
 * `azurerm_mysql_virtual_network_rule` - allow `subnet_id` to be in a different subscription then the database [GH-5568]
 * `azurerm_virtual_network_gateway_connection` - increase `routing_weight` maximum to `32000` [GH-5540]
+* `azurerm_managed_disk` - correctly handles disk resizing when attached to a virtual machine [GH-5579]
 
 ## 1.42.0 (January 27, 2020)
 
