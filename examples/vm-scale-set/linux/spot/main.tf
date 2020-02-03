@@ -28,6 +28,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "main" {
   disable_password_authentication = false
   eviction_policy                 = "Delete"
   priority                        = "Spot"
+  max_bid_price                   = 0.5
 
   source_image_reference {
     publisher = "Canonical"

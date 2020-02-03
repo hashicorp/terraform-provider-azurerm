@@ -28,6 +28,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "main" {
   computer_name_prefix = var.prefix
   eviction_policy      = "Delete"
   priority             = "Spot"
+  max_bid_price        = 0.5
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
