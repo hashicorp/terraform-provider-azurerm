@@ -59,6 +59,7 @@ func resourceArmManagedDisk() *schema.Resource {
 					string(compute.Empty),
 					string(compute.FromImage),
 					string(compute.Import),
+					string(compute.Restore),
 				}, true),
 			},
 
@@ -180,7 +181,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 		} else {
 			return fmt.Errorf("[ERROR] source_uri must be specified when create_option is `%s`", compute.Import)
 		}
-	} else if strings.EqualFold(createOption, string(compute.Copy)) {
+	} else if strings.EqualFold(createOption, string(compute.Copy)) || strings.EqualFold(createOption, string(compute.Restore)) {
 		if sourceResourceId := d.Get("source_resource_id").(string); sourceResourceId != "" {
 			createDisk.CreationData.SourceResourceID = &sourceResourceId
 		} else {
