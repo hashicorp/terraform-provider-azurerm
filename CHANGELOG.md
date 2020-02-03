@@ -1,6 +1,6 @@
 ## 1.43.0 (Unreleased)
 
-## NOTES
+NOTES
 
 * **Opt-In Beta:** Version 1.43 of the Azure Provider introduces an opt-in Beta for some of the new functionality coming in 2.0 - more information can be found [in the Beta guide](https://terraform.io/docs/providers/azurerm/guides/2.0-beta.html).
 
