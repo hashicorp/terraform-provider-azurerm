@@ -642,7 +642,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error retrieving InstanceView for Linux Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	shouldTurnBackOn := shouldBootVirtualMachine(instanceView)
+	shouldTurnBackOn := virtualMachineShouldBeStarted(instanceView)
 	hasEphemeralOSDisk := false
 	if props := existing.VirtualMachineProperties; props != nil {
 		if storage := props.StorageProfile; storage != nil {
