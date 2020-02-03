@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -383,6 +384,9 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 		// check instanceView State
 		vmClient := meta.(*clients.Client).Compute.VMClient
+
+		locks.ByName(name, virtualMachineResourceName)
+		defer locks.UnlockByName(name, virtualMachineResourceName)
 
 		instanceView, err := vmClient.InstanceView(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
 		if err != nil {
