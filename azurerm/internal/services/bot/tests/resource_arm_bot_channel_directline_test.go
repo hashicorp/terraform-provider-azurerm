@@ -163,11 +163,11 @@ resource "azurerm_bot_channel_directline" "test" {
 	location            = "${azurerm_bot_channels_registration.test.location}"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	site {
-		site_name 				= "test"
-		is_enabled 				= true
-		is_v1_enabled 			= true
-		is_v3_enabled 			= true
-		is_secure_site_enabled 	= true
+		name 				= "test"
+		enabled 				= true
+		v1_allowed 			= true
+		v3_allowed 			= true
+		enhanced_authentication_enabled 	= true
 		trusted_origins 		= ["https://example.com"]
 	}
 }
@@ -183,7 +183,7 @@ resource "azurerm_bot_channel_directline" "test" {
 	bot_name            = "${azurerm_bot_channels_registration.test.name}"
 	location            = "${azurerm_bot_channels_registration.test.location}"
 	resource_group_name = "${azurerm_resource_group.test.name}"
-	is_enabled          = false
+	enabled          = false
 }
 `, template)
 }
