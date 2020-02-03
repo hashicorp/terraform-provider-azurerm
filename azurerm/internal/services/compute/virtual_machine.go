@@ -128,6 +128,7 @@ func virtualMachineIdentitySchema() *schema.Schema {
 					Optional: true,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
+						// TODO: validation for a UAI which requires an ID Parser/Validator
 					},
 				},
 

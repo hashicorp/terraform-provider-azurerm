@@ -179,9 +179,10 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			},
 
 			"max_bid_price": {
-				Type:     schema.TypeFloat,
-				Optional: true,
-				Default:  -1,
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Default:      -1,
+				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"plan": planSchema(),
@@ -693,14 +694,10 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		update.VirtualMachineProperties.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
 	}
 
-	if d.HasChange("custom_data") || d.HasChange("enable_automatic_updates") || d.HasChange("secret") {
+	if d.HasChange("secret") {
 		shouldUpdate = true
 
 		profile := compute.OSProfile{}
-
-		if d.HasChange("custom_data") {
-			profile.CustomData = utils.String(d.Get("custom_data").(string))
-		}
 
 		if d.HasChange("secret") {
 			secretsRaw := d.Get("secret").([]interface{})

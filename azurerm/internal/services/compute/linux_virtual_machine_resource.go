@@ -168,9 +168,10 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 			"identity": virtualMachineIdentitySchema(),
 
 			"max_bid_price": {
-				Type:     schema.TypeFloat,
-				Optional: true,
-				Default:  -1,
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Default:      -1,
+				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"plan": planSchema(),
@@ -486,7 +487,7 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*resp.Location))
+		d.Set("location", azure.NormalizeLocation(location))
 	}
 
 	if err := d.Set("identity", flattenVirtualMachineIdentity(resp.Identity)); err != nil {
@@ -668,14 +669,10 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		update.VirtualMachineProperties.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
 	}
 
-	if d.HasChange("custom_data") || d.HasChange("secret") {
+	if d.HasChange("secret") {
 		shouldUpdate = true
 
 		profile := compute.OSProfile{}
-
-		if d.HasChange("custom_data") {
-			profile.CustomData = utils.String(d.Get("custom_data").(string))
-		}
 
 		if d.HasChange("secret") {
 			secretsRaw := d.Get("secret").([]interface{})
