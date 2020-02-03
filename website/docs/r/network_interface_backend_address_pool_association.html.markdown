@@ -92,10 +92,20 @@ The following attributes are exported:
 
 * `id` - The (Terraform specific) ID of the Association between the Network Interface and the Load Balancers Backend Address Pool.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the association between the Network Interface and the Load Balancers Backend Address Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the association between the Network Interface and the Load Balancers Backend Address Pool.
+* `read` - (Defaults to 5 minutes) Used when retrieving the association between the Network Interface and the Load Balancers Backend Address Pool.
+* `delete` - (Defaults to 30 minutes) Used when deleting the association between the Network Interface and the Load Balancers Backend Address Pool.
+
 ## Import
 
 Associations between Network Interfaces and Load Balancer Backend Address Pools can be imported using the `resource id`, e.g.
-
 
 ```shell
 terraform import azurerm_network_interface_backend_address_pool_association.association1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/nic1/ipConfigurations/example|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/backendAddressPools/pool1

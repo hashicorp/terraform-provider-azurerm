@@ -66,7 +66,7 @@ A `input_mapping_fields` supports the following:
 
 ---
 
-A `input_mapping_default_values` supports the following: 
+A `input_mapping_default_values` supports the following:
 
 * `event_type` - (Optional) Specifies the default event type of the EventGrid Event to associate with the domain. Changing this forces a new resource to be created.
 
@@ -85,6 +85,17 @@ The following attributes are exported:
 * `primary_access_key` - The Primary Shared Access Key associated with the EventGrid Domain.
 
 * `secondary_access_key` - The Secondary Shared Access Key associated with the EventGrid Domain.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the EventGrid Domain.
+* `update` - (Defaults to 30 minutes) Used when updating the EventGrid Domain.
+* `read` - (Defaults to 5 minutes) Used when retrieving the EventGrid Domain.
+* `delete` - (Defaults to 30 minutes) Used when deleting the EventGrid Domain.
 
 ## Import
 

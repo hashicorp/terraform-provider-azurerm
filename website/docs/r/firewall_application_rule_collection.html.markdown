@@ -119,9 +119,20 @@ A `protocol` block supports the following:
 
 * `type` - (Required) Specifies the type of connection. Possible values are `Http`, `Https` and `Mssql`.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Firewall Application Rule Collection.
+* `update` - (Defaults to 30 minutes) Used when updating the Firewall Application Rule Collection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Firewall Application Rule Collection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Firewall Application Rule Collection.
+
 ## Import
 
-Azure Firewall Application Rule Collections can be imported using the `resource id`, e.g.
+Firewall Application Rule Collections can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_firewall_application_rule_collection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/applicationRuleCollections/mycollection

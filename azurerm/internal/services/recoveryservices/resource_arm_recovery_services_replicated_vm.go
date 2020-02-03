@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -43,7 +42,7 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -57,7 +56,7 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"source_vm_id": {
 				Type:             schema.TypeString,
@@ -84,7 +83,7 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"target_recovery_protection_container_id": {
 				Type:             schema.TypeString,
@@ -119,7 +118,7 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							ForceNew:         true,
-							ValidateFunc:     validate.NoEmptyStrings,
+							ValidateFunc:     validation.StringIsNotEmpty,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"staging_storage_account_id": {

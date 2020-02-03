@@ -47,13 +47,15 @@ func userDataStateFunc(v interface{}) string {
 	}
 }
 
+// NOTE: the `azurerm_virtual_machine` resource has been superseded by the `azurerm_linux_virtual_machine` and
+// 		 `azurerm_windows_virtual_machine` resources - as such this resource is feature-frozen and new
+//		 functionality will be added to these new resources instead.
 func resourceArmVirtualMachine() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmVirtualMachineCreateUpdate,
 		Read:   resourceArmVirtualMachineRead,
 		Update: resourceArmVirtualMachineCreateUpdate,
 		Delete: resourceArmVirtualMachineDelete,
-		// TODO: use a custom importer so that `delete_os_disk_on_termination` and `delete_data_disks_on_termination` are set
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -610,7 +612,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 

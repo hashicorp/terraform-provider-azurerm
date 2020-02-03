@@ -99,11 +99,22 @@ The following arguments are supported:
 
 In addition to the arguments above, the following attributes are exported:
 
-* `id` - The resource ID.
+* `id` - The ID of the Site Recovery Protection Container Mapping.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Site Recovery Protection Container Mapping.
+* `update` - (Defaults to 30 minutes) Used when updating the Site Recovery Protection Container Mapping.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Protection Container Mapping.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Site Recovery Protection Container Mapping.
 
 ## Import
 
-Site Recovery protection container mapping can be imported using the `resource id`, e.g.
+Site Recovery Protection Container Mappings can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_site_recovery_protection_container_mapping.mymapping /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name

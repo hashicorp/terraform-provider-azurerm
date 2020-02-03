@@ -11,9 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -61,7 +61,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchema(),
@@ -77,7 +77,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			"sku": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Optional
@@ -88,13 +88,15 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				Optional:  true,
 				ForceNew:  true,
 				Sensitive: true,
+				// TODO: does this want:
+				// DiffSuppressFunc: linuxAdminPasswordDiffSuppressFunc,
 			},
 
-			"admin_ssh_key": SSHKeysSchema(),
+			"admin_ssh_key": SSHKeysSchema(false),
 
 			"automatic_os_upgrade_policy": VirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
 
-			"boot_diagnostics": VirtualMachineScaleSetBootDiagnosticsSchema(),
+			"boot_diagnostics": bootDiagnosticsSchema(),
 
 			"computer_name_prefix": {
 				Type:     schema.TypeString,
@@ -108,7 +110,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				ValidateFunc: ValidateLinuxName,
 			},
 
-			"custom_data": base64.OptionalSchema(),
+			"custom_data": base64.OptionalSchema(false),
 
 			"data_disk": VirtualMachineScaleSetDataDiskSchema(),
 
@@ -125,7 +127,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"eviction_policy": {
-				// only applicable when `priority` is set to `Low`
+				// only applicable when `priority` is set to `Spot`
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -156,7 +158,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				Default:  true,
 			},
 
-			"plan": PlanSchema(),
+			"plan": planSchema(),
 
 			"priority": {
 				Type:     schema.TypeString,
@@ -164,8 +166,8 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				ForceNew: true,
 				Default:  string(compute.Regular),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Low),
 					string(compute.Regular),
+					string(compute.Spot),
 				}, false),
 			},
 
@@ -180,44 +182,14 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: computeValidate.ProximityPlacementGroupID,
 				// the Compute API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
 
-			"secret": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						// whilst this isn't present in the nested object it's required when this is specified
-						"key_vault_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-
-						// whilst we /could/ flatten this to `certificate_urls` we're intentionally not to keep this
-						// closer to the Windows VMSS resource, which will also take a `store` param
-						"certificate": {
-							Type:     schema.TypeSet,
-							Required: true,
-							MinItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"url": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: azure.ValidateKeyVaultChildId,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
+			"secret": linuxSecretSchema(),
 
 			"single_placement_group": {
 				Type:     schema.TypeBool,
@@ -228,18 +200,12 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			"source_image_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: computeValidate.ImageID,
 			},
 
-			"source_image_reference": VirtualMachineScaleSetSourceImageReferenceSchema(),
+			"source_image_reference": sourceImageReferenceSchema(false),
 
 			"tags": tags.Schema(),
-
-			"terraform_should_roll_instances_when_required": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
 
 			"upgrade_mode": {
 				Type:     schema.TypeString,
@@ -299,7 +265,7 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	additionalCapabilities := ExpandVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilitiesRaw)
 
 	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
-	bootDiagnostics := ExpandVirtualMachineScaleSetBootDiagnostics(bootDiagnosticsRaw)
+	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
 
 	dataDisksRaw := d.Get("data_disk").([]interface{})
 	dataDisks := ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw)
@@ -320,11 +286,11 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	osDisk := ExpandVirtualMachineScaleSetOSDisk(osDiskRaw, compute.Linux)
 
 	planRaw := d.Get("plan").([]interface{})
-	plan := ExpandPlan(planRaw)
+	plan := expandPlan(planRaw)
 
 	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 	sourceImageId := d.Get("source_image_id").(string)
-	sourceImageReference, err := ExpandVirtualMachineScaleSetSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 	if err != nil {
 		return err
 	}
@@ -359,7 +325,7 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	}
 
 	secretsRaw := d.Get("secret").([]interface{})
-	secrets := expandLinuxVirtualMachineScaleSetSecrets(secretsRaw)
+	secrets := expandLinuxSecrets(secretsRaw)
 
 	zonesRaw := d.Get("zones").([]interface{})
 	zones := azure.ExpandZones(zonesRaw)
@@ -416,8 +382,8 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
-		if priority != compute.Low {
-			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Low`")
+		if priority != compute.Spot {
+			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
 		virtualMachineProfile.BillingProfile = &compute.BillingProfile{
@@ -435,12 +401,12 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	}
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
-		if virtualMachineProfile.Priority != compute.Low {
-			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `low`")
+		if virtualMachineProfile.Priority != compute.Spot {
+			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
 		}
 		virtualMachineProfile.EvictionPolicy = compute.VirtualMachineEvictionPolicyTypes(evictionPolicyRaw.(string))
-	} else if priority == compute.Low {
-		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `low`")
+	} else if priority == compute.Spot {
+		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
 	props := compute.VirtualMachineScaleSet{
@@ -555,8 +521,8 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	if d.HasChange("max_bid_price") {
-		if priority != compute.Low {
-			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Low`")
+		if priority != compute.Spot {
+			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
 		}
 
 		updateProps.VirtualMachineProfile.BillingProfile = &compute.BillingProfile{
@@ -605,7 +571,7 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 
 		if d.HasChange("secret") {
 			secretsRaw := d.Get("secret").([]interface{})
-			osProfile.Secrets = expandLinuxVirtualMachineScaleSetSecrets(secretsRaw)
+			osProfile.Secrets = expandLinuxSecrets(secretsRaw)
 		}
 
 		updateProps.VirtualMachineProfile.OsProfile = &osProfile
@@ -629,7 +595,7 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
 			sourceImageId := d.Get("source_image_id").(string)
-			sourceImageReference, err := ExpandVirtualMachineScaleSetSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+			sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 			if err != nil {
 				return err
 			}
@@ -659,7 +625,7 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		updateInstances = true
 
 		bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
-		updateProps.VirtualMachineProfile.DiagnosticsProfile = ExpandVirtualMachineScaleSetBootDiagnostics(bootDiagnosticsRaw)
+		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
 	}
 
 	if d.HasChange("identity") {
@@ -674,7 +640,7 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 
 	if d.HasChange("plan") {
 		planRaw := d.Get("plan").([]interface{})
-		update.Plan = ExpandPlan(planRaw)
+		update.Plan = expandPlan(planRaw)
 	}
 
 	if d.HasChange("sku") || d.HasChange("instances") {
@@ -715,7 +681,8 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 
 	// if we update the SKU, we also need to subsequently roll the instances using the `UpdateInstances` API
 	if updateInstances {
-		if userWantsToRollInstances := d.Get("terraform_should_roll_instances_when_required").(bool); userWantsToRollInstances {
+		userWantsToRollInstances := meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired
+		if userWantsToRollInstances {
 			log.Printf("[DEBUG] Rolling the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 			instancesClient := meta.(*clients.Client).Compute.VMScaleSetVMsClient
 			instances, err := instancesClient.ListComplete(ctx, id.ResourceGroup, id.Name, "", "", "")
@@ -825,7 +792,7 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
-	if err := d.Set("plan", FlattenPlan(resp.Plan)); err != nil {
+	if err := d.Set("plan", flattenPlan(resp.Plan)); err != nil {
 		return fmt.Errorf("Error setting `plan`: %+v", err)
 	}
 
@@ -850,7 +817,7 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 	d.Set("zone_balance", props.ZoneBalance)
 
 	if profile := props.VirtualMachineProfile; profile != nil {
-		if err := d.Set("boot_diagnostics", FlattenVirtualMachineScaleSetBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
+		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
 			return fmt.Errorf("Error setting `boot_diagnostics`: %+v", err)
 		}
 
@@ -873,7 +840,7 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 				return fmt.Errorf("Error setting `data_disk`: %+v", err)
 			}
 
-			if err := d.Set("source_image_reference", FlattenVirtualMachineScaleSetSourceImageReference(storageProfile.ImageReference)); err != nil {
+			if err := d.Set("source_image_reference", flattenSourceImageReference(storageProfile.ImageReference)); err != nil {
 				return fmt.Errorf("Error setting `source_image_reference`: %+v", err)
 			}
 
@@ -902,7 +869,7 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 				}
 			}
 
-			if err := d.Set("secret", flattenLinuxVirtualMachineScaleSetSecrets(osProfile.Secrets)); err != nil {
+			if err := d.Set("secret", flattenLinuxSecrets(osProfile.Secrets)); err != nil {
 				return fmt.Errorf("Error setting `secret`: %+v", err)
 			}
 		}
@@ -1002,69 +969,4 @@ func resourceArmLinuxVirtualMachineScaleSetDelete(d *schema.ResourceData, meta i
 	log.Printf("[DEBUG] Deleted Linux Virtual Machine Scale Set %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	return nil
-}
-
-func expandLinuxVirtualMachineScaleSetSecrets(input []interface{}) *[]compute.VaultSecretGroup {
-	output := make([]compute.VaultSecretGroup, 0)
-
-	for _, raw := range input {
-		v := raw.(map[string]interface{})
-
-		keyVaultId := v["key_vault_id"].(string)
-		certificatesRaw := v["certificate"].(*schema.Set).List()
-		certificates := make([]compute.VaultCertificate, 0)
-		for _, certificateRaw := range certificatesRaw {
-			certificateV := certificateRaw.(map[string]interface{})
-
-			url := certificateV["url"].(string)
-			certificates = append(certificates, compute.VaultCertificate{
-				CertificateURL: utils.String(url),
-			})
-		}
-
-		output = append(output, compute.VaultSecretGroup{
-			SourceVault: &compute.SubResource{
-				ID: utils.String(keyVaultId),
-			},
-			VaultCertificates: &certificates,
-		})
-	}
-
-	return &output
-}
-
-func flattenLinuxVirtualMachineScaleSetSecrets(input *[]compute.VaultSecretGroup) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make([]interface{}, 0)
-
-	for _, v := range *input {
-		keyVaultId := ""
-		if v.SourceVault != nil && v.SourceVault.ID != nil {
-			keyVaultId = *v.SourceVault.ID
-		}
-
-		certificates := make([]interface{}, 0)
-
-		if v.VaultCertificates != nil {
-			for _, c := range *v.VaultCertificates {
-				if c.CertificateURL == nil {
-					continue
-				}
-
-				certificates = append(certificates, map[string]interface{}{
-					"url": *c.CertificateURL,
-				})
-			}
-		}
-
-		output = append(output, map[string]interface{}{
-			"key_vault_id": keyVaultId,
-			"certificate":  certificates,
-		})
-	}
-
-	return output
 }

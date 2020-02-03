@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -24,7 +25,7 @@ func resourceArmManagedDisk() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmManagedDiskCreateUpdate,
 		Read:   resourceArmManagedDiskRead,
-		Update: resourceArmManagedDiskCreateUpdate,
+		Update: resourceArmManagedDiskUpdate,
 		Delete: resourceArmManagedDiskDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -94,6 +95,7 @@ func resourceArmManagedDisk() *schema.Resource {
 			"storage_account_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true, // Not supported by disk update
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -160,13 +162,13 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Managed Disk %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Managed Disk %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -281,24 +283,211 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 		Zones: zones,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, createDisk)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, createDisk)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Managed Disk %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error creating/updating Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for create/update of Managed Disk %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for create/update of Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Managed Disk %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error retrieving Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Error reading Managed Disk %s (Resource Group %q): ID was nil", name, resGroup)
+		return fmt.Errorf("Error reading Managed Disk %s (Resource Group %q): ID was nil", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
+
+	return resourceArmManagedDiskRead(d, meta)
+}
+
+func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Compute.DisksClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk update.")
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	storageAccountType := d.Get("storage_account_type").(string)
+
+	disk, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(disk.Response) {
+			return fmt.Errorf("Error Managed Disk %q (Resource Group %q) was not found", name, resourceGroup)
+		}
+
+		return fmt.Errorf("Error making Read request on Azure Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	diskUpdate := compute.DiskUpdate{
+		DiskUpdateProperties: &compute.DiskUpdateProperties{},
+	}
+
+	if d.HasChange("tags") {
+		t := d.Get("tags").(map[string]interface{})
+		diskUpdate.Tags = tags.Expand(t)
+	}
+
+	if d.HasChange("storage_account_type") {
+		var skuName compute.DiskStorageAccountTypes
+		for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
+			if strings.EqualFold(storageAccountType, string(v)) {
+				skuName = v
+			}
+		}
+		diskUpdate.Sku = &compute.DiskSku{
+			Name: skuName,
+		}
+	}
+
+	if strings.EqualFold(storageAccountType, string(compute.UltraSSDLRS)) {
+		if d.HasChange("disk_iops_read_write") {
+			v := d.Get("disk_iops_read_write")
+			diskIOPS := int64(v.(int))
+			diskUpdate.DiskIOPSReadWrite = &diskIOPS
+		}
+
+		if d.HasChange("disk_mbps_read_write") {
+			v := d.Get("disk_mbps_read_write")
+			diskMBps := int32(v.(int))
+			diskUpdate.DiskMBpsReadWrite = &diskMBps
+		}
+	} else {
+		if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
+			return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
+		}
+	}
+
+	if d.HasChange("os_type") {
+		diskUpdate.DiskUpdateProperties.OsType = compute.OperatingSystemTypes(d.Get("os_type").(string))
+	}
+
+	if d.HasChange("disk_size_gb") {
+		if old, new := d.GetChange("disk_size_gb"); new.(int) > old.(int) {
+			diskUpdate.DiskUpdateProperties.DiskSizeGB = utils.Int32(int32(new.(int)))
+		} else {
+			return fmt.Errorf("Error - New size must be greater than original size. Shrinking disks is not supported on Azure")
+		}
+	}
+
+	// if we are attached to a VM we bring down the VM as necessary for the operations which are not allowed while it's online
+	if disk.ManagedBy != nil {
+		virtualMachine, err := ParseVirtualMachineID(*disk.ManagedBy)
+		if err != nil {
+			return fmt.Errorf("Error parsing VMID %q for disk attachment: %+v", *disk.ManagedBy, err)
+		}
+		// check instanceView State
+		vmClient := meta.(*clients.Client).Compute.VMClient
+
+		locks.ByName(name, virtualMachineResourceName)
+		defer locks.UnlockByName(name, virtualMachineResourceName)
+
+		instanceView, err := vmClient.InstanceView(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
+		if err != nil {
+			return fmt.Errorf("Error retrieving InstanceView for Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+		}
+
+		shouldTurnBackOn := true
+		shouldShutDown := true
+		shouldDeallocate := true
+
+		if instanceView.Statuses != nil {
+			for _, status := range *instanceView.Statuses {
+				if status.Code == nil {
+					continue
+				}
+
+				// could also be the provisioning state which we're not bothered with here
+				state := strings.ToLower(*status.Code)
+				if !strings.HasPrefix(state, "PowerState/") {
+					continue
+				}
+
+				state = strings.TrimPrefix(state, "powerstate/")
+				switch strings.ToLower(state) {
+				case "deallocated":
+				case "deallocating":
+					shouldTurnBackOn = false
+					shouldShutDown = false
+					shouldDeallocate = false
+				case "stopping":
+				case "stopped":
+					shouldShutDown = false
+					shouldTurnBackOn = false
+				}
+			}
+		}
+
+		// Shutdown
+		if shouldShutDown {
+			log.Printf("[DEBUG] Shutting Down Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
+			forceShutdown := false
+			future, err := vmClient.PowerOff(ctx, virtualMachine.ResourceGroup, virtualMachine.Name, utils.Bool(forceShutdown))
+			if err != nil {
+				return fmt.Errorf("Error sending Power Off to Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for Power Off of Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+			}
+
+			log.Printf("[DEBUG] Shut Down Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
+		}
+
+		// De-allocate
+		if shouldDeallocate {
+			log.Printf("[DEBUG] Deallocating Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
+			deAllocFuture, err := vmClient.Deallocate(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
+			if err != nil {
+				return fmt.Errorf("Error Deallocating to Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+			}
+
+			if err := deAllocFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for Deallocation of Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+			}
+
+			log.Printf("[DEBUG] Deallocated Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
+		}
+
+		// Update Disk
+		updateFuture, err := client.Update(ctx, resourceGroup, name, diskUpdate)
+		if err != nil {
+			return fmt.Errorf("Error updating Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		if err := updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for update of Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if shouldTurnBackOn {
+			log.Printf("[DEBUG] Starting Linux Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
+			future, err := vmClient.Start(ctx, virtualMachine.ResourceGroup, virtualMachine.Name)
+			if err != nil {
+				return fmt.Errorf("Error starting Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for start of Virtual Machine %q (Resource Group %q): %+v", virtualMachine.Name, virtualMachine.ResourceGroup, err)
+			}
+
+			log.Printf("[DEBUG] Started Virtual Machine %q (Resource Group %q)..", virtualMachine.Name, virtualMachine.ResourceGroup)
+		}
+	} else { // otherwise, just update it
+		diskFuture, err := client.Update(ctx, resourceGroup, name, diskUpdate)
+		if err != nil {
+			return fmt.Errorf("Error expanding managed disk %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		err = diskFuture.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for expand operation on managed disk %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
 
 	return resourceArmManagedDiskRead(d, meta)
 }

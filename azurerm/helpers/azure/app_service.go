@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -178,7 +177,7 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 				"issuer": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validate.URLIsHTTPOrHTTPS,
+					ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 				},
 				"runtime_version": {
 					Type:     schema.TypeString,
@@ -309,7 +308,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 							"virtual_network_subnet_id": {
 								Type:         schema.TypeString,
 								Optional:     true,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"subnet_mask": {
 								Type:     schema.TypeString,
@@ -605,7 +604,7 @@ func SchemaAppServiceStorageAccounts() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"type": {
@@ -620,20 +619,20 @@ func SchemaAppServiceStorageAccounts() *schema.Schema {
 				"account_name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"share_name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"access_key": {
 					Type:         schema.TypeString,
 					Required:     true,
 					Sensitive:    true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"mount_path": {

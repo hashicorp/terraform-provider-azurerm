@@ -43,7 +43,18 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - the Cosmos DB Mongo Database ID.
+* `id` - The ID of the Cosmos DB Mongo Database.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the CosmosDB Mongo Database.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Mongo Database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Mongo Database.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB Mongo Database.
 
 ## Import
 

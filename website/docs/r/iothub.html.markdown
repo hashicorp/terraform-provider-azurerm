@@ -123,15 +123,20 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `event_hub_partition_count` - (Optional) The number of device-to-cloud partitions used by backing event hubs. Must be between `2` and `128`.
+
+* `event_hub_retention_in_days` - (Optional) The event hub retention to use in days. Must be between `1` and `7`.
+
 * `endpoint` - (Optional) An `endpoint` block as defined below.
 
-* `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
-
-* `route` - (Optional) A `route` block as defined below.
 
 * `fallback_route` - (Optional) A `fallback_route` block as defined below. If the fallback route is enabled, messages that don't match any of the supplied routes are automatically sent to this route. Defaults to messages/events.
 
 * `file_upload` - (Optional) A `file_upload` block as defined below.
+
+* `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
+
+* `route` - (Optional) A `route` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -250,6 +255,17 @@ A `shared access policy` block contains the following:
 * `secondary_key` - The secondary key.
 
 * `permissions` - The permissions assigned to the shared access policy.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the IotHub.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub.
+* `read` - (Defaults to 5 minutes) Used when retrieving the IotHub.
+* `delete` - (Defaults to 30 minutes) Used when deleting the IotHub.
 
 ## Import
 

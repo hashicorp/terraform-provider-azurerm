@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func ValidateLinuxName(i interface{}, k string) (warnings []string, errors []error) {
@@ -51,7 +53,7 @@ func validateName(maxLength int) func(i interface{}, k string) (warnings []strin
 
 		// The value must be between 1 and 64 (Linux) or 16 (Windows) characters long.
 		if len(v) >= maxLength {
-			errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength, len(v)))
+			errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength-1, len(v)))
 		}
 
 		if strings.HasPrefix(v, "_") {
@@ -102,4 +104,12 @@ func validateDiskSizeGB(v interface{}, _ string) (warnings []string, errors []er
 			"The `disk_size_gb` can only be between 0 and 32767"))
 	}
 	return warnings, errors
+}
+
+func validateDedicatedHostGroupName() func(i interface{}, k string) (warnings []string, errors []error) {
+	return validation.StringMatch(regexp.MustCompile(`^[^_\W][\w-.]{0,78}[\w]$`), "")
+}
+
+func validateDedicatedHostName() func(i interface{}, k string) (warnings []string, errors []error) {
+	return validateDedicatedHostGroupName()
 }

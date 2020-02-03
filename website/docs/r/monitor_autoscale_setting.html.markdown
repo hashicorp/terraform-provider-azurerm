@@ -318,7 +318,7 @@ A `rule` block supports the following:
 A `metric_trigger` block supports the following:
 
 * `metric_name` - (Required) The name of the metric that defines what the rule monitors, such as `Percentage CPU` for `Virtual Machine Scale Sets` and `CpuPercentage` for `App Service Plan`.
-	
+
 -> **NOTE:** The allowed value of `metric_name` highly depends on the targeting resource type, please visit [Supported metrics with Azure Monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-supported) for more details.
 
 * `metric_resource_id` - (Required) The ID of the Resource which the Rule monitors.
@@ -400,6 +400,17 @@ A `webhook` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the AutoScale Setting.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the AutoScale Setting.
+* `update` - (Defaults to 30 minutes) Used when updating the AutoScale Setting.
+* `read` - (Defaults to 5 minutes) Used when retrieving the AutoScale Setting.
+* `delete` - (Defaults to 30 minutes) Used when deleting the AutoScale Setting.
 
 ## Import
 

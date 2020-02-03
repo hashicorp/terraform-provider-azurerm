@@ -24,7 +24,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			), {
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(data, "ReadOnly"),
 				Check: resource.ComposeTestCheckFunc(
@@ -33,7 +32,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			), {
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(data, "ReadWrite"),
 				Check: resource.ComposeTestCheckFunc(
@@ -42,7 +40,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -65,7 +62,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(t *testin
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(data, 128),
@@ -75,7 +71,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(t *testin
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// resize a second time to confirm https://github.com/Azure/azure-rest-api-specs/issues/1906
@@ -86,7 +81,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskCustomSize(t *testin
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -108,7 +102,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -155,7 +148,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeSt
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -177,7 +169,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypeSt
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -199,7 +190,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskStorageAccountTypePr
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -221,7 +211,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnab
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})

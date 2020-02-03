@@ -79,6 +79,17 @@ The following attributes are exported:
 * `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider. Possible values are "NotProvisioned", "Provisioning", "Provisioned", and "Deprovisioning".
 * `service_key` - The string needed by the service provider to provision the ExpressRoute circuit.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ExpressRoute Circuit.
+* `update` - (Defaults to 30 minutes) Used when updating the ExpressRoute Circuit.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute Circuit.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ExpressRoute Circuit.
+
 ## Import
 
 ExpressRoute circuits can be imported using the `resource id`, e.g.

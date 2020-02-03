@@ -68,6 +68,17 @@ The following attributes are exported:
 
 * `authorization_use_status` - The authorization use status.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ExpressRoute Circuit Authorization.
+* `update` - (Defaults to 30 minutes) Used when updating the ExpressRoute Circuit Authorization.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute Circuit Authorization.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ExpressRoute Circuit Authorization.
+
 ## Import
 
 ExpressRoute Circuit Authorizations can be imported using the `resource id`, e.g.

@@ -8,6 +8,7 @@ import (
 
 type Client struct {
 	AvailabilitySetsClient         *compute.AvailabilitySetsClient
+	DedicatedHostsClient           *compute.DedicatedHostsClient
 	DedicatedHostGroupsClient      *compute.DedicatedHostGroupsClient
 	DisksClient                    *compute.DisksClient
 	DiskEncryptionSetsClient       *compute.DiskEncryptionSetsClient
@@ -31,6 +32,9 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&availabilitySetsClient.Client, o.ResourceManagerAuthorizer)
+
+	dedicatedHostsClient := compute.NewDedicatedHostsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&dedicatedHostsClient.Client, o.ResourceManagerAuthorizer)
 
 	dedicatedHostGroupsClient := compute.NewDedicatedHostGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&dedicatedHostGroupsClient.Client, o.ResourceManagerAuthorizer)
@@ -88,6 +92,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		AvailabilitySetsClient:         &availabilitySetsClient,
+		DedicatedHostsClient:           &dedicatedHostsClient,
 		DedicatedHostGroupsClient:      &dedicatedHostGroupsClient,
 		DisksClient:                    &disksClient,
 		DiskEncryptionSetsClient:       &diskEncryptionSetsClient,

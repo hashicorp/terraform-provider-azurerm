@@ -48,8 +48,8 @@ func schemaFeatures() *schema.Schema {
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"purge_soft_delete_on_destroy": {
-								Type:        schema.TypeBool,
-								Required:    true,
+								Type:     schema.TypeBool,
+								Required: true,
 							},
 						},
 					},

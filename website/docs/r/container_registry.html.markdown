@@ -84,13 +84,24 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Container Registry ID.
+* `id` - The ID of the Container Registry.
 
 * `login_server` - The URL that can be used to log into the container registry.
 
 * `admin_username` - The Username associated with the Container Registry Admin account - if the admin account is enabled.
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Container Registry.
+* `update` - (Defaults to 30 minutes) Used when updating the Container Registry.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Container Registry.
 
 ## Import
 

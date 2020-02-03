@@ -32,9 +32,20 @@ The following arguments are supported:
 
 * `token_secret` - (Optional) The OAuth access token secret.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Source Control Token.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Source Control Token.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Source Control Token.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Source Control Token.
+
 ## Import
 
-App Service source control tokens can be imported using the `type`, e.g.
+App Service Source Control Token's can be imported using the `type`, e.g.
 
 ```shell
 terraform import azurerm_app_service_source_control_token.example GitHub

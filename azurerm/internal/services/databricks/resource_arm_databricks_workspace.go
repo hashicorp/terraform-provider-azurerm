@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -66,7 +65,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Computed:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"custom_parameters": {
@@ -346,10 +345,10 @@ func ValidateDatabricksWorkspaceName(i interface{}, k string) (warnings []string
 
 	// First, second, and last characters must be a letter or number with a total length between 3 to 64 characters
 	// NOTE: Restricted name to 30 characters because that is the restriction in Azure Portal even though the API supports 64 characters
-	if !regexp.MustCompile("^[a-zA-Z0-9]{2}[-a-zA-Z0-9]{0,27}[a-zA-Z0-9]{1}$").MatchString(v) {
+	if !regexp.MustCompile("^[a-zA-Z0-9]{2}[-_a-zA-Z0-9]{0,27}[a-zA-Z0-9]{1}$").MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q must be 3 - 30 characters in length", k))
 		errors = append(errors, fmt.Errorf("%q first, second, and last characters must be a letter or number", k))
-		errors = append(errors, fmt.Errorf("%q can only contain letters, numbers, and hyphens", k))
+		errors = append(errors, fmt.Errorf("%q can only contain letters, numbers, underscores, and hyphens", k))
 	}
 
 	// No consecutive hyphens
