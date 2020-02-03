@@ -52,11 +52,22 @@ The following arguments are supported:
 
 In addition to the arguments above, the following attributes are exported:
 
-* `id` - The resource ID.
+* `id` - The ID of the Site Recovery Replication Policy.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Site Recovery Replication Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Site Recovery Replication Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replication Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Site Recovery Replication Policy.
 
 ## Import
 
-Site Recovery replication policies can be imported using the `resource id`, e.g.
+Site Recovery Replication Policies can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_site_recovery_replication_policy.mypolicy /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationPolicies/policy-name
