@@ -35,7 +35,9 @@ func NewTargetComputeSizesClient(subscriptionID string, resourceGroupName string
 	return NewTargetComputeSizesClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewTargetComputeSizesClientWithBaseURI creates an instance of the TargetComputeSizesClient client.
+// NewTargetComputeSizesClientWithBaseURI creates an instance of the TargetComputeSizesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewTargetComputeSizesClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) TargetComputeSizesClient {
 	return TargetComputeSizesClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

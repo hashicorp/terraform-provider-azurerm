@@ -35,7 +35,8 @@ func NewArmTemplatesClient(subscriptionID string) ArmTemplatesClient {
 	return NewArmTemplatesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewArmTemplatesClientWithBaseURI creates an instance of the ArmTemplatesClient client.
+// NewArmTemplatesClientWithBaseURI creates an instance of the ArmTemplatesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewArmTemplatesClientWithBaseURI(baseURI string, subscriptionID string) ArmTemplatesClient {
 	return ArmTemplatesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -35,7 +35,9 @@ func NewResourceVaultConfigsClient(subscriptionID string) ResourceVaultConfigsCl
 	return NewResourceVaultConfigsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewResourceVaultConfigsClientWithBaseURI creates an instance of the ResourceVaultConfigsClient client.
+// NewResourceVaultConfigsClientWithBaseURI creates an instance of the ResourceVaultConfigsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewResourceVaultConfigsClientWithBaseURI(baseURI string, subscriptionID string) ResourceVaultConfigsClient {
 	return ResourceVaultConfigsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

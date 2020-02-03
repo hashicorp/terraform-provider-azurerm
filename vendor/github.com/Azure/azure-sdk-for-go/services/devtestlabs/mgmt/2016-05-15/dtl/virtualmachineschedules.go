@@ -36,7 +36,9 @@ func NewVirtualMachineSchedulesClient(subscriptionID string) VirtualMachineSched
 	return NewVirtualMachineSchedulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVirtualMachineSchedulesClientWithBaseURI creates an instance of the VirtualMachineSchedulesClient client.
+// NewVirtualMachineSchedulesClientWithBaseURI creates an instance of the VirtualMachineSchedulesClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewVirtualMachineSchedulesClientWithBaseURI(baseURI string, subscriptionID string) VirtualMachineSchedulesClient {
 	return VirtualMachineSchedulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

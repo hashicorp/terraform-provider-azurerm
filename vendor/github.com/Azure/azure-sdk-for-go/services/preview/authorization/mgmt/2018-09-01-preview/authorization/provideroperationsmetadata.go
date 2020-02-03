@@ -36,7 +36,9 @@ func NewProviderOperationsMetadataClient(subscriptionID string) ProviderOperatio
 	return NewProviderOperationsMetadataClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProviderOperationsMetadataClientWithBaseURI creates an instance of the ProviderOperationsMetadataClient client.
+// NewProviderOperationsMetadataClientWithBaseURI creates an instance of the ProviderOperationsMetadataClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewProviderOperationsMetadataClientWithBaseURI(baseURI string, subscriptionID string) ProviderOperationsMetadataClient {
 	return ProviderOperationsMetadataClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

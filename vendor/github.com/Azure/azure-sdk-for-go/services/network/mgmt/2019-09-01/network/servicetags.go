@@ -35,7 +35,8 @@ func NewServiceTagsClient(subscriptionID string) ServiceTagsClient {
 	return NewServiceTagsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServiceTagsClientWithBaseURI creates an instance of the ServiceTagsClient client.
+// NewServiceTagsClientWithBaseURI creates an instance of the ServiceTagsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewServiceTagsClientWithBaseURI(baseURI string, subscriptionID string) ServiceTagsClient {
 	return ServiceTagsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

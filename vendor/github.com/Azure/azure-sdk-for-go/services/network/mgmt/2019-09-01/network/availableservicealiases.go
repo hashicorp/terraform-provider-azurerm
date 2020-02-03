@@ -35,7 +35,9 @@ func NewAvailableServiceAliasesClient(subscriptionID string) AvailableServiceAli
 	return NewAvailableServiceAliasesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAvailableServiceAliasesClientWithBaseURI creates an instance of the AvailableServiceAliasesClient client.
+// NewAvailableServiceAliasesClientWithBaseURI creates an instance of the AvailableServiceAliasesClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewAvailableServiceAliasesClientWithBaseURI(baseURI string, subscriptionID string) AvailableServiceAliasesClient {
 	return AvailableServiceAliasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

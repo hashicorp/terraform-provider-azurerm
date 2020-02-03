@@ -36,7 +36,9 @@ func NewOAuth2PermissionGrantClient(tenantID string) OAuth2PermissionGrantClient
 	return NewOAuth2PermissionGrantClientWithBaseURI(DefaultBaseURI, tenantID)
 }
 
-// NewOAuth2PermissionGrantClientWithBaseURI creates an instance of the OAuth2PermissionGrantClient client.
+// NewOAuth2PermissionGrantClientWithBaseURI creates an instance of the OAuth2PermissionGrantClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewOAuth2PermissionGrantClientWithBaseURI(baseURI string, tenantID string) OAuth2PermissionGrantClient {
 	return OAuth2PermissionGrantClient{NewWithBaseURI(baseURI, tenantID)}
 }

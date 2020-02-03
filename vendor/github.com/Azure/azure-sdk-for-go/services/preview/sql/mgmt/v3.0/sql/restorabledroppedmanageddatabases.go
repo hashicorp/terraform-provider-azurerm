@@ -39,7 +39,8 @@ func NewRestorableDroppedManagedDatabasesClient(subscriptionID string) Restorabl
 }
 
 // NewRestorableDroppedManagedDatabasesClientWithBaseURI creates an instance of the
-// RestorableDroppedManagedDatabasesClient client.
+// RestorableDroppedManagedDatabasesClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRestorableDroppedManagedDatabasesClientWithBaseURI(baseURI string, subscriptionID string) RestorableDroppedManagedDatabasesClient {
 	return RestorableDroppedManagedDatabasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

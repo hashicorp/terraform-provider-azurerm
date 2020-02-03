@@ -36,7 +36,8 @@ func NewAPIVersionSetClient(subscriptionID string) APIVersionSetClient {
 	return NewAPIVersionSetClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAPIVersionSetClientWithBaseURI creates an instance of the APIVersionSetClient client.
+// NewAPIVersionSetClientWithBaseURI creates an instance of the APIVersionSetClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAPIVersionSetClientWithBaseURI(baseURI string, subscriptionID string) APIVersionSetClient {
 	return APIVersionSetClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

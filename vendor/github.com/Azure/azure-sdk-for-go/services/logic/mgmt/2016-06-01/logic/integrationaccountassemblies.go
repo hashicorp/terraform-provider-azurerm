@@ -37,7 +37,8 @@ func NewIntegrationAccountAssembliesClient(subscriptionID string) IntegrationAcc
 }
 
 // NewIntegrationAccountAssembliesClientWithBaseURI creates an instance of the IntegrationAccountAssembliesClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewIntegrationAccountAssembliesClientWithBaseURI(baseURI string, subscriptionID string) IntegrationAccountAssembliesClient {
 	return IntegrationAccountAssembliesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

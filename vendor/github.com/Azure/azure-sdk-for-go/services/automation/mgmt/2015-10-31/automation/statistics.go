@@ -36,7 +36,8 @@ func NewStatisticsClient(subscriptionID string) StatisticsClient {
 	return NewStatisticsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStatisticsClientWithBaseURI creates an instance of the StatisticsClient client.
+// NewStatisticsClientWithBaseURI creates an instance of the StatisticsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewStatisticsClientWithBaseURI(baseURI string, subscriptionID string) StatisticsClient {
 	return StatisticsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

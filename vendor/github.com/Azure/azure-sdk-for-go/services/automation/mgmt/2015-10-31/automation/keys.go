@@ -36,7 +36,8 @@ func NewKeysClient(subscriptionID string) KeysClient {
 	return NewKeysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewKeysClientWithBaseURI creates an instance of the KeysClient client.
+// NewKeysClientWithBaseURI creates an instance of the KeysClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewKeysClientWithBaseURI(baseURI string, subscriptionID string) KeysClient {
 	return KeysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

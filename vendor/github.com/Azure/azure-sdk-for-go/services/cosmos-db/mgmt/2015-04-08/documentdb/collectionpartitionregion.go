@@ -36,7 +36,9 @@ func NewCollectionPartitionRegionClient(subscriptionID string) CollectionPartiti
 	return NewCollectionPartitionRegionClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCollectionPartitionRegionClientWithBaseURI creates an instance of the CollectionPartitionRegionClient client.
+// NewCollectionPartitionRegionClientWithBaseURI creates an instance of the CollectionPartitionRegionClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewCollectionPartitionRegionClientWithBaseURI(baseURI string, subscriptionID string) CollectionPartitionRegionClient {
 	return CollectionPartitionRegionClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

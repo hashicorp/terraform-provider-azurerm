@@ -36,7 +36,9 @@ func NewPartitionKeyRangeIDRegionClient(subscriptionID string) PartitionKeyRange
 	return NewPartitionKeyRangeIDRegionClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPartitionKeyRangeIDRegionClientWithBaseURI creates an instance of the PartitionKeyRangeIDRegionClient client.
+// NewPartitionKeyRangeIDRegionClientWithBaseURI creates an instance of the PartitionKeyRangeIDRegionClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewPartitionKeyRangeIDRegionClientWithBaseURI(baseURI string, subscriptionID string) PartitionKeyRangeIDRegionClient {
 	return PartitionKeyRangeIDRegionClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

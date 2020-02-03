@@ -36,7 +36,8 @@ func NewSignedInUserClient(tenantID string) SignedInUserClient {
 	return NewSignedInUserClientWithBaseURI(DefaultBaseURI, tenantID)
 }
 
-// NewSignedInUserClientWithBaseURI creates an instance of the SignedInUserClient client.
+// NewSignedInUserClientWithBaseURI creates an instance of the SignedInUserClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSignedInUserClientWithBaseURI(baseURI string, tenantID string) SignedInUserClient {
 	return SignedInUserClient{NewWithBaseURI(baseURI, tenantID)}
 }

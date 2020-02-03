@@ -35,7 +35,8 @@ func NewScriptActionsClient(subscriptionID string) ScriptActionsClient {
 	return NewScriptActionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewScriptActionsClientWithBaseURI creates an instance of the ScriptActionsClient client.
+// NewScriptActionsClientWithBaseURI creates an instance of the ScriptActionsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewScriptActionsClientWithBaseURI(baseURI string, subscriptionID string) ScriptActionsClient {
 	return ScriptActionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -35,7 +35,9 @@ func NewEventSubscriptionsClient(subscriptionID string) EventSubscriptionsClient
 	return NewEventSubscriptionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewEventSubscriptionsClientWithBaseURI creates an instance of the EventSubscriptionsClient client.
+// NewEventSubscriptionsClientWithBaseURI creates an instance of the EventSubscriptionsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewEventSubscriptionsClientWithBaseURI(baseURI string, subscriptionID string) EventSubscriptionsClient {
 	return EventSubscriptionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

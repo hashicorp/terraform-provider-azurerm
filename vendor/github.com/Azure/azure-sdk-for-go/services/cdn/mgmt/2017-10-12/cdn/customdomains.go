@@ -36,7 +36,8 @@ func NewCustomDomainsClient(subscriptionID string) CustomDomainsClient {
 	return NewCustomDomainsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCustomDomainsClientWithBaseURI creates an instance of the CustomDomainsClient client.
+// NewCustomDomainsClientWithBaseURI creates an instance of the CustomDomainsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewCustomDomainsClientWithBaseURI(baseURI string, subscriptionID string) CustomDomainsClient {
 	return CustomDomainsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

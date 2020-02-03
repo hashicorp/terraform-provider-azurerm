@@ -36,7 +36,9 @@ func NewConnectionMonitorsClient(subscriptionID string) ConnectionMonitorsClient
 	return NewConnectionMonitorsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewConnectionMonitorsClientWithBaseURI creates an instance of the ConnectionMonitorsClient client.
+// NewConnectionMonitorsClientWithBaseURI creates an instance of the ConnectionMonitorsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewConnectionMonitorsClientWithBaseURI(baseURI string, subscriptionID string) ConnectionMonitorsClient {
 	return ConnectionMonitorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,15 +36,15 @@ func NewServersClient(subscriptionID string) ServersClient {
 	return NewServersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServersClientWithBaseURI creates an instance of the ServersClient client.
+// NewServersClientWithBaseURI creates an instance of the ServersClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewServersClientWithBaseURI(baseURI string, subscriptionID string) ServersClient {
 	return ServersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Create creates a new server or updates an existing server. The update action will overwrite the existing server.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // serverName - the name of the server.
 // parameters - the required parameters for creating or updating a server.
 func (client ServersClient) Create(ctx context.Context, resourceGroupName string, serverName string, parameters ServerForCreate) (result ServersCreateFuture, err error) {
@@ -59,6 +59,12 @@ func (client ServersClient) Create(ctx context.Context, resourceGroupName string
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Sku", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.Sku.Capacity", Name: validation.Null, Rule: false,
@@ -135,8 +141,7 @@ func (client ServersClient) CreateResponder(resp *http.Response) (result Server,
 
 // Delete deletes a server.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // serverName - the name of the server.
 func (client ServersClient) Delete(ctx context.Context, resourceGroupName string, serverName string) (result ServersDeleteFuture, err error) {
 	if tracing.IsEnabled() {
@@ -149,6 +154,16 @@ func (client ServersClient) Delete(ctx context.Context, resourceGroupName string
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mariadb.ServersClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ServersClient", "Delete", nil, "Failure preparing request")
@@ -212,8 +227,7 @@ func (client ServersClient) DeleteResponder(resp *http.Response) (result autores
 
 // Get gets information about a server.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // serverName - the name of the server.
 func (client ServersClient) Get(ctx context.Context, resourceGroupName string, serverName string) (result Server, err error) {
 	if tracing.IsEnabled() {
@@ -226,6 +240,16 @@ func (client ServersClient) Get(ctx context.Context, resourceGroupName string, s
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mariadb.ServersClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ServersClient", "Get", nil, "Failure preparing request")
@@ -300,6 +324,12 @@ func (client ServersClient) List(ctx context.Context) (result ServerListResult, 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mariadb.ServersClient", "List", err.Error())
+	}
+
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ServersClient", "List", nil, "Failure preparing request")
@@ -362,8 +392,7 @@ func (client ServersClient) ListResponder(resp *http.Response) (result ServerLis
 
 // ListByResourceGroup list all the servers in a given resource group.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 func (client ServersClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ServerListResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.ListByResourceGroup")
@@ -375,6 +404,16 @@ func (client ServersClient) ListByResourceGroup(ctx context.Context, resourceGro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mariadb.ServersClient", "ListByResourceGroup", err.Error())
+	}
+
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ServersClient", "ListByResourceGroup", nil, "Failure preparing request")
@@ -438,8 +477,7 @@ func (client ServersClient) ListByResourceGroupResponder(resp *http.Response) (r
 
 // Restart restarts a server.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // serverName - the name of the server.
 func (client ServersClient) Restart(ctx context.Context, resourceGroupName string, serverName string) (result ServersRestartFuture, err error) {
 	if tracing.IsEnabled() {
@@ -452,6 +490,16 @@ func (client ServersClient) Restart(ctx context.Context, resourceGroupName strin
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mariadb.ServersClient", "Restart", err.Error())
+	}
+
 	req, err := client.RestartPreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ServersClient", "Restart", nil, "Failure preparing request")
@@ -516,8 +564,7 @@ func (client ServersClient) RestartResponder(resp *http.Response) (result autore
 // Update updates an existing server. The request body can contain one to many of the properties present in the normal
 // server definition.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // serverName - the name of the server.
 // parameters - the required parameters for updating a server.
 func (client ServersClient) Update(ctx context.Context, resourceGroupName string, serverName string, parameters ServerUpdateParameters) (result ServersUpdateFuture, err error) {
@@ -531,6 +578,16 @@ func (client ServersClient) Update(ctx context.Context, resourceGroupName string
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mariadb.ServersClient", "Update", err.Error())
+	}
+
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, serverName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.ServersClient", "Update", nil, "Failure preparing request")

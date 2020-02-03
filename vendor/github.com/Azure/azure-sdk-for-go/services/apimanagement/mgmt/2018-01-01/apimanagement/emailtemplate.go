@@ -36,7 +36,8 @@ func NewEmailTemplateClient(subscriptionID string) EmailTemplateClient {
 	return NewEmailTemplateClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewEmailTemplateClientWithBaseURI creates an instance of the EmailTemplateClient client.
+// NewEmailTemplateClientWithBaseURI creates an instance of the EmailTemplateClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewEmailTemplateClientWithBaseURI(baseURI string, subscriptionID string) EmailTemplateClient {
 	return EmailTemplateClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

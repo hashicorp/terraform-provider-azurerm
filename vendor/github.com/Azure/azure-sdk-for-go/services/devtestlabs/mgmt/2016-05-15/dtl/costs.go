@@ -36,7 +36,8 @@ func NewCostsClient(subscriptionID string) CostsClient {
 	return NewCostsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCostsClientWithBaseURI creates an instance of the CostsClient client.
+// NewCostsClientWithBaseURI creates an instance of the CostsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewCostsClientWithBaseURI(baseURI string, subscriptionID string) CostsClient {
 	return CostsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

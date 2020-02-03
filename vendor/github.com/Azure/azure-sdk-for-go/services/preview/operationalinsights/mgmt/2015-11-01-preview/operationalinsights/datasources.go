@@ -36,7 +36,8 @@ func NewDataSourcesClient(subscriptionID string) DataSourcesClient {
 	return NewDataSourcesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDataSourcesClientWithBaseURI creates an instance of the DataSourcesClient client.
+// NewDataSourcesClientWithBaseURI creates an instance of the DataSourcesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDataSourcesClientWithBaseURI(baseURI string, subscriptionID string) DataSourcesClient {
 	return DataSourcesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

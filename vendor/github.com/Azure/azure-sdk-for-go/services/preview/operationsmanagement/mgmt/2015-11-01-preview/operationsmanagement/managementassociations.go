@@ -36,7 +36,9 @@ func NewManagementAssociationsClient(subscriptionID string, providerName string,
 	return NewManagementAssociationsClientWithBaseURI(DefaultBaseURI, subscriptionID, providerName, resourceType, resourceName)
 }
 
-// NewManagementAssociationsClientWithBaseURI creates an instance of the ManagementAssociationsClient client.
+// NewManagementAssociationsClientWithBaseURI creates an instance of the ManagementAssociationsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewManagementAssociationsClientWithBaseURI(baseURI string, subscriptionID string, providerName string, resourceType string, resourceName string) ManagementAssociationsClient {
 	return ManagementAssociationsClient{NewWithBaseURI(baseURI, subscriptionID, providerName, resourceType, resourceName)}
 }

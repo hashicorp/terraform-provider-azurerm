@@ -36,7 +36,8 @@ func NewHeatMapClient(subscriptionID string) HeatMapClient {
 	return NewHeatMapClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewHeatMapClientWithBaseURI creates an instance of the HeatMapClient client.
+// NewHeatMapClientWithBaseURI creates an instance of the HeatMapClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewHeatMapClientWithBaseURI(baseURI string, subscriptionID string) HeatMapClient {
 	return HeatMapClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

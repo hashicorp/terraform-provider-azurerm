@@ -36,7 +36,9 @@ func NewVirtualNetworkTapsClient(subscriptionID string) VirtualNetworkTapsClient
 	return NewVirtualNetworkTapsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVirtualNetworkTapsClientWithBaseURI creates an instance of the VirtualNetworkTapsClient client.
+// NewVirtualNetworkTapsClientWithBaseURI creates an instance of the VirtualNetworkTapsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewVirtualNetworkTapsClientWithBaseURI(baseURI string, subscriptionID string) VirtualNetworkTapsClient {
 	return VirtualNetworkTapsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

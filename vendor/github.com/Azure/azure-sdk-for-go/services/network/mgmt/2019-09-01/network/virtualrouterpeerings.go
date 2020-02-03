@@ -36,7 +36,9 @@ func NewVirtualRouterPeeringsClient(subscriptionID string) VirtualRouterPeerings
 	return NewVirtualRouterPeeringsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVirtualRouterPeeringsClientWithBaseURI creates an instance of the VirtualRouterPeeringsClient client.
+// NewVirtualRouterPeeringsClientWithBaseURI creates an instance of the VirtualRouterPeeringsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewVirtualRouterPeeringsClientWithBaseURI(baseURI string, subscriptionID string) VirtualRouterPeeringsClient {
 	return VirtualRouterPeeringsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

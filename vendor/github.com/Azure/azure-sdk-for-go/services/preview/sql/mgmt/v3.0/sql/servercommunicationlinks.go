@@ -38,7 +38,9 @@ func NewServerCommunicationLinksClient(subscriptionID string) ServerCommunicatio
 	return NewServerCommunicationLinksClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServerCommunicationLinksClientWithBaseURI creates an instance of the ServerCommunicationLinksClient client.
+// NewServerCommunicationLinksClientWithBaseURI creates an instance of the ServerCommunicationLinksClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewServerCommunicationLinksClientWithBaseURI(baseURI string, subscriptionID string) ServerCommunicationLinksClient {
 	return ServerCommunicationLinksClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

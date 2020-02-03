@@ -35,7 +35,8 @@ func NewArtifactsClient(subscriptionID string) ArtifactsClient {
 	return NewArtifactsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewArtifactsClientWithBaseURI creates an instance of the ArtifactsClient client.
+// NewArtifactsClientWithBaseURI creates an instance of the ArtifactsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewArtifactsClientWithBaseURI(baseURI string, subscriptionID string) ArtifactsClient {
 	return ArtifactsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

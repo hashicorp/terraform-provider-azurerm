@@ -37,7 +37,8 @@ func NewDataFlowsClient(subscriptionID string) DataFlowsClient {
 	return NewDataFlowsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDataFlowsClientWithBaseURI creates an instance of the DataFlowsClient client.
+// NewDataFlowsClientWithBaseURI creates an instance of the DataFlowsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDataFlowsClientWithBaseURI(baseURI string, subscriptionID string) DataFlowsClient {
 	return DataFlowsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

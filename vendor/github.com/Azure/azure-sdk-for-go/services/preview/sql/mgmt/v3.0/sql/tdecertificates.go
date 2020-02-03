@@ -38,7 +38,8 @@ func NewTdeCertificatesClient(subscriptionID string) TdeCertificatesClient {
 	return NewTdeCertificatesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTdeCertificatesClientWithBaseURI creates an instance of the TdeCertificatesClient client.
+// NewTdeCertificatesClientWithBaseURI creates an instance of the TdeCertificatesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTdeCertificatesClientWithBaseURI(baseURI string, subscriptionID string) TdeCertificatesClient {
 	return TdeCertificatesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

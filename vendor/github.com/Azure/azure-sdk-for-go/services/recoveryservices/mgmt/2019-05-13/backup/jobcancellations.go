@@ -35,7 +35,9 @@ func NewJobCancellationsClient(subscriptionID string) JobCancellationsClient {
 	return NewJobCancellationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewJobCancellationsClientWithBaseURI creates an instance of the JobCancellationsClient client.
+// NewJobCancellationsClientWithBaseURI creates an instance of the JobCancellationsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewJobCancellationsClientWithBaseURI(baseURI string, subscriptionID string) JobCancellationsClient {
 	return JobCancellationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

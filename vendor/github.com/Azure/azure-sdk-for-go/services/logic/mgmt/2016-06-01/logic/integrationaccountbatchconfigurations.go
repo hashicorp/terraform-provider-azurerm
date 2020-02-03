@@ -38,7 +38,8 @@ func NewIntegrationAccountBatchConfigurationsClient(subscriptionID string) Integ
 }
 
 // NewIntegrationAccountBatchConfigurationsClientWithBaseURI creates an instance of the
-// IntegrationAccountBatchConfigurationsClient client.
+// IntegrationAccountBatchConfigurationsClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewIntegrationAccountBatchConfigurationsClientWithBaseURI(baseURI string, subscriptionID string) IntegrationAccountBatchConfigurationsClient {
 	return IntegrationAccountBatchConfigurationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

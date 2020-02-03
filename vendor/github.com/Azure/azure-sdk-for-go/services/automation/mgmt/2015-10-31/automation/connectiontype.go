@@ -36,7 +36,8 @@ func NewConnectionTypeClient(subscriptionID string) ConnectionTypeClient {
 	return NewConnectionTypeClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewConnectionTypeClientWithBaseURI creates an instance of the ConnectionTypeClient client.
+// NewConnectionTypeClientWithBaseURI creates an instance of the ConnectionTypeClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewConnectionTypeClientWithBaseURI(baseURI string, subscriptionID string) ConnectionTypeClient {
 	return ConnectionTypeClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

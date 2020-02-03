@@ -36,7 +36,9 @@ func NewDisasterRecoveryConfigsClient(subscriptionID string) DisasterRecoveryCon
 	return NewDisasterRecoveryConfigsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDisasterRecoveryConfigsClientWithBaseURI creates an instance of the DisasterRecoveryConfigsClient client.
+// NewDisasterRecoveryConfigsClientWithBaseURI creates an instance of the DisasterRecoveryConfigsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewDisasterRecoveryConfigsClientWithBaseURI(baseURI string, subscriptionID string) DisasterRecoveryConfigsClient {
 	return DisasterRecoveryConfigsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

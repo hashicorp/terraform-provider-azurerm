@@ -35,7 +35,9 @@ func NewProtectionIntentGroupClient(subscriptionID string) ProtectionIntentGroup
 	return NewProtectionIntentGroupClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProtectionIntentGroupClientWithBaseURI creates an instance of the ProtectionIntentGroupClient client.
+// NewProtectionIntentGroupClientWithBaseURI creates an instance of the ProtectionIntentGroupClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewProtectionIntentGroupClientWithBaseURI(baseURI string, subscriptionID string) ProtectionIntentGroupClient {
 	return ProtectionIntentGroupClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -37,7 +37,9 @@ func NewServiceTierAdvisorsClient(subscriptionID string) ServiceTierAdvisorsClie
 	return NewServiceTierAdvisorsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServiceTierAdvisorsClientWithBaseURI creates an instance of the ServiceTierAdvisorsClient client.
+// NewServiceTierAdvisorsClientWithBaseURI creates an instance of the ServiceTierAdvisorsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewServiceTierAdvisorsClientWithBaseURI(baseURI string, subscriptionID string) ServiceTierAdvisorsClient {
 	return ServiceTierAdvisorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

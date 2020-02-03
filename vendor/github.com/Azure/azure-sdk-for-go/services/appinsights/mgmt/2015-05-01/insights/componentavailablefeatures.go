@@ -36,7 +36,9 @@ func NewComponentAvailableFeaturesClient(subscriptionID string) ComponentAvailab
 	return NewComponentAvailableFeaturesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewComponentAvailableFeaturesClientWithBaseURI creates an instance of the ComponentAvailableFeaturesClient client.
+// NewComponentAvailableFeaturesClientWithBaseURI creates an instance of the ComponentAvailableFeaturesClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewComponentAvailableFeaturesClientWithBaseURI(baseURI string, subscriptionID string) ComponentAvailableFeaturesClient {
 	return ComponentAvailableFeaturesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,8 @@ func NewVirtualRoutersClient(subscriptionID string) VirtualRoutersClient {
 	return NewVirtualRoutersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVirtualRoutersClientWithBaseURI creates an instance of the VirtualRoutersClient client.
+// NewVirtualRoutersClientWithBaseURI creates an instance of the VirtualRoutersClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewVirtualRoutersClientWithBaseURI(baseURI string, subscriptionID string) VirtualRoutersClient {
 	return VirtualRoutersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

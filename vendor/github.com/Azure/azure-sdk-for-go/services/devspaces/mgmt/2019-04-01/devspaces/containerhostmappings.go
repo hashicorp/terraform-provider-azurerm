@@ -36,7 +36,9 @@ func NewContainerHostMappingsClient(subscriptionID string) ContainerHostMappings
 	return NewContainerHostMappingsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewContainerHostMappingsClientWithBaseURI creates an instance of the ContainerHostMappingsClient client.
+// NewContainerHostMappingsClientWithBaseURI creates an instance of the ContainerHostMappingsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewContainerHostMappingsClientWithBaseURI(baseURI string, subscriptionID string) ContainerHostMappingsClient {
 	return ContainerHostMappingsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

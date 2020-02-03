@@ -35,7 +35,8 @@ func NewVpnSitesClient(subscriptionID string) VpnSitesClient {
 	return NewVpnSitesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVpnSitesClientWithBaseURI creates an instance of the VpnSitesClient client.
+// NewVpnSitesClientWithBaseURI creates an instance of the VpnSitesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewVpnSitesClientWithBaseURI(baseURI string, subscriptionID string) VpnSitesClient {
 	return VpnSitesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,9 @@ func NewHybridConnectionsClient(subscriptionID string) HybridConnectionsClient {
 	return NewHybridConnectionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewHybridConnectionsClientWithBaseURI creates an instance of the HybridConnectionsClient client.
+// NewHybridConnectionsClientWithBaseURI creates an instance of the HybridConnectionsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewHybridConnectionsClientWithBaseURI(baseURI string, subscriptionID string) HybridConnectionsClient {
 	return HybridConnectionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

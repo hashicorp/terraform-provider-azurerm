@@ -35,7 +35,8 @@ func NewInputsClient(subscriptionID string) InputsClient {
 	return NewInputsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewInputsClientWithBaseURI creates an instance of the InputsClient client.
+// NewInputsClientWithBaseURI creates an instance of the InputsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewInputsClientWithBaseURI(baseURI string, subscriptionID string) InputsClient {
 	return InputsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

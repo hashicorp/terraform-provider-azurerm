@@ -36,7 +36,8 @@ func NewDisksClient(subscriptionID string) DisksClient {
 	return NewDisksClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDisksClientWithBaseURI creates an instance of the DisksClient client.
+// NewDisksClientWithBaseURI creates an instance of the DisksClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDisksClientWithBaseURI(baseURI string, subscriptionID string) DisksClient {
 	return DisksClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

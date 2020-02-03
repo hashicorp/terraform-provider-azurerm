@@ -35,7 +35,8 @@ func NewExtensionsClient(subscriptionID string) ExtensionsClient {
 	return NewExtensionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewExtensionsClientWithBaseURI creates an instance of the ExtensionsClient client.
+// NewExtensionsClientWithBaseURI creates an instance of the ExtensionsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewExtensionsClientWithBaseURI(baseURI string, subscriptionID string) ExtensionsClient {
 	return ExtensionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

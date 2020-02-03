@@ -35,7 +35,8 @@ func NewClusterVersionsClient(subscriptionID string) ClusterVersionsClient {
 	return NewClusterVersionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewClusterVersionsClientWithBaseURI creates an instance of the ClusterVersionsClient client.
+// NewClusterVersionsClientWithBaseURI creates an instance of the ClusterVersionsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewClusterVersionsClientWithBaseURI(baseURI string, subscriptionID string) ClusterVersionsClient {
 	return ClusterVersionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,8 @@ func NewLogAnalyticsClient(subscriptionID string) LogAnalyticsClient {
 	return NewLogAnalyticsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLogAnalyticsClientWithBaseURI creates an instance of the LogAnalyticsClient client.
+// NewLogAnalyticsClientWithBaseURI creates an instance of the LogAnalyticsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLogAnalyticsClientWithBaseURI(baseURI string, subscriptionID string) LogAnalyticsClient {
 	return LogAnalyticsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

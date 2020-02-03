@@ -36,7 +36,9 @@ func NewTrustedIDProvidersClient(subscriptionID string) TrustedIDProvidersClient
 	return NewTrustedIDProvidersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTrustedIDProvidersClientWithBaseURI creates an instance of the TrustedIDProvidersClient client.
+// NewTrustedIDProvidersClientWithBaseURI creates an instance of the TrustedIDProvidersClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewTrustedIDProvidersClientWithBaseURI(baseURI string, subscriptionID string) TrustedIDProvidersClient {
 	return TrustedIDProvidersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

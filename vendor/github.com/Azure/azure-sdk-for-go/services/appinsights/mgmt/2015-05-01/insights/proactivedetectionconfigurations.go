@@ -37,7 +37,8 @@ func NewProactiveDetectionConfigurationsClient(subscriptionID string) ProactiveD
 }
 
 // NewProactiveDetectionConfigurationsClientWithBaseURI creates an instance of the
-// ProactiveDetectionConfigurationsClient client.
+// ProactiveDetectionConfigurationsClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewProactiveDetectionConfigurationsClientWithBaseURI(baseURI string, subscriptionID string) ProactiveDetectionConfigurationsClient {
 	return ProactiveDetectionConfigurationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

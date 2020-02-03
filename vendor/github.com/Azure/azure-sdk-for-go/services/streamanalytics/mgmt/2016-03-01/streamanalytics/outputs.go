@@ -35,7 +35,8 @@ func NewOutputsClient(subscriptionID string) OutputsClient {
 	return NewOutputsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewOutputsClientWithBaseURI creates an instance of the OutputsClient client.
+// NewOutputsClientWithBaseURI creates an instance of the OutputsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewOutputsClientWithBaseURI(baseURI string, subscriptionID string) OutputsClient {
 	return OutputsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

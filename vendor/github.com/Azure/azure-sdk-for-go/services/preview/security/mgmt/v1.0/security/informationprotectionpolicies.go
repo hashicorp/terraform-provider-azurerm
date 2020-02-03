@@ -36,7 +36,8 @@ func NewInformationProtectionPoliciesClient(subscriptionID string, ascLocation s
 }
 
 // NewInformationProtectionPoliciesClientWithBaseURI creates an instance of the InformationProtectionPoliciesClient
-// client.
+// client using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI
+// (sovereign clouds, Azure stack).
 func NewInformationProtectionPoliciesClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) InformationProtectionPoliciesClient {
 	return InformationProtectionPoliciesClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }

@@ -35,7 +35,9 @@ func NewProtectionContainersGroupClient(subscriptionID string) ProtectionContain
 	return NewProtectionContainersGroupClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProtectionContainersGroupClientWithBaseURI creates an instance of the ProtectionContainersGroupClient client.
+// NewProtectionContainersGroupClientWithBaseURI creates an instance of the ProtectionContainersGroupClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewProtectionContainersGroupClientWithBaseURI(baseURI string, subscriptionID string) ProtectionContainersGroupClient {
 	return ProtectionContainersGroupClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

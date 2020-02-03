@@ -35,7 +35,8 @@ func NewRestoresClient(subscriptionID string) RestoresClient {
 	return NewRestoresClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRestoresClientWithBaseURI creates an instance of the RestoresClient client.
+// NewRestoresClientWithBaseURI creates an instance of the RestoresClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRestoresClientWithBaseURI(baseURI string, subscriptionID string) RestoresClient {
 	return RestoresClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

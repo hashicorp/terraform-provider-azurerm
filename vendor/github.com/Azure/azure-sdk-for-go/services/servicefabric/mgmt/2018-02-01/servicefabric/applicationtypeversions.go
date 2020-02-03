@@ -36,7 +36,9 @@ func NewApplicationTypeVersionsClient(subscriptionID string) ApplicationTypeVers
 	return NewApplicationTypeVersionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewApplicationTypeVersionsClientWithBaseURI creates an instance of the ApplicationTypeVersionsClient client.
+// NewApplicationTypeVersionsClientWithBaseURI creates an instance of the ApplicationTypeVersionsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewApplicationTypeVersionsClientWithBaseURI(baseURI string, subscriptionID string) ApplicationTypeVersionsClient {
 	return ApplicationTypeVersionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,8 @@ func NewLiveEventsClient(subscriptionID string) LiveEventsClient {
 	return NewLiveEventsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLiveEventsClientWithBaseURI creates an instance of the LiveEventsClient client.
+// NewLiveEventsClientWithBaseURI creates an instance of the LiveEventsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLiveEventsClientWithBaseURI(baseURI string, subscriptionID string) LiveEventsClient {
 	return LiveEventsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

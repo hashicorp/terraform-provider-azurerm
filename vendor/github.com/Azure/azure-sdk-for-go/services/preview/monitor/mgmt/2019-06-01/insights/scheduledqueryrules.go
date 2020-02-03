@@ -36,7 +36,9 @@ func NewScheduledQueryRulesClient(subscriptionID string) ScheduledQueryRulesClie
 	return NewScheduledQueryRulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewScheduledQueryRulesClientWithBaseURI creates an instance of the ScheduledQueryRulesClient client.
+// NewScheduledQueryRulesClientWithBaseURI creates an instance of the ScheduledQueryRulesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewScheduledQueryRulesClientWithBaseURI(baseURI string, subscriptionID string) ScheduledQueryRulesClient {
 	return ScheduledQueryRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

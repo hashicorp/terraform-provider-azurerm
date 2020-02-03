@@ -38,7 +38,8 @@ func NewExpressRouteCrossConnectionPeeringsClient(subscriptionID string) Express
 }
 
 // NewExpressRouteCrossConnectionPeeringsClientWithBaseURI creates an instance of the
-// ExpressRouteCrossConnectionPeeringsClient client.
+// ExpressRouteCrossConnectionPeeringsClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewExpressRouteCrossConnectionPeeringsClientWithBaseURI(baseURI string, subscriptionID string) ExpressRouteCrossConnectionPeeringsClient {
 	return ExpressRouteCrossConnectionPeeringsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

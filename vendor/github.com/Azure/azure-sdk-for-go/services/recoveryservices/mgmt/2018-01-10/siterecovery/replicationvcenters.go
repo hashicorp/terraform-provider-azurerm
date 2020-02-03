@@ -35,7 +35,9 @@ func NewReplicationvCentersClient(subscriptionID string, resourceGroupName strin
 	return NewReplicationvCentersClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationvCentersClientWithBaseURI creates an instance of the ReplicationvCentersClient client.
+// NewReplicationvCentersClientWithBaseURI creates an instance of the ReplicationvCentersClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewReplicationvCentersClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationvCentersClient {
 	return ReplicationvCentersClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }

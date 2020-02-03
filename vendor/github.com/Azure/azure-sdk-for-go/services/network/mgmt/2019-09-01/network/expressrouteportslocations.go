@@ -35,7 +35,9 @@ func NewExpressRoutePortsLocationsClient(subscriptionID string) ExpressRoutePort
 	return NewExpressRoutePortsLocationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewExpressRoutePortsLocationsClientWithBaseURI creates an instance of the ExpressRoutePortsLocationsClient client.
+// NewExpressRoutePortsLocationsClientWithBaseURI creates an instance of the ExpressRoutePortsLocationsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewExpressRoutePortsLocationsClientWithBaseURI(baseURI string, subscriptionID string) ExpressRoutePortsLocationsClient {
 	return ExpressRoutePortsLocationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

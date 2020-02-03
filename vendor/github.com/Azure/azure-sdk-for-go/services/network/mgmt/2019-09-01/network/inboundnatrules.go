@@ -36,7 +36,8 @@ func NewInboundNatRulesClient(subscriptionID string) InboundNatRulesClient {
 	return NewInboundNatRulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewInboundNatRulesClientWithBaseURI creates an instance of the InboundNatRulesClient client.
+// NewInboundNatRulesClientWithBaseURI creates an instance of the InboundNatRulesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewInboundNatRulesClientWithBaseURI(baseURI string, subscriptionID string) InboundNatRulesClient {
 	return InboundNatRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

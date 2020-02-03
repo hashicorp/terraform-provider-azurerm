@@ -36,7 +36,8 @@ func NewFileSharesClient(subscriptionID string) FileSharesClient {
 	return NewFileSharesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewFileSharesClientWithBaseURI creates an instance of the FileSharesClient client.
+// NewFileSharesClientWithBaseURI creates an instance of the FileSharesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewFileSharesClientWithBaseURI(baseURI string, subscriptionID string) FileSharesClient {
 	return FileSharesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

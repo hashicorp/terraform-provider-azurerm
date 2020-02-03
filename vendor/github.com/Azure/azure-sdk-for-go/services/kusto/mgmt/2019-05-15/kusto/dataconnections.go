@@ -38,7 +38,8 @@ func NewDataConnectionsClient(subscriptionID string) DataConnectionsClient {
 	return NewDataConnectionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDataConnectionsClientWithBaseURI creates an instance of the DataConnectionsClient client.
+// NewDataConnectionsClientWithBaseURI creates an instance of the DataConnectionsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDataConnectionsClientWithBaseURI(baseURI string, subscriptionID string) DataConnectionsClient {
 	return DataConnectionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

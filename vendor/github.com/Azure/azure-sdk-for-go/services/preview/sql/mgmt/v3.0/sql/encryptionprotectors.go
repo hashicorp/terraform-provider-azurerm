@@ -37,7 +37,9 @@ func NewEncryptionProtectorsClient(subscriptionID string) EncryptionProtectorsCl
 	return NewEncryptionProtectorsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewEncryptionProtectorsClientWithBaseURI creates an instance of the EncryptionProtectorsClient client.
+// NewEncryptionProtectorsClientWithBaseURI creates an instance of the EncryptionProtectorsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewEncryptionProtectorsClientWithBaseURI(baseURI string, subscriptionID string) EncryptionProtectorsClient {
 	return EncryptionProtectorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

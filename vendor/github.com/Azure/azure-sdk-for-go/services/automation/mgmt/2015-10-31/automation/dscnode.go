@@ -36,7 +36,8 @@ func NewDscNodeClient(subscriptionID string) DscNodeClient {
 	return NewDscNodeClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDscNodeClientWithBaseURI creates an instance of the DscNodeClient client.
+// NewDscNodeClientWithBaseURI creates an instance of the DscNodeClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDscNodeClientWithBaseURI(baseURI string, subscriptionID string) DscNodeClient {
 	return DscNodeClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

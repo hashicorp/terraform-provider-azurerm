@@ -37,7 +37,8 @@ func NewManagementLocksClient(subscriptionID string) ManagementLocksClient {
 	return NewManagementLocksClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewManagementLocksClientWithBaseURI creates an instance of the ManagementLocksClient client.
+// NewManagementLocksClientWithBaseURI creates an instance of the ManagementLocksClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewManagementLocksClientWithBaseURI(baseURI string, subscriptionID string) ManagementLocksClient {
 	return ManagementLocksClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

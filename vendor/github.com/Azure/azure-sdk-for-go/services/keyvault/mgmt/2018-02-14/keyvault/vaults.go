@@ -37,7 +37,8 @@ func NewVaultsClient(subscriptionID string) VaultsClient {
 	return NewVaultsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVaultsClientWithBaseURI creates an instance of the VaultsClient client.
+// NewVaultsClientWithBaseURI creates an instance of the VaultsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewVaultsClientWithBaseURI(baseURI string, subscriptionID string) VaultsClient {
 	return VaultsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

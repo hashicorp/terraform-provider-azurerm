@@ -36,7 +36,8 @@ func NewFieldsClient(subscriptionID string) FieldsClient {
 	return NewFieldsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewFieldsClientWithBaseURI creates an instance of the FieldsClient client.
+// NewFieldsClientWithBaseURI creates an instance of the FieldsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewFieldsClientWithBaseURI(baseURI string, subscriptionID string) FieldsClient {
 	return FieldsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

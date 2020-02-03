@@ -35,7 +35,9 @@ func NewPublicIPPrefixesClient(subscriptionID string) PublicIPPrefixesClient {
 	return NewPublicIPPrefixesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPublicIPPrefixesClientWithBaseURI creates an instance of the PublicIPPrefixesClient client.
+// NewPublicIPPrefixesClientWithBaseURI creates an instance of the PublicIPPrefixesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewPublicIPPrefixesClientWithBaseURI(baseURI string, subscriptionID string) PublicIPPrefixesClient {
 	return PublicIPPrefixesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

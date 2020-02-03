@@ -37,7 +37,8 @@ func NewJobScheduleClient(subscriptionID string) JobScheduleClient {
 	return NewJobScheduleClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewJobScheduleClientWithBaseURI creates an instance of the JobScheduleClient client.
+// NewJobScheduleClientWithBaseURI creates an instance of the JobScheduleClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewJobScheduleClientWithBaseURI(baseURI string, subscriptionID string) JobScheduleClient {
 	return JobScheduleClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

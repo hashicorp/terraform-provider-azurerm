@@ -36,7 +36,8 @@ func NewModuleClient(subscriptionID string) ModuleClient {
 	return NewModuleClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewModuleClientWithBaseURI creates an instance of the ModuleClient client.
+// NewModuleClientWithBaseURI creates an instance of the ModuleClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewModuleClientWithBaseURI(baseURI string, subscriptionID string) ModuleClient {
 	return ModuleClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

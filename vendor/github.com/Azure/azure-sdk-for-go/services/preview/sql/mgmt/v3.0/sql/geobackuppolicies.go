@@ -38,7 +38,9 @@ func NewGeoBackupPoliciesClient(subscriptionID string) GeoBackupPoliciesClient {
 	return NewGeoBackupPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewGeoBackupPoliciesClientWithBaseURI creates an instance of the GeoBackupPoliciesClient client.
+// NewGeoBackupPoliciesClientWithBaseURI creates an instance of the GeoBackupPoliciesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewGeoBackupPoliciesClientWithBaseURI(baseURI string, subscriptionID string) GeoBackupPoliciesClient {
 	return GeoBackupPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

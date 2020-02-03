@@ -37,7 +37,8 @@ func NewRunbookDraftClient(subscriptionID string) RunbookDraftClient {
 	return NewRunbookDraftClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRunbookDraftClientWithBaseURI creates an instance of the RunbookDraftClient client.
+// NewRunbookDraftClientWithBaseURI creates an instance of the RunbookDraftClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewRunbookDraftClientWithBaseURI(baseURI string, subscriptionID string) RunbookDraftClient {
 	return RunbookDraftClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -36,7 +36,8 @@ func NewBlobServicesClient(subscriptionID string) BlobServicesClient {
 	return NewBlobServicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBlobServicesClientWithBaseURI creates an instance of the BlobServicesClient client.
+// NewBlobServicesClientWithBaseURI creates an instance of the BlobServicesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewBlobServicesClientWithBaseURI(baseURI string, subscriptionID string) BlobServicesClient {
 	return BlobServicesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

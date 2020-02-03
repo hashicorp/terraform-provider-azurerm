@@ -37,7 +37,8 @@ func NewExposureControlClient(subscriptionID string) ExposureControlClient {
 	return NewExposureControlClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewExposureControlClientWithBaseURI creates an instance of the ExposureControlClient client.
+// NewExposureControlClientWithBaseURI creates an instance of the ExposureControlClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewExposureControlClientWithBaseURI(baseURI string, subscriptionID string) ExposureControlClient {
 	return ExposureControlClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

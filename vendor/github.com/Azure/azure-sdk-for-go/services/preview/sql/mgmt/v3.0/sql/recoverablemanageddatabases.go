@@ -37,7 +37,9 @@ func NewRecoverableManagedDatabasesClient(subscriptionID string) RecoverableMana
 	return NewRecoverableManagedDatabasesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewRecoverableManagedDatabasesClientWithBaseURI creates an instance of the RecoverableManagedDatabasesClient client.
+// NewRecoverableManagedDatabasesClientWithBaseURI creates an instance of the RecoverableManagedDatabasesClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewRecoverableManagedDatabasesClientWithBaseURI(baseURI string, subscriptionID string) RecoverableManagedDatabasesClient {
 	return RecoverableManagedDatabasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

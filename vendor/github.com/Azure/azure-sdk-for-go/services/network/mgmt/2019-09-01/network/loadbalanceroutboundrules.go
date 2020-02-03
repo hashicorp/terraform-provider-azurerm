@@ -35,7 +35,9 @@ func NewLoadBalancerOutboundRulesClient(subscriptionID string) LoadBalancerOutbo
 	return NewLoadBalancerOutboundRulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLoadBalancerOutboundRulesClientWithBaseURI creates an instance of the LoadBalancerOutboundRulesClient client.
+// NewLoadBalancerOutboundRulesClientWithBaseURI creates an instance of the LoadBalancerOutboundRulesClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewLoadBalancerOutboundRulesClientWithBaseURI(baseURI string, subscriptionID string) LoadBalancerOutboundRulesClient {
 	return LoadBalancerOutboundRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

@@ -37,7 +37,8 @@ func NewLogFilesClient(subscriptionID string) LogFilesClient {
 	return NewLogFilesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLogFilesClientWithBaseURI creates an instance of the LogFilesClient client.
+// NewLogFilesClientWithBaseURI creates an instance of the LogFilesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLogFilesClientWithBaseURI(baseURI string, subscriptionID string) LogFilesClient {
 	return LogFilesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

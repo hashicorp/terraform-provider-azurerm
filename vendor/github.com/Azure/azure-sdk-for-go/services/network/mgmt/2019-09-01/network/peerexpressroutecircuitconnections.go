@@ -37,7 +37,8 @@ func NewPeerExpressRouteCircuitConnectionsClient(subscriptionID string) PeerExpr
 }
 
 // NewPeerExpressRouteCircuitConnectionsClientWithBaseURI creates an instance of the
-// PeerExpressRouteCircuitConnectionsClient client.
+// PeerExpressRouteCircuitConnectionsClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewPeerExpressRouteCircuitConnectionsClientWithBaseURI(baseURI string, subscriptionID string) PeerExpressRouteCircuitConnectionsClient {
 	return PeerExpressRouteCircuitConnectionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

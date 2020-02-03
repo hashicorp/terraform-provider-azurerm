@@ -36,7 +36,9 @@ func NewWebTestLocationsClient(subscriptionID string) WebTestLocationsClient {
 	return NewWebTestLocationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWebTestLocationsClientWithBaseURI creates an instance of the WebTestLocationsClient client.
+// NewWebTestLocationsClientWithBaseURI creates an instance of the WebTestLocationsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewWebTestLocationsClientWithBaseURI(baseURI string, subscriptionID string) WebTestLocationsClient {
 	return WebTestLocationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }

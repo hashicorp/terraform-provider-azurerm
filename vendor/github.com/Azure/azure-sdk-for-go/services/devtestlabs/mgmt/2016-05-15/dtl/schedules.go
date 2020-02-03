@@ -36,7 +36,8 @@ func NewSchedulesClient(subscriptionID string) SchedulesClient {
 	return NewSchedulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSchedulesClientWithBaseURI creates an instance of the SchedulesClient client.
+// NewSchedulesClientWithBaseURI creates an instance of the SchedulesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSchedulesClientWithBaseURI(baseURI string, subscriptionID string) SchedulesClient {
 	return SchedulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
