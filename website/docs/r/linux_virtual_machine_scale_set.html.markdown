@@ -8,15 +8,19 @@ description: |-
 
 # azurerm_linux_virtual_machine_scale_set
 
-~> **NOTE:** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider.
-
-~> **NOTE**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
-
 Manages a Linux Virtual Machine Scale Set.
 
-~> **NOTE:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
+## Disclaimers
+
+~> **Note** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider.
+
+~> **Note**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 -> **Note** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://www.terraform.io/docs/providers/azurerm/index.html#features).
+
+~> **Note:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
+
+~> In this Beta release there's a known issue where the `health_probe_id` is not passed to the Azure API during an update for machines using an Automatic or Rolling Upgrade Policy.
 
 ## Example Usage
 
@@ -144,7 +148,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below.
 
-* `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current low-priority price. If this bid price falls below the current low-priority price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`. Defaults to `-1`, which means that each Virtual Machine in this Scale Set should not be evicted for price reasons.
+* `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`. Defaults to `-1`, which means that each Virtual Machine in this Scale Set should not be evicted for price reasons.
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
@@ -395,6 +399,8 @@ An `identity` block exports the following:
 * `principal_id` - The ID of the System Managed Service Principal.
 
 ### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

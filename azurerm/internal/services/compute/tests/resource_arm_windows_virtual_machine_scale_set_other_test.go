@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func TestAccAzureRMWindowsVirtualMachineScaleSet_otherAdditionalUnattendConfig(t *testing.T) {
+func TestAccAzureRMWindowsVirtualMachineScaleSet_otherAdditionalUnattendContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -18,13 +18,13 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherAdditionalUnattendConfig(t
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherAdditionalUnattendConfig(data),
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherAdditionalUnattendContent(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(
-				"additional_unattend_config.0.content",
+				"additional_unattend_content.0.content",
 				"admin_password",
 			),
 		},
@@ -530,7 +530,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_updateHealthProbe(t *testing.T)
 	})
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_otherAdditionalUnattendConfig(data acceptance.TestData) string {
+func testAccAzureRMWindowsVirtualMachineScaleSet_otherAdditionalUnattendContent(data acceptance.TestData) string {
 	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %s
@@ -567,7 +567,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
-  additional_unattend_config {
+  additional_unattend_content {
     setting = "AutoLogon"
     content = "<AutoLogon><Username>myadmin</Username><Password><Value>P@ssword1234!</Value></Password><Enabled>true</Enabled><LogonCount>1</LogonCount></AutoLogon>"
   }

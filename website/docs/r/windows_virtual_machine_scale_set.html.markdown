@@ -8,15 +8,19 @@ description: |-
 
 # azurerm_windows_virtual_machine_scale_set
 
-~> **NOTE:** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider.
-
-~> **NOTE**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
-
 Manages a Windows Virtual Machine Scale Set.
 
-~> **NOTE:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
+## Disclaimers
+
+~> **Note** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider.
+
+~> **Note**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 -> **Note** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://www.terraform.io/docs/providers/azurerm/index.html#features).
+
+~> **Note:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
+
+~> In this Beta release there's a known issue where the `health_probe_id` is not passed to the Azure API during an update for machines using an Automatic or Rolling Upgrade Policy.
 
 ## Example Usage
 
@@ -104,7 +108,7 @@ The following arguments are supported:
 
 * `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below.
 
-* `additional_unattend_config` - (Optional) One or more `additional_unattend_config` blocks as defined below.
+* `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below.
 
 * `automatic_os_upgrade_policy` - (Optional) A `automatic_os_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic`.
 
@@ -130,9 +134,9 @@ The following arguments are supported:
 
 * `identity` - (Optional) A `identity` block as defined below.
 
-* `license_type` - (Optional) Specifies the type of on-premise license (also known as [Azure Hybrid Use Benefit](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-hybrid-use-benefit-licensing)) which should be used for this Virtual Machine Scale Set. Possible values are `Windows_Client` and `Windows_Server`. Changing this forces a new resource to be created.
+* `license_type` - (Optional) Specifies the type of on-premise license (also known as [Azure Hybrid Use Benefit](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-hybrid-use-benefit-licensing)) which should be used for this Virtual Machine Scale Set. Possible values are `None`, `Windows_Client` and `Windows_Server`. Changing this forces a new resource to be created.
 
-* `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current low-priority price. If this bid price falls below the current low-priority price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`. Defaults to `-1`, which means that each Virtual Machine in the Scale Set should not be evicted for price reasons.
+* `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machines in the Scale Set will be evicted using the `eviction_policy`. Defaults to `-1`, which means that each Virtual Machine in the Scale Set should not be evicted for price reasons.
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
@@ -182,11 +186,11 @@ A `additional_capabilities` block supports the following:
 
 ---
 
-A `additional_unattend_config` block supports the following:
+A `additional_unattend_content` block supports the following:
 
-* `content` - (Required) The XML formatted content that is added to the unattend.xml file for the specified path and component.
+* `content` - (Required) The XML formatted content that is added to the unattend.xml file for the specified path and component. Changing this forces a new resource to be created.
 
-* `setting` - (Required) The name of the setting to which the content applies. Possible values are `AutoLogon` and `FirstLogonCommands`.
+* `setting` - (Required) The name of the setting to which the content applies. Possible values are `AutoLogon` and `FirstLogonCommands`. Changing this forces a new resource to be created.
 
 ---
 
@@ -397,6 +401,8 @@ An `identity` block exports the following:
 * `principal_id` - The ID of the System Managed Service Principal.
 
 ### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
