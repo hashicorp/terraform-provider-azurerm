@@ -508,7 +508,7 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*resp.Location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if err := d.Set("identity", flattenVirtualMachineIdentity(resp.Identity)); err != nil {
