@@ -2,11 +2,11 @@
 layout: "azurerm"
 page_title: "Azure Resource Manager: Opting into the 2.0 Beta"
 description: |-
-    Azure Resource Manager: Opting into the 2.0 Beta
+    Azure Resource Manager: Opting into Beta Functionality coming in version 2.0 of the Azure Provider
 
 ---
 
-# Opting Into Beta Functionality coming in version 2.0 of the Azure Provider
+# Opting into Beta Functionality coming in version 2.0 of the Azure Provider
 
 Version 2.0 of the Azure Provider will introduce several new features:
 
