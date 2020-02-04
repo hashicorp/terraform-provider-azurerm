@@ -304,9 +304,6 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	// name := d.Get("name").(string)
-	// resourceGroup := d.Get("resource_group_name").(string)
-	// profileName := d.Get("profile_name").(string)
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
 	compressionEnabled := d.Get("is_compression_enabled").(bool)
@@ -368,10 +365,6 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	// profileName := id.Path["profiles"]
-	// if profileName == "" {
-	// 	profileName = id.Path["Profiles"]
-	// }
 	log.Printf("[INFO] Retrieving CDN Endpoint %q (Profile %q / Resource Group %q)", id.Name, id.ProfileName, id.ResourceGroup)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
