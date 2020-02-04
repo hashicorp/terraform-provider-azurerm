@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -117,4 +118,20 @@ func KeyVaultExists(ctx context.Context, client *keyvault.VaultsClient, keyVault
 	}
 
 	return true, nil
+}
+
+func KeyVaultCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+	if d.HasChange("soft_delete_enabled") {
+		if old, new := d.GetChange("soft_delete_enabled"); old.(bool) && !new.(bool) {
+			return fmt.Errorf("the property 'soft_delete_enabled' cannot be set to false, enabling the soft delete for a vault is an irreversible action")
+		}
+	}
+
+	if d.HasChange("purge_protection_enabled") {
+		if old, new := d.GetChange("purge_protection_enabled"); old.(bool) && !new.(bool) {
+			return fmt.Errorf("the property 'purge_protection_enabled' cannot be set to false, enabling the purge protection for a vault is an irreversible action")
+		}
+	}
+
+	return nil
 }

@@ -138,6 +138,11 @@ func resourceArmKeyVault() *schema.Resource {
 				Optional: true,
 			},
 
+			"purge_protection_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"network_acls": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -179,6 +184,8 @@ func resourceArmKeyVault() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: azure.KeyVaultCustomizeDiff,
 	}
 }
 
@@ -204,20 +211,14 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			return tf.ImportAsExistsError("azurerm_key_vault", *existing.ID)
 		}
 	}
-
-	purgeSoftDeleteOnDestroy := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy
-
-	if purgeSoftDeleteOnDestroy {
-		log.Printf("[INFO] purgeSoftDeleteOnDestroy is true")
-	}
-
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
-	enabledForSoftDelete := d.Get("soft_delete_enabled").(bool)
-	enabledForPurgeProtection := d.Get("enabled_for_purge_protection").(bool)
+	softDeleteEnabled := d.Get("soft_delete_enabled").(bool)
+	purgeProtectionEnabled := d.Get("purge_protection_enabled").(bool)
+
 	t := d.Get("tags").(map[string]interface{})
 
 	networkAclsRaw := d.Get("network_acls").([]interface{})
@@ -248,14 +249,12 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 	}
 
-	// This setting can only be set if it is true, if set when value is false API returns errors
-	if enabledForSoftDelete {
-		parameters.Properties.EnableSoftDelete = &enabledForSoftDelete
+	// This settings can only be set if it is true, if set when value is false API returns errors
+	if softDeleteEnabled {
+		parameters.Properties.EnableSoftDelete = &softDeleteEnabled
 	}
-
-	// This setting can only be set if it is true, if set when value is false API returns errors
-	if enabledForPurgeProtection {
-		parameters.Properties.EnablePurgeProtection = &enabledForPurgeProtection
+	if purgeProtectionEnabled {
+		parameters.Properties.EnablePurgeProtection = &purgeProtectionEnabled
 	}
 
 	// Locking this resource so we don't make modifications to it at the same time if there is a
@@ -357,7 +356,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 		d.Set("soft_delete_enabled", props.EnableSoftDelete)
-		d.Set("enabled_for_purge_protection", props.EnablePurgeProtection)
+		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
 
 		if sku := props.Sku; sku != nil {
