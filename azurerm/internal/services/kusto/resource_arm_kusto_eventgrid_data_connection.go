@@ -253,7 +253,6 @@ func resourceArmKustoEventGridDataConnectionDelete(d *schema.ResourceData, meta 
 	return nil
 }
 
-
 func expandKustoEventGridDataConnectionProperties(d *schema.ResourceData) *kusto.EventGridConnectionProperties {
 	eventGridConnectionProperties := &kusto.EventGridConnectionProperties{}
 
