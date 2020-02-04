@@ -33,6 +33,25 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageContainer_basicAzureADAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_basicAzureADAuth(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -296,6 +315,17 @@ resource "azurerm_storage_container" "test" {
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
+`, template)
+}
+
+func testAccAzureRMStorageContainer_basicAzureADAuth(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_basic(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+}
+
+%s
 `, template)
 }
 
