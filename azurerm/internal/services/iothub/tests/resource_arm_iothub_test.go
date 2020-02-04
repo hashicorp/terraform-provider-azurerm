@@ -371,13 +371,16 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
+  event_hub_retention_in_days = 7
+  event_hub_partition_count   = 77
+
   endpoint {
     type                       = "AzureIotHub.StorageContainer"
     connection_string          = "${azurerm_storage_account.test.primary_blob_connection_string}"
     name                       = "export"
     batch_frequency_in_seconds = 60
     max_chunk_size_in_bytes    = 10485760
-    container_name             = "test"
+    container_name             = "${azurerm_storage_container.test.name}"
     encoding                   = "Avro"
     file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
   }

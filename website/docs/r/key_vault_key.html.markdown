@@ -102,6 +102,16 @@ The following attributes are exported:
 * `x` - The EC X component of this Key Vault Key.
 * `y` - The EC Y component of this Key Vault Key.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Key.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Key.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Key.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Key.
 
 ## Import
 

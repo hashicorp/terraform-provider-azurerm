@@ -6,26 +6,32 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func SSHKeysSchema() *schema.Schema {
+func SSHKeysSchema(isVirtualMachine bool) *schema.Schema {
+	// the SSH Keys for a Virtual Machine cannot be changed once provisioned:
+	// Code="PropertyChangeNotAllowed" Message="Changing property 'linuxConfiguration.ssh.publicKeys' is not allowed."
+
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,
+		ForceNew: isVirtualMachine,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"public_key": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ForceNew:     isVirtualMachine,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"username": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ForceNew:     isVirtualMachine,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},

@@ -120,12 +120,12 @@ func testCheckAzureRMPostgreSQLFirewallRuleDestroy(s *terraform.State) error {
 func testAccAzureRMPostgreSQLFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-psql-%d"
   location = "%s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctestpsqlsvr-%d"
+  name                = "acctest-psql-server-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -144,7 +144,7 @@ resource "azurerm_postgresql_server" "test" {
 }
 
 resource "azurerm_postgresql_firewall_rule" "test" {
-  name                = "acctestfwrule-%d"
+  name                = "acctest-PSQL-fwrule-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_postgresql_server.test.name}"
   start_ip_address    = "0.0.0.0"

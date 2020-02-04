@@ -69,6 +69,17 @@ A `access_key` block exports the following:
 
 * `connection_string` - The connection string including the endpoint, id and secret.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Configuration.
+* `update` - (Defaults to 30 minutes) Used when updating the App Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Configuration.
+
 ## Import
 
 App Configurations can be imported using the `resource id`, e.g.

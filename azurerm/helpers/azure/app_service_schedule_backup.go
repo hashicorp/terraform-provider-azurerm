@@ -24,14 +24,14 @@ func SchemaAppServiceBackup() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"storage_account_url": {
 					Type:         schema.TypeString,
 					Required:     true,
 					Sensitive:    true,
-					ValidateFunc: validate.URLIsHTTPS,
+					ValidateFunc: validation.IsURLWithHTTPS,
 				},
 
 				"enabled": {

@@ -25,7 +25,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkAcceleratedNetworking(t *t
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -47,7 +46,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkAcceleratedNetworkingUpdat
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_networkAcceleratedNetworking(data, true),
@@ -57,7 +55,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkAcceleratedNetworkingUpdat
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_networkAcceleratedNetworking(data, false),
@@ -67,7 +64,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkAcceleratedNetworkingUpdat
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -89,7 +85,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkApplicationGateway(t *test
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -111,7 +106,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkApplicationSecurityGroup(t
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -134,7 +128,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkApplicationSecurityGroupUp
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// one
@@ -145,7 +138,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkApplicationSecurityGroupUp
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// another
@@ -156,7 +148,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkApplicationSecurityGroupUp
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// none
@@ -167,7 +158,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkApplicationSecurityGroupUp
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -189,7 +179,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkDNSServers(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_networkDNSServersUpdated(data),
@@ -199,7 +188,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkDNSServers(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -222,7 +210,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkIPForwarding(t *testing.T)
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// disabled
@@ -233,7 +220,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkIPForwarding(t *testing.T)
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// enabled
@@ -244,7 +230,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkIPForwarding(t *testing.T)
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -285,7 +270,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkLoadBalancer(t *testing.T)
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -307,7 +291,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkMultipleIPConfigurations(t
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -329,7 +312,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkMultipleIPConfigurationsIP
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -351,7 +333,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkMultipleNICs(t *testing.T)
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -373,7 +354,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkMultipleNICsMultipleIPConf
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -395,7 +375,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkMultipleNICsMultiplePublic
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -417,7 +396,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkMultipleNICsWithDifferentD
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -439,7 +417,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkNetworkSecurityGroup(t *te
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -462,7 +439,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkNetworkSecurityGroupUpdate
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// add one
@@ -473,7 +449,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkNetworkSecurityGroupUpdate
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// change it
@@ -484,7 +459,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkNetworkSecurityGroupUpdate
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// remove it
@@ -495,7 +469,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkNetworkSecurityGroupUpdate
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -517,7 +490,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkPrivate(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -539,7 +511,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkPublicIP(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -561,7 +532,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkPublicIPDomainNameLabel(t 
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -583,7 +553,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkPublicIPFromPrefix(t *test
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -605,7 +574,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_networkPublicIPTags(t *testing.T)
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})

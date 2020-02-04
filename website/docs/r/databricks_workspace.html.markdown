@@ -46,7 +46,23 @@ The following arguments are supported:
 
 ~> **NOTE** Azure requires that this Resource Group does not exist in this Subscription (and that the Azure API creates it) - otherwise the deployment will fail.
 
+* `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+`custom_parameters` supports the following:
+
+* `no_public_ip` - (Optional) Are public IP Addresses not allowed?
+
+* `public_subnet_name` - (Optional) The name of the Public Subnet within the Virtual Network. Required if `virtual_network_id` is set.
+
+* `private_subnet_name` - (Optional) The name of the Private Subnet within the Virtual Network. Required if `virtual_network_id` is set.
+
+* `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created.
+
+~> **NOTE** Databricks requires that a network security group is associated with public and private subnets when `virtual_network_id` is set.
 
 ## Attributes Reference
 
@@ -55,6 +71,17 @@ The following attributes are exported:
 * `id` - The ID of the Databricks Workspace.
 
 * `managed_resource_group_id` - The ID of the Managed Resource Group created by the Databricks Workspace.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Databricks Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Databricks Workspace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Workspace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Databricks Workspace.
 
 ## Import
 

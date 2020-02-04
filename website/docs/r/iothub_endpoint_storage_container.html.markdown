@@ -74,12 +74,12 @@ The following arguments are supported:
 
 * `connection_string` - (Required) The connection string for the endpoint.
 
-* `batch_frequency_in_seconds` - (Optional) Time interval at which blobs are written to storage. Value should be between 60 and 720 seconds. Default value is 300 seconds. 
+* `batch_frequency_in_seconds` - (Optional) Time interval at which blobs are written to storage. Value should be between 60 and 720 seconds. Default value is 300 seconds.
 
 * `max_chunk_size_in_bytes` - (Optional) Maximum number of bytes for each blob written to storage. Value should be between 10485760(10MB) and 524288000(500MB). Default value is 314572800(300MB).
 
 * `container_name` - (Required) The name of storage container in the storage account.
-* 
+*
 * `encoding` - (Optional) Encoding that is used to serialize messages to blobs. Supported values are 'avro' and 'avrodeflate'. Default value is 'avro'.
 
 * `file_name_format` - (Optional) File name format for the blob. Default format is ``{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}``. All parameters are mandatory but can be reordered.
@@ -89,6 +89,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the IoTHub Storage Container Endpoint.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the IotHub Storage Container Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Storage Container Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Storage Container Endpoint.
+* `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Storage Container Endpoint.
 
 ## Import
 

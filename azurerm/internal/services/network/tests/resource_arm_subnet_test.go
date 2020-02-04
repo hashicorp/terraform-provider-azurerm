@@ -80,6 +80,25 @@ func TestAccAzureRMSubnet_delegation(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSubnet_delegationComputedActions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSubnet_delegationComputedActions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "delegation.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
@@ -466,6 +485,37 @@ resource "azurerm_subnet" "test" {
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
       actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMSubnet_delegationComputedActions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+
+  delegation {
+    name = "acctestdelegation"
+
+    service_delegation {
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }

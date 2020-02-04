@@ -3,12 +3,12 @@ subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_virtual_network"
 description: |-
-  Manages a Virtual Network within a Dev Test Lab.
+  Manages a Virtual Network within a DevTest Lab.
 ---
 
 # azurerm_dev_test_virtual_network
 
-Manages a Virtual Network within a Dev Test Lab.
+Manages a Virtual Network within a DevTest Lab.
 
 ## Example Usage
 
@@ -80,9 +80,20 @@ A `subnet` block exports the following:
 
 * `name` - The name of the Subnet for this Virtual Network.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DevTest Virtual Network.
+* `update` - (Defaults to 30 minutes) Used when updating the DevTest Virtual Network.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DevTest Virtual Network.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DevTest Virtual Network.
+
 ## Import
 
-Dev Test Virtual Networks can be imported using the `resource id`, e.g.
+DevTest Virtual Networks can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_dev_test_virtual_network.network1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualnetworks/network1

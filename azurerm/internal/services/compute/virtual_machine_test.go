@@ -37,6 +37,7 @@ func TestParseVirtualMachineID(t *testing.T) {
 			},
 		},
 	}
+
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 

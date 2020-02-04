@@ -83,13 +83,13 @@ func resourceArmNetAppAccount() *schema.Resource {
 						"username": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"password": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"organizational_unit": {
 							Type:     schema.TypeString,
