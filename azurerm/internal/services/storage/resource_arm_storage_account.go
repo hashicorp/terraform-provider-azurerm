@@ -1305,12 +1305,6 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 					}
 
 					networkName := id.Path["virtualNetworks"]
-
-					subnetName := id.Path["subnets"]
-					if subnetName != "" {
-						networkName = fmt.Sprintf("%s-%s", networkName, subnetName)
-					}
-
 					for _, virtualNetworkName := range virtualNetworkNames {
 						if networkName == virtualNetworkName {
 							continue

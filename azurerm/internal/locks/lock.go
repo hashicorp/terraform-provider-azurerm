@@ -1,6 +1,10 @@
 package locks
 
-import "github.com/hashicorp/terraform-plugin-sdk/helper/mutexkv"
+import (
+	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/mutexkv"
+)
 
 // armMutexKV is the instance of MutexKV for ARM resources
 var armMutexKV = mutexkv.NewMutexKV()
@@ -16,8 +20,11 @@ func ByName(name string, resourceType string) {
 }
 
 func MultipleByName(names *[]string, resourceType string) {
-	for _, name := range *names {
-		ByName(name, resourceType)
+	for i, name := range *names {
+		// at the end of every array item add its index. This way we guarantee that this item will be unique (no duplicates are possible)
+		uniqueValue := fmt.Sprintf("%s-arrIdx-%d", name, i)
+
+		ByName(uniqueValue, resourceType)
 	}
 }
 
@@ -31,7 +38,10 @@ func UnlockByName(name string, resourceType string) {
 }
 
 func UnlockMultipleByName(names *[]string, resourceType string) {
-	for _, name := range *names {
-		UnlockByName(name, resourceType)
+	for i, name := range *names {
+		// at the end of every array item add its index. We need to add this sufix because it was added during the lock process
+		uniqueValue := fmt.Sprintf("%s-arrIdx-%d", name, i)
+
+		UnlockByName(uniqueValue, resourceType)
 	}
 }
