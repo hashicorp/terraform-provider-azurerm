@@ -2,6 +2,7 @@ package compute
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"log"
 	"strings"
 	"time"
@@ -144,7 +145,7 @@ func resourceArmManagedDisk() *schema.Resource {
 				// TODO: make this case-sensitive once this bug in the Azure API has been fixed:
 				//       https://github.com/Azure/azure-rest-api-specs/issues/8132
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+				ValidateFunc:     validate.DiskEncryptionSetID,
 			},
 
 			"encryption_settings": encryptionSettingsSchema(),
