@@ -138,9 +138,14 @@ func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error)
 
 	switch validSig {
 	case "ssh-rsa":
-		strLen := len(strings.TrimSpace(v))
-		if strLen < 379 {
-			return nil, []error{fmt.Errorf("expected %q to have a key size of at least 2048 bits", k)}
+		keyParts := strings.Fields(v)
+		if len(keyParts) > 1 {
+			strLen := len(keyParts[1])
+			if strLen < 371 {
+				return nil, []error{fmt.Errorf("expected %q to have a key size of at least 2048 bits", k)}
+			}
+		} else {
+			return nil, []error{fmt.Errorf("expected %q to be valid of at least 2 parts, signature and key", k)}
 		}
 	case "":
 		return nil, []error{fmt.Errorf("Bad: Azure currently supports SSH protocol 2 (SSH-2) RSA public-private key pairs with a minimum length of 2048 bits")}
