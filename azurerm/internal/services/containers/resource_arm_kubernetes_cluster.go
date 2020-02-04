@@ -563,7 +563,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"kube_admin_config": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"host": {
@@ -605,7 +604,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"kube_config": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"host": {
