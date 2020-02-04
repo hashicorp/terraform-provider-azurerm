@@ -28,11 +28,10 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 		Update: resourceArmWindowsVirtualMachineScaleSetUpdate,
 		Delete: resourceArmWindowsVirtualMachineScaleSetDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := ParseVirtualMachineScaleSetID(id)
-			// TODO: (prior to Beta) look up the VM & confirm this is a Windows VMSS
 			return err
-		}),
+		}, importVirtualMachineScaleSet(compute.Windows, "azurerm_windows_virtual_machine_scale_set")),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -65,11 +64,12 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"admin_password": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				Sensitive:        true,
+				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
+				ValidateFunc:     validation.StringIsNotEmpty,
 			},
 
 			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchema(),

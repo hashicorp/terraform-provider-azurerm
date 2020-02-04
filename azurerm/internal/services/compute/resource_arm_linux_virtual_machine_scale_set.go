@@ -28,11 +28,10 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 		Update: resourceArmLinuxVirtualMachineScaleSetUpdate,
 		Delete: resourceArmLinuxVirtualMachineScaleSetDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := ParseVirtualMachineScaleSetID(id)
-			// TODO: (prior to Beta) look up the VM & confirm this is a Linux VMSS
 			return err
-		}),
+		}, importVirtualMachineScaleSet(compute.Linux, "azurerm_linux_virtual_machine_scale_set")),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(time.Minute * 30),
@@ -84,12 +83,11 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			"additional_capabilities": VirtualMachineScaleSetAdditionalCapabilitiesSchema(),
 
 			"admin_password": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				ForceNew:  true,
-				Sensitive: true,
-				// TODO: does this want:
-				// DiffSuppressFunc: linuxAdminPasswordDiffSuppressFunc,
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Sensitive:        true,
+				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
 			},
 
 			"admin_ssh_key": SSHKeysSchema(false),
