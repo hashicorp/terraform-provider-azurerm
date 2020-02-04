@@ -1,4 +1,5 @@
-## 1.43.0 (Unreleased)
+## 1.44.0 (Unreleased)
+## 1.43.0 (February 04, 2020)
 
 NOTES
 
@@ -8,24 +9,24 @@ NOTES
 
 FEATURES:
 
-* **New Data Source:** `azurerm_eventhub_namespace_authorization_rule` [GH-5489]
-* **New Data Source:** `azurerm_mariadb_server` [GH-5506]
+* **New Data Source:** `azurerm_eventhub_namespace_authorization_rule` ([#5489](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5489))
+* **New Data Source:** `azurerm_mariadb_server` ([#5506](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5506))
 
 IMPROVEMENTS:
 
-* `azurerm_application_insights` - support for the `daily_data_cap_in_gb` & `daily_data_cap_notifications_disabled` properties [GH-5480]
-* `azurerm_private_endpoint` - expose mapping between `group_id` and `subresource_names` [GH-5571]
-* `azurerm_recovery_services_vault` - support for the `soft_delete_enabled` property [GH-5586]
+* `azurerm_application_insights` - support for the `daily_data_cap_in_gb` & `daily_data_cap_notifications_disabled` properties ([#5480](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5480))
+* `azurerm_private_endpoint` - expose mapping between `group_id` and `subresource_names` ([#5571](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5571))
+* `azurerm_recovery_services_vault` - support for the `soft_delete_enabled` property ([#5586](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5586))
 
 BUGS:
 
-* `azurerm_databricks_workspace` - allow underscores in `name` [GH-5548]
-* `azurerm_dns_aaaa_record` - normalize IPv6 addresses [GH-5459]
-* `azurerm_frontdoor` - including required `minimum_tls_version` to the `custom_https_configuration` block [GH-5539]
-* `azurerm_managed_disk` - correctly handles disk resizing when attached to a virtual machine [GH-5579]
-* `azurerm_marketplace_agreement` - recreate agreement if not accepted [GH-5582]
-* `azurerm_mysql_virtual_network_rule` - allow `subnet_id` to be in a different subscription then the database [GH-5568]
-* `azurerm_virtual_network_gateway_connection` - increase `routing_weight` maximum to `32000` [GH-5540]
+* `azurerm_databricks_workspace` - allow underscores in `name` ([#5548](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5548))
+* `azurerm_dns_aaaa_record` - normalize IPv6 addresses ([#5459](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5459))
+* `azurerm_frontdoor` - including required `minimum_tls_version` to the `custom_https_configuration` block ([#5539](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5539))
+* `azurerm_managed_disk` - correctly handles disk resizing when attached to a virtual machine ([#5579](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5579))
+* `azurerm_marketplace_agreement` - recreate agreement if not accepted ([#5582](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5582))
+* `azurerm_mysql_virtual_network_rule` - allow `subnet_id` to be in a different subscription then the database ([#5568](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5568))
+* `azurerm_virtual_network_gateway_connection` - increase `routing_weight` maximum to `32000` ([#5540](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5540))
 
 ## 1.42.0 (January 27, 2020)
 
