@@ -30,7 +30,6 @@ As such the existing 'azurerm_private_link_endpoint_connection' resource is depr
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: ValidatePrivateLinkName,
 			},
 
