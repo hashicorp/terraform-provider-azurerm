@@ -422,7 +422,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) 
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -456,7 +455,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherTerminateNotification(t *tes
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
