@@ -1,5 +1,11 @@
 ## 1.43.0 (Unreleased)
 
+NOTES
+
+* **Opt-In Beta:** Version 1.43 of the Azure Provider introduces an opt-in Beta for some of the new functionality coming in 2.0 - more information can be found [in the Beta guide](https://terraform.io/docs/providers/azurerm/guides/2.0-beta.html).
+
+* **Terraform 0.10/0.11:** The upcoming version 2.0 of the Azure Provider will not support Terraform 0.10.x & Terraform 0.11.x - you will need to upgrade to Terraform 0.12 to use version 2.0 (and above) of the Azure Provider.
+
 FEATURES:
 
 * **New Data Source:** `azurerm_eventhub_namespace_authorization_rule` [GH-5489]
@@ -9,12 +15,14 @@ IMPROVEMENTS:
 
 * `azurerm_application_insights` - support for the `daily_data_cap_in_gb` & `daily_data_cap_notifications_disabled` properties [GH-5480]
 * `azurerm_private_endpoint` - expose mapping between `group_id` and `subresource_names` [GH-5571]
+* `azurerm_recovery_services_vault` - support for the `soft_delete_enabled` property [GH-5586]
 
 BUGS:
 
 * `azurerm_databricks_workspace` - allow underscores in `name` [GH-5548]
 * `azurerm_dns_aaaa_record` - normalize IPv6 addresses [GH-5459]
 * `azurerm_frontdoor` - including required `minimum_tls_version` to the `custom_https_configuration` block [GH-5539]
+* `azurerm_managed_disk` - correctly handles disk resizing when attached to a virtual machine [GH-5579]
 * `azurerm_marketplace_agreement` - recreate agreement if not accepted [GH-5582]
 * `azurerm_mysql_virtual_network_rule` - allow `subnet_id` to be in a different subscription then the database [GH-5568]
 * `azurerm_virtual_network_gateway_connection` - increase `routing_weight` maximum to `32000` [GH-5540]

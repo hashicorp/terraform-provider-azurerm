@@ -5,9 +5,94 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func additionalUnattendContentSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		// whilst the SDK supports updating, the API doesn't:
+		//   Code="PropertyChangeNotAllowed"
+		//   Message="Changing property 'windowsConfiguration.additionalUnattendContent' is not allowed."
+		//   Target="windowsConfiguration.additionalUnattendContent
+		ForceNew: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"content": {
+					Type:      schema.TypeString,
+					Required:  true,
+					ForceNew:  true,
+					Sensitive: true,
+				},
+				"setting": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.AutoLogon),
+						string(compute.FirstLogonCommands),
+					}, false),
+				},
+			},
+		},
+	}
+}
+
+func expandAdditionalUnattendContent(input []interface{}) *[]compute.AdditionalUnattendContent {
+	output := make([]compute.AdditionalUnattendContent, 0)
+
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+
+		output = append(output, compute.AdditionalUnattendContent{
+			SettingName: compute.SettingNames(raw["setting"].(string)),
+			Content:     utils.String(raw["content"].(string)),
+
+			// no other possible values
+			PassName:      compute.OobeSystem,
+			ComponentName: compute.MicrosoftWindowsShellSetup,
+		})
+	}
+
+	return &output
+}
+
+func flattenAdditionalUnattendContent(input *[]compute.AdditionalUnattendContent, d *schema.ResourceData) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	existing := make([]interface{}, 0)
+	if v, ok := d.GetOk("additional_unattend_content"); ok {
+		existing = v.([]interface{})
+	}
+
+	output := make([]interface{}, 0)
+	for i, v := range *input {
+		// content isn't returned from the API as it's sensitive so we need to look it up
+		content := ""
+		if len(existing) > i {
+			existingVal := existing[i]
+			existingRaw, ok := existingVal.(map[string]interface{})
+			if ok {
+				contentRaw, ok := existingRaw["content"]
+				if ok {
+					content = contentRaw.(string)
+				}
+			}
+		}
+
+		output = append(output, map[string]interface{}{
+			"content": content,
+			"setting": string(v.SettingName),
+		})
+	}
+
+	return output
+}
 
 func bootDiagnosticsSchema() *schema.Schema {
 	return &schema.Schema{
@@ -76,7 +161,7 @@ func linuxSecretSchema() *schema.Schema {
 				"key_vault_id": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: azure.ValidateResourceID,
+					ValidateFunc: azure.ValidateResourceID, // TODO: more granular validation
 				},
 
 				// whilst we /could/ flatten this to `certificate_urls` we're intentionally not to keep this
@@ -179,13 +264,13 @@ func planSchema() *schema.Schema {
 					ForceNew: true,
 				},
 
-				"publisher": {
+				"product": {
 					Type:     schema.TypeString,
 					Required: true,
 					ForceNew: true,
 				},
 
-				"product": {
+				"publisher": {
 					Type:     schema.TypeString,
 					Required: true,
 					ForceNew: true,
@@ -325,6 +410,83 @@ func flattenSourceImageReference(input *compute.ImageReference) []interface{} {
 			"version":   version,
 		},
 	}
+}
+
+func winRmListenerSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		// Whilst the SDK allows you to modify this, the API does not:
+		//   Code="PropertyChangeNotAllowed"
+		//   Message="Changing property 'windowsConfiguration.winRM.listeners' is not allowed."
+		//   Target="windowsConfiguration.winRM.listeners"
+		ForceNew: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"protocol": {
+					Type:     schema.TypeString,
+					Required: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.HTTP),
+						string(compute.HTTPS),
+					}, false),
+				},
+
+				"certificate_url": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateKeyVaultChildId,
+				},
+			},
+		},
+	}
+}
+
+func expandWinRMListener(input []interface{}) *compute.WinRMConfiguration {
+	listeners := make([]compute.WinRMListener, 0)
+
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+
+		listener := compute.WinRMListener{
+			Protocol: compute.ProtocolTypes(raw["protocol"].(string)),
+		}
+
+		certificateUrl := raw["certificate_url"].(string)
+		if certificateUrl != "" {
+			listener.CertificateURL = utils.String(certificateUrl)
+		}
+
+		listeners = append(listeners, listener)
+	}
+
+	return &compute.WinRMConfiguration{
+		Listeners: &listeners,
+	}
+}
+
+func flattenWinRMListener(input *compute.WinRMConfiguration) []interface{} {
+	if input == nil || input.Listeners == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, v := range *input.Listeners {
+		certificateUrl := ""
+		if v.CertificateURL != nil {
+			certificateUrl = *v.CertificateURL
+		}
+
+		output = append(output, map[string]interface{}{
+			"certificate_url": certificateUrl,
+			"protocol":        string(v.Protocol),
+		})
+	}
+
+	return output
 }
 
 func windowsSecretSchema() *schema.Schema {

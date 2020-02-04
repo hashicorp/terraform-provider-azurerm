@@ -3,12 +3,12 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_endpoint"
 description: |-
-  Manages an Private Endpoint.
+  Manages a Private Endpoint.
 ---
 
 # azurerm_private_endpoint
 
-Manages an Private Endpoint.
+Manages a Private Endpoint.
 
 -> **NOTE** Private Endpoint is currently in Public Preview.
 
@@ -139,7 +139,18 @@ See the product [documentation](https://docs.microsoft.com/en-us/azure/private-l
 
 The following attributes are exported:
 
-* `id` - The Azure resource ID of the Private Endpoint.
+* `id` - The ID of the Private Endpoint.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Private Endpoint.
+* `update` - (Defaults to 60 minutes) Used when updating the Private Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private Endpoint.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Private Endpoint.
 
 ## Import
 

@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `enforce_private_link_service_network_policies` - (Optional) Enable or Disable network policies for the private link service on the subnet. Default valule is `false`. Conflicts with enforce_private_link_endpoint_network_policies.
 
--> **NOTE:** In order to deploy a Private Link Service on a given subnet, you must set the `enforce_private_link_service_network_policies` attribute to `true`. This setting is only applicable for the Private Link Service, for all other resources in the subnet access is controlled based on the `network_security_group_id`. 
+-> **NOTE:** In order to deploy a Private Link Service on a given subnet, you must set the `enforce_private_link_service_network_policies` attribute to `true`. This setting is only applicable for the Private Link Service, for all other resources in the subnet access is controlled based on the `network_security_group_id`.
 
 ---
 
@@ -109,6 +109,17 @@ The following attributes are exported:
 * `resource_group_name` - The name of the resource group in which the subnet is created in.
 * `virtual_network_name` - The name of the virtual network in which the subnet is created in
 * `address_prefix` - The address prefix for the subnet
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Subnet.
+* `update` - (Defaults to 30 minutes) Used when updating the Subnet.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Subnet.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Subnet.
 
 ## Import
 

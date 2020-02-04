@@ -84,25 +84,25 @@ The following arguments are supported:
 
 A `storage_queue_endpoint` supports the following:
 
-* `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located. 
+* `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located.
 
 * `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscriptio will receive events.
 
 ---
 
-A `eventhub_endpoint` supports the following: 
+A `eventhub_endpoint` supports the following:
 
 * `eventhub_id` - (Required) Specifies the id of the eventhub where the Event Subscription will receive events.
 
 ---
 
-A `hybrid_connection_endpoint` supports the following: 
+A `hybrid_connection_endpoint` supports the following:
 
 * `hybrid_connection_id` - (Required) Specifies the id of the hybrid connection where the Event Subscription will receive events.
 
 A `webhook_endpoint` supports the following:
 
-* `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events. 
+* `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.
 
 ---
 
@@ -118,13 +118,13 @@ A `subject_filter` supports the following:
 
 A `storage_blob_dead_letter_destination` supports the following:
 
-* `storage_account_id` - (Required) Specifies the id of the storage account id where the storage blob is located. 
+* `storage_account_id` - (Required) Specifies the id of the storage account id where the storage blob is located.
 
 * `storage_blob_container_name` - (Required) Specifies the name of the Storage blob container that is the destination of the deadletter events
 
 ---
 
-A `retry_policy` supports the following: 
+A `retry_policy` supports the following:
 
 * `max_delivery_attempts` - (Required) Specifies the maximum number of delivery retry attempts for events.
 
@@ -136,11 +136,22 @@ The following attributes are exported:
 
 * `id` - The ID of the EventGrid Event Subscription.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the EventGrid Event Subscription.
+* `update` - (Defaults to 30 minutes) Used when updating the EventGrid Event Subscription.
+* `read` - (Defaults to 5 minutes) Used when retrieving the EventGrid Event Subscription.
+* `delete` - (Defaults to 30 minutes) Used when deleting the EventGrid Event Subscription.
+
 ## Import
 
 EventGrid Domain's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_eventgrid_event_subscription.eventSubscription1 
+terraform import azurerm_eventgrid_event_subscription.eventSubscription1
 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/eventSubscriptions/eventSubscription1
 ```

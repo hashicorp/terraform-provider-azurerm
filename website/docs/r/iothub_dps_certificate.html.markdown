@@ -54,11 +54,22 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the IoT Device Provisioning Service Certificate.
+* `id` - The ID of the IoTHub Device Provisioning Service Certificate.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the IotHub Device Provisioning Service Certificate.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Device Provisioning Service Certificate.
+* `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Device Provisioning Service Certificate.
+* `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Device Provisioning Service Certificate.
 
 ## Import
 
-IoT Device Provisioning Service Certificate can be imported using the `resource id`, e.g.
+IoTHub Device Provisioning Service Certificates can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_iothub_dps_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/provisioningServices/example/certificates/example

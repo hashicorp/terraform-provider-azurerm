@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_lb_nat_rule
 
-Manages a Load Balancer NAT Rule. 
+Manages a Load Balancer NAT Rule.
 
 -> **NOTE:** This resource cannot be used with with virtual machine scale sets, instead use the `azurerm_lb_nat_pool` resource.
 
@@ -71,6 +71,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Load Balancer NAT Rule.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Load Balancer NAT Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Load Balancer NAT Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Load Balancer NAT Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Load Balancer NAT Rule.
 
 ## Import
 

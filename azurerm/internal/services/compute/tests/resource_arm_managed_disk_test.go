@@ -358,6 +358,36 @@ func TestAccAzureRMManagedDisk_diskEncryptionSet(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMManagedDisk_attachedDiskUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	var d compute.Disk
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMManagedDisk_managedDiskAttached(data, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMManagedDisk_managedDiskAttached(data, 20),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
+					resource.TestCheckResourceAttr(data.ResourceName, "disk_size_gb", "20"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+// TODO: More property update tests?
+
 func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
@@ -971,4 +1001,87 @@ resource "azurerm_managed_disk" "test" {
   ]
 }
 `, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMManagedDisk_managedDiskAttached(data acceptance.TestData, diskSize int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctni-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_virtual_machine" "test" {
+  name                  = "acctvm-%[1]d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  vm_size               = "Standard_F2"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "myosdisk1"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile {
+    computer_name  = "hn%[1]d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "%[1]d-disk1"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = %[3]d
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = "${azurerm_managed_disk.test.id}"
+  virtual_machine_id = "${azurerm_virtual_machine.test.id}"
+  lun                = "0"
+  caching            = "None"
+}
+`, data.RandomInteger, data.Locations.Primary, diskSize)
 }

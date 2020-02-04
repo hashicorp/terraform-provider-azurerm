@@ -28,11 +28,10 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 		Update: resourceArmLinuxVirtualMachineScaleSetUpdate,
 		Delete: resourceArmLinuxVirtualMachineScaleSetDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := ParseVirtualMachineScaleSetID(id)
-			// TODO: (prior to Beta) look up the VM & confirm this is a Linux VMSS
 			return err
-		}),
+		}, importVirtualMachineScaleSet(compute.Linux, "azurerm_linux_virtual_machine_scale_set")),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(time.Minute * 30),
@@ -84,12 +83,11 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			"additional_capabilities": VirtualMachineScaleSetAdditionalCapabilitiesSchema(),
 
 			"admin_password": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				ForceNew:  true,
-				Sensitive: true,
-				// TODO: does this want:
-				// DiffSuppressFunc: linuxAdminPasswordDiffSuppressFunc,
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Sensitive:        true,
+				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
 			},
 
 			"admin_ssh_key": SSHKeysSchema(false),
@@ -206,12 +204,6 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			"source_image_reference": sourceImageReferenceSchema(false),
 
 			"tags": tags.Schema(),
-
-			"terraform_should_roll_instances_when_required": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
 
 			"upgrade_mode": {
 				Type:     schema.TypeString,
@@ -687,7 +679,8 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 
 	// if we update the SKU, we also need to subsequently roll the instances using the `UpdateInstances` API
 	if updateInstances {
-		if userWantsToRollInstances := d.Get("terraform_should_roll_instances_when_required").(bool); userWantsToRollInstances {
+		userWantsToRollInstances := meta.(*clients.Client).Features.VirtualMachineScaleSet.RollInstancesWhenRequired
+		if userWantsToRollInstances {
 			log.Printf("[DEBUG] Rolling the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 			instancesClient := meta.(*clients.Client).Compute.VMScaleSetVMsClient
 			instances, err := instancesClient.ListComplete(ctx, id.ResourceGroup, id.Name, "", "", "")

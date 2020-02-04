@@ -53,9 +53,9 @@ The following arguments are supported:
 
 * `pipeline_name` - (Required) The Data Factory Pipeline name that the trigger will act on.
 
-* `start_time` - (Optional) The time the Schedule Trigger will start. This defaults to the current time. The time will be represented in UTC. 
+* `start_time` - (Optional) The time the Schedule Trigger will start. This defaults to the current time. The time will be represented in UTC.
 
-* `end_time` - (Optional) The time the Schedule Trigger should end. The time will be represented in UTC. 
+* `end_time` - (Optional) The time the Schedule Trigger should end. The time will be represented in UTC.
 
 * `interval` - (Optional) The interval for how often the trigger occurs. This defaults to 1.
 
@@ -70,6 +70,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Data Factory Schedule Trigger.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Schedule Trigger.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Schedule Trigger.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Schedule Trigger.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Schedule Trigger.
 
 ## Import
 

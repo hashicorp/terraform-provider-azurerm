@@ -161,7 +161,18 @@ A `destination` block contains:
 
 The following attributes are exported:
 
-* `id` - The Connection Monitor ID.
+* `id` - The ID of the Connection Monitor.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Connection Monitor.
+* `update` - (Defaults to 30 minutes) Used when updating the Connection Monitor.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Connection Monitor.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Connection Monitor.
 
 ## Import
 

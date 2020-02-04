@@ -12,7 +12,7 @@ Manages an Azure Front Door instance.
 
 Azure Front Door Service is Microsoft's highly available and scalable web application acceleration platform and global HTTP(s) load balancer. It provides built-in DDoS protection and application layer security and caching. Front Door enables you to build applications that maximize and automate high-availability and performance for your end-users. Use Front Door with Azure services including Web/Mobile Apps, Cloud Services and Virtual Machines – or combine it with on-premises services for hybrid deployments and smooth cloud migration.
 
-Below are some of the key scenarios that Azure Front Door Service addresses: 
+Below are some of the key scenarios that Azure Front Door Service addresses:
 * Use Front Door to improve application scale and availability with instant multi-region failover
 * Use Front Door to improve application performance with SSL offload and routing requests to the fastest available application backend.
 * Use Front Door for application layer security and DDoS protection for your application.
@@ -195,7 +195,7 @@ The `routing_rule` block supports the following:
 
 The `forwarding_configuration` block supports the following:
 
-* `backend_pool_name` - (Required) Specifies the name of the Backend Pool to forward the incoming traffic to. 
+* `backend_pool_name` - (Required) Specifies the name of the Backend Pool to forward the incoming traffic to.
 
 * `cache_enabled` - (Optional) Specifies whether to Enable caching or not. Valid options are `true` or `false`. Defaults to `true`.
 
@@ -211,7 +211,7 @@ The `forwarding_configuration` block supports the following:
 
 The `redirect_configuration` block supports the following:
 
-* `custom_host` - (Optional)  Set this to change the URL for the redirection. 
+* `custom_host` - (Optional)  Set this to change the URL for the redirection.
 
 * `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`
 
@@ -237,7 +237,7 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 * `azure_key_vault_certificate_secret_version` - (Required) The version of the Key Vault secret representing the full certificate PFX.
 
-~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate). 
+~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
 
 ---
 
@@ -287,7 +287,18 @@ The following attributes are exported:
 
 * `cname` - The host that each frontendEndpoint must CNAME to.
 
-* `id` - Resource ID.
+* `id` - The ID of the FrontDoor.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 6 hours) Used when creating the FrontDoor.
+* `update` - (Defaults to 6 hours) Used when updating the FrontDoor.
+* `read` - (Defaults to 6 hours) Used when retrieving the FrontDoor.
+* `delete` - (Defaults to 6 hours) Used when deleting the FrontDoor.
 
 ## Import
 
