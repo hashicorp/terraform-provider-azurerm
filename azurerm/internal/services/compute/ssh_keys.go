@@ -3,6 +3,7 @@ package compute
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -24,7 +25,7 @@ func SSHKeysSchema(isVirtualMachine bool) *schema.Schema {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     isVirtualMachine,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: ValidateSSHKey,
 				},
 
 				"username": {
@@ -110,4 +111,40 @@ func parseUsernameFromAuthorizedKeysPath(input string) *string {
 	}
 
 	return nil
+}
+
+// TODO - leverage "golang.org/x/crypto/ssh" for key validation?
+// ValidateSSHKey performs some basic validation on supplied SSH Keys - Signature and basic key length are evaluated
+func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error) {
+	permittedKeyTypes := []string{
+		"ssh-rsa",
+	}
+
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	if strings.TrimSpace(v) == "" {
+		return nil, []error{fmt.Errorf("expected %q to not be an empty string or whitespace", k)}
+	}
+
+	validSig := ""
+	for _, t := range permittedKeyTypes {
+		if strings.HasPrefix(v, t) {
+			validSig = t
+		}
+	}
+
+	switch validSig {
+	case "ssh-rsa":
+		strLen := len(strings.TrimSpace(v))
+		if strLen < 379 {
+			return nil, []error{fmt.Errorf("expected %q to have a key size of at least 2048 bits", k)}
+		}
+	case "":
+		return nil, []error{fmt.Errorf("Bad: Azure currently supports SSH protocol 2 (SSH-2) RSA public-private key pairs with a minimum length of 2048 bits")}
+	}
+
+	return warnings, errors
 }
