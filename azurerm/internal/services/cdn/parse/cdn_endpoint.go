@@ -8,8 +8,8 @@ import (
 
 type CdnEndpointId struct {
 	ResourceGroup string
-	Name          string
 	ProfileName   string
+	Name          string
 }
 
 func CdnEndpointID(input string) (*CdnEndpointId, error) {
@@ -20,6 +20,10 @@ func CdnEndpointID(input string) (*CdnEndpointId, error) {
 
 	endpoint := CdnEndpointId{
 		ResourceGroup: id.ResourceGroup,
+	}
+
+	if endpoint.ProfileName, err = id.PopSegment("profiles"); err != nil {
+		return nil, err
 	}
 
 	if endpoint.Name, err = id.PopSegment("endpoints"); err != nil {

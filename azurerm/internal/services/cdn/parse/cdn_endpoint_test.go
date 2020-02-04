@@ -76,7 +76,6 @@ func TestCdnEndpointId(t *testing.T) {
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
-
 		if actual.ProfileName != v.Expected.ProfileName {
 			t.Fatalf("Expected %q but got %q for ProfileName", v.Expected.ProfileName, actual.ProfileName)
 		}
