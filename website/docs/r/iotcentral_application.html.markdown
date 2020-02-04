@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) A `display_name` name. Custom display name for the IoT Central application. Default is resource name. 
 
-* `sku` - (Optional) A `sku` name. Possible values is `S1`, Default value is `S1`
+* `sku` - (Optional) A `sku` name. Possible values is `ST1`, `ST2`, Default value is `ST1`
 
 * `template` - (Optional) A `template` name. IoT Central application template name. Default is a custom application.
 
@@ -58,12 +58,12 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the IoTCentralApplication.
+* `id` - The ID of the IoT Central Application.
 
 ## Import
 
 IoTCentralApplication can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iotcentral_application.app1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.IoTCentral/IoTApps/app1
+terraform import azurerm_iotcentral_application.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.IoTCentral/IoTApps/app1
 ```

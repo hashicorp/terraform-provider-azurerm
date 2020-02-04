@@ -24,6 +24,7 @@ func TestAccAzureRMIoTCentralApplication_basic(t *testing.T) {
 				Config: testAccAzureRMIotCentralApplication_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotCentralApplicationExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "ST1"),
 				),
 			},
 			data.ImportStep(),
@@ -52,34 +53,6 @@ func TestAccAzureRMIoTCentralApplication_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMIotCentralApplicationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found:  %s", resourceName)
-		}
-		appName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for IoT Central Application:  %s", appName)
-		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTCentral.AppsClient
-		resp, err := client.Get(ctx, resourceGroup, appName)
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Bad: IoT Central Application %q (Resource Group  %q) does not exist", appName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get IoT Central Application:  %+v", err)
-		}
-
-		return nil
-	}
-}
-
 func TestAccAzureRMIoTCentralApplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 
@@ -98,7 +71,7 @@ func TestAccAzureRMIoTCentralApplication_update(t *testing.T) {
 				Config: testAccAzureRMIotCentralApplication_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotCentralApplicationExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "S1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "ST1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
 				),
 			},
@@ -134,6 +107,34 @@ func TestAccAzureRMIoTCentralApplication_requiresImportErrorStep(t *testing.T) {
 	})
 }
 
+func testCheckAzureRMIotCentralApplicationExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found:  %s", resourceName)
+		}
+		appName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for IoT Central Application:  %s", appName)
+		}
+
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTCentral.AppsClient
+		resp, err := client.Get(ctx, resourceGroup, appName)
+		if err != nil {
+			if resp.StatusCode == http.StatusNotFound {
+				return fmt.Errorf("Bad: IoT Central Application %q (Resource Group  %q) does not exist", appName, resourceGroup)
+			}
+
+			return fmt.Errorf("Bad: Get IoT Central Application:  %+v", err)
+		}
+
+		return nil
+	}
+}
+
 func testCheckAzureRMIotCentralApplicationDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTCentral.AppsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -158,18 +159,18 @@ func testCheckAzureRMIotCentralApplicationDestroy(s *terraform.State) error {
 func testAccAzureRMIotCentralApplication_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[2]d"
-  location = "%[1]s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_iotcentral_application" "test" {
-  name                = "acctest-iotcentralapp-%[2]d"
+  name                = "acctest-iotcentralapp-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sub_domain          = "acctest-iotcentralapp-%[2]d"
-  sku                 = "S1"
+  sub_domain          = "acctest-iotcentralapp-%[1]d"
+  sku                 = "ST1"
 }
-`, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMIotCentralApplication_complete(data acceptance.TestData) string {
@@ -185,10 +186,9 @@ resource "azurerm_iotcentral_application" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sub_domain          = "acctest-iotcentralapp-%[2]d"
   display_name        = "acctest-iotcentralapp-%[2]d"
-  sku                 = "S1"
+  sku                 = "ST1"
   template            = "iotc-default@1.0.0"
   tags = {
-
     ENV = "Test"
   }
 }
@@ -208,7 +208,7 @@ resource "azurerm_iotcentral_application" "test" {
   location            = "${azurerm_resource_group.test.location}"
   sub_domain          = "acctest-iotcentralapp-%[2]d"
   display_name        = "acctest-iotcentralapp-%[2]d"
-  sku                 = "S1"
+  sku                 = "ST1"
   tags = {
 
     ENV = "Test"
@@ -227,7 +227,7 @@ resource "azurerm_iotcentral_application" "import" {
   location            = azurerm_iotcentral_application.test.location
   sub_domain          = azurerm_iotcentral_application.test.sub_domain
   display_name        = azurerm_iotcentral_application.test.display_name
-  sku                 = "S1"
+  sku                 = "ST1"
 }
 `, template)
 }

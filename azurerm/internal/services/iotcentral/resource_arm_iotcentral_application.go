@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -65,9 +66,12 @@ func resourceArmIotCentralApplication() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					string(iotcentral.F1),
 					string(iotcentral.S1),
+					string(iotcentral.ST1),
+					string(iotcentral.ST2),
 				}, true),
-				Default: iotcentral.S1,
+				Default: iotcentral.ST1,
 			},
 			"template": {
 				Type:         schema.TypeString,
@@ -148,49 +152,11 @@ func resourceArmIotCentralAppCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if response.ID == nil || *response.ID == "" {
-		return fmt.Errorf("Error create IoT Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating IoT Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*response.ID)
 	return resourceArmIotCentralAppRead(d, meta)
-}
-
-func resourceArmIotCentralAppRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).IoTCentral.AppsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := azure.ParseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["IoTApps"]
-
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("Error retrieving IoT Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
-	}
-
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	if err := d.Set("sku", resp.Sku.Name); err != nil {
-		return fmt.Errorf("Error setting `sku`:  %+v", err)
-	}
-
-	d.Set("sub_domain", resp.AppProperties.Subdomain)
-	d.Set("display_name", resp.AppProperties.DisplayName)
-	d.Set("template", resp.AppProperties.Template)
-
-	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -198,12 +164,14 @@ func resourceArmIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id, err := parse.IoTCentralApplicationID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
-		displayName = name
+		displayName = id.Name
 	}
 
 	subdomain := d.Get("sub_domain").(string)
@@ -216,26 +184,64 @@ func resourceArmIotCentralAppUpdate(d *schema.ResourceData, meta interface{}) er
 			Template:    &template,
 		},
 	}
-	future, err := client.Update(ctx, resourceGroup, name, appPatch)
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, appPatch)
 	if err != nil {
-		return fmt.Errorf("Error update Iot Central Application %q (Resource Group %q).  %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error update Iot Central Application %q (Resource Group %q).  %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the completion of update Iot Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for the completion of update Iot Central Application %q (Resource Group %q):  %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving IoT Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving IoT Central Application %q (Resource Group %q):  %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read IoT Central Application %q (Resource Group %q):  %+v", name, resourceGroup, err)
+		return fmt.Errorf("Cannot read IoT Central Application %q (Resource Group %q):  %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 	return resourceArmIotCentralAppRead(d, meta)
+}
+
+func resourceArmIotCentralAppRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).IoTCentral.AppsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.IoTCentralApplicationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error retrieving IoT Central Application %q (Resource Group %q):  %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	d.Set("name", resp.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+	if err := d.Set("sku", resp.Sku.Name); err != nil {
+		return fmt.Errorf("Error setting `sku`:  %+v", err)
+	}
+
+	if props := resp.AppProperties; props != nil {
+		d.Set("sub_domain", props.Subdomain)
+		d.Set("display_name", props.DisplayName)
+		d.Set("template", props.Template)
+	}
+
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmIotCentralAppDelete(d *schema.ResourceData, meta interface{}) error {
@@ -243,17 +249,19 @@ func resourceArmIotCentralAppDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	id, err := parse.IoTCentralApplicationID(d.Id())
+	if err != nil {
+		return err
+	}
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response()) {
-			return fmt.Errorf("Error delete Iot Central Application %q (Resource Group %q).  %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error delete Iot Central Application %q (Resource Group %q).  %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
 	if err := resp.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error delete Iot Central Application %q Resource Group %q).  %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error delete Iot Central Application %q Resource Group %q).  %+v", id.Name, id.ResourceGroup, err)
 	}
 	return nil
 }
