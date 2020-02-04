@@ -65,7 +65,7 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"throughput": {
@@ -94,7 +94,7 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 							ForceNew: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},

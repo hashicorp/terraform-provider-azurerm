@@ -67,7 +67,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// default TTL is simply an index on _ts with expireAfterOption, given we can't seem to set TTLs on a given index lets expose this to match the portal
@@ -93,7 +93,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 						"key": {
 							Type:         schema.TypeString, // this is a list in the SDK/API, however any more then a single value causes a 404
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"unique": {

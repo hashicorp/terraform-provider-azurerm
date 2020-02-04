@@ -77,7 +77,7 @@ func resourceArmStorageBlob() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Default:      0,
-				ValidateFunc: validate.IntDivisibleBy(512),
+				ValidateFunc: validation.IntDivisibleBy(512),
 			},
 
 			"access_tier": {

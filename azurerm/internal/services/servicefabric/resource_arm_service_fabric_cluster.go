@@ -102,17 +102,17 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"tenant_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: validation.IsUUID,
 						},
 						"cluster_application_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: validation.IsUUID,
 						},
 						"client_application_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: validation.IsUUID,
 						},
 					},
 				},
@@ -157,12 +157,12 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 									"certificate_common_name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"certificate_issuer_thumbprint": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -170,7 +170,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"x509_store_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},

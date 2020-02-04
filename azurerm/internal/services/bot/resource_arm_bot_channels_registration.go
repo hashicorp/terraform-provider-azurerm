@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -42,7 +41,7 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -63,27 +62,27 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 				Type:         schema.TypeString,
 				ForceNew:     true,
 				Required:     true,
-				ValidateFunc: validate.UUID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"display_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"endpoint": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"developer_app_insights_key": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.UUID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"developer_app_insights_api_key": {
@@ -91,14 +90,14 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				Sensitive:    true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"developer_app_insights_application_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.UUID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"tags": tags.Schema(),

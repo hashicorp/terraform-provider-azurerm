@@ -60,7 +60,7 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 			"schema": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 

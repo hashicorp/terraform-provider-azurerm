@@ -129,7 +129,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 						"capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ValidateFunc: validate.IntInSlice([]int{
+							ValidateFunc: validation.IntInSlice([]int{
 								1,
 								2,
 								4,
@@ -197,9 +197,12 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_mb": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4194304, 1024),
+							Type:     schema.TypeInt,
+							Required: true,
+							ValidateFunc: validation.All(
+								validation.IntBetween(5120, 4194304),
+								validation.IntDivisibleBy(1024),
+							),
 						},
 
 						"backup_retention_days": {

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -42,7 +41,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -68,13 +67,13 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			"redirect_url": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.URLIsHTTPOrHTTPS,
+				ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 			},
 
 			"custom_block_response_status_code": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				ValidateFunc: validate.IntInSlice([]int{
+				ValidateFunc: validation.IntInSlice([]int{
 					200,
 					403,
 					405,
@@ -98,7 +97,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"enabled": {
@@ -172,7 +171,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 										MaxItems: 100,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 
@@ -198,7 +197,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 									"selector": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"negation_condition": {
@@ -239,13 +238,13 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 						"type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"version": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"exclusion": {
@@ -278,7 +277,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 									"selector": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -293,7 +292,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 									"rule_group_name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"exclusion": {
@@ -326,7 +325,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 												"selector": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validate.NoEmptyStrings,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 											},
 										},
@@ -341,7 +340,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 												"rule_id": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validate.NoEmptyStrings,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 
 												"enabled": {
@@ -380,7 +379,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 															"selector": {
 																Type:         schema.TypeString,
 																Required:     true,
-																ValidateFunc: validate.NoEmptyStrings,
+																ValidateFunc: validation.StringIsNotEmpty,
 															},
 														},
 													},

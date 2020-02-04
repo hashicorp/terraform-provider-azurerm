@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -105,7 +104,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 						"capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ValidateFunc: validate.IntInSlice([]int{
+							ValidateFunc: validation.IntInSlice([]int{
 								1,
 								2,
 								4,
@@ -140,14 +139,14 @@ func resourceArmMariaDbServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"administrator_login_password": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Sensitive:    true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"version": {
@@ -167,9 +166,12 @@ func resourceArmMariaDbServer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_mb": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4096000, 1024),
+							Type:     schema.TypeInt,
+							Required: true,
+							ValidateFunc: validation.All(
+								validation.IntBetween(5120, 4096000),
+								validation.IntDivisibleBy(1024),
+							),
 						},
 
 						"backup_retention_days": {

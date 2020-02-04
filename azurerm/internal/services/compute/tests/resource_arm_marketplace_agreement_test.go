@@ -15,8 +15,9 @@ import (
 func TestAccAzureRMMarketplaceAgreement(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
-			"basic":          testAccAzureRMMarketplaceAgreement_basic,
-			"requiresImport": testAccAzureRMMarketplaceAgreement_requiresImport,
+			"basic":             testAccAzureRMMarketplaceAgreement_basic,
+			"requiresImport":    testAccAzureRMMarketplaceAgreement_requiresImport,
+			"agreementCanceled": testAccAzureRMMarketplaceAgreement_agreementCanceled,
 		},
 	}
 
@@ -81,6 +82,26 @@ func testAccAzureRMMarketplaceAgreement_requiresImport(t *testing.T) {
 	})
 }
 
+func testAccAzureRMMarketplaceAgreement_agreementCanceled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_marketplace_agreement", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMarketplaceAgreementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMarketplaceAgreement_basicConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMarketplaceAgreementExists(data.ResourceName),
+					testCheckAzureRMMarketplaceAgreementCanceled(data.ResourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMMarketplaceAgreementExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.MarketplaceAgreementsClient
@@ -96,6 +117,36 @@ func testCheckAzureRMMarketplaceAgreementExists(resourceName string) resource.Te
 		publisher := rs.Primary.Attributes["publisher"]
 
 		resp, err := client.Get(ctx, publisher, offer, plan)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Marketplace Agreement for Publisher %q / Offer %q / Plan %q does not exist", publisher, offer, plan)
+			}
+			return fmt.Errorf("Bad: Get on MarketplaceAgreementsClient: %+v", err)
+		}
+
+		if resp.AgreementProperties == nil || resp.AgreementProperties.Accepted == nil || !*resp.AgreementProperties.Accepted {
+			return fmt.Errorf("Bad: Marketplace Agreement for Publisher %q / Offer %q / Plan %q is not accepted", publisher, offer, plan)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMMarketplaceAgreementCanceled(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.MarketplaceAgreementsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		offer := rs.Primary.Attributes["offer"]
+		plan := rs.Primary.Attributes["plan"]
+		publisher := rs.Primary.Attributes["publisher"]
+
+		resp, err := client.Cancel(ctx, publisher, offer, plan)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Marketplace Agreement for Publisher %q / Offer %q / Plan %q does not exist", publisher, offer, plan)

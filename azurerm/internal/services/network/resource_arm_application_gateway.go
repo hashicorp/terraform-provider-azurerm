@@ -209,7 +209,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"affinity_cookie_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"host_name": {
@@ -252,7 +252,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -529,13 +529,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"redirect_configuration_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"rewrite_rule_set_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"backend_address_pool_id": {
@@ -584,7 +584,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"redirect_type": {
@@ -601,13 +601,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"target_listener_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"target_url": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"include_path": {
@@ -704,13 +704,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"data": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 							Sensitive:    true,
 						},
 
@@ -730,13 +730,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"data": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 							Sensitive:    true,
 						},
 
@@ -930,7 +930,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"rewrite_rule": {
@@ -941,7 +941,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"rule_sequence": {
@@ -1082,13 +1082,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"default_redirect_configuration_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"default_rewrite_rule_set_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"path_rule": {
@@ -1122,13 +1122,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 									"redirect_configuration_name": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"rewrite_rule_set_name": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"backend_address_pool_id": {
@@ -1311,7 +1311,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 										Optional: true,
 									},
 									"selector": {
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 										Type:         schema.TypeString,
 										Optional:     true,
 									},

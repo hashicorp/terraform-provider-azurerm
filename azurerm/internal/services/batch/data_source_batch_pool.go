@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -171,7 +170,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 						"store_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"visibility": {
 							Type:     schema.TypeSet,

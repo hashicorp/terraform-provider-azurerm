@@ -32,6 +32,25 @@ func TestAccAzureRMMySqlVirtualNetworkRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySqlVirtualNetworkRule_badsubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMySqlVirtualNetworkRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySqlVirtualNetworkRule_badsubnet(data),
+				/*
+					Check: resource.ComposeTestCheckFunc(
+						testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
+					),*/
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMySqlVirtualNetworkRule_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -227,6 +246,55 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDisappears(resourceName string) reso
 }
 
 func testAccAzureRMMySqlVirtualNetworkRule_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet%d"
+  address_space       = ["10.7.29.0/29"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.7.29.0/29"
+  service_endpoints    = ["Microsoft.Sql"]
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                         = "acctestmysqlsvr-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "5.6"
+  ssl_enforcement              = "Enabled"
+
+  sku_name = "GP_Gen5_2"
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+}
+
+resource "azurerm_mysql_virtual_network_rule" "test" {
+  name                = "acctestmysqlvnetrule%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_mysql_server.test.name}"
+  subnet_id           = "${azurerm_subnet.test.id}"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMMySqlVirtualNetworkRule_badsubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
