@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `role_based_access_control` - (Optional) A `role_based_access_control` block.
 
--> **NOTE:** Adding this block to, or removing it from, an existing cluster configuration will recreate the cluster. 
+-> **NOTE:** Adding this block to, or removing it from, an existing cluster configuration will recreate the cluster.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -275,7 +275,7 @@ A `http_application_routing` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - The type of identity used for the managed cluster. At this time the only supported value is `SystemAssigned`. 
+* `type` - The type of identity used for the managed cluster. At this time the only supported value is `SystemAssigned`.
 
 ---
 
@@ -321,7 +321,7 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 A `load_balancer_profile` block supports the following:
 
-~> **NOTE:** These options are mutually exclusive. Note that when specifying `outbound_ip_address_ids` ([azurerm_public_ip](/docs/providers/azurerm/r/public_ip.html)) the SKU must be `Standard`. 
+~> **NOTE:** These options are mutually exclusive. Note that when specifying `outbound_ip_address_ids` ([azurerm_public_ip](/docs/providers/azurerm/r/public_ip.html)) the SKU must be `Standard`.
 
 * `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be in the range of [1, 100].
 
@@ -406,7 +406,7 @@ A `load_balancer_profile` block exports the following:
 
 ---
 
-The `identity` block exports the following: 
+The `identity` block exports the following:
 
 * `principal_id` - The principal id of the system assigned identity which is used by master components.
 
@@ -440,6 +440,17 @@ provider "kubernetes" {
   cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
 }
 ```
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 90 minutes) Used when creating the Kubernetes Cluster.
+* `update` - (Defaults to 90 minutes) Used when updating the Kubernetes Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Kubernetes Cluster.
 
 ## Import
 

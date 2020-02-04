@@ -36,3 +36,11 @@ output "virtual_network_id" {
 * `dns_servers` - The list of DNS servers used by the virtual network.
 * `subnets` - The list of name of the subnets that are attached to this virtual network.
 * `vnet_peerings` - A mapping of name - virtual network id of the virtual network peerings.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network.

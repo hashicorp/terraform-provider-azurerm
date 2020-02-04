@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 )
 
+// nolint: deadcode unused
 type connectionInfo struct {
 	// primaryPrivateAddress is the Primary Private IP Address for this VM
 	primaryPrivateAddress string
@@ -66,6 +67,7 @@ func retrieveConnectionInformation(ctx context.Context, nicsClient *network.Inte
 	}
 }
 
+// nolint: deadcode unused
 type interfaceDetails struct {
 	// privateIPAddresses is a slice of the Private IP Addresses supported by this VM
 	privateIPAddresses []string
@@ -76,6 +78,7 @@ type interfaceDetails struct {
 
 // retrieveIPAddressesForNIC returns the Public and Private IP Addresses associated
 // with the specified Network Interface
+// nolint: deadcode unused
 func retrieveIPAddressesForNIC(ctx context.Context, nicClient *network.InterfacesClient, pipClient *network.PublicIPAddressesClient, nicID string) *interfaceDetails {
 	id, err := parse.NetworkInterfaceID(nicID)
 	if err != nil {
@@ -121,6 +124,7 @@ func retrieveIPAddressesForNIC(ctx context.Context, nicClient *network.Interface
 }
 
 // retrievePublicIPAddress returns the Public IP Address associated with an Azure Public IP
+// nolint: deadcode unused
 func retrievePublicIPAddress(ctx context.Context, client *network.PublicIPAddressesClient, publicIPAddressID string) (*string, error) {
 	id, err := parse.PublicIPAddressID(publicIPAddressID)
 	if err != nil {

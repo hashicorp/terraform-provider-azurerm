@@ -53,7 +53,7 @@ func validateName(maxLength int) func(i interface{}, k string) (warnings []strin
 
 		// The value must be between 1 and 64 (Linux) or 16 (Windows) characters long.
 		if len(v) >= maxLength {
-			errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength, len(v)))
+			errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength-1, len(v)))
 		}
 
 		if strings.HasPrefix(v, "_") {

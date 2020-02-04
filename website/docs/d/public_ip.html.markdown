@@ -109,3 +109,11 @@ output "public_ip_address" {
 * `ip_address` - The IP address value that was allocated.
 * `ip_version` - The IP version being used, for example `IPv4` or `IPv6`.
 * `tags` - A mapping of tags to assigned to the resource.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Public IP Address.

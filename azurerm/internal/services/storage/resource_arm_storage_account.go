@@ -21,7 +21,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -319,7 +318,7 @@ func resourceArmStorageAccount() *schema.Resource {
 										MaxItems: 64,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 									"exposed_headers": {
@@ -328,7 +327,7 @@ func resourceArmStorageAccount() *schema.Resource {
 										MaxItems: 64,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 									"allowed_headers": {
@@ -337,7 +336,7 @@ func resourceArmStorageAccount() *schema.Resource {
 										MaxItems: 64,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 									"allowed_methods": {
@@ -373,7 +372,7 @@ func resourceArmStorageAccount() *schema.Resource {
 									"version": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"delete": {
 										Type:     schema.TypeBool,
@@ -404,7 +403,7 @@ func resourceArmStorageAccount() *schema.Resource {
 									"version": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"enabled": {
 										Type:     schema.TypeBool,
@@ -431,7 +430,7 @@ func resourceArmStorageAccount() *schema.Resource {
 									"version": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"enabled": {
 										Type:     schema.TypeBool,

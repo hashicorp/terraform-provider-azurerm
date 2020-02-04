@@ -189,7 +189,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchema(),
 
@@ -198,7 +198,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
 					Optional: true,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
-						ValidateFunc: validate.NoEmptyStrings,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 				"enable_accelerated_networking": {
@@ -235,7 +235,7 @@ func virtualMachineScaleSetIPConfigurationSchema() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				// Optional
@@ -308,14 +308,14 @@ func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				// Optional
 				"domain_name_label": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"idle_timeout_in_minutes": {
 					Type:         schema.TypeInt,
@@ -334,13 +334,13 @@ func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
 								Type:         schema.TypeString,
 								Required:     true,
 								ForceNew:     true,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"type": {
 								Type:         schema.TypeString,
 								Required:     true,
 								ForceNew:     true,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
@@ -937,7 +937,7 @@ func VirtualMachineScaleSetOSDiskSchema() *schema.Schema {
 					Type:         schema.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 1023),
+					ValidateFunc: validation.IntBetween(0, 2048),
 				},
 
 				"write_accelerator_enabled": {

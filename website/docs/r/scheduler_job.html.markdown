@@ -265,6 +265,17 @@ The following attributes are exported:
 * `expiration` - (Computed)  The certificate expiration date.
 * `subject_name` - (Computed) The certificate's certificate subject name.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Scheduler Job.
+* `update` - (Defaults to 30 minutes) Used when updating the Scheduler Job.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Scheduler Job.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Scheduler Job.
+
 ## Import
 
 Scheduler Job can be imported using a `resource id`, e.g.

@@ -2,7 +2,7 @@ package base64
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func OptionalSchema(isVirtualMachine bool) *schema.Schema {
@@ -13,6 +13,6 @@ func OptionalSchema(isVirtualMachine bool) *schema.Schema {
 		Type:         schema.TypeString,
 		Optional:     true,
 		ForceNew:     isVirtualMachine,
-		ValidateFunc: validate.Base64String(),
+		ValidateFunc: validation.StringIsBase64,
 	}
 }

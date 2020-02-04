@@ -167,17 +167,17 @@ The `custom_rule` block supports the following:
 
 The `match_condition` block supports the following:
 
-* `match_variable` - (Required) The request variable to compare with. Possible values are `Cookies`, `PostArgs`, `QueryString`, `RemoteAddr`, `RequestBody`, `RequestHeader`, `RequestMethod`, or `RequestURI`.
+* `match_variable` - (Required) The request variable to compare with. Possible values are `Cookies`, `PostArgs`, `QueryString`, `RemoteAddr`, `RequestBody`, `RequestHeader`, `RequestMethod`, or `RequestUri`.
 
-* `match_values` - (Required) Up to `100` possible values to match. 
+* `match_values` - (Required) Up to `100` possible values to match.
 
 * `operator` - (Required) Comparison type to use for matching with the variable value. Possible values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GeoMatch`, `GreaterThan`, `GreaterThanOrEqual`, `IPMatch`, `LessThan`, `LessThanOrEqual` or `RegEx`.
-											
+
 * `selector` - (Optional) Match against a specific key if the `match_variable` is `QueryString`, `PostArgs`, `RequestHeader` or `Cookies`.
 
 * `negation_condition` - (Optional) Should the result of the condition be negated.
 
-* `transforms` - (Optional) Up to `5` transforms to apply. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `URLDecode` or`URLEncode`. 
+* `transforms` - (Optional) Up to `5` transforms to apply. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `URLDecode` or`URLEncode`.
 
 ---
 
@@ -233,9 +233,20 @@ The following attributes are exported:
 
 * `frontend_endpoint_ids` - the Frontend Endpoints associated with this Front Door Web Application Firewall policy.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the FrontDoor Web Application Firewall Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the FrontDoor Web Application Firewall Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the FrontDoor Web Application Firewall Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the FrontDoor Web Application Firewall Policy.
+
 ## Import
 
-Front Door Web Application Firewall Policy can be imported using the `resource id`, e.g.
+FrontDoor Web Application Firewall Policy can be imported using the `resource id`, e.g.
 
 ```shell
 $ terraform import azurerm_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/frontdoorwebapplicationfirewallpolicies/example-fdwafpolicy

@@ -54,8 +54,10 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 
 	// 2.0 resources
 	if features.SupportsTwoPointZeroResources() {
+		resources["azurerm_linux_virtual_machine"] = resourceLinuxVirtualMachine()
 		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
 		resources["azurerm_virtual_machine_scale_set_extension"] = resourceArmVirtualMachineScaleSetExtension()
+		resources["azurerm_windows_virtual_machine"] = resourceWindowsVirtualMachine()
 		resources["azurerm_windows_virtual_machine_scale_set"] = resourceArmWindowsVirtualMachineScaleSet()
 	}
 

@@ -141,8 +141,11 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type:         schema.TypeInt,
-					ValidateFunc: validate.IntBetweenAndNot(-1, 31, 0),
+					Type: schema.TypeInt,
+					ValidateFunc: validation.All(
+						validation.IntBetween(-1, 31),
+						validation.IntNotInSlice([]int{0}),
+					),
 				},
 				Set:           set.HashInt,
 				ConflictsWith: []string{"week_days", "monthly_occurrence"},
@@ -168,9 +171,12 @@ func resourceArmAutomationSchedule() *schema.Resource {
 							}, true),
 						},
 						"occurrence": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validate.IntBetweenAndNot(-1, 5, 0),
+							Type:     schema.TypeInt,
+							Required: true,
+							ValidateFunc: validation.All(
+								validation.IntBetween(-1, 5),
+								validation.IntNotInSlice([]int{0}),
+							),
 						},
 					},
 				},

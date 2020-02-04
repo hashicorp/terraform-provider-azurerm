@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `secret` - (Optional) Specifies whether the API Management Property is secret. Valid values are `true` or `false`. The default value is `false`.
 
-~> **NOTE:** setting the field `secret` to `true` doesn't make this field sensitive in Terraform, instead it marks the value as secret and encrypts the value in Azure. 
+~> **NOTE:** setting the field `secret` to `true` doesn't make this field sensitive in Terraform, instead it marks the value as secret and encrypts the value in Azure.
 
 * `tags` - (Optional) A list of tags to be applied to the API Management Property.
 
@@ -64,6 +64,17 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Property.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management Property.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Property.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Property.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Property.
 
 ## Import
 
