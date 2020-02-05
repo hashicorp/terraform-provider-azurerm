@@ -1,4 +1,9 @@
 ## 1.44.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_linux_virtual_machine` - Added SSH Key validation and updated docs on supported SSH Key types [#5610]
+
 ## 1.43.0 (February 04, 2020)
 
 NOTES
