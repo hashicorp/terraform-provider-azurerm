@@ -25,9 +25,8 @@ func TestAccAzureRMNetAppVolume_basic(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0", "NFSv3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocols.2676449260", "NFSv3"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},
@@ -46,8 +45,9 @@ func TestAccAzureRMNetAppVolume_nfsv41(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_nfsv41(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0", "NFSv4.1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "protocols.3098200649", "NFSv4.1"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},
@@ -95,8 +95,9 @@ func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "service_level", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "101"),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},
@@ -125,8 +126,9 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "101"),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 			{
@@ -134,7 +136,7 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_quota_in_gb", "100"),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
 				),
 			},
 			data.ImportStep(),
@@ -192,8 +194,9 @@ func TestAccAzureRMNetAppVolume_updateExportPolicyRule(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 			{
@@ -202,6 +205,7 @@ func TestAccAzureRMNetAppVolume_updateExportPolicyRule(t *testing.T) {
 					testCheckAzureRMNetAppVolumeExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "1"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},
@@ -295,6 +299,14 @@ resource "azurerm_netapp_volume" "test" {
   subnet_id           = "${azurerm_subnet.test.id}"
   protocols           = ["NFSv4.1"]
   storage_quota_in_gb = 100
+
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["1.2.3.0/24"]
+	protocols_enabled = ["NFSv4.1"]
+    unix_read_only    = false
+    unix_read_write   = true
+  }
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -342,6 +354,16 @@ resource "azurerm_netapp_volume" "test" {
     protocols_enabled = ["NFSv3"]
     unix_read_only    = true
     unix_read_write   = false
+  }
+
+  export_policy_rule {
+    rule_index      = 3
+    allowed_clients = ["1.2.6.0/24"]
+	cifs_enabled    = false
+    nfsv3_enabled   = true
+    nfsv4_enabled   = false
+    unix_read_only  = true
+    unix_read_write = false
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)

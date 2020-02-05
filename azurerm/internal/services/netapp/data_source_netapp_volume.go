@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -64,15 +63,9 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 			},
 
 			"protocols": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
-				MaxItems: 2,
-				Elem: &schema.Schema{Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"NFSv3",
-						"NFSv4.1",
-						"CIFS",
-					}, false)},
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}

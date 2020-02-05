@@ -91,10 +91,11 @@ func resourceArmNetAppVolume() *schema.Resource {
 			},
 
 			"protocols": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				ForceNew: true,
 				Optional: true,
-				MaxItems: 2,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Schema{Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						"NFSv3",
@@ -112,6 +113,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 			"export_policy_rule": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				Computed: true,
 				MaxItems: 5,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -131,8 +133,9 @@ func resourceArmNetAppVolume() *schema.Resource {
 						},
 
 						"protocols_enabled": {
-							Type:     schema.TypeList,
-							Required: true,
+							Type:     schema.TypeSet,
+							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							MinItems: 1,
 							Elem: &schema.Schema{Type: schema.TypeString,
@@ -141,6 +144,27 @@ func resourceArmNetAppVolume() *schema.Resource {
 									"NFSv4.1",
 									"CIFS",
 								}, false)},
+						},
+
+						"cifs_enabled": {
+							Type:       schema.TypeBool,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "Deprecated in favor of `protocols_enabled`",
+						},
+
+						"nfsv3_enabled": {
+							Type:       schema.TypeBool,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "Deprecated in favor of `protocols_enabled`",
+						},
+
+						"nfsv4_enabled": {
+							Type:       schema.TypeBool,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "Deprecated in favor of `protocols_enabled`",
 						},
 
 						"unix_read_only": {
@@ -185,9 +209,8 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	volumePath := d.Get("volume_path").(string)
 	serviceLevel := d.Get("service_level").(string)
 	subnetId := d.Get("subnet_id").(string)
-	protocols := d.Get("protocols").([]interface{})
+	protocols := d.Get("protocols").(*schema.Set).List()
 	if len(protocols) == 0 {
-		// Adding NFSv3 as default protocol
 		protocols = append(protocols, "NFSv3")
 	}
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
@@ -343,19 +366,29 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 			nfsv3Enabled := false
 			nfsv41Enabled := false
 
-			protocolsEnabled := v["protocols_enabled"].([]interface{})
-			for _, protocol := range protocolsEnabled {
-				if protocol != nil {
-					log.Printf(protocol.(string))
-					switch strings.ToLower(protocol.(string)) {
-					case "cifs":
-						cifsEnabled = true
-					case "nfsv3":
-						nfsv3Enabled = true
-					case "nfsv41":
-						nfsv41Enabled = true
+			if vpe := v["protocols_enabled"]; vpe != nil {
+				protocolsEnabled := vpe.(*schema.Set).List()
+				if len(protocolsEnabled) != 0 {
+					for _, protocol := range protocolsEnabled {
+						if protocol != nil {
+							log.Printf(protocol.(string))
+							switch strings.ToLower(protocol.(string)) {
+							case "cifs":
+								cifsEnabled = true
+							case "nfsv3":
+								nfsv3Enabled = true
+							case "nfsv4.1":
+								nfsv41Enabled = true
+							}
+						}
 					}
+				} else {
+					// TODO: Remove in v2
+					cifsEnabled = v["cifs_enabled"].(bool)
+					nfsv3Enabled = v["nfsv3_enabled"].(bool)
+					nfsv41Enabled = v["nfsv4_enabled"].(bool)
 				}
+
 			}
 
 			unixReadOnly := v["unix_read_only"].(bool)
@@ -395,21 +428,29 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 		if v := item.AllowedClients; v != nil {
 			allowedClients = strings.Split(*v, ",")
 		}
+		// Start - Remove in v2.0
+		cifsEnabled := false
+		nfsv3Enabled := false
+		nfsv4Enabled := false
+		// End - Remove in v2.0
 		protocolsEnabled := []string{}
 		if v := item.Cifs; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "CIFS")
 			}
+			cifsEnabled = *v // Remove in v2.0
 		}
 		if v := item.Nfsv3; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv3")
 			}
+			nfsv3Enabled = *v // Remove in v2.0
 		}
 		if v := item.Nfsv41; v != nil {
 			if *v {
 				protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 			}
+			nfsv4Enabled = *v // Remove in v2.0
 		}
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
@@ -426,6 +467,10 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 			"unix_read_only":    unixReadOnly,
 			"unix_read_write":   unixReadWrite,
 			"protocols_enabled": utils.FlattenStringSlice(&protocolsEnabled),
+			// Remove in v2.0
+			"cifs_enabled":  cifsEnabled,
+			"nfsv3_enabled": nfsv3Enabled,
+			"nfsv4_enabled": nfsv4Enabled,
 		})
 	}
 
