@@ -6,7 +6,7 @@ func RemoveDuplicatesFromStringArray(elements []string) []string {
 	result := []string{}
 
 	for v := range elements {
-		if visited[elements[v]] != true {
+		if !visited[elements[v]] {
 			visited[elements[v]] = true          // Mark the element as visited.
 			result = append(result, elements[v]) // Add it to the result.
 		}
