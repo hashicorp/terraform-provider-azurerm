@@ -53,8 +53,8 @@ resource "azurerm_scheduled_query_rule_alert" "example" {
   severity       = 1
   time_window    = 30
   trigger {
-    threshold_operator = "GreaterThan"
-    threshold          = 3
+    operator  = "GreaterThan"
+    threshold = 3
     metric_trigger {
       operator            = "GreaterThan"
       threshold           = 1
@@ -86,8 +86,8 @@ resource "azurerm_scheduled_query_rule_alert" "example2" {
   severity       = "1"
   time_window    = 30
   trigger {
-    threshold_operator = "GreaterThan"
-    threshold          = 3
+    operator  = "GreaterThan"
+    threshold = 3
   }
 }
 ```
