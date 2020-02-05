@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/parse"
 )
 
 func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
@@ -197,19 +198,18 @@ func testCheckAzureRMDatabricksWorkspaceExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: Not found: %s", resourceName)
 		}
 
-		workspaceName := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: No resource group found in state for Databricks Workspace: %s", workspaceName)
+		id, err := parse.DatabricksWorkspaceID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, workspaceName)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Getting Workspace: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Databricks Workspace %s (resource group: %s) does not exist", workspaceName, resourceGroup)
+			return fmt.Errorf("Bad: Databricks Workspace %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -225,9 +225,12 @@ func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		workspaceName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := conn.Get(ctx, resourceGroup, workspaceName)
+		id, err := parse.DatabricksWorkspaceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err != nil {
 			return nil
