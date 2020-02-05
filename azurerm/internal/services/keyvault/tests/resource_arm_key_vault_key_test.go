@@ -167,6 +167,8 @@ func TestAccAzureRMKeyVaultKey_complete(t *testing.T) {
 				Config: testAccAzureRMKeyVaultKey_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "not_before_date", "2020-01-01T01:02:03Z"),
+					resource.TestCheckResourceAttr(data.ResourceName, "expiration_date", "2021-01-01T01:02:03Z"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
 				),
@@ -634,10 +636,12 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "key-%s"
-  key_vault_id = "${azurerm_key_vault.test.id}"
-  key_type     = "RSA"
-  key_size     = 2048
+  name            = "key-%s"
+  key_vault_id    = "${azurerm_key_vault.test.id}"
+  key_type        = "RSA"
+  key_size        = 2048
+  not_before_date = "2020-01-01T01:02:03Z"
+  expiration_date = "2021-01-01T01:02:03Z"
 
   key_opts = [
     "decrypt",

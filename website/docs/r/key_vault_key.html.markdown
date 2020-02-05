@@ -89,6 +89,10 @@ The following arguments are supported:
 
 * `key_opts` - (Required) A list of JSON web key operations. Possible values include: `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify` and `wrapKey`. Please note these values are case sensitive.
 
+* `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
+
+* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
