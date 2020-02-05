@@ -39,7 +39,8 @@ func NewReplicationRecoveryServicesProvidersClient(subscriptionID string, resour
 }
 
 // NewReplicationRecoveryServicesProvidersClientWithBaseURI creates an instance of the
-// ReplicationRecoveryServicesProvidersClient client.
+// ReplicationRecoveryServicesProvidersClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewReplicationRecoveryServicesProvidersClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationRecoveryServicesProvidersClient {
 	return ReplicationRecoveryServicesProvidersClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -107,7 +108,7 @@ func (client ReplicationRecoveryServicesProvidersClient) CreatePreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -188,7 +189,7 @@ func (client ReplicationRecoveryServicesProvidersClient) DeletePreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -272,7 +273,7 @@ func (client ReplicationRecoveryServicesProvidersClient) GetPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -347,7 +348,7 @@ func (client ReplicationRecoveryServicesProvidersClient) ListPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -462,7 +463,7 @@ func (client ReplicationRecoveryServicesProvidersClient) ListByReplicationFabric
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -572,7 +573,7 @@ func (client ReplicationRecoveryServicesProvidersClient) PurgePreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -650,7 +651,7 @@ func (client ReplicationRecoveryServicesProvidersClient) RefreshProviderPreparer
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

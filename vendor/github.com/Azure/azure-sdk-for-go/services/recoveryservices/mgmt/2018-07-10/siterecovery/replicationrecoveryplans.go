@@ -36,7 +36,9 @@ func NewReplicationRecoveryPlansClient(subscriptionID string, resourceGroupName 
 	return NewReplicationRecoveryPlansClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationRecoveryPlansClientWithBaseURI creates an instance of the ReplicationRecoveryPlansClient client.
+// NewReplicationRecoveryPlansClientWithBaseURI creates an instance of the ReplicationRecoveryPlansClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationRecoveryPlansClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationRecoveryPlansClient {
 	return ReplicationRecoveryPlansClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -90,7 +92,7 @@ func (client ReplicationRecoveryPlansClient) CreatePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -169,7 +171,7 @@ func (client ReplicationRecoveryPlansClient) DeletePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -245,7 +247,7 @@ func (client ReplicationRecoveryPlansClient) FailoverCommitPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -328,7 +330,7 @@ func (client ReplicationRecoveryPlansClient) GetPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -403,7 +405,7 @@ func (client ReplicationRecoveryPlansClient) ListPreparer(ctx context.Context) (
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -518,7 +520,7 @@ func (client ReplicationRecoveryPlansClient) PlannedFailoverPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -597,7 +599,7 @@ func (client ReplicationRecoveryPlansClient) ReprotectPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -682,7 +684,7 @@ func (client ReplicationRecoveryPlansClient) TestFailoverPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -768,7 +770,7 @@ func (client ReplicationRecoveryPlansClient) TestFailoverCleanupPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -854,7 +856,7 @@ func (client ReplicationRecoveryPlansClient) UnplannedFailoverPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -934,7 +936,7 @@ func (client ReplicationRecoveryPlansClient) UpdatePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -35,7 +35,9 @@ func NewMigrationRecoveryPointsClient(subscriptionID string, resourceGroupName s
 	return NewMigrationRecoveryPointsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewMigrationRecoveryPointsClientWithBaseURI creates an instance of the MigrationRecoveryPointsClient client.
+// NewMigrationRecoveryPointsClientWithBaseURI creates an instance of the MigrationRecoveryPointsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewMigrationRecoveryPointsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) MigrationRecoveryPointsClient {
 	return MigrationRecoveryPointsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -90,7 +92,7 @@ func (client MigrationRecoveryPointsClient) GetPreparer(ctx context.Context, fab
 		"subscriptionId":             autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -172,7 +174,7 @@ func (client MigrationRecoveryPointsClient) ListByReplicationMigrationItemsPrepa
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

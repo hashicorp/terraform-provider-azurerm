@@ -35,7 +35,9 @@ func NewReplicationAlertSettingsClient(subscriptionID string, resourceGroupName 
 	return NewReplicationAlertSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationAlertSettingsClientWithBaseURI creates an instance of the ReplicationAlertSettingsClient client.
+// NewReplicationAlertSettingsClientWithBaseURI creates an instance of the ReplicationAlertSettingsClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationAlertSettingsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationAlertSettingsClient {
 	return ReplicationAlertSettingsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -85,7 +87,7 @@ func (client ReplicationAlertSettingsClient) CreatePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -164,7 +166,7 @@ func (client ReplicationAlertSettingsClient) GetPreparer(ctx context.Context, al
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -239,7 +241,7 @@ func (client ReplicationAlertSettingsClient) ListPreparer(ctx context.Context) (
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

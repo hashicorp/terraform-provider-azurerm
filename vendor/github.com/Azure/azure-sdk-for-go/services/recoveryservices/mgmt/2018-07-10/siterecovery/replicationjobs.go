@@ -35,7 +35,8 @@ func NewReplicationJobsClient(subscriptionID string, resourceGroupName string, r
 	return NewReplicationJobsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationJobsClientWithBaseURI creates an instance of the ReplicationJobsClient client.
+// NewReplicationJobsClientWithBaseURI creates an instance of the ReplicationJobsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewReplicationJobsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationJobsClient {
 	return ReplicationJobsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -78,7 +79,7 @@ func (client ReplicationJobsClient) CancelPreparer(ctx context.Context, jobName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -154,7 +155,7 @@ func (client ReplicationJobsClient) ExportPreparer(ctx context.Context, jobQuery
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -239,7 +240,7 @@ func (client ReplicationJobsClient) GetPreparer(ctx context.Context, jobName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -316,7 +317,7 @@ func (client ReplicationJobsClient) ListPreparer(ctx context.Context, filter str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -427,7 +428,7 @@ func (client ReplicationJobsClient) RestartPreparer(ctx context.Context, jobName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -505,7 +506,7 @@ func (client ReplicationJobsClient) ResumePreparer(ctx context.Context, jobName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

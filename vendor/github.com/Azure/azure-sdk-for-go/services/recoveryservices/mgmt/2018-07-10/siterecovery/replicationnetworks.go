@@ -35,7 +35,9 @@ func NewReplicationNetworksClient(subscriptionID string, resourceGroupName strin
 	return NewReplicationNetworksClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationNetworksClientWithBaseURI creates an instance of the ReplicationNetworksClient client.
+// NewReplicationNetworksClientWithBaseURI creates an instance of the ReplicationNetworksClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewReplicationNetworksClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationNetworksClient {
 	return ReplicationNetworksClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -86,7 +88,7 @@ func (client ReplicationNetworksClient) GetPreparer(ctx context.Context, fabricN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -161,7 +163,7 @@ func (client ReplicationNetworksClient) ListPreparer(ctx context.Context) (*http
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -276,7 +278,7 @@ func (client ReplicationNetworksClient) ListByReplicationFabricsPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

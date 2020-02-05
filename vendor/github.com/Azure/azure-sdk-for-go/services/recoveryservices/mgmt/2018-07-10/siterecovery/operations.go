@@ -35,7 +35,8 @@ func NewOperationsClient(subscriptionID string, resourceGroupName string, resour
 	return NewOperationsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewOperationsClientWithBaseURI creates an instance of the OperationsClient client.
+// NewOperationsClientWithBaseURI creates an instance of the OperationsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewOperationsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) OperationsClient {
 	return OperationsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -81,7 +82,7 @@ func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

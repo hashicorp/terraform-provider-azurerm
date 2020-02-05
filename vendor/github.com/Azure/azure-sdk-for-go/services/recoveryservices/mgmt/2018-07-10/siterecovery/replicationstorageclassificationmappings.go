@@ -38,7 +38,8 @@ func NewReplicationStorageClassificationMappingsClient(subscriptionID string, re
 }
 
 // NewReplicationStorageClassificationMappingsClientWithBaseURI creates an instance of the
-// ReplicationStorageClassificationMappingsClient client.
+// ReplicationStorageClassificationMappingsClient client using a custom endpoint.  Use this when interacting with an
+// Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewReplicationStorageClassificationMappingsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationStorageClassificationMappingsClient {
 	return ReplicationStorageClassificationMappingsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -86,7 +87,7 @@ func (client ReplicationStorageClassificationMappingsClient) CreatePreparer(ctx 
 		"subscriptionId":                   autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -169,7 +170,7 @@ func (client ReplicationStorageClassificationMappingsClient) DeletePreparer(ctx 
 		"subscriptionId":                   autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -255,7 +256,7 @@ func (client ReplicationStorageClassificationMappingsClient) GetPreparer(ctx con
 		"subscriptionId":                   autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -330,7 +331,7 @@ func (client ReplicationStorageClassificationMappingsClient) ListPreparer(ctx co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -447,7 +448,7 @@ func (client ReplicationStorageClassificationMappingsClient) ListByReplicationSt
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

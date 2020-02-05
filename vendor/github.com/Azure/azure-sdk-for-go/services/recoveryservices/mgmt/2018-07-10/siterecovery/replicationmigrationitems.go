@@ -36,7 +36,9 @@ func NewReplicationMigrationItemsClient(subscriptionID string, resourceGroupName
 	return NewReplicationMigrationItemsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationMigrationItemsClientWithBaseURI creates an instance of the ReplicationMigrationItemsClient client.
+// NewReplicationMigrationItemsClientWithBaseURI creates an instance of the ReplicationMigrationItemsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationMigrationItemsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationMigrationItemsClient {
 	return ReplicationMigrationItemsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -93,7 +95,7 @@ func (client ReplicationMigrationItemsClient) CreatePreparer(ctx context.Context
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -177,7 +179,7 @@ func (client ReplicationMigrationItemsClient) DeletePreparer(ctx context.Context
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -266,7 +268,7 @@ func (client ReplicationMigrationItemsClient) GetPreparer(ctx context.Context, f
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -344,7 +346,7 @@ func (client ReplicationMigrationItemsClient) ListPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -467,7 +469,7 @@ func (client ReplicationMigrationItemsClient) ListByReplicationProtectionContain
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -587,7 +589,7 @@ func (client ReplicationMigrationItemsClient) MigratePreparer(ctx context.Contex
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -678,7 +680,7 @@ func (client ReplicationMigrationItemsClient) TestMigratePreparer(ctx context.Co
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -768,7 +770,7 @@ func (client ReplicationMigrationItemsClient) TestMigrateCleanupPreparer(ctx con
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -852,7 +854,7 @@ func (client ReplicationMigrationItemsClient) UpdatePreparer(ctx context.Context
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

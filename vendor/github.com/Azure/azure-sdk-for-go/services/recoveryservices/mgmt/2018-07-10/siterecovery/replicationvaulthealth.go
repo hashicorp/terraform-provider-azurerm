@@ -35,7 +35,9 @@ func NewReplicationVaultHealthClient(subscriptionID string, resourceGroupName st
 	return NewReplicationVaultHealthClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationVaultHealthClientWithBaseURI creates an instance of the ReplicationVaultHealthClient client.
+// NewReplicationVaultHealthClientWithBaseURI creates an instance of the ReplicationVaultHealthClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewReplicationVaultHealthClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationVaultHealthClient {
 	return ReplicationVaultHealthClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -81,7 +83,7 @@ func (client ReplicationVaultHealthClient) GetPreparer(ctx context.Context) (*ht
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -149,7 +151,7 @@ func (client ReplicationVaultHealthClient) RefreshPreparer(ctx context.Context) 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

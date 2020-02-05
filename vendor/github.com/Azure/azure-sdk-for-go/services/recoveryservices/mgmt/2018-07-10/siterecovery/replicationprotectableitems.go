@@ -36,7 +36,9 @@ func NewReplicationProtectableItemsClient(subscriptionID string, resourceGroupNa
 	return NewReplicationProtectableItemsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationProtectableItemsClientWithBaseURI creates an instance of the ReplicationProtectableItemsClient client.
+// NewReplicationProtectableItemsClientWithBaseURI creates an instance of the ReplicationProtectableItemsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationProtectableItemsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationProtectableItemsClient {
 	return ReplicationProtectableItemsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -89,7 +91,7 @@ func (client ReplicationProtectableItemsClient) GetPreparer(ctx context.Context,
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -170,7 +172,7 @@ func (client ReplicationProtectableItemsClient) ListByReplicationProtectionConta
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

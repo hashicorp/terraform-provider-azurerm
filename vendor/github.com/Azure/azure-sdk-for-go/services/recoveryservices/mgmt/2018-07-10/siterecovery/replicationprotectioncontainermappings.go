@@ -38,7 +38,8 @@ func NewReplicationProtectionContainerMappingsClient(subscriptionID string, reso
 }
 
 // NewReplicationProtectionContainerMappingsClientWithBaseURI creates an instance of the
-// ReplicationProtectionContainerMappingsClient client.
+// ReplicationProtectionContainerMappingsClient client using a custom endpoint.  Use this when interacting with an
+// Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewReplicationProtectionContainerMappingsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationProtectionContainerMappingsClient {
 	return ReplicationProtectionContainerMappingsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -86,7 +87,7 @@ func (client ReplicationProtectionContainerMappingsClient) CreatePreparer(ctx co
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -170,7 +171,7 @@ func (client ReplicationProtectionContainerMappingsClient) DeletePreparer(ctx co
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -258,7 +259,7 @@ func (client ReplicationProtectionContainerMappingsClient) GetPreparer(ctx conte
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -333,7 +334,7 @@ func (client ReplicationProtectionContainerMappingsClient) ListPreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -450,7 +451,7 @@ func (client ReplicationProtectionContainerMappingsClient) ListByReplicationProt
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -562,7 +563,7 @@ func (client ReplicationProtectionContainerMappingsClient) PurgePreparer(ctx con
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -643,7 +644,7 @@ func (client ReplicationProtectionContainerMappingsClient) UpdatePreparer(ctx co
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -35,7 +35,9 @@ func NewReplicationPoliciesClient(subscriptionID string, resourceGroupName strin
 	return NewReplicationPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationPoliciesClientWithBaseURI creates an instance of the ReplicationPoliciesClient client.
+// NewReplicationPoliciesClientWithBaseURI creates an instance of the ReplicationPoliciesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewReplicationPoliciesClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationPoliciesClient {
 	return ReplicationPoliciesClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -79,7 +81,7 @@ func (client ReplicationPoliciesClient) CreatePreparer(ctx context.Context, poli
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -158,7 +160,7 @@ func (client ReplicationPoliciesClient) DeletePreparer(ctx context.Context, poli
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -240,7 +242,7 @@ func (client ReplicationPoliciesClient) GetPreparer(ctx context.Context, policyN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -315,7 +317,7 @@ func (client ReplicationPoliciesClient) ListPreparer(ctx context.Context) (*http
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -424,7 +426,7 @@ func (client ReplicationPoliciesClient) UpdatePreparer(ctx context.Context, poli
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

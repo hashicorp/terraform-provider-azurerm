@@ -36,7 +36,9 @@ func NewReplicationNetworkMappingsClient(subscriptionID string, resourceGroupNam
 	return NewReplicationNetworkMappingsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationNetworkMappingsClientWithBaseURI creates an instance of the ReplicationNetworkMappingsClient client.
+// NewReplicationNetworkMappingsClientWithBaseURI creates an instance of the ReplicationNetworkMappingsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewReplicationNetworkMappingsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationNetworkMappingsClient {
 	return ReplicationNetworkMappingsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -84,7 +86,7 @@ func (client ReplicationNetworkMappingsClient) CreatePreparer(ctx context.Contex
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -167,7 +169,7 @@ func (client ReplicationNetworkMappingsClient) DeletePreparer(ctx context.Contex
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -253,7 +255,7 @@ func (client ReplicationNetworkMappingsClient) GetPreparer(ctx context.Context, 
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -328,7 +330,7 @@ func (client ReplicationNetworkMappingsClient) ListPreparer(ctx context.Context)
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -445,7 +447,7 @@ func (client ReplicationNetworkMappingsClient) ListByReplicationNetworksPreparer
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -558,7 +560,7 @@ func (client ReplicationNetworkMappingsClient) UpdatePreparer(ctx context.Contex
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-01-10"
+	const APIVersion = "2018-07-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
