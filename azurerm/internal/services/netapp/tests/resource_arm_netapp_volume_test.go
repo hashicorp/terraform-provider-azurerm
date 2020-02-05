@@ -303,7 +303,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index        = 1
     allowed_clients   = ["1.2.3.0/24"]
-	protocols_enabled = ["NFSv4.1"]
+    protocols_enabled = ["NFSv4.1"]
     unix_read_only    = false
     unix_read_write   = true
   }
@@ -359,7 +359,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 3
     allowed_clients = ["1.2.6.0/24"]
-	cifs_enabled    = false
+    cifs_enabled    = false
     nfsv3_enabled   = true
     nfsv4_enabled   = false
     unix_read_only  = true
