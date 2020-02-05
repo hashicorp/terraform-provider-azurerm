@@ -371,7 +371,6 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 				if len(protocolsEnabled) != 0 {
 					for _, protocol := range protocolsEnabled {
 						if protocol != nil {
-							log.Printf(protocol.(string))
 							switch strings.ToLower(protocol.(string)) {
 							case "cifs":
 								cifsEnabled = true
