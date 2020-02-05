@@ -95,7 +95,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 				ForceNew: true,
 				Optional: true,
 				Computed: true,
-				MaxItems: 1,
+				MaxItems: 2,
 				Elem: &schema.Schema{Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						"NFSv3",
@@ -136,7 +136,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Computed: true,
-							MaxItems: 1,
+							MaxItems: 2,
 							MinItems: 1,
 							Elem: &schema.Schema{Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
@@ -387,7 +387,6 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 					nfsv3Enabled = v["nfsv3_enabled"].(bool)
 					nfsv41Enabled = v["nfsv4_enabled"].(bool)
 				}
-
 			}
 
 			unixReadOnly := v["unix_read_only"].(bool)
