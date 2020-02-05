@@ -1,9 +1,13 @@
 package compute
 
 import (
+	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"regexp"
 	"strings"
+
+	"golang.org/x/crypto/ssh"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -113,13 +117,9 @@ func parseUsernameFromAuthorizedKeysPath(input string) *string {
 	return nil
 }
 
-// TODO - leverage "golang.org/x/crypto/ssh" for key validation?
-// ValidateSSHKey performs some basic validation on supplied SSH Keys - Signature and basic key length are evaluated
+// ValidateSSHKey performs some basic validation on supplied SSH Keys - Encoded Signature and Key Size are evaluated
+// Will require rework if/when other Key Types are supported
 func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error) {
-	permittedKeyTypes := []string{
-		"ssh-rsa",
-	}
-
 	v, ok := i.(string)
 	if !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
@@ -129,26 +129,29 @@ func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error)
 		return nil, []error{fmt.Errorf("expected %q to not be an empty string or whitespace", k)}
 	}
 
-	validSig := ""
-	for _, t := range permittedKeyTypes {
-		if strings.HasPrefix(v, t) {
-			validSig = t
+	keyParts := strings.Fields(v)
+	if len(keyParts) > 1 {
+		byteStr, err := base64.StdEncoding.DecodeString(keyParts[1])
+		if err != nil {
+			return nil, []error{fmt.Errorf("Error decoding %q for public key data", k)}
 		}
-	}
+		pubKey, err := ssh.ParsePublicKey(byteStr)
+		if err != nil {
+			return nil, []error{fmt.Errorf("Error parsing %q as a public key object", k)}
+		}
 
-	switch validSig {
-	case "ssh-rsa":
-		keyParts := strings.Fields(v)
-		if len(keyParts) > 1 {
-			strLen := len(keyParts[1])
-			if strLen < 371 {
-				return nil, []error{fmt.Errorf("expected %q to have a key size of at least 2048 bits", k)}
-			}
+		if pubKey.Type() != ssh.KeyAlgoRSA {
+			return nil, []error{fmt.Errorf("Error - Only RSA SSH2 keys are supported by Azure")}
 		} else {
-			return nil, []error{fmt.Errorf("expected %q to be valid of at least 2 parts, signature and key", k)}
+			//check length - held at bytes 20 and 21 for ssh-rsa
+			sizeRaw := []byte{byteStr[20], byteStr[21]}
+			sizeDec := binary.BigEndian.Uint16(sizeRaw)
+			if sizeDec < 257 {
+				return nil, []error{fmt.Errorf("Error - Only key lengths of 2048 bits or longer are supported by Azure")}
+			}
 		}
-	case "":
-		return nil, []error{fmt.Errorf("Bad: Azure currently supports SSH protocol 2 (SSH-2) RSA public-private key pairs with a minimum length of 2048 bits")}
+	} else {
+		return nil, []error{fmt.Errorf("Error %q is not a complete SSH2 Public Key", k)}
 	}
 
 	return warnings, errors

@@ -242,13 +242,17 @@ func TestValidateSSHKey(t *testing.T) {
 			expected: false,
 		},
 		{
+			input:    "ssh-rsa ThisIsNot a REAL key",
+			expected: false,
+		},
+		{
 			// 1024
 			input:    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDbzSM5KBFKmNilWjlw2YenzARxww1H+BMDMBVyzKYsNwEQc6Tj3ZB1Jun0l6Xkaw5BxKdwKFdhPlQh3nqpbm7xmSY7MuRZLPU+LRM3wI9RwcreDb3BXWacy41YIRGhUzpAzXmWdVyub/k70AJAngpVLLBmLcjuavjplR/fkTjslw==",
 			expected: false,
 		},
 		{
 			// 2048
-			input:    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDTVRznAD63AGg2tJJ2MZhbN2DTEeeBjb+C+ivxQf5yJpKFhZP1NxMBgPZ/sDqW3odngi2IOQ5PMJ1C/m6VNBxblJqE+wLClU+rkYAbnREoRM7jeHFE9SbGyCdqotUExLF4aNQ4TibNVeA+dH3IfwCpLf76iCORVA6VGMNfwvj1oYSFoqKQUVaakn0NpyaCjsHf6kJa7f85JTmRlnd8MetOKeMkVDzbyNTRRwojWtIbYOocIRDd4M9NBf9LERcK3vRQq7cpOahco7uaf5jDfS/ajRFjFLfh8m0VRkSZfTi8D7VuYvWB6HstXDgTyepavLcO6Hy3eCwJVM8p+WLPSz5",
+			input:    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0pA4vzGH+cmR+blZnoxO5HorOP1ubD4SxuOiW2DSNTSptlj+mPmFIL6sZeYMvSqAjXK368qL3DKHLpp2+1ws1XnYn/Zx/O4WBQAY7VbtzwFc7w7uirQaK6lVqXn8q4CnO0+5IYHgKLrNMEipwLKo+R3E3e1KrH5Xbyhj5yJzrMe3lWOAPzS27DJvjpN5SGWo65X6qFJRh3q95xOQhSOaEqZ/A2ZtfOuagq3FmASzoo/pbq7ianvnxzAYsb2Hg/9uAvypj4Beli6BP7419aP14XS0yyiW4XTKY/9XZiR/3VIKBN/stGN5NFLw82/j12E1GznbDG9PL7PQhijP7QgJh",
 			expected: true,
 		},
 		{
