@@ -69,7 +69,7 @@ resource "azurerm_network_security_group" "webserver" {
 }
 
 resource "azurerm_lb" "example" {
-  name                = "TestLoadBalancer"
+  name                = "${var.prefix}-lb"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 
@@ -128,4 +128,3 @@ resource "azurerm_linux_virtual_machine" "main" {
     caching              = "ReadWrite"
   }
 }
-
