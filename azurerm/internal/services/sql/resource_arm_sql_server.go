@@ -203,16 +203,15 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(*resp.ID)
 
-	if _, ok := d.GetOk("blob_extended_auditing_policy"); ok {
-		auditingClient := meta.(*clients.Client).Sql.ExtendedServerBlobAuditingPoliciesClient
-		auditingParameters := sql.ExtendedServerBlobAuditingPolicy{
-			ExtendedServerBlobAuditingPolicyProperties: expandAzureRmSqlServerBlobAuditingPolicies(d.Get("blob_extended_auditing_policy").([]interface{})),
-		}
-		_, err := auditingClient.CreateOrUpdate(ctx, resGroup, name, auditingParameters)
-		if err != nil {
-			return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
-		}
+	auditingClient := meta.(*clients.Client).Sql.ExtendedServerBlobAuditingPoliciesClient
+	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
+		ExtendedServerBlobAuditingPolicyProperties: expandAzureRmSqlServerBlobAuditingPolicies(d.Get("blob_extended_auditing_policy").([]interface{})),
 	}
+	_, err = auditingClient.CreateOrUpdate(ctx, resGroup, name, auditingProps)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
+	}
+
 
 	return resourceArmSqlServerRead(d, meta)
 }
@@ -260,11 +259,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	auditingClient := meta.(*clients.Client).Sql.ExtendedServerBlobAuditingPoliciesClient
 	auditingResp, err := auditingClient.Get(ctx, resGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Server %q Blob Auditing Policies - removing from state", d.Id())
-		}
-
-		return fmt.Errorf("Error reading SQL Server %s: %v Blob Auditing Policies", name, err)
+		return fmt.Errorf("Error reading SQL Server %s Blob Auditing Policies: %v ", name, err)
 	}
 
 	flattenBlobAuditing := flattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d)
@@ -325,7 +320,9 @@ func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface
 
 func expandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.ExtendedServerBlobAuditingPolicyProperties {
 	if len(input) == 0 {
-		return nil
+		return &sql.ExtendedServerBlobAuditingPolicyProperties{
+			State:   sql.BlobAuditingPolicyStateDisabled,
+		}
 	}
 	serverBlobAuditingPolicies := input[0].(map[string]interface{})
 
