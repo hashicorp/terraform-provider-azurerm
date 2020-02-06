@@ -3,15 +3,15 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bastion_host"
 description: |-
-  Manages a Bastion Host Instance.
+  Manages a Bastion Host.
 
 ---
 
 # azurerm_bastion_host
 
-Manages a Bastion Host Instance.
+Manages a Bastion Host.
 
-~> **Note:** Bastion Host Instances are a preview feature in Azure, and therefore are only supported in a select number of regions. [Read more](https://docs.microsoft.com/en-us/azure/bastion/bastion-faq).
+~> **Note:** Bastion Hosts are a preview feature in Azure, and therefore are only supported in a select number of regions. [Read more](https://docs.microsoft.com/en-us/azure/bastion/bastion-faq).
 
 ## Example Usage
 
@@ -78,7 +78,7 @@ A `ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the IP configuration.
 
-* `subnet_id` - (Required) Reference to a subnet in which this Bastion Host has been created. 
+* `subnet_id` - (Required) Reference to a subnet in which this Bastion Host has been created.
 
 * `public_ip_address_id` (Required)  Reference to a Public IP Address to associate with this Bastion Host.
 
@@ -86,7 +86,20 @@ A `ip_configuration` block supports the following:
 
 The following attributes are exported:
 
-* `dns_name` - The FQDN for the Azure Bastion Host.
+* `id` - The ID of the Bastion Host.
+
+* `dns_name` - The FQDN for the Bastion Host.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Bastion Host.
+* `update` - (Defaults to 30 minutes) Used when updating the Bastion Host.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Bastion Host.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Bastion Host.
 
 ## Import
 

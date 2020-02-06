@@ -75,3 +75,22 @@ The following attributes are exported:
 * `id` - The SQL Elastic Pool ID.
 
 * `creation_date` - The creation date of the SQL Elastic Pool.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the SQL Elastic Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the SQL Elastic Pool.
+* `read` - (Defaults to 5 minutes) Used when retrieving the SQL Elastic Pool.
+* `delete` - (Defaults to 30 minutes) Used when deleting the SQL Elastic Pool.
+
+## Import
+
+SQL Elastic Pool's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_sql_elasticpool.pool1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/elasticPools/pool1
+```

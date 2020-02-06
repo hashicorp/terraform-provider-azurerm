@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -25,7 +25,6 @@ func dataSourceArmKeyVaultSecret() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: azure.ValidateKeyVaultChildName,
 			},
 
@@ -33,7 +32,6 @@ func dataSourceArmKeyVaultSecret() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true, //todo required in 2.0
 				Computed:      true, //todo removed in 2.0
-				ForceNew:      true,
 				ValidateFunc:  azure.ValidateResourceID,
 				ConflictsWith: []string{"vault_uri"},
 			},
@@ -42,10 +40,9 @@ func dataSourceArmKeyVaultSecret() *schema.Resource {
 			"vault_uri": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ForceNew:      true,
 				Computed:      true,
 				Deprecated:    "This property has been deprecated in favour of the key_vault_id property. This will prevent a class of bugs as described in https://github.com/terraform-providers/terraform-provider-azurerm/issues/2396 and will be removed in version 2.0 of the provider",
-				ValidateFunc:  validate.URLIsHTTPS,
+				ValidateFunc:  validation.IsURLWithHTTPS,
 				ConflictsWith: []string{"key_vault_id"},
 			},
 

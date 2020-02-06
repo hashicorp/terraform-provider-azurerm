@@ -88,63 +88,6 @@ func FlattenVirtualMachineScaleSetAdditionalCapabilities(input *compute.Addition
 	}
 }
 
-func VirtualMachineScaleSetBootDiagnosticsSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				// TODO: should this be `storage_account_endpoint`?
-				"storage_account_uri": {
-					Type:     schema.TypeString,
-					Required: true,
-					// TODO: validation
-				},
-			},
-		},
-	}
-}
-
-func ExpandVirtualMachineScaleSetBootDiagnostics(input []interface{}) *compute.DiagnosticsProfile {
-	if len(input) == 0 {
-		return &compute.DiagnosticsProfile{
-			BootDiagnostics: &compute.BootDiagnostics{
-				Enabled:    utils.Bool(false),
-				StorageURI: utils.String(""),
-			},
-		}
-	}
-
-	raw := input[0].(map[string]interface{})
-
-	storageAccountURI := raw["storage_account_uri"].(string)
-
-	return &compute.DiagnosticsProfile{
-		BootDiagnostics: &compute.BootDiagnostics{
-			Enabled:    utils.Bool(true),
-			StorageURI: utils.String(storageAccountURI),
-		},
-	}
-}
-
-func FlattenVirtualMachineScaleSetBootDiagnostics(input *compute.DiagnosticsProfile) []interface{} {
-	if input == nil || input.BootDiagnostics == nil || input.BootDiagnostics.Enabled == nil || !*input.BootDiagnostics.Enabled {
-		return []interface{}{}
-	}
-
-	storageAccountUri := ""
-	if input.BootDiagnostics.StorageURI != nil {
-		storageAccountUri = *input.BootDiagnostics.StorageURI
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"storage_account_uri": storageAccountUri,
-		},
-	}
-}
-
 func VirtualMachineScaleSetIdentitySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -246,7 +189,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchema(),
 
@@ -255,7 +198,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
 					Optional: true,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
-						ValidateFunc: validate.NoEmptyStrings,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 				"enable_accelerated_networking": {
@@ -292,7 +235,7 @@ func virtualMachineScaleSetIPConfigurationSchema() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				// Optional
@@ -365,14 +308,14 @@ func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				// Optional
 				"domain_name_label": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"idle_timeout_in_minutes": {
 					Type:         schema.TypeInt,
@@ -391,13 +334,13 @@ func virtualMachineScaleSetPublicIPAddressSchema() *schema.Schema {
 								Type:         schema.TypeString,
 								Required:     true,
 								ForceNew:     true,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"type": {
 								Type:         schema.TypeString,
 								Required:     true,
 								ForceNew:     true,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
@@ -811,16 +754,29 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 						string(compute.CachingTypesReadWrite),
 					}, false),
 				},
+
+				"disk_encryption_set_id": {
+					Type:     schema.TypeString,
+					Optional: true,
+					// whilst the API allows updating this value, it's never actually set at Azure's end
+					// presumably this'll take effect once key rotation is supported a few months post-GA?
+					// however for now let's make this ForceNew since it can't be (successfully) updated
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(0, 1023),
 				},
+
 				"lun": {
 					Type:         schema.TypeInt,
 					Required:     true,
 					ValidateFunc: validation.IntBetween(0, 2000), // TODO: confirm upper bounds
 				},
+
 				"storage_account_type": {
 					Type:     schema.TypeString,
 					Required: true,
@@ -861,6 +817,12 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}) *[]compute.Virtua
 			CreateOption: compute.DiskCreateOptionTypesEmpty,
 		}
 
+		if id := raw["disk_encryption_set_id"].(string); id != "" {
+			disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+				ID: utils.String(id),
+			}
+		}
+
 		disks = append(disks, disk)
 	}
 
@@ -885,9 +847,13 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			lun = int(*v.Lun)
 		}
 
-		var storageAccountType string
+		storageAccountType := ""
+		diskEncryptionSetId := ""
 		if v.ManagedDisk != nil {
 			storageAccountType = string(v.ManagedDisk.StorageAccountType)
+			if v.ManagedDisk.DiskEncryptionSet != nil && v.ManagedDisk.DiskEncryptionSet.ID != nil {
+				diskEncryptionSetId = *v.ManagedDisk.DiskEncryptionSet.ID
+			}
 		}
 
 		writeAcceleratorEnabled := false
@@ -898,6 +864,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 		output = append(output, map[string]interface{}{
 			"caching":                   string(v.Caching),
 			"lun":                       lun,
+			"disk_encryption_set_id":    diskEncryptionSetId,
 			"disk_size_gb":              diskSizeGb,
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
@@ -956,10 +923,21 @@ func VirtualMachineScaleSetOSDiskSchema() *schema.Schema {
 					},
 				},
 
+				"disk_encryption_set_id": {
+					Type:     schema.TypeString,
+					Optional: true,
+					// whilst the API allows updating this value, it's never actually set at Azure's end
+					// presumably this'll take effect once key rotation is supported a few months post-GA?
+					// however for now let's make this ForceNew since it can't be (successfully) updated
+					ForceNew:     true,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntBetween(0, 1023),
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(0, 2048),
 				},
 
 				"write_accelerator_enabled": {
@@ -986,6 +964,12 @@ func ExpandVirtualMachineScaleSetOSDisk(input []interface{}, osType compute.Oper
 		OsType:       osType,
 	}
 
+	if diskEncryptionSetId := raw["disk_encryption_set_id"].(string); diskEncryptionSetId != "" {
+		disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+			ID: utils.String(diskEncryptionSetId),
+		}
+	}
+
 	if osDiskSize := raw["disk_size_gb"].(int); osDiskSize > 0 {
 		disk.DiskSizeGB = utils.Int32(int32(osDiskSize))
 	}
@@ -1008,6 +992,12 @@ func ExpandVirtualMachineScaleSetOSDiskUpdate(input []interface{}) *compute.Virt
 			StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
 		},
 		WriteAcceleratorEnabled: utils.Bool(raw["write_accelerator_enabled"].(bool)),
+	}
+
+	if diskEncryptionSetId := raw["disk_encryption_set_id"].(string); diskEncryptionSetId != "" {
+		disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+			ID: utils.String(diskEncryptionSetId),
+		}
 	}
 
 	if osDiskSize := raw["disk_size_gb"].(int); osDiskSize > 0 {
@@ -1034,15 +1024,20 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 		diskSizeGb = int(*input.DiskSizeGB)
 	}
 
-	var storageAccountType string
+	storageAccountType := ""
+	diskEncryptionSetId := ""
 	if input.ManagedDisk != nil {
 		storageAccountType = string(input.ManagedDisk.StorageAccountType)
+		if input.ManagedDisk.DiskEncryptionSet != nil && input.ManagedDisk.DiskEncryptionSet.ID != nil {
+			diskEncryptionSetId = *input.ManagedDisk.DiskEncryptionSet.ID
+		}
 	}
 
 	writeAcceleratorEnabled := false
 	if input.WriteAcceleratorEnabled != nil {
 		writeAcceleratorEnabled = *input.WriteAcceleratorEnabled
 	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"caching":                   string(input.Caching),
@@ -1050,90 +1045,7 @@ func FlattenVirtualMachineScaleSetOSDisk(input *compute.VirtualMachineScaleSetOS
 			"diff_disk_settings":        diffDiskSettings,
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
-		},
-	}
-}
-
-func VirtualMachineScaleSetSourceImageReferenceSchema() *schema.Schema {
-	// whilst originally I was hoping we could use the 'id' from `azurerm_platform_image' unfortunately Azure doesn't
-	// like this as a value for the 'id' field:
-	// Id /...../Versions/16.04.201909091 is not a valid resource reference."
-	// as such the image is split into two fields (source_image_id and source_image_reference) to provide better validation
-	return &schema.Schema{
-		Type:          schema.TypeList,
-		Optional:      true,
-		MaxItems:      1,
-		ConflictsWith: []string{"source_image_id"},
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"publisher": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-				"offer": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-				"sku": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-				"version": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-			},
-		},
-	}
-}
-
-func ExpandVirtualMachineScaleSetSourceImageReference(referenceInput []interface{}, imageId string) (*compute.ImageReference, error) {
-	if imageId != "" {
-		return &compute.ImageReference{
-			ID: utils.String(imageId),
-		}, nil
-	}
-
-	if len(referenceInput) == 0 {
-		return nil, fmt.Errorf("Either a `source_image_id` or a `source_image_reference` block must be specified!")
-	}
-
-	raw := referenceInput[0].(map[string]interface{})
-	return &compute.ImageReference{
-		Publisher: utils.String(raw["publisher"].(string)),
-		Offer:     utils.String(raw["offer"].(string)),
-		Sku:       utils.String(raw["sku"].(string)),
-		Version:   utils.String(raw["version"].(string)),
-	}, nil
-}
-
-func FlattenVirtualMachineScaleSetSourceImageReference(input *compute.ImageReference) []interface{} {
-	// since the image id is pulled out as a separate field, if that's set we should return an empty block here
-	if input == nil || input.ID != nil {
-		return []interface{}{}
-	}
-
-	var publisher, offer, sku, version string
-
-	if input.Publisher != nil {
-		publisher = *input.Publisher
-	}
-	if input.Offer != nil {
-		offer = *input.Offer
-	}
-	if input.Sku != nil {
-		sku = *input.Sku
-	}
-	if input.Version != nil {
-		version = *input.Version
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"publisher": publisher,
-			"offer":     offer,
-			"sku":       sku,
-			"version":   version,
+			"disk_encryption_set_id":    diskEncryptionSetId,
 		},
 	}
 }

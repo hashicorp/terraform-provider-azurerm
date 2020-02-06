@@ -59,4 +59,23 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The DSC Configuration ID.
+* `id` - The ID of the Automation DSC Configuration.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Automation DSC Configuration.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation DSC Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation DSC Configuration.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Automation DSC Configuration.
+
+## Import
+
+Automation DSC Configuration's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_automation_dsc_configuration.configuration1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/configurations/configuration1
+```

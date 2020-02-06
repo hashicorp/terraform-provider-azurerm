@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `per_database_settings` - (Required) A `per_database_settings` block as defined below.
 
-* `max_size_gb` - (Optional) The max data size of the elastic pool in gigabytes. Conflicts with `max_size_bytes`. 
+* `max_size_gb` - (Optional) The max data size of the elastic pool in gigabytes. Conflicts with `max_size_bytes`.
 
 * `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes. Conflicts with `max_size_gb`.
 
@@ -76,7 +76,7 @@ The following arguments are supported:
 
 `sku` supports the following:
 
-* `name` - (Required) Specifies the SKU Name for this Elasticpool. The name of the SKU, will be either `vCore` based `tier` + `family` pattern (e.g. GP_Gen4, BC_Gen5) or the `DTU` based `BasicPool`, `StandardPool`, or `PremiumPool` pattern. 
+* `name` - (Required) Specifies the SKU Name for this Elasticpool. The name of the SKU, will be either `vCore` based `tier` + `family` pattern (e.g. GP_Gen4, BC_Gen5) or the `DTU` based `BasicPool`, `StandardPool`, or `PremiumPool` pattern.
 
 * `capacity` - (Required) The scale up/out capacity, representing server's compute units. For more information see the documentation for your Elasticpool configuration: [vCore-based](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-vcore-resource-limits-elastic-pools) or [DTU-based](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-dtu-resource-limits-elastic-pools).
 
@@ -98,7 +98,18 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The MsSQL Elastic Pool ID.
+* `id` - The ID of the MS SQL Elastic Pool.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the MS SQL Elastic Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the MS SQL Elastic Pool.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Elastic Pool.
+* `delete` - (Defaults to 30 minutes) Used when deleting the MS SQL Elastic Pool.
 
 ## Import
 

@@ -1133,7 +1133,7 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 		"host_name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validate.NoEmptyStrings,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"key_vault_id": {
@@ -1150,7 +1150,7 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 			Type:         schema.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			ValidateFunc: validate.NoEmptyStrings,
+			ValidateFunc: validation.StringIsNotEmpty,
 			ConflictsWith: []string{
 				fmt.Sprintf("hostname_configuration.0.%s.0.key_vault_id", schemaName),
 			},
@@ -1160,7 +1160,7 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 			Type:         schema.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			ValidateFunc: validate.NoEmptyStrings,
+			ValidateFunc: validation.StringIsNotEmpty,
 			ConflictsWith: []string{
 				fmt.Sprintf("hostname_configuration.0.%s.0.key_vault_id", schemaName),
 			},

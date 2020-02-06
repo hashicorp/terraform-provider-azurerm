@@ -254,7 +254,7 @@ A `auth_settings` block supports the following:
 
 * `default_provider` - (Optional) The default provider to use when multiple providers have been set up. Possible values are `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount` and `Twitter`.
 
-~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work. 
+~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work.
 
 * `facebook` - (Optional) A `facebook` block as defined below.
 
@@ -312,7 +312,7 @@ A `ip_restriction` block supports the following:
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
 
-* `virtual_network_subnet_id` - (Optional.The Virtual Network Subnet ID used for this IP Restriction. 
+* `virtual_network_subnet_id` - (Optional.The Virtual Network Subnet ID used for this IP Restriction.
 
 -> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
 
@@ -397,10 +397,21 @@ The following attributes are exported:
 
 ---
 
-`site_credential` exports the following:
+The `site_credential` block exports the following:
 
 * `username` - The username which can be used to publish to this App Service
 * `password` - The password associated with the username, which can be used to publish to this App Service.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Slot.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Slot.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Slot.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Slot.
 
 ## Import
 

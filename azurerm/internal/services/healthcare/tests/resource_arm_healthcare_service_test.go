@@ -149,7 +149,7 @@ resource "azurerm_healthcare_service" "test" {
     "${data.azurerm_client_config.current.service_principal_object_id}",
   ]
 }
-`, data.RandomInteger, location, data.RandomInteger/10) //name can only be 24 chars long
+`, data.RandomInteger, location, data.RandomIntOfLength(17)) //name can only be 24 chars long
 }
 
 func testAccAzureRMHealthCareService_requiresImport(data acceptance.TestData) string {
@@ -209,5 +209,5 @@ resource "azurerm_healthcare_service" "test" {
     allow_credentials  = true
   }
 }
-`, data.RandomInteger, location, data.RandomInteger/10) //name can only be 24 chars long
+`, data.RandomInteger, location, data.RandomIntOfLength(17)) //name can only be 24 chars long
 }

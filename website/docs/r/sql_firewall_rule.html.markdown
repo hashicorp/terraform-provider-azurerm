@@ -58,6 +58,17 @@ The following attributes are exported:
 
 * `id` - The SQL Firewall Rule ID.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the SQL Firewall Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the SQL Firewall Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the SQL Firewall Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the SQL Firewall Rule.
+
 ## Import
 
 SQL Firewall Rules can be imported using the `resource id`, e.g.

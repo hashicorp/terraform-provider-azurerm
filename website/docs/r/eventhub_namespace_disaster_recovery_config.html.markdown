@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `partner_namespace_id` - (Optional) The ID of the EventHub Namespace to replicate to.
 
-* `alternate_name` - (Optional) An alternate name to use when the Disaster Recovery Config's name is the same as the replicated namespace's name. 
+* `alternate_name` - (Optional) An alternate name to use when the Disaster Recovery Config's name is the same as the replicated namespace's name.
 
 * `wait_for_replication` - (Optional) Should the resource wait for replication upon creation? Defaults to `false`.
 
@@ -61,6 +61,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The EventHub Namespace Disaster Recovery Config ID.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the EventHub Namespace Disaster Recovery Config.
+* `update` - (Defaults to 30 minutes) Used when updating the EventHub Namespace Disaster Recovery Config.
+* `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Namespace Disaster Recovery Config.
+* `delete` - (Defaults to 30 minutes) Used when deleting the EventHub Namespace Disaster Recovery Config.
 
 ## Import
 

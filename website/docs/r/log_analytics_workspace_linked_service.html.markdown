@@ -80,6 +80,17 @@ The following attributes are exported:
 
 * `name` - The automatically generated name of the Linked Service. This cannot be specified. The format is always `<workspace_name>/<linked_service_name>` e.g. `workspace1/Automation`
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Workspace Linked Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Workspace Linked Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Workspace Linked Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Log Analytics Workspace Linked Service.
+
 ## Import
 
 Log Analytics Workspaces can be imported using the `resource id`, e.g.

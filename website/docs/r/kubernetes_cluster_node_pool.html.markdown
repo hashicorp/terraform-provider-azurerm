@@ -104,7 +104,16 @@ The following attributes are exported:
 
 * `id` - The ID of the Kubernetes Cluster Node Pool.
 
----
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Kubernetes Cluster Node Pool.
+* `update` - (Defaults to 60 minutes) Used when updating the Kubernetes Cluster Node Pool.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster Node Pool.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Kubernetes Cluster Node Pool.
 
 ## Import
 

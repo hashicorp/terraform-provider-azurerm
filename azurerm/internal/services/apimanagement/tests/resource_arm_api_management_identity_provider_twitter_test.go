@@ -194,7 +194,7 @@ resource "azurerm_api_management_identity_provider_twitter" "import" {
   resource_group_name = "${azurerm_api_management_identity_provider_twitter.test.resource_group_name}"
   api_management_name = "${azurerm_api_management_identity_provider_twitter.test.api_management_name}"
   api_key             = "${azurerm_api_management_identity_provider_twitter.test.api_key}"
-  api_secret_key	  = "${azurerm_api_management_identity_provider_twitter.test.api_secret_key}"
+  api_secret_key      = "${azurerm_api_management_identity_provider_twitter.test.api_secret_key}"
 }
 `, template)
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -171,7 +170,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 						"store_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"visibility": {
 							Type:     schema.TypeSet,
@@ -285,6 +284,68 @@ func dataSourceArmBatchPool() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"network_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"subnet_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"endpoint_configuration": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"protocol": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"backend_port": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"frontend_port_range": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"network_security_group_rules": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"priority": {
+													Type:     schema.TypeInt,
+													Computed: true,
+												},
+												"access": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"source_address_prefix": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -347,6 +408,10 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
 		d.Set("metadata", azure.FlattenBatchMetaData(props.Metadata))
+
+		if err := d.Set("network_configuration", azure.FlattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+			return fmt.Errorf("error setting `network_configuration`: %v", err)
+		}
 	}
 
 	return nil

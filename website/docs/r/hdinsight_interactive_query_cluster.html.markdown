@@ -243,6 +243,17 @@ The following attributes are exported:
 
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight Interactive Query Cluster.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Interactive Query HDInsight Cluster.
+* `update` - (Defaults to 60 minutes) Used when updating the Interactive Query HDInsight Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Interactive Query HDInsight Cluster.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Interactive Query HDInsight Cluster.
+
 ## Import
 
 HDInsight Interactive Query Clusters can be imported using the `resource id`, e.g.
