@@ -120,7 +120,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `read` - (Defaults to 5 minutes) Used when retrieving the SQL Server.
 * `delete` - (Defaults to 60 minutes) Used when deleting the SQL Server.
 
-
 ## Import
 
 SQL Servers can be imported using the `resource id`, e.g.
