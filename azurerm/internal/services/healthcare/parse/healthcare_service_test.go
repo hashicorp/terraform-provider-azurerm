@@ -45,7 +45,7 @@ func TestHealthcareServiceId(t *testing.T) {
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.HealthcareApis/Services/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.HealthcareApis/Services/Service1",
 			Expected: nil,
 		},
 	}
