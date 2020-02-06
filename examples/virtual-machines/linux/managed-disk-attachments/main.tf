@@ -29,31 +29,43 @@ resource "azurerm_network_interface" "main" {
   }
 }
 
-resource "azurerm_windows_virtual_machine" "main" {
+resource "azurerm_linux_virtual_machine" "main" {
   name                            = "${var.prefix}-vm"
   resource_group_name             = azurerm_resource_group.main.name
   location                        = azurerm_resource_group.main.location
-  size                            = "Standard_DS3_v2"
+  size                            = "Standard_F2"
   admin_username                  = "adminuser"
   admin_password                  = "P@ssw0rd1234!"
-  custom_data                     = base64encode("Hello World!")
+  disable_password_authentication = false
   network_interface_ids = [
     azurerm_network_interface.main.id,
   ]
 
   source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
     version   = "latest"
   }
 
   os_disk {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
-
-    diff_disk_settings {
-      option = "Local"
-    }
   }
+}
+
+resource "azurerm_managed_disk" "data" {
+  name                 = "data"
+  location             = azurerm_resource_group.main.location
+  create_option        = "Empty"
+  disk_size_gb         = 10
+  resource_group_name  = azurerm_resource_group.main.name
+  storage_account_type = "Standard_LRS"
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "data" {
+  virtual_machine_id = azurerm_linux_virtual_machine.main.id
+  managed_disk_id    = azurerm_managed_disk.data.id
+  lun                = 0
+  caching            = "None"
 }
