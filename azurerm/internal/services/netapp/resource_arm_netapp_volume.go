@@ -92,7 +92,6 @@ func resourceArmNetAppVolume() *schema.Resource {
 
 			"protocols": {
 				Type:     schema.TypeSet,
-				ForceNew: true,
 				Optional: true,
 				Computed: true,
 				MaxItems: 2,
@@ -113,7 +112,6 @@ func resourceArmNetAppVolume() *schema.Resource {
 			"export_policy_rule": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Computed: true,
 				MaxItems: 5,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
