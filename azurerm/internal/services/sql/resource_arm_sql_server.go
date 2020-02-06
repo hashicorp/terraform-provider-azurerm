@@ -212,7 +212,6 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
 	}
 
-
 	return resourceArmSqlServerRead(d, meta)
 }
 
@@ -321,7 +320,7 @@ func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface
 func expandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.ExtendedServerBlobAuditingPolicyProperties {
 	if len(input) == 0 {
 		return &sql.ExtendedServerBlobAuditingPolicyProperties{
-			State:   sql.BlobAuditingPolicyStateDisabled,
+			State: sql.BlobAuditingPolicyStateDisabled,
 		}
 	}
 	serverBlobAuditingPolicies := input[0].(map[string]interface{})
