@@ -30,8 +30,7 @@ func dataSourceArmImage() *schema.Resource {
 			"name_regex": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ForceNew:      true,
-				ValidateFunc:  validation.ValidateRegexp,
+				ValidateFunc:  validation.StringIsValidRegExp,
 				ConflictsWith: []string{"name"},
 			},
 			"sort_descending": {

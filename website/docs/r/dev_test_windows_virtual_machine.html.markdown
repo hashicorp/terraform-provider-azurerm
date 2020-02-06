@@ -141,9 +141,20 @@ A `inbound_nat_rule` block exports the following:
 
 * `frontend_port` - The frontend port associated with this Inbound NAT Rule.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DevTest Windows Virtual Machine.
+* `update` - (Defaults to 30 minutes) Used when updating the DevTest Windows Virtual Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DevTest Windows Virtual Machine.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DevTest Windows Virtual Machine.
+
 ## Import
 
-Dev Test Windows Virtual Machines can be imported using the `resource id`, e.g.
+DevTest Windows Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_dev_test_windows_virtual_machine.machine1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualmachines/machine1

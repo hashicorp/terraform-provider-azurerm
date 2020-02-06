@@ -57,18 +57,28 @@ The following arguments are supported:
 
 * `actions` - (Required) A list of actions that trigger the Webhook to post notifications. At least one action needs to be specified. Valid values are: `push`, `delete`, `quarantine`, `chart_push`, `chart_delete`
 
-* `status` - (Optional) Specifies if this Webhook triggers notifications or not. Valid values: `enabled` and `disabled`. Default is `enabled`. 
+* `status` - (Optional) Specifies if this Webhook triggers notifications or not. Valid values: `enabled` and `disabled`. Default is `enabled`.
 
-* `scope` - (Optional) Specifies the scope of repositories that can trigger an event. For example, 'foo:*' means events for all tags under repository 'foo'. 'foo:bar' means events for 'foo:bar' only. 'foo' is equivalent to 'foo:latest'. Empty means all events.
+* `scope` - (Optional) Specifies the scope of repositories that can trigger an event. For example, `foo:*` means events for all tags under repository `foo`. `foo:bar` means events for 'foo:bar' only. `foo` is equivalent to `foo:latest`. Empty means all events.
 
 * `custom_headers` - (Optional) Custom headers that will be added to the webhook notifications request.
 
----
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Container Registry Webhook ID.
+* `id` - The ID of the Container Registry Webhook.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Container Registry Webhook.
+* `update` - (Defaults to 30 minutes) Used when updating the Container Registry Webhook.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry Webhook.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Container Registry Webhook.
 
 ## Import
 

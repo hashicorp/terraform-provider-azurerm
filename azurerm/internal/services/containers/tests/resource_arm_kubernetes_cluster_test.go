@@ -52,8 +52,13 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"advancedNetworkingAzureNPMPolicyComplete":    testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
 			"enableNodePublicIP":                          testAccAzureRMKubernetesCluster_enableNodePublicIP,
 			"internalNetwork":                             testAccAzureRMKubernetesCluster_internalNetwork,
+			"basicLoadBalancerProfile":                    testAccAzureRMKubernetesCluster_basicLoadBalancerProfile,
+			"conflictingLoadBalancerProfile":              testAccAzureRMKubernetesCluster_conflictingLoadBalancerProfile,
+			"prefixedLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile,
 			"standardLoadBalancer":                        testAccAzureRMKubernetesCluster_standardLoadBalancer,
 			"standardLoadBalancerComplete":                testAccAzureRMKubernetesCluster_standardLoadBalancerComplete,
+			"standardLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_standardLoadBalancerProfile,
+			"standardLoadBalancerProfileComplete":         testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete,
 		},
 		"nodePool": {
 			"autoScale":                      testAccAzureRMKubernetesClusterNodePool_autoScale,

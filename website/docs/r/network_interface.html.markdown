@@ -112,12 +112,23 @@ The `ip_configuration` block supports:
 
 The following attributes are exported:
 
-* `id` - The Virtual Network Interface ID.
+* `id` - The ID of the Network Interface.
 * `mac_address` - The media access control (MAC) address of the network interface.
 * `private_ip_address` - The first private IP address of the network interface.
 * `private_ip_addresses` - The private IP addresses of the network interface.
 * `virtual_machine_id` - Reference to a VM with which this NIC has been associated.
 * `applied_dns_servers` - If the VM that uses this NIC is part of an Availability Set, then this list will have the union of all DNS servers from all NICs that are part of the Availability Set
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Interface.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Interface.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Interface.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Interface.
 
 ## Import
 

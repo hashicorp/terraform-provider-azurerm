@@ -80,11 +80,22 @@ A `schema_column` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the Data Factory Dataset.
+* `id` - The ID of the Data Factory SQL Server Table Dataset.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory SQL Server Table Dataset.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory SQL Server Table Dataset.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory SQL Server Table Dataset.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory SQL Server Table Dataset.
 
 ## Import
 
-Data Factory Dataset SQL Server Table can be imported using the `resource id`, e.g.
+Data Factory SQL Server Table Datasets can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_data_factory_dataset_sql_server_table.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/datasets/example

@@ -252,7 +252,7 @@ A `connection_draining` block supports the following:
 
 ---
 
-      
+
 A `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the Frontend IP Configuration.
@@ -429,7 +429,7 @@ A `ssl_policy` block supports the following:
 
 When using a `policy_type` of `Predefined` the following fields are supported:
 
-* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and 
+* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and
 are published here https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-ssl-policy-overview. Not compatible with `disabled_protocols`.
 
 When using a `policy_type` of `Custom` the following fields are supported:
@@ -729,6 +729,17 @@ A `redirect_configuration` block exports the following:
 A `rewrite_rule_set` block exports the following:
 
 * `id` - The ID of the Rewrite Rule Set
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 90 minutes) Used when creating the Application Gateway.
+* `update` - (Defaults to 90 minutes) Used when updating the Application Gateway.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Application Gateway.
 
 ## Import
 

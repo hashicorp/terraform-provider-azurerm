@@ -63,7 +63,7 @@ The following arguments are supported:
 * `backend_address_pool_id` - (Optional) A reference to a Backend Address Pool over which this Load Balancing Rule operates.
 * `probe_id` - (Optional) A reference to a Probe used by this Load Balancing Rule.
 * `enable_floating_ip` - (Optional) Are the Floating IPs enabled for this Load Balncer Rule? A "floating” IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group. Defaults to `false`.
-* `* `idle_timeout_in_minutes` - (Optional) Specifies the idle timeout in minutes for TCP connections. Valid values are between `4` and `30` minutes. Defaults to `4` minutes.
+* `idle_timeout_in_minutes` - (Optional) Specifies the idle timeout in minutes for TCP connections. Valid values are between `4` and `30` minutes. Defaults to `4` minutes.
 * `load_distribution` - (Optional) Specifies the load balancing distribution type to be used by the Load Balancer. Possible values are: `Default` – The load balancer is configured to use a 5 tuple hash to map traffic to available servers. `SourceIP` – The load balancer is configured to use a 2 tuple hash to map traffic to available servers. `SourceIPProtocol` – The load balancer is configured to use a 3 tuple hash to map traffic to available servers. Also known as Session Persistence, where  the options are called `None`, `Client IP` and `Client IP and Protocol` respectively.
 * `disable_outbound_snat` - (Optional) Is snat enabled for this Load Balancer Rule? Default `false`.
 * `enable_tcp_reset` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? Defaults to `false`.
@@ -73,6 +73,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Load Balancer Rule.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Load Balancer Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Load Balancer Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Load Balancer Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Load Balancer Rule.
 
 ## Import
 

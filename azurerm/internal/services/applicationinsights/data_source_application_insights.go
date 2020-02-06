@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -27,7 +27,7 @@ func dataSourceArmApplicationInsights() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"instrumentation_key": {
@@ -47,6 +47,11 @@ func dataSourceArmApplicationInsights() *schema.Resource {
 
 			"app_id": {
 				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"retention_in_days": {
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
@@ -83,5 +88,8 @@ func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface
 	d.Set("location", resp.Location)
 	d.Set("app_id", resp.AppID)
 	d.Set("application_type", resp.ApplicationType)
+	if v := resp.RetentionInDays; v != nil {
+		d.Set("retention_in_days", v)
+	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }

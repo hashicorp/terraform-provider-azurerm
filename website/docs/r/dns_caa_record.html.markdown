@@ -62,7 +62,7 @@ resource "azurerm_dns_caa_record" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS CAA Record.
+* `name` - (Required) The name of the DNS CAA Record. If you are creating the record in the apex of the zone use `"@"` as the name.
 
 * `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
@@ -88,6 +88,17 @@ The following attributes are exported:
 
 * `id` - The DNS CAA Record ID.
 * `fqdn` - The FQDN of the DNS CAA Record.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DNS CAA Record.
+* `update` - (Defaults to 30 minutes) Used when updating the DNS CAA Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DNS CAA Record.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DNS CAA Record.
 
 ## Import
 

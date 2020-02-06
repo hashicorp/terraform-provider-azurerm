@@ -46,13 +46,24 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the DDoS Protection Plan
+* `id` - The ID of the DDoS Protection Plan.
 
 * `virtual_network_ids` - The Resource ID list of the Virtual Networks associated with DDoS Protection Plan.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DDoS Protection Plan.
+* `update` - (Defaults to 30 minutes) Used when updating the DDoS Protection Plan.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DDoS Protection Plan.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DDoS Protection Plan.
+
 ## Import
 
-Azure DDoS Protection Plan can be imported using the `resource id`, e.g.
+DDoS Protection Plan's can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_ddos_protection_plan.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/ddosProtectionPlans/testddospplan

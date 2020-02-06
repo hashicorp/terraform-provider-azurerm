@@ -164,6 +164,17 @@ A `redis_configuration` block exports the following:
  - [Azure Redis Cache: SKU specific configuration limitations](https://azure.microsoft.com/en-us/documentation/articles/cache-configure/#advanced-settings)
  - [Redis: Available Configuration Settings](http://redis.io/topics/config)
 
+### Timeouts
+
+ ~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+ * `create` - (Defaults to 90 minutes) Used when creating the Redis Cache.
+ * `update` - (Defaults to 90 minutes) Used when updating the Redis Cache.
+ * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache.
+ * `delete` - (Defaults to 90 minutes) Used when deleting the Redis Cache.
+
 ## Import
 
 Redis Cache's can be imported using the `resource id`, e.g.

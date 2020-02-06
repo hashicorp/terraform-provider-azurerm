@@ -42,9 +42,20 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Object ID for the Service Principal.
+* `id` - The Object ID for the Azure Active Directory Service Principal.
 
 * `display_name` - The Display Name of the Azure Active Directory Application associated with this Service Principal.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Azure Active Directory Service Principal.
+* `update` - (Defaults to 30 minutes) Used when updating the Azure Active Directory Service Principal.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Active Directory Service Principal.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Azure Active Directory Service Principal.
 
 ## Import
 

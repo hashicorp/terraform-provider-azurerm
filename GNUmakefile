@@ -3,10 +3,11 @@ WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=azurerm
 TESTTIMEOUT=180m
 
-#make sure we catch schema errors during testing
-TF_SCHEMA_PANIC_ON_ERROR=1
-GO111MODULE=on
-GOFLAGS=-mod=vendor
+
+.EXPORT_ALL_VARIABLES:
+  TF_SCHEMA_PANIC_ON_ERROR=1
+  GO111MODULE=on
+  GOFLAGS=-mod=vendor
 
 default: build
 
@@ -68,9 +69,10 @@ depscheck:
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."
 	@tfproviderlint \
-        -AT001 -AT004 -AT005 -AT006 -AT007\
+        -AT001 -AT005 -AT006 -AT007\
         -R001 -R002 -R003 -R004 -R006\
-        -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019 -S020 -S021 -S022 -S023\
+        -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019 -S020\
+        -S021 -S022 -S023 -S024 -S025 -S026 -S027 -S028 -S029 -S030 -S031 -S032 -S033\
         ./$(PKG_NAME)/...
 	@sh -c "'$(CURDIR)/scripts/terrafmt-acctests.sh'"
 

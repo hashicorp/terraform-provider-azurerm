@@ -12,7 +12,7 @@ Manages a Virtual Machine.
 
 ~> **NOTE:** Data Disks can be attached either directly on the `azurerm_virtual_machine` resource, or using the `azurerm_virtual_machine_data_disk_attachment` resource - but the two cannot be used together. If both are used against the same Virtual Machine, spurious changes will occur.
 
--> **NOTE:** The `azurerm_virtual_machine` resource will be superseded by two new resources in the next major version of the Azure Provider (2.0) - [you can find out more about these changes here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807).
+-> **NOTE:** The `azurerm_virtual_machine` resource will be superseded by two new resources in the next major version of the Azure Provider (2.0) - [you can find out more about these changes here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807) and [find out how to opt-into the Beta of the new resources here](/docs/providers/azurerm/guides/2.0-beta.html).
 
 ## Example Usage (from an Azure Platform Image)
 
@@ -268,6 +268,8 @@ A `ssh_keys` block supports the following:
 
 * `key_data` - (Required) The Public SSH Key which should be written to the `path` defined above.
 
+~> **Note:** Azure only supports RSA SSH2 key signatures of at least 2048 bits in length
+
 -> **NOTE:** Rather than defining this in-line you can source this from a local file using [the `file` function](https://www.terraform.io/docs/configuration/functions/file.html) - for example `key_data = file("~/.ssh/id_rsa.pub")`.
 
 * `path` - (Required) The path of the destination file on the virtual machine
@@ -309,9 +311,9 @@ A `storage_data_disk` block supports the following:
 
 * `create_option` - (Required) Specifies how the data disk should be created. Possible values are `Attach`, `FromImage` and `Empty`.
 
-~> **NOTE:** If using an image that does not have data to be written to the Data Disk, use `Empty` as the create option in order to create the desired disk without any data. 
+~> **NOTE:** If using an image that does not have data to be written to the Data Disk, use `Empty` as the create option in order to create the desired disk without any data.
 
-* `disk_size_gb` - (Optional) Specifies the size of the data disk in gigabytes. 
+* `disk_size_gb` - (Optional) Specifies the size of the data disk in gigabytes.
 
 * `lun` - (Required) Specifies the logical unit number of the data disk. This needs to be unique within all the Data Disks on the Virtual Machine.
 
@@ -400,6 +402,17 @@ A `identity` block exports the following:
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Virtual Machine.
 
 -> You can access the Principal ID via `${azurerm_virtual_machine.example.identity.0.principal_id}`
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Virtual Machine.
+* `update` - (Defaults to 60 minutes) Used when updating the Virtual Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Machine.
 
 ## Import
 

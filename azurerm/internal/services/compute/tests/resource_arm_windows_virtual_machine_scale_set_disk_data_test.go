@@ -24,7 +24,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskBasic(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -46,7 +45,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskCaching(t *testing
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			), {
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskCaching(data, "ReadOnly"),
 				Check: resource.ComposeTestCheckFunc(
@@ -55,7 +53,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskCaching(t *testing
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskCaching(data, "ReadWrite"),
@@ -65,7 +62,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskCaching(t *testing
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -113,7 +109,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskResizing(t *testin
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// 60GB
@@ -124,7 +119,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskResizing(t *testin
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -146,7 +140,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskMultiple(t *testin
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -168,7 +161,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskRemove(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_authPassword(data),
@@ -178,7 +170,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskRemove(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -201,7 +192,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// one disk
@@ -212,7 +202,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// two disks
@@ -223,7 +212,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// no disks
@@ -234,7 +222,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskScaling(t *testing
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -256,7 +243,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountType
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -278,7 +264,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountType
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -300,7 +285,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountType
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -323,7 +307,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskStorageAccountType
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -345,7 +328,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksDataDiskWriteAcceleratorEn
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -775,6 +757,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+  zones               = [1, 2, 3]
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"

@@ -14,11 +14,12 @@ func (r Registration) Name() string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_api_management":         dataSourceApiManagementService(),
-		"azurerm_api_management_api":     dataSourceApiManagementApi(),
-		"azurerm_api_management_group":   dataSourceApiManagementGroup(),
-		"azurerm_api_management_product": dataSourceApiManagementProduct(),
-		"azurerm_api_management_user":    dataSourceArmApiManagementUser(),
+		"azurerm_api_management":                 dataSourceApiManagementService(),
+		"azurerm_api_management_api":             dataSourceApiManagementApi(),
+		"azurerm_api_management_api_version_set": dataSourceApiManagementApiVersionSet(),
+		"azurerm_api_management_group":           dataSourceApiManagementGroup(),
+		"azurerm_api_management_product":         dataSourceApiManagementProduct(),
+		"azurerm_api_management_user":            dataSourceArmApiManagementUser(),
 	}
 }
 

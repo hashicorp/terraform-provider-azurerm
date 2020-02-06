@@ -140,9 +140,9 @@ The following arguments are supported:
 
 * `virtual_machine_name` - (Optional / **Deprecated**) The name of the virtual machine. Changing
     this forces a new resource to be created.
-    
-* `virtual_machine_id` - (Optional) The resource ID of the virtual machine. This value replaces 
-    `location`, `resource_group_name` and `virtual_machine_name`. Changing this forces a new 
+
+* `virtual_machine_id` - (Optional) The resource ID of the virtual machine. This value replaces
+    `location`, `resource_group_name` and `virtual_machine_name`. Changing this forces a new
     resource to be created
 
 * `publisher` - (Required) The publisher of the extension, available publishers
@@ -178,7 +178,18 @@ $ az vm extension image list --location westus -o table
 
 The following attributes are exported:
 
-* `id` - The Virtual Machine Extension ID.
+* `id` - The ID of the Virtual Machine Extension.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Extension.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Extension.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Extension.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Extension.
 
 ## Import
 

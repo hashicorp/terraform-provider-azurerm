@@ -23,6 +23,8 @@ resource "azurerm_recovery_services_vault" "vault" {
   location            = "${azurerm_resource_group.rg.location}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   sku                 = "Standard"
+
+  soft_delete_enabled = true
 }
 ```
 
@@ -40,12 +42,24 @@ The following arguments are supported:
 
 * `sku` - (Required) Sets the vault's SKU. Possible values include: `Standard`, `RS0`.
 
+* `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Recovery Services Vault.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Recovery Services Vault.
+* `update` - (Defaults to 30 minutes) Used when updating the Recovery Services Vault.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services Vault.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Recovery Services Vault.
 
 ## Import
 

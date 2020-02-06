@@ -18,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -108,7 +107,7 @@ func resourceArmKeyVault() *schema.Resource {
 			"tenant_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.UUID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"access_policy": {
@@ -122,17 +121,17 @@ func resourceArmKeyVault() *schema.Resource {
 						"tenant_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: validation.IsUUID,
 						},
 						"object_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: validation.IsUUID,
 						},
 						"application_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: validation.IsUUID,
 						},
 						"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
 						"key_permissions":         azure.SchemaKeyVaultKeyPermissions(),

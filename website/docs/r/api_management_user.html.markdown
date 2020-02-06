@@ -66,13 +66,24 @@ The following arguments are supported:
 
 * `state` - (Optional) The state of this user. Possible values are `active`, `blocked` and `pending`.
 
--> **NOTE:** the State can be changed from Pending -> Active/Blocked but not from Active/Blocked -> Pending. 
+-> **NOTE:** the State can be changed from Pending -> Active/Blocked but not from Active/Blocked -> Pending.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management User.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management User.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management User.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management User.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management User.
 
 ## Import
 

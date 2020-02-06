@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	advisor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/client"
 	analysisServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/client"
 	apiManagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/client"
@@ -72,7 +73,9 @@ type Client struct {
 	// StopContext is used for propagating control from Terraform Core (e.g. Ctrl/Cmd+C)
 	StopContext context.Context
 
-	Account          *ResourceManagerAccount
+	Account  *ResourceManagerAccount
+	Features features.UserFeatures
+
 	Advisor          *advisor.Client
 	AnalysisServices *analysisServices.Client
 	ApiManagement    *apiManagement.Client
@@ -140,6 +143,7 @@ type Client struct {
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
 
 func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error {
+	client.Features = o.Features
 	client.StopContext = ctx
 
 	client.Advisor = advisor.NewClient(o)
