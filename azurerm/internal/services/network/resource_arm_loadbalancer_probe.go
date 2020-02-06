@@ -41,7 +41,7 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": azure.SchemaLocationDeprecated(),
@@ -96,7 +96,7 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				Set: schema.HashString,
 			},

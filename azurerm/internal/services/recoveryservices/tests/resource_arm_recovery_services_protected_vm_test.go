@@ -225,7 +225,7 @@ func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) reso
 func testAccAzureRMRecoveryServicesProtectedVm_base(data acceptance.TestData) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-recovery-%d"
   location = "%s"
 }
 
@@ -332,6 +332,8 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
+
+  soft_delete_enabled = false
 }
 
 resource "azurerm_recovery_services_protection_policy_vm" "test" {
@@ -369,7 +371,7 @@ resource "azurerm_recovery_services_protected_vm" "test" {
 func testAccAzureRMRecoveryServicesProtectedVm_basePolicyTest(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery1-%d"
+  name     = "acctestRG-recovery-%d-1"
   location = "%s"
 }
 
@@ -438,6 +440,8 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
+
+  soft_delete_enabled = false
 }
 `, template, data.RandomInteger)
 }
@@ -593,7 +597,7 @@ func testAccAzureRMRecoveryServicesProtectedVm_additionalVault(data acceptance.T
 %s
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-recovery2-%d"
+  name     = "acctestRG-recovery-%d-2"
   location = "%s"
 }
 
@@ -602,6 +606,8 @@ resource "azurerm_recovery_services_vault" "test2" {
   location            = "${azurerm_resource_group.test2.location}"
   resource_group_name = "${azurerm_resource_group.test2.name}"
   sku                 = "Standard"
+
+  soft_delete_enabled = false
 }
 
 resource "azurerm_recovery_services_protection_policy_vm" "test2" {

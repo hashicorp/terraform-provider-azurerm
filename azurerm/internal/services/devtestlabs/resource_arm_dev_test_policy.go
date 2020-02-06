@@ -72,7 +72,7 @@ func resourceArmDevTestPolicy() *schema.Resource {
 			"threshold": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"evaluator_type": {

@@ -73,13 +73,14 @@ func resourceArmIotHubDPS() *schema.Resource {
 								string(devices.S1),
 								string(devices.S2),
 								string(devices.S3),
-							}, true),
+							}, true), // todo 2.0 make this case sensitive
 						},
 
 						"tier": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:       schema.TypeString,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "This property is no longer required and will be removed in version 2.0 of the provider",
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.Basic),
 								string(devices.Free),
@@ -90,7 +91,7 @@ func resourceArmIotHubDPS() *schema.Resource {
 						"capacity": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							ValidateFunc: validation.IntBetween(1, 200),
 						},
 					},
 				},
@@ -104,7 +105,7 @@ func resourceArmIotHubDPS() *schema.Resource {
 						"connection_string": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 							ForceNew:     true,
 							// Azure returns the key as ****. We'll suppress that here.
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
@@ -117,7 +118,7 @@ func resourceArmIotHubDPS() *schema.Resource {
 						"location": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 							StateFunc:    azure.NormalizeLocation,
 							ForceNew:     true,
 						},
@@ -329,15 +330,10 @@ func iothubdpsStateStatusCodeRefreshFunc(ctx context.Context, client *iothub.Iot
 func expandIoTHubDPSSku(d *schema.ResourceData) *iothub.IotDpsSkuInfo {
 	skuList := d.Get("sku").([]interface{})
 	skuMap := skuList[0].(map[string]interface{})
-	capacity := int64(skuMap["capacity"].(int))
-
-	name := skuMap["name"].(string)
-	tier := skuMap["tier"].(string)
 
 	return &iothub.IotDpsSkuInfo{
-		Name:     iothub.IotDpsSku(name),
-		Tier:     utils.String(tier),
-		Capacity: utils.Int64(capacity),
+		Name:     iothub.IotDpsSku(skuMap["name"].(string)),
+		Capacity: utils.Int64(int64(skuMap["capacity"].(int))),
 	}
 }
 

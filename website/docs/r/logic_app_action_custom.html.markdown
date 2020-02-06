@@ -67,6 +67,17 @@ The following attributes are exported:
 
 * `id` - The ID of the Action within the Logic App Workflow.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Logic App Custom Action.
+* `update` - (Defaults to 30 minutes) Used when updating the Logic App Custom Action.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Custom Action.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Logic App Custom Action.
+
 ## Import
 
 Logic App Custom Actions can be imported using the `resource id`, e.g.

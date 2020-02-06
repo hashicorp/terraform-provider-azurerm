@@ -134,7 +134,18 @@ The `policy_setting` block supports the following:
 
 The following attributes are exported:
 
-* `id` - Resource ID.
+* `id` - The ID of the Web Application Firewall Policy.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Web Application Firewall Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Web Application Firewall Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Web Application Firewall Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Web Application Firewall Policy.
 
 ## Import
 

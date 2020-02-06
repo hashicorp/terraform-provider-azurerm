@@ -46,7 +46,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -69,7 +69,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 				/* Container groups deployed to a virtual network don't currently support exposing containers directly to the internet with a public IP address or a fully qualified domain name.
 				 * Name resolution for Azure resources in the virtual network via the internal Azure DNS is not supported
 				 * You cannot use a managed identity in a container group deployed to a virtual network.
@@ -99,14 +99,14 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"username": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"password": {
@@ -114,7 +114,7 @@ func resourceArmContainerGroup() *schema.Resource {
 							Required:     true,
 							Sensitive:    true,
 							ForceNew:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -185,14 +185,14 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"image": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"cpu": {
@@ -218,7 +218,7 @@ func resourceArmContainerGroup() *schema.Resource {
 										Type:     schema.TypeInt,
 										Optional: true,
 										ForceNew: true,
-										ValidateFunc: validate.IntInSlice([]int{
+										ValidateFunc: validation.IntInSlice([]int{
 											1,
 											2,
 											4,
@@ -326,7 +326,7 @@ func resourceArmContainerGroup() *schema.Resource {
 							ForceNew: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -340,14 +340,14 @@ func resourceArmContainerGroup() *schema.Resource {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"mount_path": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"read_only": {
@@ -361,14 +361,14 @@ func resourceArmContainerGroup() *schema.Resource {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"storage_account_name": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"storage_account_key": {
@@ -376,7 +376,7 @@ func resourceArmContainerGroup() *schema.Resource {
 										Required:     true,
 										Sensitive:    true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -407,7 +407,7 @@ func resourceArmContainerGroup() *schema.Resource {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.UUID,
+										ValidateFunc: validation.IsUUID,
 									},
 
 									"workspace_key": {
@@ -415,7 +415,7 @@ func resourceArmContainerGroup() *schema.Resource {
 										Required:     true,
 										Sensitive:    true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"log_type": {
@@ -578,7 +578,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if props := resp.ContainerGroupProperties; props != nil {
-		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.IPAddress.Ports, props.Volumes)
+		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.IPAddress, props.Volumes)
 		if err := d.Set("container", containerConfigs); err != nil {
 			return fmt.Errorf("Error setting `container`: %+v", err)
 		}
@@ -1104,7 +1104,7 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]c
 	return output
 }
 
-func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, containerGroupPorts *[]containerinstance.Port, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, ipAddress *containerinstance.IPAddress, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 	//map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}
 	for i, c := range d.Get("container").([]interface{}) {
@@ -1166,10 +1166,12 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			containerConfig["port"] = containerPort
 			// protocol isn't returned in container config, have to search in container group ports
 			protocol := ""
-			if containerGroupPorts != nil {
-				for _, cgPort := range *containerGroupPorts {
-					if *cgPort.Port == containerPort {
-						protocol = string(cgPort.Protocol)
+			if ipAddress != nil {
+				if containerGroupPorts := ipAddress.Ports; containerGroupPorts != nil {
+					for _, cgPort := range *containerGroupPorts {
+						if *cgPort.Port == containerPort {
+							protocol = string(cgPort.Protocol)
+						}
 					}
 				}
 			}

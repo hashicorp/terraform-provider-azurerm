@@ -40,9 +40,10 @@ func resourceArmPostgreSQLConfiguration() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: ValidatePSQLServerName,
 			},
 
 			"value": {

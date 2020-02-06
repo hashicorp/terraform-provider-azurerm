@@ -64,6 +64,22 @@ func resourceArmApplicationInsights() *schema.Resource {
 				}, true),
 			},
 
+			"retention_in_days": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				ValidateFunc: validation.IntInSlice([]int{
+					30,
+					60,
+					90,
+					120,
+					180,
+					270,
+					365,
+					550,
+					730,
+				}),
+			},
+
 			"sampling_percentage": {
 				Type:         schema.TypeFloat,
 				Optional:     true,
@@ -72,6 +88,19 @@ func resourceArmApplicationInsights() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"daily_data_cap_in_gb": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.FloatBetween(0, 1000),
+			},
+
+			"daily_data_cap_notifications_disabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 
 			"app_id": {
 				Type:     schema.TypeString,
@@ -89,7 +118,9 @@ func resourceArmApplicationInsights() *schema.Resource {
 
 func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights creation.")
@@ -121,6 +152,10 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		SamplingPercentage: samplingPercentage,
 	}
 
+	if v, ok := d.GetOk("retention_in_days"); ok {
+		applicationInsightsComponentProperties.RetentionInDays = utils.Int32(int32(v.(int)))
+	}
+
 	insightProperties := insights.ApplicationInsightsComponent{
 		Name:                                   &name,
 		Location:                               &location,
@@ -147,6 +182,28 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
 	}
 
+	billingRead, err := billingClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error read Application Insights Billing Features %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	applicationInsightsComponentBillingFeatures := insights.ApplicationInsightsComponentBillingFeatures{
+		CurrentBillingFeatures: billingRead.CurrentBillingFeatures,
+		DataVolumeCap:          billingRead.DataVolumeCap,
+	}
+
+	if v, ok := d.GetOk("daily_data_cap_in_gb"); ok {
+		applicationInsightsComponentBillingFeatures.DataVolumeCap.Cap = utils.Float(v.(float64))
+	}
+
+	if v, ok := d.GetOk("daily_data_cap_notifications_disabled"); ok {
+		applicationInsightsComponentBillingFeatures.DataVolumeCap.StopSendNotificationWhenHitCap = utils.Bool(v.(bool))
+	}
+
+	if _, err = billingClient.Update(ctx, resGroup, name, applicationInsightsComponentBillingFeatures); err != nil {
+		return fmt.Errorf("Error update Application Insights Billing Feature %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
 	d.SetId(*read.ID)
 
 	return resourceArmApplicationInsightsRead(d, meta)
@@ -154,6 +211,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 
 func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
+	billingClient := meta.(*clients.Client).AppInsights.BillingClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -176,6 +234,11 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", name, err)
 	}
 
+	billingResp, err := billingClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", name, err)
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
@@ -187,6 +250,14 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("app_id", props.AppID)
 		d.Set("instrumentation_key", props.InstrumentationKey)
 		d.Set("sampling_percentage", props.SamplingPercentage)
+		if v := props.RetentionInDays; v != nil {
+			d.Set("retention_in_days", v)
+		}
+	}
+
+	if billingProps := billingResp.DataVolumeCap; billingProps != nil {
+		d.Set("daily_data_cap_in_gb", billingProps.Cap)
+		d.Set("daily_data_cap_notifications_disabled", billingProps.StopSendNotificationWhenHitCap)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

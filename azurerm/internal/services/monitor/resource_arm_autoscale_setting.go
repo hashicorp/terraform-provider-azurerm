@@ -51,7 +51,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -80,7 +80,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"capacity": {
 							Type:     schema.TypeList,
@@ -121,7 +121,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 												"metric_name": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validate.NoEmptyStrings,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 												"metric_resource_id": {
 													Type:         schema.TypeString,
@@ -341,7 +341,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 									"service_uri": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"properties": {
 										Type:     schema.TypeMap,

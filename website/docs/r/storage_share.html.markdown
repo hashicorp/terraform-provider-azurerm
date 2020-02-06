@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to
     create the share. Changing this forces a new resource to be created.
-    
+
 ---
 
 A `acl` block supports the following:
@@ -61,7 +61,7 @@ A `acl` block supports the following:
 
 ---
 
-A `access_policy` block supports the following: 
+A `access_policy` block supports the following:
 
 * `expiry` - (Required) The ISO8061 UTC time at which this Access Policy should be valid until.
 
@@ -75,6 +75,17 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the File Share.
 * `url` - The URL of the File Share
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Storage Share.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Share.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Share.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Storage Share.
 
 ## Import
 

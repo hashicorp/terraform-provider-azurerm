@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -111,7 +110,7 @@ func resourceArmImage() *schema.Resource {
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.URLIsHTTPOrHTTPS,
+							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 
 						"caching": {
@@ -158,7 +157,7 @@ func resourceArmImage() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.URLIsHTTPOrHTTPS,
+							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 
 						"caching": {

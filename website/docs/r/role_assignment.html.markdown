@@ -129,7 +129,7 @@ The following arguments are supported:
 
 * `role_definition_name` - (Optional) The name of a built-in Role. Changing this forces a new resource to be created. Conflicts with `role_definition_id`.
 
-* `principal_id` - (Required) The ID of the Principal (User, Group, Service Principal, or Application) to assign the Role Definition to. Changing this forces a new resource to be created. 
+* `principal_id` - (Required) The ID of the Principal (User, Group, Service Principal, or Application) to assign the Role Definition to. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
 
@@ -142,6 +142,17 @@ The following attributes are exported:
 * `id` - The Role Assignment ID.
 
 * `principal_type` - The type of the `principal_id`, e.g. User, Group, Service Principal, Application, etc.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Role Assignment.
+* `update` - (Defaults to 30 minutes) Used when updating the Role Assignment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Role Assignment.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Role Assignment.
 
 ## Import
 

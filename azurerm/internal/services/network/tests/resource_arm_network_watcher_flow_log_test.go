@@ -267,6 +267,34 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 	})
 }
 
+func testAccAzureRMNetworkWatcherFlowLog_version(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkWatcherFlowLog_versionConfig(data, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "version", "1"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNetworkWatcherFlowLog_versionConfig(data, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherFlowLogExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "version", "2"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMNetworkWatcherFlowLogExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.WatcherClient
@@ -492,4 +520,39 @@ resource "azurerm_network_watcher_flow_log" "test" {
   }
 }
 `, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger)
+}
+
+func testAccAzureRMNetworkWatcherFlowLog_versionConfig(data acceptance.TestData, version int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+  network_watcher_name = "${azurerm_network_watcher.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+  storage_account_id        = "${azurerm_storage_account.test.id}"
+  enabled                   = true
+  version                   = %d
+
+  retention_policy {
+    enabled = true
+    days    = 7
+  }
+
+  traffic_analytics {
+    enabled               = true
+    workspace_id          = "${azurerm_log_analytics_workspace.test.workspace_id}"
+    workspace_region      = "${azurerm_log_analytics_workspace.test.location}"
+    workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  }
+}
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(data), data.RandomInteger, version)
 }

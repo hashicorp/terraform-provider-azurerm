@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -44,7 +43,7 @@ func resourceArmApiManagementApiVersionSet() *schema.Resource {
 			"display_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"versioning_scheme": {
@@ -60,20 +59,20 @@ func resourceArmApiManagementApiVersionSet() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"version_header_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ValidateFunc:  validate.NoEmptyStrings,
+				ValidateFunc:  validation.StringIsNotEmpty,
 				ConflictsWith: []string{"version_query_name"},
 			},
 
 			"version_query_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ValidateFunc:  validate.NoEmptyStrings,
+				ValidateFunc:  validation.StringIsNotEmpty,
 				ConflictsWith: []string{"version_header_name"},
 			},
 		},

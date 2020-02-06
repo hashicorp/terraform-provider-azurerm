@@ -46,15 +46,18 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Proximity Placement Group ID.
+* `id` - The ID of the Proximity Placement Group.
 
-* `name` - The name of the Proximity Placement Group.
+### Timeouts
 
-* `location` - The location of the Proximity Placement Group.
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
-* `resource_group_name` - The name of the resource group in which the Proximity Placement Group exists.
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `tags` - The tags attached to the Proximity Placement Group.
+* `create` - (Defaults to 30 minutes) Used when creating the Proximity Placement Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Proximity Placement Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Proximity Placement Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Proximity Placement Group.
 
 ## Import
 

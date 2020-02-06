@@ -51,19 +51,20 @@ func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
 
 		// Check 0. validate that at least one routing configuration exists per routing rule
 		if len(redirectConfig) == 0 && len(forwardConfig) == 0 {
-			return fmt.Errorf(`"routing_rule":%q is invalid. you must have either a "redirect_configuration" or a "forwarding_configuration" defined for the "routing_rule":%q `, routingRuleName, routingRuleName)
+			return fmt.Errorf(`routing_rule %s block is invalid. you must have either a "redirect_configuration" or a "forwarding_configuration" defined for the routing_rule %s`, routingRuleName, routingRuleName)
 		}
 
 		// Check 1. validate that only one configuration type is defined per routing rule
 		if len(redirectConfig) == 1 && len(forwardConfig) == 1 {
-			return fmt.Errorf(`"routing_rule":%q is invalid. "redirect_configuration" conflicts with "forwarding_configuration". You can only have one configuration type per each routing rule`, routingRuleName)
+			return fmt.Errorf(`routing_rule %s block is invalid. "redirect_configuration" conflicts with "forwarding_configuration". You can only have one configuration type per each routing rule`, routingRuleName)
 		}
 
 		// Check 2. routing rule is a forwarding_configuration type make sure the backend_pool_name exists in the configuration file
 		if len(forwardConfig) > 0 {
 			fc := forwardConfig[0].(map[string]interface{})
+
 			if err := VerifyBackendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
-				return fmt.Errorf(`"routing_rule":%q is invalid. %+v`, routingRuleName, err)
+				return fmt.Errorf(`routing_rule %s is invalid. %+v`, routingRuleName, err)
 			}
 		}
 

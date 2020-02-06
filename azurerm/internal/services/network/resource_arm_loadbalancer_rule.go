@@ -60,7 +60,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 			"frontend_ip_configuration_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"frontend_ip_configuration_id": {

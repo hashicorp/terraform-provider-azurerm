@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `application_insights_id` - (Required) The ID of the Application Insights component on which the API key operates. Changing this forces a new resource to be created.
 
-* `read_permissions` - (Optional) Specifies the list of read permissions granted to the API key. Valid values are `agentconfig`, `aggregate`, `api`, `draft`, `extendqueries`, `search`. Please note these values are case sensitive. Changing this forces a new resource to be created. 
+* `read_permissions` - (Optional) Specifies the list of read permissions granted to the API key. Valid values are `agentconfig`, `aggregate`, `api`, `draft`, `extendqueries`, `search`. Please note these values are case sensitive. Changing this forces a new resource to be created.
 
 * `write_permissions` - (Optional) Specifies the list of write permissions granted to the API key. Valid values are `annotations`. Please note these values are case sensitive. Changing this forces a new resource to be created.
 
@@ -89,6 +89,17 @@ The following attributes are exported:
 * `id` - The ID of the Application Insights API key.
 
 * `api_key` - The API Key secret (Sensitive).
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Application Insights API Key.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Insights API Key.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights API Key.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights API Key.
 
 ## Import
 

@@ -31,6 +31,25 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySQLServer_basicFiveSixOldSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySQLServer_basicFiveSixOldSku(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
+		},
+	})
+}
+
 func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -302,6 +321,34 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
+  sku_name = "GP_Gen5_2"
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "5.6"
+  ssl_enforcement              = "Enabled"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMMySQLServer_basicFiveSixOldSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                = "acctestmysqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     name     = "GP_Gen5_2"
     capacity = 2
@@ -335,12 +382,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -368,12 +410,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -398,12 +435,7 @@ resource "azurerm_mysql_server" "import" {
   location            = "${azurerm_mysql_server.test.location}"
   resource_group_name = "${azurerm_mysql_server.test.resource_group_name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -431,12 +463,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_4"
-    capacity = 4
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_4"
 
   storage_profile {
     storage_mb            = 640000
@@ -497,12 +524,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "MO_Gen5_16"
-    capacity = 16
-    tier     = "MemoryOptimized"
-    family   = "Gen5"
-  }
+  sku_name = "MO_Gen5_16"
 
   storage_profile {
     storage_mb            = 4194304
@@ -530,12 +552,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "MO_Gen5_16"
-    capacity = 16
-    tier     = "MemoryOptimized"
-    family   = "Gen5"
-  }
+  sku_name = "MO_Gen5_16"
 
   storage_profile {
     storage_mb            = 4194304
@@ -563,12 +580,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200

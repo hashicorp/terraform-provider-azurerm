@@ -87,7 +87,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -105,7 +105,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"default_node_pool": SchemaDefaultNodePool(),
@@ -186,7 +186,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Required:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validate.NoEmptyStrings,
+							ValidateFunc:     validation.StringIsNotEmpty,
 						},
 
 						"os_disk_size_gb": {
@@ -246,14 +246,14 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"client_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"client_secret": {
 							Type:         schema.TypeString,
 							Required:     true,
 							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -334,7 +334,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -415,6 +415,54 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+						"load_balancer_profile": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							ForceNew: true,
+							Optional: true,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"managed_outbound_ip_count": {
+										Type:          schema.TypeInt,
+										Optional:      true,
+										Computed:      true,
+										ValidateFunc:  validation.IntBetween(1, 100),
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+									},
+									"outbound_ip_prefix_ids": {
+										Type:          schema.TypeSet,
+										Optional:      true,
+										Computed:      true,
+										ConfigMode:    schema.SchemaConfigModeAttr,
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: azure.ValidateResourceID,
+										},
+									},
+									"outbound_ip_address_ids": {
+										Type:          schema.TypeSet,
+										Optional:      true,
+										Computed:      true,
+										ConfigMode:    schema.SchemaConfigModeAttr,
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ip_count", "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: azure.ValidateResourceID,
+										},
+									},
+									"effective_outbound_ips": {
+										Type:       schema.TypeSet,
+										Computed:   true,
+										ConfigMode: schema.SchemaConfigModeAttr,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -436,7 +484,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -448,39 +495,34 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"azure_active_directory": {
 							Type:     schema.TypeList,
 							Optional: true,
-							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"client_app_id": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validate.UUID,
+										ValidateFunc: validation.IsUUID,
 									},
 
 									"server_app_id": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validate.UUID,
+										ValidateFunc: validation.IsUUID,
 									},
 
 									"server_app_secret": {
 										Type:         schema.TypeString,
-										ForceNew:     true,
 										Required:     true,
 										Sensitive:    true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"tenant_id": {
 										Type:     schema.TypeString,
 										Optional: true,
 										Computed: true,
-										ForceNew: true,
 										// OrEmpty since this can be sourced from the client config if it's not specified
-										ValidateFunc: validate.UUIDOrEmpty,
+										ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
 									},
 								},
 							},
@@ -506,7 +548,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -521,7 +563,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"kube_admin_config": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"host": {
@@ -563,7 +604,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"kube_config": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"host": {
@@ -656,7 +696,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	addonProfiles := ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
 
 	networkProfileRaw := d.Get("network_profile").([]interface{})
-	networkProfile := expandKubernetesClusterNetworkProfile(networkProfileRaw)
+	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw)
+	if err != nil {
+		return err
+	}
 
 	rbacRaw := d.Get("role_based_access_control").([]interface{})
 	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
@@ -789,6 +832,34 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	// since there's multiple reasons why we could be called into Update, we use this to only update if something's changed that's not SP/Version
 	updateCluster := false
 
+	// RBAC profile updates need to be handled atomically before any call to createUpdate as a diff there will create a PropertyChangeNotAllowed error
+	if d.HasChange("role_based_access_control") {
+		props := existing.ManagedClusterProperties
+		// check if we can determine current EnableRBAC state - don't do anything destructive if we can't be sure
+		if props.EnableRBAC == nil {
+			return fmt.Errorf("Error reading current state of RBAC Enabled, expected bool got %+v", props.EnableRBAC)
+		}
+		rbacRaw := d.Get("role_based_access_control").([]interface{})
+		rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+		// changing rbacEnabled must still force cluster recreation
+		if *props.EnableRBAC == rbacEnabled {
+			props.AadProfile = azureADProfile
+			props.EnableRBAC = utils.Bool(rbacEnabled)
+
+			log.Printf("[DEBUG] Updating the RBAC AAD profile")
+			future, err := clusterClient.ResetAADProfile(ctx, resourceGroup, name, *props.AadProfile)
+			if err != nil {
+				return fmt.Errorf("Error updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+
+			if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
+				return fmt.Errorf("Error waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", name, resourceGroup, err)
+			}
+		} else {
+			updateCluster = true
+		}
+	}
+
 	if d.HasChange("addon_profile") {
 		updateCluster = true
 		addOnProfilesRaw := d.Get("addon_profile").([]interface{})
@@ -822,16 +893,12 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("network_profile") {
 		updateCluster = true
 		networkProfileRaw := d.Get("network_profile").([]interface{})
-		networkProfile := expandKubernetesClusterNetworkProfile(networkProfileRaw)
-		existing.ManagedClusterProperties.NetworkProfile = networkProfile
-	}
+		networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw)
+		if err != nil {
+			return err
+		}
 
-	if d.HasChange("role_based_access_control") {
-		updateCluster = true
-		rbacRaw := d.Get("role_based_access_control").([]interface{})
-		rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
-		existing.ManagedClusterProperties.AadProfile = azureADProfile
-		existing.ManagedClusterProperties.EnableRBAC = utils.Bool(rbacEnabled)
+		existing.ManagedClusterProperties.NetworkProfile = networkProfile
 	}
 
 	if d.HasChange("tags") {
@@ -1362,9 +1429,9 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 	}
 }
 
-func expandKubernetesClusterNetworkProfile(input []interface{}) *containerservice.NetworkProfileType {
+func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservice.NetworkProfileType, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	config := input[0].(map[string]interface{})
@@ -1373,10 +1440,16 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) *containerservic
 	networkPolicy := config["network_policy"].(string)
 	loadBalancerSku := config["load_balancer_sku"].(string)
 
+	loadBalancerProfile, err := expandLoadBalancerProfile(config["load_balancer_profile"].([]interface{}), loadBalancerSku)
+	if err != nil {
+		return nil, err
+	}
+
 	networkProfile := containerservice.NetworkProfileType{
-		NetworkPlugin:   containerservice.NetworkPlugin(networkPlugin),
-		NetworkPolicy:   containerservice.NetworkPolicy(networkPolicy),
-		LoadBalancerSku: containerservice.LoadBalancerSku(loadBalancerSku),
+		NetworkPlugin:       containerservice.NetworkPlugin(networkPlugin),
+		NetworkPolicy:       containerservice.NetworkPolicy(networkPolicy),
+		LoadBalancerSku:     containerservice.LoadBalancerSku(loadBalancerSku),
+		LoadBalancerProfile: loadBalancerProfile,
 	}
 
 	if v, ok := config["dns_service_ip"]; ok && v.(string) != "" {
@@ -1399,7 +1472,83 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) *containerservic
 		networkProfile.ServiceCidr = utils.String(serviceCidr)
 	}
 
-	return &networkProfile
+	return &networkProfile, nil
+}
+
+func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
+	if len(d) == 0 || d[0] == nil {
+		return nil, nil
+	}
+
+	if strings.ToLower(loadBalancerType) != "standard" {
+		return nil, fmt.Errorf("Only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerType)
+	}
+
+	config := d[0].(map[string]interface{})
+
+	var managedOutboundIps *containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs
+	var outboundIpPrefixes *containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes
+	var outboundIps *containerservice.ManagedClusterLoadBalancerProfileOutboundIPs
+
+	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
+		if c := int32(ipCount.(int)); c > 0 {
+			managedOutboundIps = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
+		}
+	}
+
+	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefix_ids"]); ipPrefixes != nil {
+		outboundIpPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
+	}
+
+	if outIps := idsToResourceReferences(config["outbound_ip_address_ids"]); outIps != nil {
+		outboundIps = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
+	}
+
+	return &containerservice.ManagedClusterLoadBalancerProfile{
+		ManagedOutboundIPs: managedOutboundIps,
+		OutboundIPPrefixes: outboundIpPrefixes,
+		OutboundIPs:        outboundIps,
+	}, nil
+}
+
+func idsToResourceReferences(set interface{}) *[]containerservice.ResourceReference {
+	if set == nil {
+		return nil
+	}
+
+	s := set.(*schema.Set)
+	results := make([]containerservice.ResourceReference, 0)
+
+	for _, element := range s.List() {
+		id := element.(string)
+		results = append(results, containerservice.ResourceReference{ID: &id})
+	}
+
+	if len(results) > 0 {
+		return &results
+	}
+
+	return nil
+}
+
+func resourceReferencesToIds(refs *[]containerservice.ResourceReference) []string {
+	if refs == nil {
+		return nil
+	}
+
+	ids := make([]string, 0)
+
+	for _, ref := range *refs {
+		if ref.ID != nil {
+			ids = append(ids, *ref.ID)
+		}
+	}
+
+	if len(ids) > 0 {
+		return ids
+	}
+
+	return nil
 }
 
 func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfileType) []interface{} {
@@ -1427,15 +1576,42 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 		podCidr = *profile.PodCidr
 	}
 
+	lbProfiles := make([]interface{}, 0)
+	if lbp := profile.LoadBalancerProfile; lbp != nil {
+		lb := make(map[string]interface{})
+
+		if ips := lbp.ManagedOutboundIPs; ips != nil {
+			if count := ips.Count; count != nil {
+				lb["managed_outbound_ip_count"] = count
+			}
+		}
+
+		if oip := lbp.OutboundIPs; oip != nil {
+			if poip := oip.PublicIPs; poip != nil {
+				lb["outbound_ip_address_ids"] = resourceReferencesToIds(poip)
+			}
+		}
+
+		if oip := lbp.OutboundIPPrefixes; oip != nil {
+			if pip := oip.PublicIPPrefixes; pip != nil {
+				lb["outbound_ip_prefix_ids"] = resourceReferencesToIds(pip)
+			}
+		}
+
+		lb["effective_outbound_ips"] = resourceReferencesToIds(profile.LoadBalancerProfile.EffectiveOutboundIPs)
+		lbProfiles = append(lbProfiles, lb)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"dns_service_ip":     dnsServiceIP,
-			"docker_bridge_cidr": dockerBridgeCidr,
-			"load_balancer_sku":  string(profile.LoadBalancerSku),
-			"network_plugin":     string(profile.NetworkPlugin),
-			"network_policy":     string(profile.NetworkPolicy),
-			"pod_cidr":           podCidr,
-			"service_cidr":       serviceCidr,
+			"dns_service_ip":        dnsServiceIP,
+			"docker_bridge_cidr":    dockerBridgeCidr,
+			"load_balancer_sku":     string(profile.LoadBalancerSku),
+			"load_balancer_profile": lbProfiles,
+			"network_plugin":        string(profile.NetworkPlugin),
+			"network_policy":        string(profile.NetworkPolicy),
+			"pod_cidr":              podCidr,
+			"service_cidr":          serviceCidr,
 		},
 	}
 }

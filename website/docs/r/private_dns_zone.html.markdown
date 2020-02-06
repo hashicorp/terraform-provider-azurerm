@@ -43,6 +43,17 @@ The following attributes are exported:
 * `max_number_of_virtual_network_links` - The maximum number of virtual networks that can be linked to this Private DNS zone.
 * `max_number_of_virtual_network_links_with_registration` - The maximum number of virtual networks that can be linked to this Private DNS zone with registration enabled.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Private DNS Zone.
+* `update` - (Defaults to 30 minutes) Used when updating the Private DNS Zone.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private DNS Zone.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Private DNS Zone.
+
 ## Import
 
 Private DNS Zones can be imported using the `resource id`, e.g.

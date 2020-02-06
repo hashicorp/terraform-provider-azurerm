@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-04-01/frontdoor"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-11-01/frontdoor"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -172,6 +172,11 @@ func resourceArmFrontDoor() *schema.Resource {
 										Required:     true,
 										ValidateFunc: ValidateBackendPoolRoutingRuleName,
 									},
+									"cache_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
 										Optional: true,
@@ -190,6 +195,7 @@ func resourceArmFrontDoor() *schema.Resource {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
+									// TODO: In 2.0 Switch default value from MatchRequest to HTTPSOnly #4627
 									"forwarding_protocol": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -402,6 +408,10 @@ func resourceArmFrontDoor() *schema.Resource {
 										}, false),
 										Default: string(frontdoor.CertificateSourceFrontDoor),
 									},
+									"minimum_tls_version": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
 									"provisioning_state": {
 										Type:     schema.TypeString,
 										Computed: true,
@@ -543,9 +553,12 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 					// Build a custom Https configuration based off the config file to send to the enable call
 					// NOTE: I do not need to check to see if this exists since I already do that in the validation code
 					chc := frontendEndpoint["custom_https_configuration"].([]interface{})
-					customHttpsConfiguration := chc[0].(map[string]interface{})
-					customHTTPSConfigurationUpdate := makeCustomHttpsConfiguration(customHttpsConfiguration)
-
+					customHTTPSConfiguration := chc[0].(map[string]interface{})
+					minTLSVersion := frontdoor.OneFullStopTwo // Default to TLS 1.2
+					if httpsConfig := properties.CustomHTTPSConfiguration; httpsConfig != nil {
+						minTLSVersion = httpsConfig.MinimumTLSVersion
+					}
+					customHTTPSConfigurationUpdate := makeCustomHttpsConfiguration(customHTTPSConfiguration, minTLSVersion)
 					// Enable Custom Domain HTTPS for the Frontend Endpoint
 					if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(d, true, name, frontendEndpointName, resourceGroup, customHTTPSConfigurationUpdate, meta); err != nil {
 						return fmt.Errorf("Unable enable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
@@ -602,6 +615,10 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["frontdoors"]
+	// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+	if name == "" {
+		name = id.Path["Frontdoors"]
+	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -655,7 +672,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error setting `backend_pool_load_balancing`: %+v", err)
 		}
 
-		if err := d.Set("routing_rule", flattenArmFrontDoorRoutingRule(properties.RoutingRules)); err != nil {
+		if err := d.Set("routing_rule", flattenArmFrontDoorRoutingRule(properties.RoutingRules, d.Get("routing_rule"))); err != nil {
 			return fmt.Errorf("Error setting `routing_rules`: %+v", err)
 		}
 	}
@@ -674,6 +691,10 @@ func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["frontdoors"]
+	// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+	if name == "" {
+		name = id.Path["Frontdoors"]
+	}
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -797,7 +818,6 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorPath strin
 		hostName := frontendEndpoint["host_name"].(string)
 		isSessionAffinityEnabled := frontendEndpoint["session_affinity_enabled"].(bool)
 		sessionAffinityTtlSeconds := int32(frontendEndpoint["session_affinity_ttl_seconds"].(int))
-		customHttpsConfiguration := frontendEndpoint["custom_https_configuration"].([]interface{})
 		waf := frontendEndpoint["web_application_firewall_policy_link_id"].(string)
 		name := frontendEndpoint["name"].(string)
 		id := utils.String(frontDoorPath + "/FrontendEndpoints/" + name)
@@ -811,7 +831,6 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorPath strin
 			ID:   id,
 			Name: utils.String(name),
 			FrontendEndpointProperties: &frontdoor.FrontendEndpointProperties{
-				CustomHTTPSConfiguration:    expandArmFrontDoorCustomHTTPSConfiguration(customHttpsConfiguration),
 				HostName:                    utils.String(hostName),
 				SessionAffinityEnabledState: sessionAffinityEnabled,
 				SessionAffinityTTLSeconds:   utils.Int32(sessionAffinityTtlSeconds),
@@ -828,24 +847,6 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorPath strin
 	}
 
 	return &output
-}
-
-func expandArmFrontDoorCustomHTTPSConfiguration(input []interface{}) *frontdoor.CustomHTTPSConfiguration {
-	if len(input) == 0 {
-		defaultHttpsConfiguration := frontdoor.CustomHTTPSConfiguration{
-			ProtocolType:      frontdoor.ServerNameIndication,
-			CertificateSource: frontdoor.CertificateSourceFrontDoor,
-			CertificateSourceParameters: &frontdoor.CertificateSourceParameters{
-				CertificateType: frontdoor.Dedicated,
-			},
-		}
-		return &defaultHttpsConfiguration
-	}
-
-	v := input[0].(map[string]interface{})
-	customHttpsConfiguration := makeCustomHttpsConfiguration(v)
-
-	return &customHttpsConfiguration
 }
 
 func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorPath string) *[]frontdoor.HealthProbeSettingsModel {
@@ -1050,20 +1051,10 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorPat
 
 	customForwardingPath := v["custom_forwarding_path"].(string)
 	forwardingProtocol := v["forwarding_protocol"].(string)
+	backendPoolName := v["backend_pool_name"].(string)
 	cacheUseDynamicCompression := v["cache_use_dynamic_compression"].(bool)
 	cacheQueryParameterStripDirective := v["cache_query_parameter_strip_directive"].(string)
-	backendPoolName := v["backend_pool_name"].(string)
-
-	useDynamicCompression := frontdoor.DynamicCompressionEnabledDisabled
-
-	if cacheUseDynamicCompression {
-		useDynamicCompression = frontdoor.DynamicCompressionEnabledEnabled
-	}
-
-	cacheConfiguration := &frontdoor.CacheConfiguration{
-		QueryParameterStripDirective: frontdoor.Query(cacheQueryParameterStripDirective),
-		DynamicCompression:           useDynamicCompression,
-	}
+	cacheEnabled := v["cache_enabled"].(bool)
 
 	backend := &frontdoor.SubResource{
 		ID: utils.String(frontDoorPath + "/BackendPools/" + backendPoolName),
@@ -1071,9 +1062,28 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorPat
 
 	forwardingConfiguration := frontdoor.ForwardingConfiguration{
 		ForwardingProtocol: frontdoor.ForwardingProtocol(forwardingProtocol),
-		CacheConfiguration: cacheConfiguration,
 		BackendPool:        backend,
 		OdataType:          frontdoor.OdataTypeMicrosoftAzureFrontDoorModelsFrontdoorForwardingConfiguration,
+	}
+
+	// Per the portal, if you enable the cache the cache_query_parameter_strip_directive
+	// is then a required attribute else the CacheConfiguration type is null
+	if cacheEnabled {
+		// Set the default value for dynamic compression or use the value defined in the config
+		dynamicCompression := frontdoor.DynamicCompressionEnabledEnabled
+		if !cacheUseDynamicCompression {
+			dynamicCompression = frontdoor.DynamicCompressionEnabledDisabled
+		}
+
+		if cacheQueryParameterStripDirective == "" {
+			// Set Default Value for strip directive is not in the key slice and cache is enabled
+			cacheQueryParameterStripDirective = string(frontdoor.StripNone)
+		}
+
+		forwardingConfiguration.CacheConfiguration = &frontdoor.CacheConfiguration{
+			DynamicCompression:           dynamicCompression,
+			QueryParameterStripDirective: frontdoor.Query(cacheQueryParameterStripDirective),
+		}
 	}
 
 	if customForwardingPath != "" {
@@ -1104,7 +1114,16 @@ func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) []map[strin
 		if properties := v.BackendPoolProperties; properties != nil {
 			result["backend"] = flattenArmFrontDoorBackend(properties.Backends)
 			result["health_probe_name"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings, "HealthProbeSettings")
+			// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+			if result["health_probe_name"] == "" {
+				result["health_probe_name"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings, "healthProbeSettings")
+			}
+
 			result["load_balancing_name"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings, "LoadBalancingSettings")
+			// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+			if result["load_balancing_name"] == "" {
+				result["load_balancing_name"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings, "loadBalancingSettings")
+			}
 		}
 		output = append(output, result)
 	}
@@ -1230,6 +1249,8 @@ func flattenArmFrontDoorFrontendEndpoint(d *schema.ResourceData, input *[]frontd
 						chc["certificate_source"] = string(frontdoor.CertificateSourceFrontDoor)
 					}
 
+					chc["minimum_tls_version"] = string(customHTTPSConfiguration.MinimumTLSVersion)
+
 					if provisioningState := properties.CustomHTTPSProvisioningState; provisioningState != "" {
 						chc["provisioning_state"] = provisioningState
 						if provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled || provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabling {
@@ -1311,20 +1332,29 @@ func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalanc
 	return []interface{}{result}
 }
 
-func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{} {
+func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks interface{}) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 
-	output := make([]interface{}, 0)
+	oldByName := map[string]map[string]interface{}{}
 
+	for _, i := range oldBlocks.([]interface{}) {
+		v := i.(map[string]interface{})
+
+		oldByName[v["name"].(string)] = v
+	}
+
+	output := make([]interface{}, 0)
 	for _, v := range *input {
 		result := make(map[string]interface{})
 
 		if id := v.ID; id != nil {
 			result["id"] = *id
 		}
-		if name := v.Name; name != nil {
+
+		name := v.Name
+		if name != nil {
 			result["name"] = *name
 		}
 
@@ -1346,21 +1376,37 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 					v := brc.(frontdoor.ForwardingConfiguration)
 
 					c["backend_pool_name"] = flattenArmFrontDoorSubResource(v.BackendPool, "BackendPools")
+					// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+					if c["backend_pool_name"] == "" {
+						c["backend_pool_name"] = flattenArmFrontDoorSubResource(v.BackendPool, "backendPools")
+					}
 					c["custom_forwarding_path"] = v.CustomForwardingPath
 					c["forwarding_protocol"] = string(v.ForwardingProtocol)
 
 					if cacheConfiguration := v.CacheConfiguration; cacheConfiguration != nil {
-						if queryParameter := cacheConfiguration.QueryParameterStripDirective; queryParameter != "" {
-							c["cache_query_parameter_strip_directive"] = string(queryParameter)
+						c["cache_enabled"] = true
+						if stripDirective := cacheConfiguration.QueryParameterStripDirective; stripDirective != "" {
+							c["cache_query_parameter_strip_directive"] = string(stripDirective)
 						} else {
 							c["cache_query_parameter_strip_directive"] = string(frontdoor.StripNone)
 						}
 
-						c["cache_use_dynamic_compression"] = false
-
 						if dynamicCompression := cacheConfiguration.DynamicCompression; dynamicCompression != "" {
-							if dynamicCompression == frontdoor.DynamicCompressionEnabledEnabled {
-								c["cache_use_dynamic_compression"] = true
+							c["cache_use_dynamic_compression"] = bool(string(dynamicCompression) == string(frontdoor.DynamicCompressionEnabledEnabled))
+						}
+					} else {
+						c["cache_enabled"] = false
+
+						if name != nil {
+							//get `forwarding_configuration`
+							if o, ok := oldByName[*name]; ok {
+								ofcs := o["forwarding_configuration"].([]interface{})
+								if len(ofcs) > 0 {
+									ofc := ofcs[0].(map[string]interface{})
+
+									c["cache_query_parameter_strip_directive"] = ofc["cache_query_parameter_strip_directive"]
+									c["cache_use_dynamic_compression"] = ofc["cache_use_dynamic_compression"]
+								}
 							}
 						}
 					}
@@ -1428,15 +1474,23 @@ func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubReso
 
 	for _, v := range *input {
 		name := flattenArmFrontDoorSubResource(&v, "FrontendEndpoints")
+		// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+		if name == "" {
+			name = flattenArmFrontDoorSubResource(&v, "frontendEndpoints")
+		}
 		output = append(output, name)
 	}
 
 	return output
 }
 
-func makeCustomHttpsConfiguration(customHttpsConfiguration map[string]interface{}) frontdoor.CustomHTTPSConfiguration {
+func makeCustomHttpsConfiguration(customHttpsConfiguration map[string]interface{}, minTLSVersion frontdoor.MinimumTLSVersion) frontdoor.CustomHTTPSConfiguration {
+	// https://github.com/Azure/azure-sdk-for-go/issues/6882
+	defaultProtocolType := "ServerNameIndication"
+
 	customHTTPSConfigurationUpdate := frontdoor.CustomHTTPSConfiguration{
-		ProtocolType: frontdoor.ServerNameIndication,
+		ProtocolType:      &defaultProtocolType,
+		MinimumTLSVersion: minTLSVersion,
 	}
 
 	if customHttpsConfiguration["certificate_source"].(string) == "AzureKeyVault" {
