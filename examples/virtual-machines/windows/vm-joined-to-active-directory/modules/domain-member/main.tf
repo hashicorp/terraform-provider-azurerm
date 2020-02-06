@@ -44,19 +44,8 @@ resource "azurerm_windows_virtual_machine" "domain-member" {
   }
 }
 
-// NOTE: this is a hack.
-// the AD Domain takes ~7m to provision, so we don't try and join an non-existant domain we sleep
-// unfortunately we can't depend on the Domain Creation VM Extension since there's a reboot.
-// We sleep for 12 minutes here to give Azure some breathing room.
-//resource "null_resource" "wait-for-domain-to-provision" {
-//  provisioner "local-exec" {
-//    command = "sleep 720"
-//  }
-//
-//  depends_on = [azurerm_windows_virtual_machine.domain-member]
-//}
-
-// Waits for up to 20 minutes for the Domain to become available. Will return an error 1 if unsuccessful preventing the member attempting to join.
+// Waits for up to 1 hour for the Domain to become available. Will return an error 1 if unsuccessful preventing the member attempting to join.
+// todo - find out why this is so variable? (approx 40min during testing)
 
 resource "azurerm_virtual_machine_extension" "wait-for-domain-to-provision" {
   name                 = "TestConnectionDomain"
@@ -66,7 +55,7 @@ resource "azurerm_virtual_machine_extension" "wait-for-domain-to-provision" {
   virtual_machine_id   = azurerm_windows_virtual_machine.domain-member.id
   settings             = <<SETTINGS
   {
-    "commandToExecute": "powershell.exe -Command \"Test-Connection -TargetName ${var.active_directory_domain_name} -Count 120 -Delay 10 -Quiet \""
+    "commandToExecute": "powershell.exe -Command \"while (!(Test-Connection -ComputerName ${var.active_directory_domain_name} -Count 1 -Quiet) -and ($retryCount++ -le 360)) { Start-Sleep 10 } \""
   }
 SETTINGS
 }
