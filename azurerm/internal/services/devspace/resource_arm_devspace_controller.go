@@ -198,9 +198,6 @@ func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller updating")
 
-	// name := d.Get("name").(string)
-	// resGroupName := d.Get("resource_group_name").(string)
-
 	id, err := parse.DevSpaceControllerID(d.Id())
 	if err != nil {
 		return err
