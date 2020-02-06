@@ -42,16 +42,6 @@ resource "azurerm_windows_virtual_machine" "domain-member" {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
-
-  provisioner "remote-exec" {
-    connection {
-      type     = "winrm"
-      user     = var.admin_username
-      password = var.admin_password
-      host     = azurerm_public_ip.static.ip_address
-    }
-
-  }
 }
 
 // NOTE: this is a hack.
