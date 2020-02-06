@@ -133,16 +133,6 @@ func resourceArmKeyVault() *schema.Resource {
 				Optional: true,
 			},
 
-			"soft_delete_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
-			"purge_protection_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
 			"network_acls": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -182,6 +172,16 @@ func resourceArmKeyVault() *schema.Resource {
 				},
 			},
 
+			"purge_protection_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
+			"soft_delete_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -211,7 +211,20 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			return tf.ImportAsExistsError("azurerm_key_vault", *existing.ID)
 		}
 	}
+
+	// before creating check to see if the key vault exists in the soft delete state
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	softDel, err := client.GetDeleted(ctx, name, location)
+	if err != nil && !utils.ResponseWasNotFound(softDel.Response) {
+		return fmt.Errorf("Error retrieving soft deleted Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if props := softDel.Properties; props != nil {
+		delDate := (*props.DeletionDate).Format(time.RFC3339)
+		purgeDate := (*props.ScheduledPurgeDate).Format(time.RFC3339)
+		return fmt.Errorf("unable to create Key Vault %q (Resource Group %q) becauese it already exists in the soft delete state. The key vault was soft deleted on %s and is scheduled to be purged on %s", name, resourceGroup, delDate, purgeDate)
+	}
+
 	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
@@ -438,7 +451,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.Get("purge_on_delete").(bool) && d.Get("soft_delete_enabled").(bool) && err == nil {
+	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy {
 		log.Printf("[DEBUG] KeyVault %s marked for purge, executing purge", name)
 		location := d.Get("location").(string)
 

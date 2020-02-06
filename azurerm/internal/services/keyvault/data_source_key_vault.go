@@ -156,12 +156,12 @@ func dataSourceArmKeyVault() *schema.Resource {
 				},
 			},
 
-			"enabled_for_soft_delete": {
+			"purge_protection_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
-			"enabled_for_purge_protection": {
+			"soft_delete_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -200,8 +200,8 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
-		d.Set("enabled_for_soft_delete", props.EnableSoftDelete)
-		d.Set("enabled_for_purge_protection", props.EnablePurgeProtection)
+		d.Set("soft_delete_enabled", props.EnableSoftDelete)
+		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
 
 		if sku := props.Sku; sku != nil {
