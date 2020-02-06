@@ -45,7 +45,7 @@ func TestDevSpaceControllerId(t *testing.T) {
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DevSpaces/Controllers/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DevSpaces/Controllers/Controller1",
 			Expected: nil,
 		},
 	}
