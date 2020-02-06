@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet_nat_gateway_association"
-sidebar_current: "docs-azurerm-resource-network-subnet-nat-gateway-association"
 description: |-
   Associates a [NAT Gateway](nat_gateway.html) with a [Subnet](subnet.html) within a [Virtual Network](virtual_network.html).
 ---
@@ -49,15 +48,26 @@ resource "azurerm_subnet_nat_gateway_association" "example" {
 
 The following arguments are supported:
 
-* `nat_gateway_id` - (Required) The Azure resource ID of the NAT Gateway which should be associated with the Subnet. Changing this forces a new resource to be created.
+* `nat_gateway_id` - (Required) The ID of the NAT Gateway which should be associated with the Subnet. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) The Azure resource ID of the Subnet. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The ID of the Subnet. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Azure resource ID of the Subnet.
+* `id` - The ID of the Subnet.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Subnet NAT Gateway Association.
+* `update` - (Defaults to 30 minutes) Used when updating the Subnet NAT Gateway Association.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Subnet NAT Gateway Association.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Subnet NAT Gateway Association.
 
 ## Import
 

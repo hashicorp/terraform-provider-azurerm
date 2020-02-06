@@ -26,11 +26,7 @@ func TestAccAzureRMApiManagementApiSchema_basic(t *testing.T) {
 					testCheckAzureRMApiManagementApiSchemaExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -89,6 +85,9 @@ func testCheckAzureRMApiManagementApiSchemaDestroy(s *terraform.State) error {
 
 func testCheckAzureRMApiManagementApiSchemaExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiSchemasClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -99,9 +98,6 @@ func testCheckAzureRMApiManagementApiSchemaExists(name string) resource.TestChec
 		apiName := rs.Primary.Attributes["api_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiSchemasClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
 		if err != nil {

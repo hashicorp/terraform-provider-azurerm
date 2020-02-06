@@ -160,21 +160,19 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnits(t *testing.T) {
 func TestAccAzureRMEventHubNamespace_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
-	config := testAccAzureRMEventHubNamespaceNonStandardCasing(data)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMEventHubNamespaceNonStandardCasing(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists("azurerm_eventhub_namespace.test"),
 				),
 			},
 			{
-				Config:             config,
+				Config:             testAccAzureRMEventHubNamespaceNonStandardCasing(data),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -184,8 +182,6 @@ func TestAccAzureRMEventHubNamespace_NonStandardCasing(t *testing.T) {
 
 func TestAccAzureRMEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-	preConfig := testAccAzureRMEventHubNamespace_basic(data)
-	postConfig := testAccAzureRMEventHubNamespace_basicWithTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -193,13 +189,13 @@ func TestAccAzureRMEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMEventHubNamespace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMEventHubNamespace_basicWithTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -211,7 +207,6 @@ func TestAccAzureRMEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
 
 func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-	config := testAccAzureRMEventHubNamespace_capacity(data, 20)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -219,7 +214,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMEventHubNamespace_capacity(data, 20),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "20"),
@@ -231,8 +226,6 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 
 func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-	preConfig := testAccAzureRMEventHubNamespace_capacity(data, 20)
-	postConfig := testAccAzureRMEventHubNamespace_capacity(data, 2)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -240,14 +233,14 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMEventHubNamespace_capacity(data, 20),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "20"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMEventHubNamespace_capacity(data, 2),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "2"),
@@ -259,8 +252,6 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 
 func TestAccAzureRMEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-	preConfig := testAccAzureRMEventHubNamespace_basic(data)
-	postConfig := testAccAzureRMEventHubNamespace_standard(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -268,14 +259,14 @@ func TestAccAzureRMEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMEventHubNamespace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Basic"),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMEventHubNamespace_standard(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
@@ -288,8 +279,6 @@ func TestAccAzureRMEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 
 func TestAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
-	preConfig := testAccAzureRMEventHubNamespace_maximumThroughputUnits(data)
-	postConfig := testAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -297,7 +286,7 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) 
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMEventHubNamespace_maximumThroughputUnits(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
@@ -306,7 +295,7 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) 
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku", "Standard"),
@@ -362,6 +351,9 @@ func testCheckAzureRMEventHubNamespaceDestroy(s *terraform.State) error {
 
 func testCheckAzureRMEventHubNamespaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -373,9 +365,6 @@ func testCheckAzureRMEventHubNamespaceExists(resourceName string) resource.TestC
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub Namespace: %s", namespaceName)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName)
 		if err != nil {

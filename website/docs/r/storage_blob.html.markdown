@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_blob"
-sidebar_current: "docs-azurerm-resource-storage-blob"
 description: |-
   Manages a Blob within a Storage Container.
 ---
@@ -86,6 +85,17 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Storage Blob.
 * `url` - The URL of the blob
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Storage Blob.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Blob.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Blob.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Storage Blob.
 
 ## Import
 

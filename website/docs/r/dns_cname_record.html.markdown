@@ -2,7 +2,6 @@
 subcategory: "DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_cname_record"
-sidebar_current: "docs-azurerm-resource-dns-cname-record"
 description: |-
   Manages a DNS CNAME Record.
 ---
@@ -89,6 +88,17 @@ The following attributes are exported:
 
 * `id` - The DNS CName Record ID.
 * `fqdn` - The FQDN of the DNS CName Record.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DNS CName Record.
+* `update` - (Defaults to 30 minutes) Used when updating the DNS CName Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DNS CName Record.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DNS CName Record.
 
 ## Import
 

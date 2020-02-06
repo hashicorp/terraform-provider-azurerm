@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace"
-sidebar_current: "docs-azurerm-datasource-servicebus-namespace"
 description: |-
   Gets information about an existing ServiceBus Namespace.
 ---
@@ -54,3 +53,11 @@ The following attributes are exported only if there is an authorization rule nam
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace.

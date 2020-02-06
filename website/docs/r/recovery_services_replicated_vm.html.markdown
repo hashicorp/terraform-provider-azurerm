@@ -2,7 +2,6 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_replicated_vm"
-sidebar_current: "docs-azurerm-recovery-replicated-vm"
 description: |-
     Manages a site recovery services protection container mappings on Azure.
 ---
@@ -11,7 +10,7 @@ description: |-
 
 ~> **NOTE:** This resource has been deprecated in favour of the `azurerm_site_recovery_replicated_vm` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
 
-Manages a Azure recovery replicated vms (Azure to Azure). An replicated VM keeps a copiously updated image of the vm in another region in order to be able to start the VM in that region in case of a disaster. 
+Manages a Azure recovery replicated vms (Azure to Azure). An replicated VM keeps a copiously updated image of the vm in another region in order to be able to start the VM in that region in case of a disaster.
 
 ## Example Usage
 
@@ -213,11 +212,22 @@ A `managed_disk` block supports the following:
 
 In addition to the arguments above, the following attributes are exported:
 
-* `id` - The resource ID.
+* `id` - The ID of the Recovery Services Replicated VM.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 80 minutes) Used when creating the Recovery Services Replicated VM.
+* `update` - (Defaults to 80 minutes) Used when updating the Recovery Services Replicated VM.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services Replicated VM.
+* `delete` - (Defaults to 80 minutes) Used when deleting the Recovery Services Replicated VM.
 
 ## Import
 
-Site recovery recovery vault fabric can be imported using the `resource id`, e.g.
+Recovery Services Replicated VM's can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_recovery_replicated_vm.vmreplication /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationFabrics/fabric-name/replicationProtectionContainers/protection-container-name/replicationProtectedItems/vm-replication-name

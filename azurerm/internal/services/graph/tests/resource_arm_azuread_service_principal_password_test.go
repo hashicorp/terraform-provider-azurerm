@@ -25,15 +25,13 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_basic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	config := testAccAzureRMActiveDirectoryServicePrincipalPassword_basic(applicationId, value)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryServicePrincipalDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMActiveDirectoryServicePrincipalPassword_basic(applicationId, value),
 				Check: resource.ComposeTestCheckFunc(
 					// can't assert on Value since it's not returned
 					testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(data.ResourceName),
@@ -118,13 +116,13 @@ func TestAccAzureRMActiveDirectoryServicePrincipalPassword_customKeyId(t *testin
 
 func testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ServicePrincipalsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Graph.ServicePrincipalsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		id := strings.Split(rs.Primary.ID, "/")
 		objectId := id[0]

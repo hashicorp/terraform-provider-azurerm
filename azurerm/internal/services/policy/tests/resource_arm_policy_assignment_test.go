@@ -109,13 +109,13 @@ func TestAccAzureRMPolicyAssignment_not_scopes(t *testing.T) {
 
 func testCheckAzureRMPolicyAssignmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.AssignmentsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.AssignmentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		id := rs.Primary.ID
 		resp, err := client.GetByID(ctx, id)

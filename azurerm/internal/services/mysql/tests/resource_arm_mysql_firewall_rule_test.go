@@ -60,6 +60,9 @@ func TestAccAzureRMMySQLFirewallRule_requiresImport(t *testing.T) {
 
 func testCheckAzureRMMySQLFirewallRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.FirewallRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -72,9 +75,6 @@ func testCheckAzureRMMySQLFirewallRuleExists(resourceName string) resource.TestC
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Firewall Rule: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.FirewallRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
@@ -127,12 +127,7 @@ resource "azurerm_mysql_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200

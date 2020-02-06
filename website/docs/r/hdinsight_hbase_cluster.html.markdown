@@ -2,7 +2,6 @@
 subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_hbase_cluster"
-sidebar_current: "docs-azurerm-resource-hdinsight-hbase-cluster"
 description: |-
   Manages a HDInsight HBase Cluster.
 ---
@@ -239,6 +238,17 @@ The following attributes are exported:
 * `https_endpoint` - The HTTPS Connectivity Endpoint for this HDInsight HBase Cluster.
 
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight HBase Cluster.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the HBase HDInsight Cluster.
+* `update` - (Defaults to 60 minutes) Used when updating the HBase HDInsight Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the HBase HDInsight Cluster.
+* `delete` - (Defaults to 60 minutes) Used when deleting the HBase HDInsight Cluster.
 
 ## Import
 

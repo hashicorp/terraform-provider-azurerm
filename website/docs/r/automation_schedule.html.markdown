@@ -2,7 +2,6 @@
 subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_schedule"
-sidebar_current: "docs-azurerm-resource-automation-schedule"
 description: |-
   Manages a Automation Schedule.
 ---
@@ -83,6 +82,17 @@ The `monthly_occurrence` block supports:
 The following attributes are exported:
 
 * `id` - The Automation Schedule ID.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Automation Schedule.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation Schedule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation Schedule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Automation Schedule.
 
 ## Import
 

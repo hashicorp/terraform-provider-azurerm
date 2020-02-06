@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management"
-sidebar_current: "docs-azurerm-resource-api-management-x"
 description: |-
   Manages an API Management Service.
 ---
@@ -294,6 +293,17 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the API Management Service.
+* `update` - (Defaults to 60 minutes) Used when updating the API Management Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service.
+* `delete` - (Defaults to 60 minutes) Used when deleting the API Management Service.
 
 ## Import
 

@@ -33,7 +33,7 @@ func TestAccAzureRMRecoveryReplicationPolicy_basic(t *testing.T) {
 func testAccAzureRMRecoveryReplicationPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-recovery-%d"
   location = "%s"
 }
 
@@ -42,6 +42,8 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
+
+  soft_delete_enabled = false
 }
 
 resource "azurerm_recovery_services_replication_policy" "test" {
@@ -56,6 +58,8 @@ resource "azurerm_recovery_services_replication_policy" "test" {
 
 func testCheckAzureRMRecoveryReplicationPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -67,7 +71,6 @@ func testCheckAzureRMRecoveryReplicationPolicyExists(resourceName string) resour
 		policyName := state.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, policyName)
 		if err != nil {
@@ -83,6 +86,8 @@ func testCheckAzureRMRecoveryReplicationPolicyExists(resourceName string) resour
 }
 
 func testCheckAzureRMRecoveryReplicationPolicyDestroy(s *terraform.State) error {
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_recovery_services_replication_policy" {
 			continue
@@ -93,7 +98,6 @@ func testCheckAzureRMRecoveryReplicationPolicyDestroy(s *terraform.State) error 
 		policyName := rs.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationPoliciesClient(resourceGroup, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, policyName)
 		if err != nil {

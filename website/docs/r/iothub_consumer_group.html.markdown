@@ -2,7 +2,6 @@
 subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_consumer_group"
-sidebar_current: "docs-azurerm-resource-iothub-consumer-group"
 description: |-
   Manages a Consumer Group within an IotHub
 ---
@@ -26,7 +25,6 @@ resource "azurerm_iothub" "example" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
@@ -60,6 +58,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the IoTHub Consumer Group.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the IotHub Consumer Group.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Consumer Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Consumer Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Consumer Group.
 
 ## Import
 

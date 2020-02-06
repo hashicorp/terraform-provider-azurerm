@@ -75,6 +75,7 @@ func TestAccAzureRMManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
 				),
+				ExpectNonEmptyPlan: true, // since the `disk_size_gb` will have changed
 			},
 		},
 	})
@@ -96,7 +97,7 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 				Destroy:            false,
 				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
+					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
 					testDeleteAzureRMVirtualMachine("azurerm_virtual_machine.test"),
 				),
 			},
@@ -213,20 +214,19 @@ func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	var d compute.Disk
 
-	config := testAccAzureRMManagedDiskNonStandardCasing(data)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMManagedDisk_nonStandardCasing(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
 				),
 			},
 			{
-				Config:             config,
+				Config:             testAccAzureRMManagedDisk_nonStandardCasing(data),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -331,8 +331,68 @@ func TestAccAzureRMManagedDisk_import_withUltraSSD(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMManagedDisk_diskEncryptionSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	var d compute.Disk
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
+		Steps: []resource.TestStep{
+			{
+				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
+				Config: testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data),
+				Check: resource.ComposeTestCheckFunc(
+					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
+				),
+			},
+			{
+				Config: testAccAzureRMManagedDisk_diskEncryptionSet(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMManagedDisk_attachedDiskUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
+	var d compute.Disk
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMManagedDisk_managedDiskAttached(data, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMManagedDisk_managedDiskAttached(data, 20),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists(data.ResourceName, &d, true),
+					resource.TestCheckResourceAttr(data.ResourceName, "disk_size_gb", "20"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+// TODO: More property update tests?
+
 func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -343,9 +403,6 @@ func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, sho
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for disk: %s", dName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DisksClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dName)
 		if err != nil {
@@ -393,6 +450,9 @@ func testCheckAzureRMManagedDiskDestroy(s *terraform.State) error {
 
 func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -403,9 +463,6 @@ func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, vmName)
 		if err != nil {
@@ -521,6 +578,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "Standard_LRS"
   create_option        = "Import"
   source_uri           = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+  storage_account_id   = azurerm_storage_account.test.id
   disk_size_gb         = "45"
 
   tags = {
@@ -590,7 +648,7 @@ resource "azurerm_managed_disk" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMManagedDiskNonStandardCasing(data acceptance.TestData) string {
+func testAccAzureRMManagedDisk_nonStandardCasing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -830,4 +888,200 @@ resource "azurerm_managed_disk" "import" {
   }
 }
 `, template)
+}
+
+func testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
+	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
+	// TODO: switch back to default location
+	location := "westus2"
+
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctestkv%s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "premium"
+  enabled_for_disk_encryption = true
+}
+
+resource "azurerm_key_vault_access_policy" "service-principal" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.service_principal_object_id
+
+  key_permissions = [
+    "create",
+    "delete",
+    "get",
+    "update",
+  ]
+
+  secret_permissions = [
+    "get",
+    "delete",
+    "set",
+  ]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "examplekey"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = ["azurerm_key_vault_access_policy.service-principal"]
+}
+`, data.RandomInteger, location, data.RandomString)
+}
+
+func testAccAzureRMManagedDisk_diskEncryptionSet(data acceptance.TestData) string {
+	template := testAccAzureRMManagedDisk_diskEncryptionSetDependencies(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                = "acctestdes-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_key_vault_access_policy" "disk-encryption" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "get",
+    "wrapkey",
+    "unwrapkey",
+  ]
+
+  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                   = "acctestd-%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  storage_account_type   = "Standard_LRS"
+  create_option          = "Empty"
+  disk_size_gb           = 1
+  disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+
+  depends_on = [
+    "azurerm_role_assignment.disk-encryption-read-keyvault",
+    "azurerm_key_vault_access_policy.disk-encryption",
+  ]
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMManagedDisk_managedDiskAttached(data acceptance.TestData, diskSize int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctni-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_virtual_machine" "test" {
+  name                  = "acctvm-%[1]d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  vm_size               = "Standard_F2"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "myosdisk1"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile {
+    computer_name  = "hn%[1]d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "%[1]d-disk1"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = %[3]d
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = "${azurerm_managed_disk.test.id}"
+  virtual_machine_id = "${azurerm_virtual_machine.test.id}"
+  lun                = "0"
+  caching            = "None"
+}
+`, data.RandomInteger, data.Locations.Primary, diskSize)
 }

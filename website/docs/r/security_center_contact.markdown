@@ -2,7 +2,6 @@
 subcategory: "Security Center"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_security_center_contact"
-sidebar_current: "docs-azurerm-security-center-contact"
 description: |-
     Manages the subscription's Security Center Contact.
 ---
@@ -11,7 +10,7 @@ description: |-
 
 Manages the subscription's Security Center Contact.
 
-~> **NOTE:** Owner access permission is required. 
+~> **NOTE:** Owner access permission is required.
 
 ## Example Usage
 
@@ -39,6 +38,18 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Security Center Contact ID.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Security Center Contact.
+* `update` - (Defaults to 60 minutes) Used when updating the Security Center Contact.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Security Center Contact.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Security Center Contact.
+
 
 ## Import
 

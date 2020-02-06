@@ -2,9 +2,8 @@
 subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_volume"
-sidebar_current: "docs-azurerm-datasource-netapp-volume"
 description: |-
-Gets information about an existing NetApp Volume
+  Gets information about an existing NetApp Volume
 ---
 
 # Data Source: azurerm_netapp_volume
@@ -51,3 +50,11 @@ The following attributes are exported:
 * `subnet_id` - The ID of a Subnet in which the NetApp Volume resides.
 
 * `storage_quota_in_gb` - The maximum Storage Quota in Gigabytes allowed for a file system.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Volume.

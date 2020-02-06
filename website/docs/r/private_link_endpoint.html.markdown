@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_endpoint"
-sidebar_current: "docs-azurerm-resource-private-endpoint"
 description: |-
   Manages an Endpoint within a Private Link Service.
 ---
@@ -39,7 +38,7 @@ resource "azurerm_subnet" "service" {
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.1.0/24"
 
-  disable_private_link_service_network_policy_enforcement  = true
+  disable_private_link_service_network_policy_enforcement = true
 }
 
 resource "azurerm_subnet" "endpoint" {
@@ -144,6 +143,17 @@ See the product [documentation](https://docs.microsoft.com/en-us/azure/private-l
 The following attributes are exported:
 
 * `id` - The ID of the Private Link Endpoint.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Private Link Endpoint.
+* `update` - (Defaults to 60 minutes) Used when updating the Private Link Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Endpoint.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Private Link Endpoint.
 
 ## Import
 

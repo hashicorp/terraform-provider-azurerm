@@ -131,7 +131,7 @@ POLICY_DEFINITIONS
 func testAzureRMPolicySetDefinition_requiresImport(data acceptance.TestData) string {
 	template := testAzureRMPolicySetDefinition_builtIn(data)
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_policy_set_definition" "import" {
   name         = "${azurerm_policy_set_definition.test.name}"
@@ -255,6 +255,9 @@ POLICY_DEFINITIONS
 
 func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.SetDefinitionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
@@ -262,9 +265,6 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 
 		policySetName := rs.Primary.Attributes["name"]
 		managementGroupId := rs.Primary.Attributes["management_group_id"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.SetDefinitionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		var err error
 		var resp policy.SetDefinition

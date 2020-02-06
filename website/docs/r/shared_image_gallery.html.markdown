@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image_gallery"
-sidebar_current: "docs-azurerm-resource-compute-shared-image-gallery"
 description: |-
   Manages a Shared Image Gallery.
 
@@ -54,6 +53,17 @@ The following attributes are exported:
 * `id` - The ID of the Shared Image Gallery.
 
 * `unique_name` - The Unique Name for this Shared Image Gallery.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Shared Image Gallery.
+* `update` - (Defaults to 30 minutes) Used when updating the Shared Image Gallery.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Shared Image Gallery.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Shared Image Gallery.
 
 ## Import
 

@@ -25,7 +25,7 @@ func dataSourceArmAutomationAccount() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"primary_key": {
 				Type:     schema.TypeString,

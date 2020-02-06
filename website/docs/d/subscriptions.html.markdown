@@ -2,7 +2,6 @@
 subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subscriptions"
-sidebar_current: "docs-azurerm-datasource-subscriptions"
 description: |-
   Get information about the available subscriptions.
 ---
@@ -43,3 +42,11 @@ The `subscription` block contains:
 * `location_placement_id` - The subscription location placement ID.
 * `quota_id` - The subscription quota ID.
 * `spending_limit` - The subscription spending limit.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the subscriptions.

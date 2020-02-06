@@ -269,17 +269,19 @@ func testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName strin
 func testAccAzureRMRecoveryServicesProtectionPolicyVm_base(data acceptance.TestData) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-%s"
+  name                = "acctest-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
+
+  soft_delete_enabled = false
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMRecoveryServicesProtectionPolicyVm_basicDaily(data acceptance.TestData) string {

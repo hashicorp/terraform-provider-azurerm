@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_failover_group"
-sidebar_current: "docs-azurerm-resource-database-sql-fail_over_group"
 description: |-
   Manages a SQL Failover Group.
 ---
@@ -15,7 +14,7 @@ Create a failover group of databases on a collection of Azure SQL servers.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "uksouth"
 }
 
@@ -108,6 +107,17 @@ The following attributes are exported:
 * `role` - local replication role of the failover group instance.
 * `databases` - list of databases in the failover group.
 * `partner_servers` - list of partner server information for the failover group.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the SQL Failover Group.
+* `update` - (Defaults to 30 minutes) Used when updating the SQL Failover Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the SQL Failover Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the SQL Failover Group.
 
 ## Import
 

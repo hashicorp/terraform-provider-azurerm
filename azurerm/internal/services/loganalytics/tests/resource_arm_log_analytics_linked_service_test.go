@@ -153,6 +153,9 @@ func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error 
 
 func testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.LinkedServicesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -167,9 +170,6 @@ func testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName string) resour
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Linked Service: '%s'", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.LinkedServicesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, workspaceName, lsName)
 		if err != nil {

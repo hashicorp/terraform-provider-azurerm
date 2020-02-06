@@ -2,7 +2,6 @@
 subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_volume"
-sidebar_current: "docs-azurerm-resource-netapp-volume"
 description: |-
   Manages a NetApp Volume.
 ---
@@ -34,7 +33,7 @@ resource "azurerm_subnet" "example" {
 
   delegation {
     name = "netapp"
-  
+
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
       actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
@@ -119,6 +118,17 @@ An `export_policy_rule` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the NetApp Volume.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the NetApp Volume.
+* `update` - (Defaults to 30 minutes) Used when updating the NetApp Volume.
+* `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Volume.
+* `delete` - (Defaults to 30 minutes) Used when deleting the NetApp Volume.
 
 ## Import
 

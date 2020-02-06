@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb"
-sidebar_current: "docs-azurerm-datasource-load-balancer-x"
 description: |-
   Get information about an existing Load Balancer
 
@@ -60,3 +59,11 @@ A `frontend_ip_configuration` block exports the following:
 * `private_ip_address_allocation` - The allocation method for the Private IP Address used by this Load Balancer.
 * `public_ip_address_id` - The ID of a  Public IP Address which is associated with this Load Balancer.
 * `zones` - A list of Availability Zones which the Load Balancer's IP Addresses should be created in.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Load Balancer.

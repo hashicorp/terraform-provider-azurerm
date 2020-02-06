@@ -2,7 +2,6 @@
 subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_rserver_cluster"
-sidebar_current: "docs-azurerm-resource-hdinsight-rserver-cluster"
 description: |-
   Manages a HDInsight RServer Cluster.
 ---
@@ -240,6 +239,17 @@ The following attributes are exported:
 * `https_endpoint` - The HTTPS Connectivity Endpoint for this HDInsight RServer Cluster.
 
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight RServer Cluster.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the RServer HDInsight Cluster.
+* `update` - (Defaults to 60 minutes) Used when updating the RServer HDInsight Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the RServer HDInsight Cluster.
+* `delete` - (Defaults to 60 minutes) Used when deleting the RServer HDInsight Cluster.
 
 ## Import
 

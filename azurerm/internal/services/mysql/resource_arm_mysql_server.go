@@ -3,6 +3,7 @@ package mysql
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -50,10 +50,43 @@ func resourceArmMySqlServer() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"sku_name": {
+				Type:          schema.TypeString,
+				Optional:      true, // required in 2.0
+				Computed:      true, // remove in 2.0
+				ConflictsWith: []string{"sku"},
+				ValidateFunc: validation.StringInSlice([]string{
+					"B_Gen4_1",
+					"B_Gen4_2",
+					"B_Gen5_1",
+					"B_Gen5_2",
+					"GP_Gen4_2",
+					"GP_Gen4_4",
+					"GP_Gen4_8",
+					"GP_Gen4_16",
+					"GP_Gen4_32",
+					"GP_Gen5_2",
+					"GP_Gen5_4",
+					"GP_Gen5_8",
+					"GP_Gen5_16",
+					"GP_Gen5_32",
+					"GP_Gen5_64",
+					"MO_Gen5_2",
+					"MO_Gen5_4",
+					"MO_Gen5_8",
+					"MO_Gen5_16",
+					"MO_Gen5_32",
+				}, false),
+			},
+
+			// remove in 2.0
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"sku_name"},
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -87,7 +120,7 @@ func resourceArmMySqlServer() *schema.Resource {
 						"capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ValidateFunc: validate.IntInSlice([]int{
+							ValidateFunc: validation.IntInSlice([]int{
 								1,
 								2,
 								4,
@@ -140,7 +173,7 @@ func resourceArmMySqlServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.FiveFullStopSix),
 					string(mysql.FiveFullStopSeven),
-					"8.0", //TODO: Update to EightFullStopZero ServerVersion constant when available in Azure Go SDK https://github.com/Azure/azure-rest-api-specs/pull/7864
+					string(mysql.EightFullStopZero),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ForceNew:         true,
@@ -153,9 +186,12 @@ func resourceArmMySqlServer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_mb": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4194304, 1024),
+							Type:     schema.TypeInt,
+							Required: true,
+							ValidateFunc: validation.All(
+								validation.IntBetween(5120, 4194304),
+								validation.IntDivisibleBy(1024),
+							),
 						},
 						"backup_retention_days": {
 							Type:         schema.TypeInt,
@@ -226,13 +262,6 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	adminLogin := d.Get("administrator_login").(string)
-	adminLoginPassword := d.Get("administrator_login_password").(string)
-	sslEnforcement := d.Get("ssl_enforcement").(string)
-	version := d.Get("version").(string)
-	createMode := "Default"
-	t := d.Get("tags").(map[string]interface{})
-
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -246,21 +275,31 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	sku := expandMySQLServerSku(d)
-	storageProfile := expandMySQLStorageProfile(d)
+	var sku *mysql.Sku
+	if b, ok := d.GetOk("sku_name"); ok {
+		var err error
+		sku, err = expandServerSkuName(b.(string))
+		if err != nil {
+			return fmt.Errorf("error expanding sku_name for MySQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
+		}
+	} else if _, ok := d.GetOk("sku"); ok {
+		sku = expandMySQLServerSku(d)
+	} else {
+		return fmt.Errorf("One of `sku` or `sku_name` must be set for MySQL Server %q (Resource Group %q)", name, resourceGroup)
+	}
 
 	properties := mysql.ServerForCreate{
 		Location: &location,
 		Properties: &mysql.ServerPropertiesForDefaultCreate{
-			AdministratorLogin:         utils.String(adminLogin),
-			AdministratorLoginPassword: utils.String(adminLoginPassword),
-			Version:                    mysql.ServerVersion(version),
-			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
-			StorageProfile:             storageProfile,
-			CreateMode:                 mysql.CreateMode(createMode),
+			AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
+			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
+			Version:                    mysql.ServerVersion(d.Get("version").(string)),
+			SslEnforcement:             mysql.SslEnforcementEnum(d.Get("ssl_enforcement").(string)),
+			StorageProfile:             expandMySQLStorageProfile(d),
+			CreateMode:                 mysql.CreateMode("Default"),
 		},
 		Sku:  sku,
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
@@ -296,22 +335,28 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	adminLoginPassword := d.Get("administrator_login_password").(string)
-	sslEnforcement := d.Get("ssl_enforcement").(string)
-	version := d.Get("version").(string)
-	sku := expandMySQLServerSku(d)
-	storageProfile := expandMySQLStorageProfile(d)
-	t := d.Get("tags").(map[string]interface{})
+	var sku *mysql.Sku
+	if b, ok := d.GetOk("sku_name"); ok {
+		var err error
+		sku, err = expandServerSkuName(b.(string))
+		if err != nil {
+			return fmt.Errorf("error expanding sku_name for MySQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
+		}
+	} else if _, ok := d.GetOk("sku"); ok {
+		sku = expandMySQLServerSku(d)
+	} else {
+		return fmt.Errorf("One of `sku` or `sku_name` must be set for MySQL Server %q (Resource Group %q)", name, resourceGroup)
+	}
 
 	properties := mysql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
-			StorageProfile:             storageProfile,
-			AdministratorLoginPassword: utils.String(adminLoginPassword),
-			Version:                    mysql.ServerVersion(version),
-			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
+			StorageProfile:             expandMySQLStorageProfile(d),
+			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
+			Version:                    mysql.ServerVersion(d.Get("version").(string)),
+			SslEnforcement:             mysql.SslEnforcementEnum(d.Get("ssl_enforcement").(string)),
 		},
 		Sku:  sku,
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, properties)
@@ -366,6 +411,10 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+	}
+
 	d.Set("administrator_login", resp.AdministratorLogin)
 	d.Set("version", string(resp.Version))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
@@ -406,6 +455,37 @@ func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+func expandServerSkuName(skuName string) (*mysql.Sku, error) {
+	parts := strings.Split(skuName, "_")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("sku_name (%s) has the worng numberof parts (%d) after splitting on _", skuName, len(parts))
+	}
+
+	var tier mysql.SkuTier
+	switch parts[0] {
+	case "B":
+		tier = mysql.Basic
+	case "GP":
+		tier = mysql.GeneralPurpose
+	case "MO":
+		tier = mysql.MemoryOptimized
+	default:
+		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
+	}
+
+	capacity, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return nil, fmt.Errorf("cannot convert skuname %s capcity %s to int", skuName, parts[2])
+	}
+
+	return &mysql.Sku{
+		Name:     utils.String(skuName),
+		Tier:     tier,
+		Capacity: utils.Int32(int32(capacity)),
+		Family:   utils.String(parts[1]),
+	}, nil
 }
 
 func expandMySQLServerSku(d *schema.ResourceData) *mysql.Sku {

@@ -2,7 +2,6 @@
 subcategory: "Bot"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_channels_registration"
-sidebar_current: "docs-azurerm-resource-bot_channels_registration"
 description: |-
   Manages a Bot Channels Registration.
 ---
@@ -17,7 +16,7 @@ Manages a Bot Channels Registration.
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 
@@ -44,7 +43,7 @@ The following arguments are supported:
 
 * `microsoft_app_id` - (Required) The Microsoft Application ID for the Bot Channels Registration. Changing this forces a new resource to be created.
 
-* `display_name` - (Optional) The name of the Bot Channels Registration will be displayed as. This defaults to `name` if not specified. 
+* `display_name` - (Optional) The name of the Bot Channels Registration will be displayed as. This defaults to `name` if not specified.
 
 * `endpoint` - (Optional) The Bot Channels Registration endpoint.
 
@@ -61,7 +60,18 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Bot Channels Registration ID.
+* `id` - The ID of the Bot Channels Registration.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Bot Channels Registration.
+* `update` - (Defaults to 30 minutes) Used when updating the Bot Channels Registration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Bot Channels Registration.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Bot Channels Registration.
 
 ## Import
 

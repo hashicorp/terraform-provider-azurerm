@@ -2,7 +2,6 @@
 subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
-sidebar_current: "docs-azurerm-resource-container-kubernetes-cluster-x"
 description: |-
   Manages a managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
 ---
@@ -68,7 +67,6 @@ The following arguments are supported:
 
 -> **NOTE:** The `default_node_pool` block will become required in 2.0
 
-
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
 
 -> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
@@ -77,7 +75,7 @@ The following arguments are supported:
 
 * `agent_pool_profile` - (Optional) One or more `agent_pool_profile` blocks as defined below.
 
-~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0
+~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0. For additional node pools beyond default, see [azurerm_kubernetes_cluster_node_pool](https://www.terraform.io/docs/providers/azurerm/r/kubernetes_cluster_node_pool.html).
 
 * `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
@@ -89,13 +87,13 @@ The following arguments are supported:
 
 -> **NOTE:** Support for `enable_pod_security_policy` is currently in Preview on an opt-in basis. To use it, enable feature `PodSecurityPolicyPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
 
+* `identity` - (Optional) A `identity` block as defined below. Changing this forces a new resource to be created.
+
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
 -> **NOTE:** Upgrading your cluster may take up to 10 minutes per node.
 
 * `linux_profile` - (Optional) A `linux_profile` block as defined below.
-
-* `managed_cluster_identity` - (Optional) A `managed_cluster_identity` block as defined below. Changing this forces a new resource to be created.
 
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
@@ -105,7 +103,9 @@ The following arguments are supported:
 
 -> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
-* `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
+* `role_based_access_control` - (Optional) A `role_based_access_control` block.
+
+-> **NOTE:** Adding this block to, or removing it from, an existing cluster configuration will recreate the cluster.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -123,12 +123,12 @@ A `aci_connector_linux` block supports the following:
 
 * `subnet_name` - (Optional) The subnet name for the virtual nodes to run. This is required when `aci_connector_linux` `enabled` argument is set to `true`.
 
--> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
+-> **NOTE:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
 
 ```
 resource "azurerm_subnet" "virtual" {
 
-  ...
+  #...
 
   delegation {
     name = "aciDelegation"
@@ -160,7 +160,7 @@ A `addon_profile` block supports the following:
 
 A `agent_pool_profile` block supports the following:
 
-~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0
+~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0. For additional node pools beyond default, see [azurerm_kubernetes_cluster_node_pool](https://www.terraform.io/docs/providers/azurerm/r/kubernetes_cluster_node_pool.html).
 
 * `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group. Changing this forces a new resource to be created.
 
@@ -202,13 +202,13 @@ A `agent_pool_profile` block supports the following:
 
 A `azure_active_directory` block supports the following:
 
-* `client_app_id` - (Required) The Client ID of an Azure Active Directory Application. Changing this forces a new resource to be created.
+* `client_app_id` - (Required) The Client ID of an Azure Active Directory Application.
 
-* `server_app_id` - (Required) The Server ID of an Azure Active Directory Application. Changing this forces a new resource to be created.
+* `server_app_id` - (Required) The Server ID of an Azure Active Directory Application.
 
-* `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application. Changing this forces a new resource to be created.
+* `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application.
 
-* `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used. Changing this forces a new resource to be created.
+* `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
 
 
 ---
@@ -273,6 +273,12 @@ A `http_application_routing` block supports the following:
 
 ---
 
+A `identity` block supports the following:
+
+* `type` - The type of identity used for the managed cluster. At this time the only supported value is `SystemAssigned`.
+
+---
+
 A `kube_dashboard` block supports the following:
 
 * `enabled` - (Required) Is the Kubernetes Dashboard enabled?
@@ -284,12 +290,6 @@ A `linux_profile` block supports the following:
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
 * `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed. Changing this forces a new resource to be created.
-
----
-
-A `managed_cluster_identity` block supports the following:
-
-* `type` - The type of identity used for the managed cluster. Valid values are `SystemAssigned` or `None`. 
 
 ---
 
@@ -315,6 +315,20 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `basic`.
 
+* `load_balancer_profile` - (Optional) A `load_balancer_profile` block. This can only be specified when `load_balancer_sku` is set to `standard`.
+
+---
+
+A `load_balancer_profile` block supports the following:
+
+~> **NOTE:** These options are mutually exclusive. Note that when specifying `outbound_ip_address_ids` ([azurerm_public_ip](/docs/providers/azurerm/r/public_ip.html)) the SKU must be `Standard`.
+
+* `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be in the range of [1, 100].
+
+* `outbound_ip_prefix_ids` - (Optional) The ID of the outbound Public IP Address Prefixes which should be used for the cluster load balancer.
+
+* `outbound_ip_address_ids` - (Optional) The ID of the Public IP Addresses which should be used for outbound communication for the cluster load balancer.
+
 ---
 
 A `oms_agent` block supports the following:
@@ -327,7 +341,7 @@ A `oms_agent` block supports the following:
 
 A `role_based_access_control` block supports the following:
 
-* `azure_active_directory` - (Optional) An `azure_active_directory` block. Changing this forces a new resource to be created.
+* `azure_active_directory` - (Optional) An `azure_active_directory` block.
 
 * `enabled` - (Required) Is Role Based Access Control Enabled? Changing this forces a new resource to be created.
 
@@ -386,6 +400,20 @@ A `http_application_routing` block exports the following:
 
 ---
 
+A `load_balancer_profile` block exports the following:
+
+* `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
+
+---
+
+The `identity` block exports the following:
+
+* `principal_id` - The principal id of the system assigned identity which is used by master components.
+
+* `tenant_id` - The tenant id of the system assigned identity which is used by master components.
+
+---
+
 The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
@@ -413,18 +441,21 @@ provider "kubernetes" {
 }
 ```
 
----
+### Timeouts
 
-The `managed_cluster_identity` block exports the following: 
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
 
-* `principal_id` - The principal id of the system assigned identity which is used by master components.
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `tenant_id` - The tenant id of the system assigned identity which is used by master components.
+* `create` - (Defaults to 90 minutes) Used when creating the Kubernetes Cluster.
+* `update` - (Defaults to 90 minutes) Used when updating the Kubernetes Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Kubernetes Cluster.
 
 ## Import
 
 Managed Kubernetes Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kubernetes_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1
+terraform import azurerm_kubernetes_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1
 ```

@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account_blob_container_sas"
-sidebar_current: "docs-azurerm-datasource-storage-account-blob-container-sas"
 description: |-
   Gets a Shared Access Signature (SAS Token) for an existing Storage Account Blob Container.
 
@@ -98,6 +97,7 @@ output "sas_url_query_string" {
 
 A `permissions` block contains:
 
+
 * `read` - (Required) Should Read permissions be enabled for this SAS?
 
 * `add` - (Required) Should Add permissions be enabled for this SAS?
@@ -116,3 +116,11 @@ for additional details on the fields above.
 ## Attributes Reference
 
 * `sas` - The computed Blob Container Shared Access Signature (SAS).
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Blob Container.

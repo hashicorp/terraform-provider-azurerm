@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_virtual_network_swift_connection"
-sidebar_current: "docs-azurerm-resource-app-service-virtual-network-association"
 description: |-
   Manages an App Service Virtual Network Association.
 
@@ -16,7 +15,7 @@ Manages an App Service Virtual Network Association (this is for the [Regional VN
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "example-resources"
   location = "uksouth"
 }
 
@@ -62,8 +61,8 @@ resource "azurerm_app_service" "test" {
 }
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id       = "${azurerm_app_service.test.id}"
-  subnet_id            = "${azurerm_subnet.test1.id}"
+  app_service_id = "${azurerm_app_service.test.id}"
+  subnet_id      = "${azurerm_subnet.test1.id}"
 }
 ```
 
@@ -80,6 +79,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the App Service Virtual Network Association
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Virtual Network Association.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Virtual Network Association.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Virtual Network Association.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Virtual Network Association.
 
 ## Import
 

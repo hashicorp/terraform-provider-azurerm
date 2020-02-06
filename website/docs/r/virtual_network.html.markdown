@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network"
-sidebar_current: "docs-azurerm-resource-network-virtual-network-x"
 description: |-
   Manages a virtual network including any configured subnets. Each subnet can optionally be configured with a security group to be associated with the subnet.
 ---
@@ -86,7 +85,7 @@ The following arguments are supported:
 
 * `location` - (Required) The location/region where the virtual network is
     created. Changing this forces a new resource to be created.
-    
+
 * `ddos_protection_plan` - (Optional) A `ddos_protection_plan` block as documented below.
 
 * `dns_servers` - (Optional) List of IP addresses of DNS servers
@@ -137,6 +136,16 @@ The `subnet` block exports:
 
 * `id` - The ID of this subnet.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Virtual Network.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Network.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Network.
 
 ## Import
 

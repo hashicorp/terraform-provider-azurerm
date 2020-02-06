@@ -3,6 +3,7 @@ package postgres
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,6 +21,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func ValidatePSQLServerName(i interface{}, k string) (_ []string, errors []error) {
+	if m, regexErrs := validate.RegExHelper(i, k, `^[0-9a-z]{2}[-0-9a-z]{0,60}[0-9a-z]$`); !m {
+		errors = append(regexErrs, fmt.Errorf("%q can contain only lowercase letters, numbers, and '-', but can't start or end with '-' or have more than 63 characters.", k))
+	}
+
+	return nil, errors
+}
 
 func resourceArmPostgreSQLServer() *schema.Resource {
 	return &schema.Resource{
@@ -40,19 +49,53 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: ValidatePSQLServerName,
 			},
 
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"sku_name": {
+				Type:          schema.TypeString,
+				Optional:      true, // required in 2.0
+				Computed:      true, // remove in 2.0
+				ConflictsWith: []string{"sku"},
+				ValidateFunc: validation.StringInSlice([]string{
+					"B_Gen4_1",
+					"B_Gen4_2",
+					"B_Gen5_1",
+					"B_Gen5_2",
+					"GP_Gen4_2",
+					"GP_Gen4_4",
+					"GP_Gen4_8",
+					"GP_Gen4_16",
+					"GP_Gen4_32",
+					"GP_Gen5_2",
+					"GP_Gen5_4",
+					"GP_Gen5_8",
+					"GP_Gen5_16",
+					"GP_Gen5_32",
+					"GP_Gen5_64",
+					"MO_Gen5_2",
+					"MO_Gen5_4",
+					"MO_Gen5_8",
+					"MO_Gen5_16",
+					"MO_Gen5_32",
+				}, false),
+			},
+
+			// remove in 2.0
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"sku_name"},
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -86,7 +129,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 						"capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ValidateFunc: validate.IntInSlice([]int{
+							ValidateFunc: validation.IntInSlice([]int{
 								1,
 								2,
 								4,
@@ -154,9 +197,12 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_mb": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4194304, 1024),
+							Type:     schema.TypeInt,
+							Required: true,
+							ValidateFunc: validation.All(
+								validation.IntBetween(5120, 4194304),
+								validation.IntDivisibleBy(1024),
+							),
 						},
 
 						"backup_retention_days": {
@@ -229,13 +275,6 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	adminLogin := d.Get("administrator_login").(string)
-	adminLoginPassword := d.Get("administrator_login_password").(string)
-	sslEnforcement := d.Get("ssl_enforcement").(string)
-	version := d.Get("version").(string)
-	createMode := "Default"
-	t := d.Get("tags").(map[string]interface{})
-
 	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -249,21 +288,31 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	sku := expandAzureRmPostgreSQLServerSku(d)
-	storageProfile := expandAzureRmPostgreSQLStorageProfile(d)
+	var sku *postgresql.Sku
+	if b, ok := d.GetOk("sku_name"); ok {
+		var err error
+		sku, err = expandServerSkuName(b.(string))
+		if err != nil {
+			return fmt.Errorf("error expanding sku_name for PostgreSQL Server %s (Resource Group %q): %v", name, resourceGroup, err)
+		}
+	} else if _, ok := d.GetOk("sku"); ok {
+		sku = expandAzureRmPostgreSQLServerSku(d)
+	} else {
+		return fmt.Errorf("One of `sku` or `sku_name` must be set for PostgreSQL Server %q (Resource Group %q)", name, resourceGroup)
+	}
 
 	properties := postgresql.ServerForCreate{
 		Location: &location,
 		Properties: &postgresql.ServerPropertiesForDefaultCreate{
-			AdministratorLogin:         utils.String(adminLogin),
-			AdministratorLoginPassword: utils.String(adminLoginPassword),
-			Version:                    postgresql.ServerVersion(version),
-			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
-			StorageProfile:             storageProfile,
-			CreateMode:                 postgresql.CreateMode(createMode),
+			AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
+			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
+			Version:                    postgresql.ServerVersion(d.Get("version").(string)),
+			SslEnforcement:             postgresql.SslEnforcementEnum(d.Get("ssl_enforcement").(string)),
+			StorageProfile:             expandAzureRmPostgreSQLStorageProfile(d),
+			CreateMode:                 postgresql.CreateMode("Default"),
 		},
 		Sku:  sku,
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
@@ -299,22 +348,28 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	adminLoginPassword := d.Get("administrator_login_password").(string)
-	sslEnforcement := d.Get("ssl_enforcement").(string)
-	version := d.Get("version").(string)
-	sku := expandAzureRmPostgreSQLServerSku(d)
-	storageProfile := expandAzureRmPostgreSQLStorageProfile(d)
-	t := d.Get("tags").(map[string]interface{})
+	var sku *postgresql.Sku
+	if b, ok := d.GetOk("sku_name"); ok {
+		var err error
+		sku, err = expandServerSkuName(b.(string))
+		if err != nil {
+			return fmt.Errorf("error expanding sku_name for PostgreSQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
+		}
+	} else if _, ok := d.GetOk("sku"); ok {
+		sku = expandAzureRmPostgreSQLServerSku(d)
+	} else {
+		return fmt.Errorf("One of `sku` or `sku_name` must be set for PostgreSQL Server %q (Resource Group %q)", name, resourceGroup)
+	}
 
 	properties := postgresql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
-			StorageProfile:             storageProfile,
-			AdministratorLoginPassword: utils.String(adminLoginPassword),
-			Version:                    postgresql.ServerVersion(version),
-			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
+			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
+			Version:                    postgresql.ServerVersion(d.Get("version").(string)),
+			SslEnforcement:             postgresql.SslEnforcementEnum(d.Get("ssl_enforcement").(string)),
+			StorageProfile:             expandAzureRmPostgreSQLStorageProfile(d),
 		},
 		Sku:  sku,
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, properties)
@@ -330,7 +385,6 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("Error retrieving PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read PostgreSQL Server %s (resource group %s) ID", name, resourceGroup)
 	}
@@ -377,6 +431,9 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	if err := d.Set("sku", flattenPostgreSQLServerSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+	}
 
 	if err := d.Set("storage_profile", flattenPostgreSQLStorageProfile(resp.StorageProfile)); err != nil {
 		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
@@ -418,6 +475,37 @@ func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
+	parts := strings.Split(skuName, "_")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("sku_name (%s) has the wrong number of parts (%d) after splitting on _", skuName, len(parts))
+	}
+
+	var tier postgresql.SkuTier
+	switch parts[0] {
+	case "B":
+		tier = postgresql.Basic
+	case "GP":
+		tier = postgresql.GeneralPurpose
+	case "MO":
+		tier = postgresql.MemoryOptimized
+	default:
+		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
+	}
+
+	capacity, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return nil, fmt.Errorf("cannot convert skuname %s capcity %s to int", skuName, parts[2])
+	}
+
+	return &postgresql.Sku{
+		Name:     utils.String(skuName),
+		Tier:     tier,
+		Capacity: utils.Int32(int32(capacity)),
+		Family:   utils.String(parts[1]),
+	}, nil
 }
 
 func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData) *postgresql.Sku {

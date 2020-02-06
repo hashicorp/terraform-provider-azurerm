@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_gateway"
-sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-x"
 description: |-
   Manages a virtual network gateway to establish secure, cross-premises connectivity.
 ---
@@ -136,11 +135,11 @@ The following arguments are supported:
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
     gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
-    `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw4`,`VpnGw5`, `VpnGw1AZ`, 
+    `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw4`,`VpnGw5`, `VpnGw1AZ`,
     `VpnGw2AZ`, `VpnGw3AZ`,`VpnGw4AZ` and `VpnGw5AZ` and depend on the `type`, `vpn_type` and
     `generation` arguments.
     A `PolicyBased` gateway only supports the `Basic` sku. Further, the `UltraPerformance`
-    sku is only supported by an `ExpressRoute` gateway. 
+    sku is only supported by an `ExpressRoute` gateway.
 
 ~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be sku "Basic" not "Standard"
 
@@ -231,6 +230,17 @@ The `root_revoked_certificate` block supports:
 The following attributes are exported:
 
 * `id` - The ID of the Virtual Network Gateway.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Virtual Network Gateway.
+* `update` - (Defaults to 60 minutes) Used when updating the Virtual Network Gateway.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Network Gateway.
 
 ## Import
 

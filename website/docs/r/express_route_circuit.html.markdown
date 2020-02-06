@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit"
-sidebar_current: "docs-azurerm-resource-network-express-route-circuit-x"
 description: |-
   Manages an ExpressRoute circuit.
 ---
@@ -66,7 +65,7 @@ The following arguments are supported:
 
 `sku` supports the following:
 
-* `tier` - (Required) The service tier. Possible values are `Standard` or `Premium`.
+* `tier` - (Required) The service tier. Possible values are `Basic`, `Local`, `Standard` or `Premium`.
 
 * `family` - (Required) The billing mode for bandwidth. Possible values are `MeteredData` or `UnlimitedData`.
 
@@ -79,6 +78,17 @@ The following attributes are exported:
 * `id` - The Resource ID of the ExpressRoute circuit.
 * `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider. Possible values are "NotProvisioned", "Provisioning", "Provisioned", and "Deprovisioning".
 * `service_key` - The string needed by the service provider to provision the ExpressRoute circuit.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ExpressRoute Circuit.
+* `update` - (Defaults to 30 minutes) Used when updating the ExpressRoute Circuit.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute Circuit.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ExpressRoute Circuit.
 
 ## Import
 

@@ -26,6 +26,7 @@ func resourceArmAppService() *schema.Resource {
 		Read:   resourceArmAppServiceRead,
 		Update: resourceArmAppServiceUpdate,
 		Delete: resourceArmAppServiceDelete,
+
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := ParseAppServiceID(id)
 			return err
@@ -141,7 +142,6 @@ func resourceArmAppService() *schema.Resource {
 			"site_credential": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"username": {
@@ -173,7 +173,6 @@ func resourceArmAppService() *schema.Resource {
 			"source_control": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"repo_url": {

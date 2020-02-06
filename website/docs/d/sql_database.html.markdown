@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_database"
-sidebar_current: "docs-azurerm-datasource-sql-database"
 description: |-
   Gets information about an existing SQL Azure Database.
 ---
@@ -64,3 +63,11 @@ output "sql_database_id" {
 * `server_name` - The name of the SQL Server on which to create the database.
     
 * `tags` - A mapping of tags assigned to the resource.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the SQL Azure Database.

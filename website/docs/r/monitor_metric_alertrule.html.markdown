@@ -2,7 +2,6 @@
 subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_metric_alertrule"
-sidebar_current: "docs-azurerm-resource-monitor-metric-alertrule"
 description: |-
   Manages a metric-based alert rule in Azure Monitor.
 
@@ -147,6 +146,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the alert rule.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Metric Alert Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Metric Alert Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Metric Alert Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Metric Alert Rule.
 
 ## Import
 

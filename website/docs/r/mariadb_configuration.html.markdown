@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mariadb_configuration"
-sidebar_current: "docs-azurerm-resource-database-mariadb-configuration"
 description: |-
   Sets a MariaDB Configuration value on a MariaDB Server.
 ---
@@ -24,12 +23,7 @@ resource "azurerm_mariadb_server" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 
-  sku {
-    name     = "B_Gen5_2"
-    capacity = 2
-    tier     = "Basic"
-    family   = "Gen5"
-  }
+  sku_name = "B_Gen5_2"
 
   storage_profile {
     storage_mb            = 5120
@@ -68,6 +62,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the MariaDB Configuration.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the MariaDB Configuration.
+* `update` - (Defaults to 30 minutes) Used when updating the MariaDB Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MariaDB Configuration.
+* `delete` - (Defaults to 30 minutes) Used when deleting the MariaDB Configuration.
 
 ## Import
 

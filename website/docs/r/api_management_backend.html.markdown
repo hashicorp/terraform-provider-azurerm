@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_backend"
-sidebar_current: "docs-azurerm-resource-api-management-backend-x"
 description: |-
   Manages a backend within an API Management Service.
 ---
@@ -135,6 +134,17 @@ A `tls` block supports the following:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management API.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management Backend.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Backend.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Backend.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Backend.
 
 ## Import
 

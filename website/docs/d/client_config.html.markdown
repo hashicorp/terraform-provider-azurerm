@@ -2,7 +2,6 @@
 subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_client_config"
-sidebar_current: "docs-azurerm-datasource-client-config"
 description: |-
   Gets information about the configuration of the azurerm provider.
 ---
@@ -41,3 +40,11 @@ There are no arguments available for this data source.
 
 ~> **Note:** To better understand "application" and "service principal", please read
 [Application and service principal objects in Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-application-objects).
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the client config.

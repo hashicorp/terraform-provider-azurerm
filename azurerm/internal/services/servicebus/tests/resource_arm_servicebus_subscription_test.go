@@ -57,7 +57,6 @@ func TestAccAzureRMServiceBusSubscription_requiresImport(t *testing.T) {
 
 func TestAccAzureRMServiceBusSubscription_defaultTtl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	config := testAccAzureRMServiceBusSubscription_withDefaultTtl(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -65,7 +64,7 @@ func TestAccAzureRMServiceBusSubscription_defaultTtl(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusSubscription_withDefaultTtl(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr("azurerm_servicebus_subscription.test", "default_message_ttl", "PT1H"),
@@ -78,8 +77,6 @@ func TestAccAzureRMServiceBusSubscription_defaultTtl(t *testing.T) {
 
 func TestAccAzureRMServiceBusSubscription_updateEnableBatched(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	preConfig := testAccAzureRMServiceBusSubscription_basic(data)
-	postConfig := testAccAzureRMServiceBusSubscription_updateEnableBatched(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -87,13 +84,13 @@ func TestAccAzureRMServiceBusSubscription_updateEnableBatched(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMServiceBusSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMServiceBusSubscription_updateEnableBatched(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_batched_operations", "true"),
 				),
@@ -105,8 +102,6 @@ func TestAccAzureRMServiceBusSubscription_updateEnableBatched(t *testing.T) {
 
 func TestAccAzureRMServiceBusSubscription_updateRequiresSession(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	preConfig := testAccAzureRMServiceBusSubscription_basic(data)
-	postConfig := testAccAzureRMServiceBusSubscription_updateRequiresSession(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -114,13 +109,13 @@ func TestAccAzureRMServiceBusSubscription_updateRequiresSession(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMServiceBusSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMServiceBusSubscription_updateRequiresSession(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "requires_session", "true"),
 				),
@@ -132,8 +127,6 @@ func TestAccAzureRMServiceBusSubscription_updateRequiresSession(t *testing.T) {
 
 func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	preConfig := testAccAzureRMServiceBusSubscription_basic(data)
-	postConfig := testAccAzureRMServiceBusSubscription_updateForwardTo(data)
 
 	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_to-%d", data.RandomInteger)
 
@@ -143,13 +136,13 @@ func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMServiceBusSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMServiceBusSubscription_updateForwardTo(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "forward_to", expectedValue),
 				),
@@ -161,8 +154,6 @@ func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 
 func TestAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
-	preConfig := testAccAzureRMServiceBusSubscription_basic(data)
-	postConfig := testAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(data)
 
 	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_dl_messages_to-%d", data.RandomInteger)
 
@@ -172,13 +163,13 @@ func TestAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t 
 		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMServiceBusSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "forward_dead_lettered_messages_to", expectedValue),
 				),
@@ -220,6 +211,9 @@ func testCheckAzureRMServiceBusSubscriptionDestroy(s *terraform.State) error {
 
 func testCheckAzureRMServiceBusSubscriptionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.SubscriptionsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -233,9 +227,6 @@ func testCheckAzureRMServiceBusSubscriptionExists(resourceName string) resource.
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Subscription: %q", topicName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.SubscriptionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName)
 		if err != nil {
@@ -289,11 +280,11 @@ func testAccAzureRMServiceBusSubscription_requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_servicebus_subscription" "import" {
-    name                = "${azurerm_servicebus_subscription.test.name}"
-    namespace_name      = "${azurerm_servicebus_subscription.test.namespace_name}"
-    topic_name          = "${azurerm_servicebus_subscription.test.topic_name}"
-    resource_group_name = "${azurerm_servicebus_subscription.test.resource_group_name}"
-    max_delivery_count  = "${azurerm_servicebus_subscription.test.max_delivery_count}"
+  name                = "${azurerm_servicebus_subscription.test.name}"
+  namespace_name      = "${azurerm_servicebus_subscription.test.namespace_name}"
+  topic_name          = "${azurerm_servicebus_subscription.test.topic_name}"
+  resource_group_name = "${azurerm_servicebus_subscription.test.resource_group_name}"
+  max_delivery_count  = "${azurerm_servicebus_subscription.test.max_delivery_count}"
 }
 `, testAccAzureRMServiceBusSubscription_basic(data))
 }

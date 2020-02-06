@@ -2,7 +2,6 @@
 subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_stream_input_iothub"
-sidebar_current: "docs-azurerm-resource-stream-analytics-stream-input-iothub"
 description: |-
   Manages a Stream Analytics Stream Input IoTHub.
 ---
@@ -30,7 +29,6 @@ resource "azurerm_iothub" "example" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 }
@@ -60,7 +58,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Stream Analytics Job exists. Changing this forces a new resource to be created.
 
-* `stream_analytics_job_name` - (Required) The name of the Stream Analytics Job. Changing this forces a new resource to be created. 
+* `stream_analytics_job_name` - (Required) The name of the Stream Analytics Job. Changing this forces a new resource to be created.
 
 * `eventhub_consumer_group_name` - (Required) The name of an Event Hub Consumer Group that should be used to read events from the Event Hub. Specifying distinct consumer group names for multiple inputs allows each of those inputs to receive the same events from the Event Hub.
 
@@ -93,6 +91,17 @@ A `serialization` block supports the following:
 The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Stream Analytics Stream Input IoTHub.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Stream Input IoTHub.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Stream Input IoTHub.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Stream Input IoTHub.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Stream Input IoTHub.
 
 ## Import
 

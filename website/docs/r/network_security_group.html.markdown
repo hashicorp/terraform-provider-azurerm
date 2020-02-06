@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_security_group"
-sidebar_current: "docs-azurerm-resource-network-security-group"
 description: |-
   Manages a network security group that contains a list of network security rules. Network security groups enable inbound or outbound traffic to be enabled or denied.
 
@@ -101,8 +100,18 @@ Elements of `security_rule` support:
 
 The following attributes are exported:
 
-* `id` - The Network Security Group ID.
+* `id` - The ID of the Network Security Group.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Security Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Security Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Security Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Security Group.
 
 ## Import
 

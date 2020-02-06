@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -54,10 +53,34 @@ func resourceArmMariaDbServer() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"sku_name": {
+				Type:          schema.TypeString,
+				Optional:      true, // required in 2.0
+				Computed:      true, // remove in 2.0
+				ConflictsWith: []string{"sku"},
+				ValidateFunc: validation.StringInSlice([]string{
+					"B_Gen5_1",
+					"B_Gen5_2",
+					"GP_Gen5_2",
+					"GP_Gen5_4",
+					"GP_Gen5_8",
+					"GP_Gen5_16",
+					"GP_Gen5_32",
+					"MO_Gen5_2",
+					"MO_Gen5_4",
+					"MO_Gen5_8",
+					"MO_Gen5_16",
+				}, false),
+			},
+
+			// remove in 2.0
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"sku_name"},
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -81,7 +104,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 						"capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ValidateFunc: validate.IntInSlice([]int{
+							ValidateFunc: validation.IntInSlice([]int{
 								1,
 								2,
 								4,
@@ -116,14 +139,14 @@ func resourceArmMariaDbServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"administrator_login_password": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Sensitive:    true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"version": {
@@ -143,9 +166,12 @@ func resourceArmMariaDbServer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_mb": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4096000, 1024),
+							Type:     schema.TypeInt,
+							Required: true,
+							ValidateFunc: validation.All(
+								validation.IntBetween(5120, 4096000),
+								validation.IntDivisibleBy(1024),
+							),
 						},
 
 						"backup_retention_days": {
@@ -219,14 +245,21 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	adminLogin := d.Get("administrator_login").(string)
-	adminLoginPassword := d.Get("administrator_login_password").(string)
-	sslEnforcement := d.Get("ssl_enforcement").(string)
-	version := d.Get("version").(string)
-	t := d.Get("tags").(map[string]interface{})
 
-	sku := expandAzureRmMariaDbServerSku(d)
 	storageProfile := expandAzureRmMariaDbStorageProfile(d)
+
+	var sku *mariadb.Sku
+	if b, ok := d.GetOk("sku_name"); ok {
+		var err error
+		sku, err = expandServerSkuName(b.(string))
+		if err != nil {
+			return fmt.Errorf("error expanding sku_name for PostgreSQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
+		}
+	} else if _, ok := d.GetOk("sku"); ok {
+		sku = expandAzureRmMariaDbServerSku(d)
+	} else {
+		return fmt.Errorf("One of `sku` or `sku_name` must be set for PostgreSQL Server %q (Resource Group %q)", name, resourceGroup)
+	}
 
 	skuName := sku.Name
 	capacity := sku.Capacity
@@ -283,15 +316,15 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 	properties := mariadb.ServerForCreate{
 		Location: &location,
 		Properties: &mariadb.ServerPropertiesForDefaultCreate{
-			AdministratorLogin:         utils.String(adminLogin),
-			AdministratorLoginPassword: utils.String(adminLoginPassword),
-			Version:                    mariadb.ServerVersion(version),
-			SslEnforcement:             mariadb.SslEnforcementEnum(sslEnforcement),
+			AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
+			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
+			Version:                    mariadb.ServerVersion(d.Get("version").(string)),
+			SslEnforcement:             mariadb.SslEnforcementEnum(d.Get("ssl_enforcement").(string)),
 			StorageProfile:             storageProfile,
 			CreateMode:                 mariadb.CreateModeDefault,
 		},
 		Sku:  sku,
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
@@ -347,6 +380,10 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+	}
+
 	if properties := resp.ServerProperties; properties != nil {
 		d.Set("administrator_login", properties.AdministratorLogin)
 		d.Set("version", string(properties.Version))
@@ -396,6 +433,37 @@ func resourceArmMariaDbServerDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
+}
+
+func expandServerSkuName(skuName string) (*mariadb.Sku, error) {
+	parts := strings.Split(skuName, "_")
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("sku_name (%s) has the worng number of parts (%d) after splitting on _", skuName, len(parts))
+	}
+
+	var tier mariadb.SkuTier
+	switch parts[0] {
+	case "B":
+		tier = mariadb.Basic
+	case "GP":
+		tier = mariadb.GeneralPurpose
+	case "MO":
+		tier = mariadb.MemoryOptimized
+	default:
+		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
+	}
+
+	capacity, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return nil, fmt.Errorf("cannot convert skuname %s capcity %s to int", skuName, parts[2])
+	}
+
+	return &mariadb.Sku{
+		Name:     utils.String(skuName),
+		Tier:     tier,
+		Capacity: utils.Int32(int32(capacity)),
+		Family:   utils.String(parts[1]),
+	}, nil
 }
 
 func expandAzureRmMariaDbServerSku(d *schema.ResourceData) *mariadb.Sku {

@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_consumer_group"
-sidebar_current: "docs-azurerm-resource-messaging-eventhub-consumer-group"
 description: |-
   Manages a Event Hubs Consumer Group as a nested resource within an Event Hub.
 ---
@@ -66,7 +65,18 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The EventHub Consumer Group ID.
+* `id` - The ID of the EventHub Consumer Group.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the EventHub Consumer Group.
+* `update` - (Defaults to 30 minutes) Used when updating the EventHub Consumer Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Consumer Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the EventHub Consumer Group.
 
 ## Import
 

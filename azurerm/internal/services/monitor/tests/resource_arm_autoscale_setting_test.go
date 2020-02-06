@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_autoscale_setting", "test")
-	config := testAccAzureRMAutoScaleSetting_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAutoScaleSetting_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -67,7 +66,6 @@ func TestAccAzureRMAutoScaleSetting_requiresImport(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_autoscale_setting", "test")
-	config := testAccAzureRMAutoScaleSetting_multipleProfiles(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -75,7 +73,7 @@ func TestAccAzureRMAutoScaleSetting_multipleProfiles(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAutoScaleSetting_multipleProfiles(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -205,7 +203,6 @@ func TestAccAzureRMAutoScaleSetting_customEmails(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_autoscale_setting", "test")
-	config := testAccAzureRMAutoScaleSetting_recurrence(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -213,7 +210,7 @@ func TestAccAzureRMAutoScaleSetting_recurrence(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAutoScaleSetting_recurrence(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -268,7 +265,6 @@ func TestAccAzureRMAutoScaleSetting_recurrenceUpdate(t *testing.T) {
 
 func TestAccAzureRMAutoScaleSetting_fixedDate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_autoscale_setting", "test")
-	config := testAccAzureRMAutoScaleSetting_fixedDate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -276,7 +272,7 @@ func TestAccAzureRMAutoScaleSetting_fixedDate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutoScaleSettingDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAutoScaleSetting_fixedDate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutoScaleSettingExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -293,6 +289,9 @@ func TestAccAzureRMAutoScaleSetting_fixedDate(t *testing.T) {
 
 func testCheckAzureRMAutoScaleSettingExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -303,9 +302,6 @@ func testCheckAzureRMAutoScaleSettingExists(resourceName string) resource.TestCh
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for AutoScale Setting: %s", autoscaleSettingName)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AutoscaleSettingsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, autoscaleSettingName)
 		if err != nil {

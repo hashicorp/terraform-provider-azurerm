@@ -33,12 +33,12 @@ func TestAccAzureRMRecoveryReplicatedVm_basic(t *testing.T) {
 func testAccAzureRMRecoveryReplicatedVm_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery1-%d"
+  name     = "acctestRG-recovery-%d-1"
   location = "%s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-recovery2-%d"
+  name     = "acctestRG-recovery-%d-2"
   location = "%s"
 }
 
@@ -47,6 +47,8 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = "${azurerm_resource_group.test2.location}"
   resource_group_name = "${azurerm_resource_group.test2.name}"
   sku                 = "Standard"
+
+  soft_delete_enabled = false
 }
 
 resource "azurerm_recovery_services_fabric" "test1" {
@@ -209,6 +211,8 @@ resource "azurerm_recovery_replicated_vm" "test" {
 
 func testCheckAzureRMRecoveryReplicatedVmExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		state, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -221,7 +225,6 @@ func testCheckAzureRMRecoveryReplicatedVmExists(resourceName string) resource.Te
 		replicationName := state.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, replicationName)
 		if err != nil {
@@ -237,6 +240,8 @@ func testCheckAzureRMRecoveryReplicatedVmExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMRecoveryReplicatedVmDestroy(s *terraform.State) error {
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_recovery_replicated_vm" {
 			continue
@@ -249,7 +254,6 @@ func testCheckAzureRMRecoveryReplicatedVmDestroy(s *terraform.State) error {
 		replicationName := rs.Primary.Attributes["name"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, replicationName)
 		if err != nil {

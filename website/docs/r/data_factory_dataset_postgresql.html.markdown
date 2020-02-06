@@ -2,7 +2,6 @@
 subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_dataset_postgresql"
-sidebar_current: "docs-azurerm-resource-data-factory-dataset-postgresql"
 description: |-
   Manages a PostgreSQL Dataset inside a Azure Data Factory.
 ---
@@ -15,7 +14,7 @@ Manages a PostgreSQL Dataset inside a Azure Data Factory.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 
@@ -76,16 +75,26 @@ A `schema_column` block supports the following:
 
 * `description` - (Optional) The description of the column.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Data Factory Dataset.
+* `id` - The ID of the Data Factory PostgreSQL Dataset.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory PostgreSQL Dataset.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory PostgreSQL Dataset.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory PostgreSQL Dataset.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory PostgreSQL Dataset.
 
 ## Import
 
-Data Factory Dataset PostgreSQL can be imported using the `resource id`, e.g.
+Data Factory PostgreSQL Datasets can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_data_factory_dataset_postgresql.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/datasets/example

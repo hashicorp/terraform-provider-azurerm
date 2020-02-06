@@ -2,7 +2,6 @@
 subcategory: "Logic App"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_logic_app_trigger_recurrence"
-sidebar_current: "docs-azurerm-resource-logic-app-trigger-recurrence"
 description: |-
   Manages a Recurrence Trigger within a Logic App Workflow
 ---
@@ -47,11 +46,24 @@ The following arguments are supported:
 
 * `interval` - (Required) Specifies interval used for the Frequency, for example a value of `4` for `interval` and `hour` for `frequency` would run the Trigger every 4 hours.
 
+* `start_time` - (Optional) Specifies the start date and time for this trigger in RFC3339 format: `2000-01-02T03:04:05Z`.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Recurrence Trigger within the Logic App Workflow.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Logic App Recurrence Trigger.
+* `update` - (Defaults to 30 minutes) Used when updating the Logic App Recurrence Trigger.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Recurrence Trigger.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Logic App Recurrence Trigger.
 
 ## Import
 

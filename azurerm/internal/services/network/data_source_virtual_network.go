@@ -6,8 +6,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -25,7 +25,7 @@ func dataSourceArmVirtualNetwork() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -104,7 +104,7 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
 		if as := props.AddressSpace; as != nil {
-			if err := d.Set("address_spaces", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil { //todo remove in 2.0
+			if err := d.Set("address_spaces", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil { // todo remove in 2.0
 				return fmt.Errorf("error setting `address_spaces`: %v", err)
 			}
 			if err := d.Set("address_space", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil {

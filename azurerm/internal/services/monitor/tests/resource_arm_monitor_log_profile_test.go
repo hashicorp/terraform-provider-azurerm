@@ -172,14 +172,14 @@ func testCheckAzureRMLogProfileDestroy(s *terraform.State) error {
 
 func testCheckAzureRMLogProfileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.LogProfilesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.LogProfilesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		name := rs.Primary.Attributes["name"]
 		resp, err := client.Get(ctx, name)
@@ -197,6 +197,9 @@ func testCheckAzureRMLogProfileExists(resourceName string) resource.TestCheckFun
 
 func testCheckAzureRMLogProfileDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.LogProfilesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -204,9 +207,6 @@ func testCheckAzureRMLogProfileDisappears(resourceName string) resource.TestChec
 		}
 
 		name := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.LogProfilesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if _, err := client.Delete(ctx, name); err != nil {
 			return fmt.Errorf("Error deleting Log Profile %q: %+v", name, err)

@@ -78,7 +78,7 @@ data "azurerm_monitor_diagnostic_categories" "test" {
 func testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -97,5 +97,5 @@ resource "azurerm_storage_account" "test" {
 data "azurerm_monitor_diagnostic_categories" "test" {
   resource_id = "${azurerm_storage_account.test.id}"
 }
-`, data.RandomString, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

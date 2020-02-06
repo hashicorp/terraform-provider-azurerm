@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account"
-sidebar_current: "docs-azurerm-resource-storage-account"
 description: |-
   Manages a Azure Storage Account.
 ---
@@ -99,7 +98,7 @@ The following arguments are supported:
 
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information.
-    
+
 * `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 
 * `account_encryption_source` - (Optional) The Encryption Source for this Storage Account. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`. Defaults to `Microsoft.Storage`.
@@ -137,9 +136,9 @@ A `cors_rule` block supports the following:
 * `allowed_methods` - (Required) A list of http headers that are allowed to be executed by the origin. Valid options are
 `DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` or `PUT`.
 
-* `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS. 
+* `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS.
 
-* `exposed_headers` - (Required) A list of response headers that are exposed to CORS clients. 
+* `exposed_headers` - (Required) A list of response headers that are exposed to CORS clients.
 
 * `max_age_in_seconds` - (Required) The number of seconds the client should cache a preflight response.
 
@@ -156,7 +155,7 @@ A `delete_retention_policy` block supports the following:
 
 * `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days. Defaults to `7`.
 
---- 
+---
 
 A `hour_metrics` block supports the following:
 
@@ -166,7 +165,7 @@ A `hour_metrics` block supports the following:
 
 * `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
 
 ---
 
@@ -188,7 +187,7 @@ A `logging` block supports the following:
 
 * `write` - (Required) Indicates whether all write requests should be logged. Changing this forces a new resource.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
 
 ---
 
@@ -200,7 +199,7 @@ A `minute_metrics` block supports the following:
 
 * `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
 
-* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource.
 
 ---
 
@@ -208,7 +207,7 @@ A `network_rules` block supports the following:
 
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 * `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are
-any combination of `Logging`, `Metrics`, `AzureServices`, or `None`. 
+any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 * `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
@@ -313,6 +312,17 @@ The following attributes are exported in addition to the arguments listed above:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Storage Account.
 
 -> You can access the Principal ID via `${azurerm_storage_account.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_storage_account.example.identity.0.tenant_id}`
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Storage Account.
+* `update` - (Defaults to 60 minutes) Used when updating the Storage Account.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Storage Account.
 
 ## Import
 

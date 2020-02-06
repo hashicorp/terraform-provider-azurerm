@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_service"
-sidebar_current: "docs-azurerm-datasource-private-link-service"
 description: |-
   Use this data source to access information about an existing Private Link Service.
 ---
@@ -70,3 +69,11 @@ The `nat_ip_configuration` block exports the following:
 
 * `primary` - Value that indicates if the IP configuration is the primary configuration or not.
 
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Service.

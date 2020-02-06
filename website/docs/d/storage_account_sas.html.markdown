@@ -2,7 +2,6 @@
 subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account_sas"
-sidebar_current: "docs-azurerm-datasource-storage-account-sas"
 description: |-
   Gets a Shared Access Signature (SAS Token) for an existing Storage Account.
 
@@ -111,6 +110,7 @@ A `services` block contains:
 
 A `permissions` block contains:
 
+
 * `read` - (Required) Should Read permissions be enabled for this SAS?
 * `write` - (Required) Should Write permissions be enabled for this SAS?
 * `delete` - (Required) Should Delete permissions be enabled for this SAS?
@@ -126,3 +126,11 @@ for additional details on the fields above.
 ## Attributes Reference
 
 * `sas` - The computed Account Shared Access Signature (SAS).
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the SAS Token.

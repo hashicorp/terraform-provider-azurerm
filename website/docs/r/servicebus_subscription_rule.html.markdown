@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_subscription_rule"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-subscription-rule"
 description: |-
   Manages a ServiceBus Subscription Rule.
 ---
@@ -155,6 +154,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ServiceBus Subscription Rule ID.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Subscription Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Subscription Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Subscription Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Subscription Rule.
 
 ## Import
 

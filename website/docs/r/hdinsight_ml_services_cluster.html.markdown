@@ -2,7 +2,6 @@
 subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_ml_services_cluster"
-sidebar_current: "docs-azurerm-resource-hdinsight-ml-services-cluster"
 description: |-
   Manages a HDInsight ML Services Cluster.
 ---
@@ -240,6 +239,17 @@ The following attributes are exported:
 * `https_endpoint` - The HTTPS Connectivity Endpoint for this HDInsight ML Services Cluster.
 
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight ML Services Cluster.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the MLServices HDInsight Cluster.
+* `update` - (Defaults to 60 minutes) Used when updating the MLServices HDInsight Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MLServices HDInsight Cluster.
+* `delete` - (Defaults to 60 minutes) Used when deleting the MLServices HDInsight Cluster.
 
 ## Import
 

@@ -6,12 +6,15 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -24,9 +27,10 @@ func resourceArmHybridConnection() *schema.Resource {
 		Read:   resourceArmHybridConnectionRead,
 		Update: resourceArmHybridConnectionCreateUpdate,
 		Delete: resourceArmHybridConnectionDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := ParseHybridConnectionID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -40,7 +44,7 @@ func resourceArmHybridConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -49,7 +53,7 @@ func resourceArmHybridConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"requires_client_authorization": {
@@ -61,7 +65,7 @@ func resourceArmHybridConnection() *schema.Resource {
 			"user_metadata": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -77,12 +81,26 @@ func resourceArmHybridConnectionCreateUpdate(d *schema.ResourceData, meta interf
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	relayNamespace := d.Get("relay_namespace_name").(string)
-	requireClientAuthroization := d.Get("requires_client_authorization").(bool)
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, relayNamespace, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Hybrid Connection %q (Resource Group %q, Namespace: %q): %s", name, resourceGroup, relayNamespace, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_app_service", *existing.ID)
+		}
+	}
+
+	requireClientAuthorization := d.Get("requires_client_authorization").(bool)
 	userMetadata := d.Get("user_metadata").(string)
 
 	parameters := relay.HybridConnection{
 		HybridConnectionProperties: &relay.HybridConnectionProperties{
-			RequiresClientAuthorization: &requireClientAuthroization,
+			RequiresClientAuthorization: &requireClientAuthorization,
 			UserMetadata:                &userMetadata,
 		},
 	}

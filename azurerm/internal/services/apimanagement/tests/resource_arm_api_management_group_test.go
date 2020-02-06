@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
-	config := testAccAzureRMAPIManagementGroup_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,18 +21,14 @@ func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAPIManagementGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Group"),
 					resource.TestCheckResourceAttr(data.ResourceName, "type", "custom"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -66,15 +61,13 @@ func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
 func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
-	config := testAccAzureRMAPIManagementGroup_complete(data, "Test Group", "A test description.")
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAPIManagementGroup_complete(data, "Test Group", "A test description."),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Group"),
@@ -82,19 +75,13 @@ func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "type", "external"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
 
 func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
-	preConfig := testAccAzureRMAPIManagementGroup_complete(data, "Original Group", "The original description.")
-	postConfig := testAccAzureRMAPIManagementGroup_complete(data, "Modified Group", "A modified description.")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -102,7 +89,7 @@ func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T)
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMAPIManagementGroup_complete(data, "Original Group", "The original description."),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Original Group"),
@@ -111,7 +98,7 @@ func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T)
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMAPIManagementGroup_complete(data, "Modified Group", "A modified description."),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Modified Group"),
@@ -120,7 +107,7 @@ func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T)
 				),
 			},
 			{
-				Config: preConfig,
+				Config: testAccAzureRMAPIManagementGroup_complete(data, "Original Group", "The original description."),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Original Group"),
@@ -134,6 +121,8 @@ func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T)
 
 func testCheckAzureRMAPIManagementGroupDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_group" {
 			continue
@@ -143,7 +132,6 @@ func testCheckAzureRMAPIManagementGroupDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 
 		if err != nil {
@@ -159,6 +147,9 @@ func testCheckAzureRMAPIManagementGroupDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAPIManagementGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -168,8 +159,6 @@ func testCheckAzureRMAPIManagementGroupExists(resourceName string) resource.Test
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.GroupClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

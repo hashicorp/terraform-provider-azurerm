@@ -5,13 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-04-01/frontdoor"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-11-01/frontdoor"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -42,7 +41,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -68,13 +67,13 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			"redirect_url": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.URLIsHTTPOrHTTPS,
+				ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 			},
 
 			"custom_block_response_status_code": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				ValidateFunc: validate.IntInSlice([]int{
+				ValidateFunc: validation.IntInSlice([]int{
 					200,
 					403,
 					405,
@@ -98,7 +97,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"enabled": {
@@ -172,7 +171,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 										MaxItems: 100,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 
@@ -180,25 +179,25 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(frontdoor.Any),
-											string(frontdoor.BeginsWith),
-											string(frontdoor.Contains),
-											string(frontdoor.EndsWith),
-											string(frontdoor.Equal),
-											string(frontdoor.GeoMatch),
-											string(frontdoor.GreaterThan),
-											string(frontdoor.GreaterThanOrEqual),
-											string(frontdoor.IPMatch),
-											string(frontdoor.LessThan),
-											string(frontdoor.LessThanOrEqual),
-											string(frontdoor.RegEx),
+											string(frontdoor.OperatorAny),
+											string(frontdoor.OperatorBeginsWith),
+											string(frontdoor.OperatorContains),
+											string(frontdoor.OperatorEndsWith),
+											string(frontdoor.OperatorEqual),
+											string(frontdoor.OperatorGeoMatch),
+											string(frontdoor.OperatorGreaterThan),
+											string(frontdoor.OperatorGreaterThanOrEqual),
+											string(frontdoor.OperatorIPMatch),
+											string(frontdoor.OperatorLessThan),
+											string(frontdoor.OperatorLessThanOrEqual),
+											string(frontdoor.OperatorRegEx),
 										}, false),
 									},
 
 									"selector": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"negation_condition": {
@@ -239,13 +238,49 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 						"type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"version": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"exclusion": {
+							Type:     schema.TypeList,
+							MaxItems: 100,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"match_variable": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(frontdoor.QueryStringArgNames),
+											string(frontdoor.RequestBodyPostArgNames),
+											string(frontdoor.RequestCookieNames),
+											string(frontdoor.RequestHeaderNames),
+										}, false),
+									},
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(frontdoor.Contains),
+											string(frontdoor.EndsWith),
+											string(frontdoor.Equals),
+											string(frontdoor.EqualsAny),
+											string(frontdoor.StartsWith),
+										}, false),
+									},
+									"selector": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
 						},
 
 						"override": {
@@ -257,7 +292,43 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 									"rule_group_name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"exclusion": {
+										Type:     schema.TypeList,
+										MaxItems: 100,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"match_variable": {
+													Type:     schema.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(frontdoor.QueryStringArgNames),
+														string(frontdoor.RequestBodyPostArgNames),
+														string(frontdoor.RequestCookieNames),
+														string(frontdoor.RequestHeaderNames),
+													}, false),
+												},
+												"operator": {
+													Type:     schema.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(frontdoor.Contains),
+														string(frontdoor.EndsWith),
+														string(frontdoor.Equals),
+														string(frontdoor.EqualsAny),
+														string(frontdoor.StartsWith),
+													}, false),
+												},
+												"selector": {
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
+										},
 									},
 
 									"rule": {
@@ -269,13 +340,49 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 												"rule_id": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validate.NoEmptyStrings,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 
 												"enabled": {
 													Type:     schema.TypeBool,
 													Optional: true,
 													Default:  false,
+												},
+
+												"exclusion": {
+													Type:     schema.TypeList,
+													MaxItems: 100,
+													Optional: true,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"match_variable": {
+																Type:     schema.TypeString,
+																Required: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(frontdoor.QueryStringArgNames),
+																	string(frontdoor.RequestBodyPostArgNames),
+																	string(frontdoor.RequestCookieNames),
+																	string(frontdoor.RequestHeaderNames),
+																}, false),
+															},
+															"operator": {
+																Type:     schema.TypeString,
+																Required: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(frontdoor.Contains),
+																	string(frontdoor.EndsWith),
+																	string(frontdoor.Equals),
+																	string(frontdoor.EqualsAny),
+																	string(frontdoor.StartsWith),
+																}, false),
+															},
+															"selector": {
+																Type:         schema.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+														},
+													},
 												},
 
 												"action": {
@@ -344,6 +451,7 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
 	customRules := d.Get("custom_rule").([]interface{})
 	managedRules := d.Get("managed_rule").([]interface{})
+
 	t := d.Get("tags").(map[string]interface{})
 
 	frontdoorWebApplicationFirewallPolicy := frontdoor.WebApplicationFirewallPolicy{
@@ -577,10 +685,15 @@ func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.Mana
 		ruleType := managedRule["type"].(string)
 		version := managedRule["version"].(string)
 		overrides := managedRule["override"].([]interface{})
+		exclusions := managedRule["exclusion"].([]interface{})
 
 		managedRuleSet := frontdoor.ManagedRuleSet{
 			RuleSetType:    utils.String(ruleType),
 			RuleSetVersion: utils.String(version),
+		}
+
+		if exclusions := expandArmFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+			managedRuleSet.Exclusions = exclusions
 		}
 
 		if ruleGroupOverrides := expandArmFrontDoorFirewallManagedRuleGroupOverride(overrides); ruleGroupOverrides != nil {
@@ -595,6 +708,31 @@ func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.Mana
 	}
 }
 
+func expandArmFrontDoorFirewallManagedRuleGroupExclusion(input []interface{}) *[]frontdoor.ManagedRuleExclusion {
+	if len(input) == 0 {
+		return nil
+	}
+
+	managedRuleExclusions := make([]frontdoor.ManagedRuleExclusion, 0)
+	for _, v := range input {
+		exclusion := v.(map[string]interface{})
+
+		matchVariable := exclusion["match_variable"].(string)
+		operator := exclusion["operator"].(string)
+		selector := exclusion["selector"].(string)
+
+		managedRuleExclusion := frontdoor.ManagedRuleExclusion{
+			MatchVariable:         frontdoor.ManagedRuleExclusionMatchVariable(matchVariable),
+			SelectorMatchOperator: frontdoor.ManagedRuleExclusionSelectorMatchOperator(operator),
+			Selector:              utils.String(selector),
+		}
+
+		managedRuleExclusions = append(managedRuleExclusions, managedRuleExclusion)
+	}
+
+	return &managedRuleExclusions
+}
+
 func expandArmFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]frontdoor.ManagedRuleGroupOverride {
 	if len(input) == 0 {
 		return nil
@@ -606,9 +744,14 @@ func expandArmFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]
 
 		ruleGroupName := override["rule_group_name"].(string)
 		rules := override["rule"].([]interface{})
+		exclusions := override["exclusion"].([]interface{})
 
 		managedRuleGroupOverride := frontdoor.ManagedRuleGroupOverride{
 			RuleGroupName: utils.String(ruleGroupName),
+		}
+
+		if exclusions := expandArmFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+			managedRuleGroupOverride.Exclusions = exclusions
 		}
 
 		if managedRuleOverride := expandArmFrontDoorFirewallRuleOverride(rules); managedRuleOverride != nil {
@@ -636,11 +779,16 @@ func expandArmFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.Ma
 		}
 		ruleId := rule["rule_id"].(string)
 		action := rule["action"].(string)
+		exclusions := rule["exclusion"].([]interface{})
 
 		managedRuleOverride := frontdoor.ManagedRuleOverride{
 			RuleID:       utils.String(ruleId),
 			EnabledState: enabled,
 			Action:       frontdoor.ActionType(action),
+		}
+
+		if exclusions := expandArmFrontDoorFirewallManagedRuleGroupExclusion(exclusions); exclusions != nil {
+			managedRuleOverride.Exclusions = exclusions
 		}
 
 		managedRuleOverrides = append(managedRuleOverrides, managedRuleOverride)
@@ -731,6 +879,29 @@ func flattenArmFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList
 			output["override"] = flattenArmFrontDoorFirewallOverrides(v)
 		}
 
+		if v := r.Exclusions; v != nil {
+			output["exclusion"] = flattenArmFrontDoorFirewallExclusions(v)
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func flattenArmFrontDoorFirewallExclusions(managedRuleExclusion *[]frontdoor.ManagedRuleExclusion) []interface{} {
+	if managedRuleExclusion == nil {
+		return make([]interface{}, 0)
+	}
+
+	results := make([]interface{}, 0)
+	for _, o := range *managedRuleExclusion {
+		output := make(map[string]interface{})
+
+		output["match_variable"] = o.MatchVariable
+		output["operator"] = o.SelectorMatchOperator
+		output["selector"] = o.Selector
+
 		results = append(results, output)
 	}
 
@@ -748,6 +919,10 @@ func flattenArmFrontDoorFirewallOverrides(groupOverride *[]frontdoor.ManagedRule
 
 		if v := o.RuleGroupName; v != nil {
 			output["rule_group_name"] = *v
+		}
+
+		if v := o.Exclusions; v != nil {
+			output["exclusion"] = flattenArmFrontDoorFirewallExclusions(v)
 		}
 
 		if rules := o.Rules; rules != nil {
@@ -774,6 +949,10 @@ func flattenArmFrontdoorFirewallRules(override *[]frontdoor.ManagedRuleOverride)
 
 		if v := o.RuleID; v != nil {
 			output["rule_id"] = *v
+		}
+
+		if v := o.Exclusions; v != nil {
+			output["exclusion"] = flattenArmFrontDoorFirewallExclusions(v)
 		}
 
 		results = append(results, output)

@@ -2,14 +2,13 @@
 subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_site_recovery_replicated_vm"
-sidebar_current: "docs-azurerm-site-recovery-replicated-vm"
 description: |-
     Manages a VM protected with Azure Site Recovery on Azure.
 ---
 
 # azurerm_site_recovery_replicated_vm
 
-Manages a VM replicated using Azure Site Recovery (Azure to Azure only). A replicated VM keeps a copiously updated image of the VM in another region in order to be able to start the VM in that region in case of a disaster. 
+Manages a VM replicated using Azure Site Recovery (Azure to Azure only). A replicated VM keeps a copiously updated image of the VM in another region in order to be able to start the VM in that region in case of a disaster.
 
 ## Example Usage
 
@@ -211,11 +210,22 @@ A `managed_disk` block supports the following:
 
 In addition to the arguments above, the following attributes are exported:
 
-* `id` - The resource ID.
+* `id` - The ID of the Site Recovery Replicated VM.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 80 minutes) Used when creating the Site Recovery Replicated VM.
+* `update` - (Defaults to 80 minutes) Used when updating the Site Recovery Replicated VM.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replicated VM.
+* `delete` - (Defaults to 80 minutes) Used when deleting the Site Recovery Replicated VM.
 
 ## Import
 
-Site Recovery replicated VMs can be imported using the `resource id`, e.g.
+Site Recovery Replicated VM's can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_site_recovery_replicated_vm.vmreplication /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationFabrics/fabric-name/replicationProtectionContainers/protection-container-name/replicationProtectedItems/vm-replication-name

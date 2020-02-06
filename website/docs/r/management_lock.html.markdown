@@ -2,7 +2,6 @@
 subcategory: "Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_management_lock"
-sidebar_current: "docs-azurerm-resource-management-lock"
 description: |-
   Manages a Management Lock which is scoped to a Subscription, Resource Group or Resource.
 
@@ -84,6 +83,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Management Lock
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Management Lock.
+* `update` - (Defaults to 30 minutes) Used when updating the Management Lock.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Management Lock.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Management Lock.
 
 ## Import
 

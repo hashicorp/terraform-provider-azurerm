@@ -8,8 +8,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,6 +19,10 @@ func AzureProvider() terraform.ResourceProvider {
 	// avoids this showing up in test output
 	var debugLog = func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {
+			return
+		}
+
+		if os.Getenv("TF_ACC") != "" {
 			return
 		}
 
@@ -135,7 +139,7 @@ func AzureProvider() terraform.ResourceProvider {
 			"partner_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.UUIDOrEmpty,
+				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
 				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
 				Description:  "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
 			},
@@ -154,6 +158,8 @@ func AzureProvider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_DISABLE_TERRAFORM_PARTNER_ID", false),
 				Description: "This will disable the Terraform Partner ID which is used if a custom `partner_id` isn't specified.",
 			},
+
+			"features": schemaFeatures(),
 
 			// Advanced feature flags
 			"skip_credentials_validation": {
@@ -237,6 +243,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			PartnerId:                   d.Get("partner_id").(string),
 			DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
 			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
+			Features:                    expandFeatures(d.Get("features").([]interface{})),
 		}
 		client, err := clients.Build(p.StopContext(), clientBuilder)
 		if err != nil {

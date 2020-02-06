@@ -2,7 +2,6 @@
 subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_integration_runtime_managed"
-sidebar_current: "docs-azurerm_data_factory_integration_runtime_managed"
 description: |-
   Manages an Azure Data Factory Managed Integration Runtime.
 ---
@@ -15,7 +14,7 @@ Manages an Azure Data Factory Managed Integration Runtime.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 
@@ -91,18 +90,27 @@ A `vnet_integration` block supports the following:
 
 * `subnet_name` - (Required) Name of the subnet to which the nodes of the Managed Integration Runtime will be added.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Managed Integration Runtime ID.
+* `id` - The ID of the Data Factory Integration Managed Runtime.
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory Integration Managed Runtime.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Integration Managed Runtime.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Integration Managed Runtime.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Integration Managed Runtime.
 
 ## Import
 
-Managed Integration Runtime can be imported using the `resource id`, e.g.
+Data Factory Integration Managed Runtimes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/integrationruntimes/example
+terraform import azurerm_data_factory_integration_runtime_managed.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/integrationruntimes/example
 ```

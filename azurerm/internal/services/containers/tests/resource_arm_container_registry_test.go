@@ -410,6 +410,9 @@ func testCheckAzureRMContainerRegistryDestroy(s *terraform.State) error {
 
 func testCheckAzureRMContainerRegistryExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.RegistriesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -421,9 +424,6 @@ func testCheckAzureRMContainerRegistryExists(resourceName string) resource.TestC
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.RegistriesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -440,6 +440,9 @@ func testCheckAzureRMContainerRegistryExists(resourceName string) resource.TestC
 
 func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku string, expectedLocations []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.ReplicationsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -451,9 +454,6 @@ func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku s
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.ReplicationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.List(ctx, resourceGroup, name)
 		if err != nil {
@@ -481,7 +481,7 @@ func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku s
 func testAccAzureRMContainerRegistry_basic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -501,7 +501,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_basicManaged(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -532,7 +532,7 @@ resource "azurerm_container_registry" "import" {
 func testAccAzureRMContainerRegistry_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -553,7 +553,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_completeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -574,7 +574,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_geoReplication(data acceptance.TestData, sku string, georeplicationLocations string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -591,7 +591,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -607,7 +607,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -627,7 +627,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_networkAccessProfile_ip(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
 
@@ -658,7 +658,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_networkAccessProfile_vnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
 
@@ -705,7 +705,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_networkAccessProfile_both(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%[1]d"
+  name     = "acctestRG-%[1]d"
   location = "%[2]s"
 }
 

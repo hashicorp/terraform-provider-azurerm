@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	config := testAccAzureRMApplicationInsights_basic(data, "web")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsights_basic(data, "web"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "web"),
@@ -62,7 +61,6 @@ func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	config := testAccAzureRMApplicationInsights_basic(data, "java")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -70,7 +68,7 @@ func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsights_basic(data, "java"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "java"),
@@ -83,7 +81,6 @@ func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	config := testAccAzureRMApplicationInsights_basic(data, "MobileCenter")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -91,7 +88,7 @@ func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsights_basic(data, "MobileCenter"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "MobileCenter"),
@@ -104,7 +101,6 @@ func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	config := testAccAzureRMApplicationInsights_basic(data, "other")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -112,7 +108,7 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsights_basic(data, "other"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "other"),
@@ -125,7 +121,6 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	config := testAccAzureRMApplicationInsights_basic(data, "phone")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -133,7 +128,7 @@ func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsights_basic(data, "phone"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "phone"),
@@ -146,7 +141,6 @@ func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	config := testAccAzureRMApplicationInsights_basic(data, "store")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -154,7 +148,7 @@ func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsights_basic(data, "store"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "store"),
@@ -167,7 +161,6 @@ func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 
 func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	config := testAccAzureRMApplicationInsights_basic(data, "ios")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -175,7 +168,7 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsights_basic(data, "ios"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "ios"),
@@ -214,6 +207,9 @@ func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
 
 func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.ComponentsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -225,9 +221,6 @@ func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.Tes
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for App Insights: %s", name)
 		}
-
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.ComponentsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -244,7 +237,6 @@ func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.Tes
 
 func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
-	config := testAccAzureRMApplicationInsights_complete(data, "web")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -252,11 +244,14 @@ func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMApplicationInsights_complete(data, "web"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "web"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_in_days", "120"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sampling_percentage", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "daily_data_cap_in_gb", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "daily_data_cap_notifications_disabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
 				),
@@ -304,11 +299,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  application_type    = "%s"
-  sampling_percentage = 50
+  name                                  = "acctestappinsights-%d"
+  location                              = "${azurerm_resource_group.test.location}"
+  resource_group_name                   = "${azurerm_resource_group.test.name}"
+  application_type                      = "%s"
+  retention_in_days                     = 120
+  sampling_percentage                   = 50
+  daily_data_cap_in_gb                  = 50
+  daily_data_cap_notifications_disabled = true
 
   tags = {
     Hello = "World"

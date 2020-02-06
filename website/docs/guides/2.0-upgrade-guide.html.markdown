@@ -1,7 +1,6 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: 2.0 Upgrade Guide"
-sidebar_current: "docs-azurerm-guide-2.0-upgrade"
 description: |-
     Azure Resource Manager: 2.0 Upgrade Guide
 
@@ -17,13 +16,15 @@ Version 2.0 of the AzureRM Provider is a major release and as such includes some
 
 -> **NOTE:** This guide is a Work In Progress and additional information may be added to this guide until version 2.0 of the AzureRM Provider is released.
 
+!> **NOTE:** Version 2.0 of the AzureRM Provider will support Terraform 0.12 and later - Terraform 0.10 & 0.11 are no longer supported with this release.
+
 ### Pinning your Provider Version
 
 We recommend pinning the version of each Provider you use in Terraform - you can do this using the `version` attribute in the `provider` block, either to a specific version of the AzureRM Provider, like so:
 
 ```hcl
 provider "azurerm" {
-  version = "=1.38.0"
+  version = "=1.43.0"
 }
 ```
 
@@ -46,6 +47,8 @@ provider "azurerm" {
 ```
 
 ## What's coming in Version 2.0 of the AzureRM Provider?
+
+-> **Note:** Version 1.43 of the Azure Provider allows you to opt-into the Beta of some of these features - [see the Beta guide for more information](/docs/providers/azurerm/guides/2.0-beta.html).
 
 At a high level, we're intending for version 2.0 to include the following changes:
 
@@ -181,7 +184,7 @@ The deprecated field `address_space` will be removed.
 The deprecated field `sku` will be removed in favour of the `sku_name` property.
 
 The deprecated field  `disable_backend_ssl30` will be removed in favour of the `enable_backend_ssl30` property.
- 
+
 The deprecated field  `disable_backend_tls10` will be removed in favour of the `enable_backend_tls10` property.
 
 The deprecated field  `disable_backend_tls11` will be removed in favour of the `enable_backend_tls11` property.
@@ -232,6 +235,10 @@ The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provi
 
 A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
 
+### Resource: `azurerm_cognitive_account`
+
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
 ### Resource: `azurerm_connection_monitor`
 
 The `azurerm_connection_monitor` resource will be deprecated in favour of a new resources `azurerm_network_connection_monitor`.
@@ -254,9 +261,13 @@ Azure Container Service (ACS) is being Deprecated in favour of Azure Kubernetes 
 
 The deprecated `failover_policy` block will be removed. This has been replaced by the `geo_location` block.
 
+### Resource: `azurerm_devspace_controller`
+
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
 ### Resource: `azurerm_ddos_protection_plan`
 
-The `azurerm_ddos_protection_planr` resource will be deprecated in favour of a new resources `azurerm_network_ddos_protection_plan`.
+The `azurerm_ddos_protection_plan` resource will be deprecated in favour of a new resources `azurerm_network_ddos_protection_plan`.
 
 ### Resource: `azurerm_dns_mx_record`
 
@@ -291,6 +302,14 @@ The deprecated `location` field will be removed, since this is no longer used.
 ### Resource: `azurerm_firewall`
 
 The deprecated `internal_public_ip_address_id` field in the `ip_configuration` block will be removed. This field has been replaced by the `public_ip_address_id` field in the `ip_configuration` block.
+
+### Resource: `azurerm_iothub`
+
+The deprecated `sku.tier` property will be remove.
+
+### Resource: `azurerm_iothub_dps`
+
+The deprecated `sku.tier` property will be remove.
 
 ### Resource: `azurerm_iot_dps`
 
@@ -340,6 +359,14 @@ This resource has been renamed to `azurerm_log_analytics_linked_service` which i
 
 The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
 
+### Resource: `azurerm_mariadb_server`
+
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
+### Resource: `azurerm_mysql_server`
+
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
 ### Resource: `azurerm_mssql_elasticpool`
 
 The deprecated `elastic_pool_properties` block will be removed. The fields inside this block have been moved to the top-level.
@@ -365,6 +392,12 @@ This resource has been renamed to `azurerm_private_endpoint` which is available 
 ### Resource: `azurerm_private_link_service`
 
 The deprecated `network_interface_ids` field will be removed.
+
+### Resource: `azurerm_postgresql_server`
+
+The deprecated `sku` block has been replaced by the `sku_name` field and will be removed.
+
+The `sku_name` field will become Required.
 
 ### Resource: `azurerm_public_ip`
 

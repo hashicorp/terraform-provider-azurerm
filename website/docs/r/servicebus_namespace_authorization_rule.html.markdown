@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace_authorization_rule"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-namespace-authorization-rule"
 description: |-
   Manages a ServiceBus Namespace authorization Rule within a ServiceBus.
 ---
@@ -72,6 +71,17 @@ The following attributes are exported:
 * `secondary_key` - The Secondary Key for the ServiceBus Namespace authorization Rule.
 
 * `secondary_connection_string` - The Secondary Connection String for the ServiceBus Namespace authorization Rule.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Namespace Authorization Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Namespace Authorization Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace Authorization Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Namespace Authorization Rule.
 
 ## Import
 

@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -136,12 +135,12 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 												"name": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validate.NoEmptyStrings,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 												"uri": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validate.NoEmptyStrings,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 											},
 										},
@@ -275,9 +274,15 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 			Pending:    []string{"AzureVMConfiguration", "Accepted", "HdInsightConfiguration"},
 			Target:     []string{"Running"},
 			Refresh:    hdInsightWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
-			Timeout:    60 * time.Minute,
 			MinTimeout: 15 * time.Second,
 		}
+
+		if features.SupportsCustomTimeouts() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = 60 * time.Minute
+		}
+
 		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 		}

@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_watcher_flow_log"
-sidebar_current: "docs-azurerm-resource-network-watcher-flow-log"
 description: |-
   Manages a Network Watcher Flow Log.
 
@@ -16,7 +15,7 @@ Manages a Network Watcher Flow Log.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "eastus"
 }
 
@@ -27,9 +26,9 @@ resource "azurerm_network_security_group" "test" {
 }
 
 resource "azurerm_network_watcher" "test" {
-    name                = "acctestnw"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestnw"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -56,7 +55,7 @@ resource "azurerm_network_watcher_flow_log" "test" {
   network_security_group_id = "${azurerm_network_security_group.test.id}"
   storage_account_id        = "${azurerm_storage_account.test.id}"
   enabled                   = true
-  
+
   retention_policy {
     enabled = true
     days    = 7
@@ -80,14 +79,16 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which the Network Watcher was deployed. Changing this forces a new resource to be created.
 
 * `network_security_group_id` - (Required) The ID of the Network Security Group for which to enable flow logs for. Changing this forces a new resource to be created.
-  
+
 * `storage_account_id` - (Required) The ID of the Storage Account where flow logs are stored.
-  
+
 * `enabled` - (Required) Should Network Flow Logging be Enabled?
 
 * `retention_policy` - (Required) A `retention_policy` block as documented below.
 
 * `traffic_analytics` - (Optional) A `traffic_analytics` block as documented below.
+
+* `version` - (Optional) The version (revision) of the flow log. Possible values are `1` and `2`.
 
 ---
 
@@ -109,7 +110,18 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Network Watcher ID.
+* `id` - The ID of the Network Watcher.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Watcher Flow Log.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Watcher Flow Log.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Watcher Flow Log.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Watcher Flow Log.
 
 ## Import
 

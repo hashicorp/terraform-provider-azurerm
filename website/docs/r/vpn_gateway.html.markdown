@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_vpn_gateway"
-sidebar_current: "docs-azurerm-network-vpn-gateway"
 description: |-
     Manages a VPN Gateway within a Virtual Hub.
 ---
@@ -89,6 +88,17 @@ In addition to the arguments above, the following attributes are exported:
 A `bgp_settings` block exports the following:
 
 * `bgp_peering_address` - The Address which should be used for the BGP Peering.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 90 minutes) Used when creating the VPN Gateway.
+* `update` - (Defaults to 90 minutes) Used when updating the VPN Gateway.
+* `read` - (Defaults to 5 minutes) Used when retrieving the VPN Gateway.
+* `delete` - (Defaults to 90 minutes) Used when deleting the VPN Gateway.
 
 ## Import
 

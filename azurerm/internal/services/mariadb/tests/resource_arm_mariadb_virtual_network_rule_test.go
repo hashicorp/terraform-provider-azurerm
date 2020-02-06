@@ -62,9 +62,6 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_requiresImport(t *testing.T) {
 func TestAccAzureRMMariaDBVirtualNetworkRule_switchSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
 
-	preConfig := testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPre(data)
-	postConfig := testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPost(data)
-
 	// Create regex strings that will ensure that one subnet name exists, but not the other
 	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", data.RandomInteger, data.RandomInteger))  //subnet 1 but not 2
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", data.RandomInteger, data.RandomInteger)) //subnet 2 but not 1
@@ -75,14 +72,14 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_switchSubnets(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPre(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDBVirtualNetworkRuleExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", preConfigRegex),
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMMariaDBVirtualNetworkRule_subnetSwitchPost(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDBVirtualNetworkRuleExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", postConfigRegex),
@@ -94,7 +91,6 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_switchSubnets(t *testing.T) {
 
 func TestAccAzureRMMariaDBVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
-	config := testAccAzureRMMariaDBVirtualNetworkRule_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -102,7 +98,7 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMariaDBVirtualNetworkRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDBVirtualNetworkRuleExists(data.ResourceName),
 					testCheckAzureRMMariaDBVirtualNetworkRuleDisappears(data.ResourceName),
@@ -117,7 +113,6 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "rule1")
 	resourceName2 := "azurerm_mariadb_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_mariadb_virtual_network_rule.rule3"
-	config := testAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -125,7 +120,7 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMariaDBVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDBVirtualNetworkRuleExists(data.ResourceName),
 					testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName2),
@@ -138,6 +133,9 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_multipleSubnets(t *testing.T) {
 
 func testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -146,9 +144,6 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName string) resour
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -164,6 +159,9 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName string) resour
 }
 
 func testCheckAzureRMMariaDBVirtualNetworkRuleDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.VirtualNetworkRulesClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mariadb_virtual_network_rule" {
 			continue
@@ -172,9 +170,6 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleDestroy(s *terraform.State) error 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
@@ -193,6 +188,9 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleDestroy(s *terraform.State) error 
 
 func testCheckAzureRMMariaDBVirtualNetworkRuleDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.VirtualNetworkRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -202,9 +200,6 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleDisappears(resourceName string) re
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).MariaDB.VirtualNetworkRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {

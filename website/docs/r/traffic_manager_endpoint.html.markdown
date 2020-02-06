@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_endpoint"
-sidebar_current: "docs-azurerm-resource-network-traffic-manager-endpoint"
 description: |-
   Manages a Traffic Manager Endpoint.
 ---
@@ -123,7 +122,7 @@ A `custom_header` block supports the following:
 
 * `name` - (Required) The name of the custom header.
 
-* `value` - (Required) The value of custom header. Applicable for Http and Https protocol. 
+* `value` - (Required) The value of custom header. Applicable for Http and Https protocol.
 
 A `subnet` block supports the following:
 
@@ -139,7 +138,18 @@ A `subnet` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The Traffic Manager Endpoint id.
+* `id` - The ID of the Traffic Manager Endpoint.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Traffic Manager Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the Traffic Manager Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Traffic Manager Endpoint.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Traffic Manager Endpoint.
 
 ## Import
 

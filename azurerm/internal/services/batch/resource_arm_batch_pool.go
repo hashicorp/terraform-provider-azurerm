@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -132,7 +133,7 @@ func resourceArmBatchPool() *schema.Resource {
 						"type": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"container_registries": {
 							Type:       schema.TypeList,
@@ -145,20 +146,20 @@ func resourceArmBatchPool() *schema.Resource {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"user_name": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"password": {
 										Type:         schema.TypeString,
 										Required:     true,
 										ForceNew:     true,
 										Sensitive:    true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -184,14 +185,14 @@ func resourceArmBatchPool() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"offer": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"sku": {
@@ -199,14 +200,14 @@ func resourceArmBatchPool() *schema.Resource {
 							Optional:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validate.NoEmptyStrings,
+							ValidateFunc:     validation.StringIsNotEmpty,
 						},
 
 						"version": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -247,7 +248,7 @@ func resourceArmBatchPool() *schema.Resource {
 						"store_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"visibility": {
 							Type:     schema.TypeSet,
@@ -273,7 +274,7 @@ func resourceArmBatchPool() *schema.Resource {
 						"command_line": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"max_task_retry_count": {
@@ -365,6 +366,97 @@ func resourceArmBatchPool() *schema.Resource {
 									"storage_container_url": {
 										Type:     schema.TypeString,
 										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"metadata": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+			"network_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"subnet_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"endpoint_configuration": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"protocol": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(batch.TCP),
+											string(batch.UDP),
+										}, false),
+									},
+									"backend_port": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 29876, 29877),
+										// 1 and 65535 except for 29876, 29877 as these are reserved.
+									},
+									"frontend_port_range": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validateFrontendPortRangeRange,
+									},
+									"network_security_group_rules": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"priority": {
+													Type:         schema.TypeInt,
+													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.IntAtLeast(150),
+												},
+												"access": {
+													Type:     schema.TypeString,
+													Required: true,
+													ForceNew: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(batch.Allow),
+														string(batch.Deny),
+													}, false),
+												},
+												"source_address_prefix": {
+													Type:         schema.TypeString,
+													Required:     true,
+													ForceNew:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -479,6 +571,15 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	parameters.PoolProperties.Metadata = azure.ExpandBatchMetaData(metaDataRaw)
+
+	networkConfiguration := d.Get("network_configuration").([]interface{})
+	parameters.PoolProperties.NetworkConfiguration, err = azure.ExpandBatchPoolNetworkConfiguration(networkConfiguration)
+	if err != nil {
+		return fmt.Errorf("Error expanding `network_configuration`: %+v", err)
+	}
+
 	future, err := client.Create(ctx, resourceGroup, accountName, poolName, parameters, "", "")
 	if err != nil {
 		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
@@ -583,6 +684,19 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	if d.HasChange("metadata") {
+		log.Printf("[DEBUG] Updating the MetaData for Batch pool %q (Account name %q / Resource Group %q)..", poolName, accountName, id.ResourceGroup)
+		metaDataRaw := d.Get("metadata").(map[string]interface{})
+
+		parameters.PoolProperties.Metadata = azure.ExpandBatchMetaData(metaDataRaw)
+	}
+
+	networkConfiguration := d.Get("network_configuration").([]interface{})
+	parameters.PoolProperties.NetworkConfiguration, err = azure.ExpandBatchPoolNetworkConfiguration(networkConfiguration)
+	if err != nil {
+		return fmt.Errorf("Error expanding `network_configuration`: %+v", err)
+	}
+
 	result, err := client.Update(ctx, resourceGroup, accountName, poolName, parameters, "")
 	if err != nil {
 		return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
@@ -655,6 +769,13 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
+		d.Set("metadata", azure.FlattenBatchMetaData(props.Metadata))
+
+		if props.NetworkConfiguration != nil {
+			if err := d.Set("network_configuration", azure.FlattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+				return fmt.Errorf("error setting `network_configuration`: %v", err)
+			}
+		}
 	}
 
 	return nil
@@ -811,4 +932,45 @@ func validateBatchPoolCrossFieldRules(pool *batch.Pool) error {
 	}
 
 	return nil
+}
+
+func validateFrontendPortRangeRange(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return warnings, errors
+	}
+
+	parts := strings.Split(v, "-")
+	if len(parts) != 2 {
+		errors = append(errors, fmt.Errorf("expected %s to contain a single '-', got %v", k, i))
+		return warnings, errors
+	}
+
+	startPort, err := strconv.Atoi(parts[0])
+	if err != nil {
+		errors = append(errors, fmt.Errorf("expected %s on the left of - to be an integer, got %v: %v", k, i, err))
+		return warnings, errors
+	}
+
+	endPort, err := strconv.Atoi(parts[1])
+	if err != nil {
+		errors = append(errors, fmt.Errorf("expected %s on the right of - to be an integer, got %v: %v", k, i, err))
+		return warnings, errors
+	}
+
+	if !validPortNumber(startPort) || !validPortNumber(endPort) {
+		errors = append(errors, fmt.Errorf("expect values range between 1 and 65534 except ports from `50000` to `55000`, got %v: %v", k, i))
+		return warnings, errors
+	}
+	if endPort-startPort < 100 {
+		errors = append(errors, fmt.Errorf("values must be a range of at least 100, got %v: %v", k, i))
+		return warnings, errors
+	}
+
+	return warnings, errors
+}
+
+func validPortNumber(port int) bool {
+	return 1 <= port && port < 50000 || 55000 < port && port <= 65535
 }

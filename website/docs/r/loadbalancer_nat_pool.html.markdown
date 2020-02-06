@@ -2,14 +2,13 @@
 subcategory: "Load Balancer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_nat_pool"
-sidebar_current: "docs-azurerm-resource-loadbalancer-nat-pool"
 description: |-
   Manages a Load Balancer NAT Pool.
 ---
 
 # azurerm_lb_nat_pool
 
-Manages a Load Balancer NAT pool. 
+Manages a Load Balancer NAT pool.
 
 -> **NOTE:** This resource cannot be used with with virtual machines, instead use the `azurerm_lb_nat_rule` resource.
 
@@ -71,6 +70,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Load Balancer NAT pool.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Load Balancer NAT Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the Load Balancer NAT Pool.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Load Balancer NAT Pool.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Load Balancer NAT Pool.
 
 ## Import
 

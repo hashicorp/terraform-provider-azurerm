@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_peering"
-sidebar_current: "docs-azurerm-resource-network-virtual-network-peering"
 description: |-
   Manages a virtual network peering which allows resources to access other
   resources in the linked virtual network.
@@ -89,7 +88,7 @@ resource "azurerm_subnet" "nva" {
   address_prefix       = "${cidrsubnet("${element(azurerm_virtual_network.vnet.*.address_space[count.index], count.index)}", 13, 0)}" # /29
 }
 
-# enable global peering between the two virtual network 
+# enable global peering between the two virtual network
 resource "azurerm_virtual_network_peering" "peering" {
   count                        = "${length(var.location)}"
   name                         = "peering-to-${element(azurerm_virtual_network.vnet.*.name, 1 - count.index)}"
@@ -144,7 +143,18 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Virtual Network Peering resource ID.
+* `id` - The ID of the Virtual Network Peering.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Virtual Network Peering.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Network Peering.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Peering.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Network Peering.
 
 ## Note
 

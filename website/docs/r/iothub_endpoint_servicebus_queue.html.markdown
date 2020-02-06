@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_endpoint_servicebus_queue"
-sidebar_current: "docs-azurerm-resource-messaging-iothub-servicebus-queue"
 description: |-
   Manages an IotHub ServiceBus Queue Endpoint
 ---
@@ -17,7 +16,7 @@ Manages an IotHub ServiceBus Queue Endpoint
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "East US"
 }
 
@@ -67,7 +66,7 @@ resource "azurerm_iothub_endpoint_servicebus_queue" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   iothub_name         = "${azurerm_iothub.example.name}"
   name                = "example"
-  
+
   connection_string = "${azurerm_servicebus_queue_authorization_rule.example.primary_connection_string}"
 }
 
@@ -86,6 +85,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the IoTHub ServiceBus Queue Endpoint.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the IotHub ServiceBus Queue Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub ServiceBus Queue Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the IotHub ServiceBus Queue Endpoint.
+* `delete` - (Defaults to 30 minutes) Used when deleting the IotHub ServiceBus Queue Endpoint.
 
 ## Import
 

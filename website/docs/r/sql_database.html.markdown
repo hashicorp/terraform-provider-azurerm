@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_database"
-sidebar_current: "docs-azurerm-resource-database-sql-database"
 description: |-
   Manages a SQL Database.
 ---
@@ -110,6 +109,17 @@ The following attributes are exported:
 * `id` - The SQL Database ID.
 * `creation_date` - The creation date of the SQL Database.
 * `default_secondary_location` - The default secondary location of the SQL Database.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the SQL Database.
+* `update` - (Defaults to 60 minutes) Used when updating the SQL Database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the SQL Database.
+* `delete` - (Defaults to 60 minutes) Used when deleting the SQL Database.
 
 ## Import
 

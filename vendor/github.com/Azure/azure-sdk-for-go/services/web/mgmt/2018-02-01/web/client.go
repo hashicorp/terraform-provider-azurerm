@@ -1274,7 +1274,7 @@ func (client BaseClient) Validate(ctx context.Context, resourceGroupName string,
 				{Target: "validateRequest.Location", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "validateRequest.ValidateProperties", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "validateRequest.ValidateProperties.Capacity", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "validateRequest.ValidateProperties.Capacity", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+						Chain: []validation.Constraint{{Target: "validateRequest.ValidateProperties.Capacity", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 					}}}}}); err != nil {
 		return result, validation.NewError("web.BaseClient", "Validate", err.Error())
 	}

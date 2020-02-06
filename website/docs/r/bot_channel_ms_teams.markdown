@@ -2,7 +2,6 @@
 subcategory: "Bot"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_channel_ms_teams"
-sidebar_current: "docs-azurerm-resource-bot-channel-ms-teams"
 description: |-
   Manages an MS Teams integration for a Bot Channel
 ---
@@ -19,7 +18,7 @@ Manages a MS Teams integration for a Bot Channel
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 
@@ -58,12 +57,23 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Bot Channel ID.
+* `id` - The ID of the Microsoft Teams Integration for a Bot Channel.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Microsoft Teams Integration for a Bot Channel.
+* `update` - (Defaults to 30 minutes) Used when updating the Microsoft Teams Integration for a Bot Channel.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft Teams Integration for a Bot Channel.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Microsoft Teams Integration for a Bot Channel.
 
 ## Import
 
-The Microsoft Teams Channel for a Bot can be imported using the `resource id`, e.g.
+The Microsoft Teams Integration for a Bot Channel can be imported using the `resource id`, e.g.
 
-```shell 
+```shell
 terraform import azurerm_bot_channel_ms_teams.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.BotService/botServices/example/channels/MsTeamsChannel
 ```

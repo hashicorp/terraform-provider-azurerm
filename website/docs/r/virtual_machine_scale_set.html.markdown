@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_scale_set"
-sidebar_current: "docs-azurerm-resource-compute-virtualmachine-scale-set"
 description: |-
   Manages a Virtual Machine scale set.
 ---
@@ -20,7 +19,7 @@ Manages a virtual machine scale set.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "West US 2"
 }
 
@@ -170,7 +169,7 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "West US"
 }
 
@@ -537,6 +536,17 @@ resource "azurerm_virtual_machine_scale_set" "example" {
 The following attributes are exported:
 
 * `id` - The virtual machine scale set ID.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Virtual Machine Scale Set.
+* `update` - (Defaults to 60 minutes) Used when updating the Virtual Machine Scale Set.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Scale Set.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Machine Scale Set.
 
 ## Import
 

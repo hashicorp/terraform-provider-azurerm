@@ -15,7 +15,6 @@ import (
 
 func TestAccProximityPlacementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
-	config := testAccProximityPlacementGroup_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -23,7 +22,7 @@ func TestAccProximityPlacementGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccProximityPlacementGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMProximityPlacementGroupExists(data.ResourceName),
 				),
@@ -62,7 +61,6 @@ func TestAccProximityPlacementGroup_requiresImport(t *testing.T) {
 
 func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
-	config := testAccProximityPlacementGroup_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -70,7 +68,7 @@ func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccProximityPlacementGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMProximityPlacementGroupExists(data.ResourceName),
 					testCheckAzureRMProximityPlacementGroupDisappears(data.ResourceName),
@@ -83,8 +81,6 @@ func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 
 func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
-	preConfig := testAccProximityPlacementGroup_withTags(data)
-	postConfig := testAccProximityPlacementGroup_withUpdatedTags(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -92,7 +88,7 @@ func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccProximityPlacementGroup_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMProximityPlacementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -101,7 +97,7 @@ func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccProximityPlacementGroup_withUpdatedTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMProximityPlacementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -115,6 +111,9 @@ func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 
 func testCheckAzureRMProximityPlacementGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ProximityPlacementGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -127,9 +126,7 @@ func testCheckAzureRMProximityPlacementGroupExists(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for proximity placement group: %s", ppgName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ProximityPlacementGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, ppgName)
+		resp, err := client.Get(ctx, resourceGroup, ppgName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", ppgName, resourceGroup)
@@ -144,6 +141,9 @@ func testCheckAzureRMProximityPlacementGroupExists(resourceName string) resource
 
 func testCheckAzureRMProximityPlacementGroupDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ProximityPlacementGroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -156,8 +156,6 @@ func testCheckAzureRMProximityPlacementGroupDisappears(resourceName string) reso
 			return fmt.Errorf("Bad: no resource group found in state for proximity placement group: %s", ppgName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ProximityPlacementGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Delete(ctx, resourceGroup, ppgName)
 		if err != nil {
 			if !response.WasNotFound(resp.Response) {
@@ -170,6 +168,9 @@ func testCheckAzureRMProximityPlacementGroupDisappears(resourceName string) reso
 }
 
 func testCheckAzureRMProximityPlacementGroupDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ProximityPlacementGroupsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_proximity_placement_group" {
 			continue
@@ -178,9 +179,7 @@ func testCheckAzureRMProximityPlacementGroupDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.ProximityPlacementGroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

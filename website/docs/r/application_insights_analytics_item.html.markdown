@@ -2,7 +2,6 @@
 subcategory: "Application Insights"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_insights_analytics_item"
-sidebar_current: "docs-azurerm-resource-application-insights-x"
 description: |-
   Manages an Application Insights Analytics Item component.
 ---
@@ -62,6 +61,17 @@ The following attributes are exported:
 * `time_modified` - A string containing the time the Analytics Item was last modified.
 
 * `version` - A string indicating the version of the query format
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Application Insights Analytics Item.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Analytics Item.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Analytics Item.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Analytics Item.
 
 ## Import
 

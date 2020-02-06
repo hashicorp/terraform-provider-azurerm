@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_public_ip"
-sidebar_current: "docs-azurerm-resource-network-public-ip"
 description: |-
   Manages a Public IP Address.
 ---
@@ -80,6 +79,16 @@ The following attributes are exported:
 
 * `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. `domain_name_label` must be specified to get the `fqdn`. This is the concatenation of the `domain_name_label` and the regionalized DNS zone
 
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Public IP.
+* `update` - (Defaults to 30 minutes) Used when updating the Public IP.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Public IP.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Public IP.
 
 ## Import
 

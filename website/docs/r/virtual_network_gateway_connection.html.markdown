@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_gateway_connection"
-sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-connection"
 description: |-
   Manages a connection in an existing Virtual Network Gateway.
 ---
@@ -246,10 +245,10 @@ The following arguments are supported:
     connections do not need a shared key.
 
 * `connection_protocol` - (Optional) The IKE protocol version to use. Possible
-    values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`. 
-    Changing this value will force a resource to be created. 
--> **Note**: Only valid for `IPSec` connections on virtual network gateways with SKU `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw1AZ`, `VpnGw2AZ` or `VpnGw3AZ`. 
-    
+    values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`.
+    Changing this value will force a resource to be created.
+-> **Note**: Only valid for `IPSec` connections on virtual network gateways with SKU `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw1AZ`, `VpnGw2AZ` or `VpnGw3AZ`.
+
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled
     for this connection. Defaults to `false`.
 
@@ -297,7 +296,18 @@ The `ipsec_policy` block supports:
 
 The following attributes are exported:
 
-* `id` - The connection ID.
+* `id` - The ID of the Virtual Network Gateway Connection.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Virtual Network Gateway Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Network Gateway Connection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway Connection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Network Gateway Connection.
 
 ## Import
 

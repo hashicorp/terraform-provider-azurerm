@@ -2,7 +2,6 @@
 subcategory: "Scheduler"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_scheduler_job_collection"
-sidebar_current: "docs-azurerm-resource-scheduler-job-collection"
 description: |-
   Manages a Scheduler Job Collection.
 ---
@@ -52,11 +51,11 @@ The following arguments are supported:
 
 * `state` - (Optional) Sets Job Collection's state. Possible values include: `Enabled`, `Disabled`, `Suspended`.
 
-* `quota` - (Optional) Configures the Job collection quotas as documented in the `quota` block below. 
+* `quota` - (Optional) Configures the Job collection quotas as documented in the `quota` block below.
 
 The `quota` block supports:
 
-* `max_job_count` - (Optional) Sets the maximum number of jobs in the collection. 
+* `max_job_count` - (Optional) Sets the maximum number of jobs in the collection.
 
 * `max_recurrence_frequency` - (Required) The maximum frequency of recurrence. Possible values include: `Minute`, `Hour`, `Day`, `Week`, `Month`
 
@@ -67,6 +66,17 @@ The `quota` block supports:
 The following attributes are exported:
 
 * `id` - The ID of the Scheduler Job Collection.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Scheduler Job Collection.
+* `update` - (Defaults to 30 minutes) Used when updating the Scheduler Job Collection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Scheduler Job Collection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Scheduler Job Collection.
 
 ## Import
 

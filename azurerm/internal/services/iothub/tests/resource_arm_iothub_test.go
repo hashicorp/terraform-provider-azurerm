@@ -189,6 +189,7 @@ func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 
 func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -201,7 +202,6 @@ func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for IotHub: %s", iothubName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 		resp, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
@@ -229,7 +229,6 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "B1"
-    tier     = "Basic"
     capacity = "1"
   }
 
@@ -247,7 +246,7 @@ func testAccAzureRMIotHub_requiresImport(data acceptance.TestData) string {
 
 resource "azurerm_iothub" "import" {
   name                = "${azurerm_iothub.test.name}"
-  resource_group_name = "${azurerm_iothub.test.name}"
+  resource_group_name = "${azurerm_iothub.test.resource_group_name}"
   location            = "${azurerm_iothub.test.location}"
 
   sku {
@@ -277,7 +276,6 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
@@ -302,7 +300,6 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
@@ -371,9 +368,11 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
+
+  event_hub_retention_in_days = 7
+  event_hub_partition_count   = 77
 
   endpoint {
     type                       = "AzureIotHub.StorageContainer"
@@ -381,7 +380,7 @@ resource "azurerm_iothub" "test" {
     name                       = "export"
     batch_frequency_in_seconds = 60
     max_chunk_size_in_bytes    = 10485760
-    container_name             = "test"
+    container_name             = "${azurerm_storage_container.test.name}"
     encoding                   = "Avro"
     file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
   }
@@ -429,7 +428,6 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
@@ -475,7 +473,6 @@ resource "azurerm_iothub" "test" {
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 

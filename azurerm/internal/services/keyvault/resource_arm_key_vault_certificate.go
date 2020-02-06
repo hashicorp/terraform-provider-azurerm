@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -79,14 +78,14 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				ConflictsWith: []string{"vault_uri"},
 			},
 
-			//todo remove in 2.0
+			// todo remove in 2.0
 			"vault_uri": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
 				Computed:      true,
 				Deprecated:    "This property has been deprecated in favour of the key_vault_id property. This will prevent a class of bugs as described in https://github.com/terraform-providers/terraform-provider-azurerm/issues/2396 and will be removed in version 2.0 of the provider",
-				ValidateFunc:  validate.URLIsHTTPS,
+				ValidateFunc:  validation.IsURLWithHTTPS,
 				ConflictsWith: []string{"key_vault_id"},
 			},
 
@@ -149,7 +148,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										Type:     schema.TypeInt,
 										Required: true,
 										ForceNew: true,
-										ValidateFunc: validate.IntInSlice([]int{
+										ValidateFunc: validation.IntInSlice([]int{
 											2048,
 											4096,
 										}),
@@ -247,7 +246,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										ForceNew: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 									"key_usage": {

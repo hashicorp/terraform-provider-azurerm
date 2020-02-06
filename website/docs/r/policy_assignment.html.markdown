@@ -2,7 +2,6 @@
 subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_assignment"
-sidebar_current: "docs-azurerm-resource-policy-assignment"
 description: |-
   Configures the specified Policy Definition at the specified Scope.
 ---
@@ -92,7 +91,7 @@ The following arguments are supported:
 
 ~> **NOTE:** This value is required when the specified Policy Definition contains the `parameters` field.
 
-* `not_scopes` - (Optional) A list of the Policy Assignment's excluded scopes. The list must contain Resource IDs (such as Subscriptions e.g. `/subscriptions/00000000-0000-0000-000000000000` or Resource Groups e.g.`/subscriptions/00000000-0000-0000-000000000000/resourceGroups/myResourceGroup`). 
+* `not_scopes` - (Optional) A list of the Policy Assignment's excluded scopes. The list must contain Resource IDs (such as Subscriptions e.g. `/subscriptions/00000000-0000-0000-000000000000` or Resource Groups e.g.`/subscriptions/00000000-0000-0000-000000000000/resourceGroups/myResourceGroup`).
 
 ---
 
@@ -121,7 +120,17 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID of this Policy Assignment if `type` is `SystemAssigned`.
 
----
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Policy Assignment.
+* `update` - (Defaults to 30 minutes) Used when updating the Policy Assignment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Policy Assignment.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Policy Assignment.
 
 ## Import
 

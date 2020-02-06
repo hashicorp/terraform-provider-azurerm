@@ -13,6 +13,9 @@ import (
 
 func testCheckAzureRMPublicIPPrefixExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -24,9 +27,6 @@ func testCheckAzureRMPublicIPPrefixExists(resourceName string) resource.TestChec
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for public ip prefix: %s", publicIpPrefixName)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, publicIpPrefixName, "")
 		if err != nil {
@@ -43,6 +43,9 @@ func testCheckAzureRMPublicIPPrefixExists(resourceName string) resource.TestChec
 
 func testCheckAzureRMPublicIPPrefixDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -55,8 +58,6 @@ func testCheckAzureRMPublicIPPrefixDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for public ip prefix: %s", publicIpPrefixName)
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.PublicIPPrefixesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		future, err := client.Delete(ctx, resourceGroup, publicIpPrefixName)
 		if err != nil {
 			return fmt.Errorf("Error deleting Public IP Prefix %q (Resource Group %q): %+v", publicIpPrefixName, resourceGroup, err)
@@ -98,7 +99,6 @@ func testCheckAzureRMPublicIPPrefixDestroy(s *terraform.State) error {
 
 func TestAccAzureRMPublicIpPrefix_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	config := testAccAzureRMPublicIPPrefix_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -106,7 +106,7 @@ func TestAccAzureRMPublicIpPrefix_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPPrefix_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_prefix"),
@@ -120,7 +120,6 @@ func TestAccAzureRMPublicIpPrefix_basic(t *testing.T) {
 
 func TestAccAzureRMPublicIpPrefix_prefixLength(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	config := testAccAzureRMPublicIPPrefix_prefixLength(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -128,7 +127,7 @@ func TestAccAzureRMPublicIpPrefix_prefixLength(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPPrefix_prefixLength(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_prefix"),
@@ -142,8 +141,6 @@ func TestAccAzureRMPublicIpPrefix_prefixLength(t *testing.T) {
 
 func TestAccAzureRMPublicIpPrefix_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	preConfig := testAccAzureRMPublicIPPrefix_withTags(data)
-	postConfig := testAccAzureRMPublicIPPrefix_withTagsUpdate(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -151,7 +148,7 @@ func TestAccAzureRMPublicIpPrefix_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMPublicIPPrefix_withTags(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
@@ -160,7 +157,7 @@ func TestAccAzureRMPublicIpPrefix_update(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMPublicIPPrefix_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -173,7 +170,6 @@ func TestAccAzureRMPublicIpPrefix_update(t *testing.T) {
 
 func TestAccAzureRMPublicIpPrefix_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	config := testAccAzureRMPublicIPPrefix_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -181,7 +177,7 @@ func TestAccAzureRMPublicIpPrefix_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPublicIPPrefix_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
 					testCheckAzureRMPublicIPPrefixDisappears(data.ResourceName),

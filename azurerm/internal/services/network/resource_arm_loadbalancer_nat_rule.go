@@ -43,7 +43,7 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": azure.SchemaLocationDeprecated(),
@@ -69,12 +69,6 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 				}, true),
 			},
 
-			"enable_floating_ip": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-
 			"frontend_port": {
 				Type:         schema.TypeInt,
 				Required:     true,
@@ -90,7 +84,25 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 			"frontend_ip_configuration_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"enable_floating_ip": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
+			"enable_tcp_reset": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
+			"idle_timeout_in_minutes": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(4, 30),
 			},
 
 			"frontend_ip_configuration_id": {
@@ -217,6 +229,8 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 		d.Set("frontend_port", props.FrontendPort)
 		d.Set("backend_port", props.BackendPort)
 		d.Set("enable_floating_ip", props.EnableFloatingIP)
+		d.Set("enable_tcp_reset", props.EnableTCPReset)
+		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 
 		if ipconfiguration := props.FrontendIPConfiguration; ipconfiguration != nil {
 			fipID, err := azure.ParseAzureResourceID(*ipconfiguration.ID)
@@ -290,13 +304,18 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 
 func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBalancer) (*network.InboundNatRule, error) {
 	properties := network.InboundNatRulePropertiesFormat{
-		Protocol:     network.TransportProtocol(d.Get("protocol").(string)),
-		FrontendPort: utils.Int32(int32(d.Get("frontend_port").(int))),
-		BackendPort:  utils.Int32(int32(d.Get("backend_port").(int))),
+		Protocol:       network.TransportProtocol(d.Get("protocol").(string)),
+		FrontendPort:   utils.Int32(int32(d.Get("frontend_port").(int))),
+		BackendPort:    utils.Int32(int32(d.Get("backend_port").(int))),
+		EnableTCPReset: utils.Bool(d.Get("enable_tcp_reset").(bool)),
 	}
 
 	if v, ok := d.GetOk("enable_floating_ip"); ok {
 		properties.EnableFloatingIP = utils.Bool(v.(bool))
+	}
+
+	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
+		properties.IdleTimeoutInMinutes = utils.Int32(int32(v.(int)))
 	}
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {

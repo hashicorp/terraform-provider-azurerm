@@ -2,7 +2,6 @@
 subcategory: "Private DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_dns_mx_record"
-sidebar_current: "docs-azurerm-resource-private-dns-mx-record"
 description: |-
   Manages a Private DNS MX Record.
 ---
@@ -75,6 +74,17 @@ A `record` block supports the following:
 The following attributes are exported:
 
 * `id` - The Private DNS MX Record ID.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Private DNS MX Record.
+* `update` - (Defaults to 30 minutes) Used when updating the Private DNS MX Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private DNS MX Record.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Private DNS MX Record.
 
 ## Import
 

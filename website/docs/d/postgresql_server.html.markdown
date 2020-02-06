@@ -2,7 +2,6 @@
 subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_server"
-sidebar_current: "docs-azurerm-datasource-postgresql-server"
 description: |-
   Gets information about an existing PostgreSQL Azure Database Server.
 ---
@@ -41,3 +40,11 @@ output "postgresql_server_id" {
 * `administrator_login` - The administrator username of the PostgreSQL Server.
 
 * `tags` - A mapping of tags assigned to the resource.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Azure Database Server.

@@ -69,8 +69,6 @@ func TestValidateMetricAlertRuleTags(t *testing.T) {
 
 func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_metric_alertrule", "test")
-	preConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(data, true)
-	postConfig := testAccAzureRMMetricAlertRule_virtualMachineCpu(data, false)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -78,7 +76,7 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMMetricAlertRule_virtualMachineCpu(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMetricAlertRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -86,7 +84,7 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 				),
 			},
 			{
-				Config: postConfig,
+				Config: testAccAzureRMMetricAlertRule_virtualMachineCpu(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMetricAlertRuleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
@@ -135,7 +133,6 @@ func TestAccAzureRMMetricAlertRule_requiresImport(t *testing.T) {
 
 func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_metric_alertrule", "test")
-	config := testAccAzureRMMetricAlertRule_sqlDatabaseStorage(data)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -143,7 +140,7 @@ func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMetricAlertRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMMetricAlertRule_sqlDatabaseStorage(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMetricAlertRuleExists(data.ResourceName),
 					resource.TestCheckNoResourceAttr(data.ResourceName, "tags.$type"),
@@ -155,6 +152,9 @@ func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 
 func testCheckAzureRMMetricAlertRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AlertRulesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -166,9 +166,6 @@ func testCheckAzureRMMetricAlertRuleExists(resourceName string) resource.TestChe
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Alert Rule: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.AlertRulesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -360,26 +357,47 @@ resource "azurerm_metric_alertrule" "import" {
 func testAccAzureRMMetricAlertRule_sqlDatabaseStorage(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+
+resource "azurerm_sql_server" "test" {
+  name                         = "acctestsqlserver%[1]d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+  name                             = "acctestdb%[1]d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "Standard"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
+  name                 = "acctsub-%[1]d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctni-%d"
+  name                = "acctni-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -391,7 +409,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
+  name                  = "acctvm-%[1]d"
   location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
@@ -405,7 +423,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name              = "osd-%d"
+    name              = "osd-%[1]d"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     disk_size_gb      = "50"
@@ -413,7 +431,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   os_profile {
-    computer_name  = "hn%d"
+    computer_name  = "hn%[1]d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -461,5 +479,5 @@ resource "azurerm_metric_alertrule" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

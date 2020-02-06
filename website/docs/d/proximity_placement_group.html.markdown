@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_proximity_placement_group"
-sidebar_current: "docs-azurerm-datasource-proximity-placement-group"
 description: |-
   Gets information about an existing Proximity Placement Group.
 ---
@@ -37,3 +36,11 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Proximity Placement Group.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Proximity Placement Group.

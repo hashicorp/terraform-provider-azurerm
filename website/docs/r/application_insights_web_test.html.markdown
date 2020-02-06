@@ -2,7 +2,6 @@
 subcategory: "Application Insights"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_insights_web_test"
-sidebar_current: "docs-azurerm-resource-application-insights-web-test"
 description: |-
   Manages an Application Insights WebTest.
 ---
@@ -87,6 +86,17 @@ The following arguments are supported:
 * `description` - (Optional) Purpose/user defined descriptive test for this WebTest.
 
 * `tags` - (Optional) Resource tags.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Application Insights Web Test.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Web Test.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Web Test.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Web Test.
 
 ## Import
 

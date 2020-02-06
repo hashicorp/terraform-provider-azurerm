@@ -2,7 +2,6 @@
 subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_group_user"
-sidebar_current: "docs-azurerm-resource-api-management-group-user"
 description: |-
   Manages an API Management User Assignment to a Group.
 ---
@@ -47,6 +46,17 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Group User.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management Group User.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Group User.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Group User.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Group User.
 
 ## Import
 

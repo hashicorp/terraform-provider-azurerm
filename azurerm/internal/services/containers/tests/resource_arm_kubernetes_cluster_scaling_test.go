@@ -9,6 +9,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+func TestAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_addAgent(t)
+}
+
 func testAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -34,6 +39,11 @@ func testAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesCluster_removeAgent(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_removeAgent(t)
 }
 
 func testAccAzureRMKubernetesCluster_removeAgent(t *testing.T) {
@@ -63,6 +73,11 @@ func testAccAzureRMKubernetesCluster_removeAgent(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset(t)
+}
+
 func testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -89,6 +104,11 @@ func testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones(t)
+}
+
 func testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -112,6 +132,11 @@ func testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T
 			data.ImportStep("service_principal.0.client_secret"),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones(t)
 }
 
 func testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones(t *testing.T) {

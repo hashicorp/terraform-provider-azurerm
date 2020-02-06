@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_notification_hub_namespace"
-sidebar_current: "docs-azurerm-resource-messaging-notification-hub-namespace"
 description: |-
   Manages a Notification Hub Namespace.
 
@@ -61,6 +60,17 @@ The following attributes are exported:
 * `id` - The ID of the Notification Hub Namespace.
 
 * `servicebus_endpoint` - The ServiceBus Endpoint for this Notification Hub Namespace.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Notification Hub Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the Notification Hub Namespace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Notification Hub Namespace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Notification Hub Namespace.
 
 ## Import
 

@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_custom_hostname_binding"
-sidebar_current: "docs-azurerm-resource-app-service-custom-hostname-binding"
 description: |-
   Manages a Hostname Binding within an App Service.
 
@@ -78,6 +77,17 @@ The following attributes are exported:
 * `id` - The ID of the App Service Custom Hostname Binding
 
 * `virtual_ip` - The virtual IP address assigned to the hostname if IP based SSL is enabled.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Custom Hostname Binding.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Custom Hostname Binding.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Custom Hostname Binding.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Custom Hostname Binding.
 
 ## Import
 

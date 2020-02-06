@@ -2,7 +2,6 @@
 subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault"
-sidebar_current: "docs-azurerm-resource-key-vault-x"
 description: |-
   Manages a Key Vault.
 ---
@@ -131,6 +130,17 @@ The following attributes are exported:
 * `id` - The ID of the Key Vault.
 
 * `vault_uri` - The URI of the Key Vault, used for performing operations on keys and secrets.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts is available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Key Vault.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault.
 
 ## Import
 

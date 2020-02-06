@@ -2,7 +2,6 @@
 subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit"
-sidebar_current: "docs-azurerm-datasource-express-route-circuit"
 description: |-
   Gets information about an existing ExpressRoute circuit.
 ---
@@ -60,7 +59,8 @@ output "service_key" {
 `peerings` supports the following:
 
 * `peering_type` - The type of the ExpressRoute Circuit Peering. Acceptable values include `AzurePrivatePeering`, `AzurePublicPeering` and `MicrosoftPeering`. Changing this forces a new resource to be created.
-~> **NOTE:** only one Peering of each Type can be created per ExpressRoute circuit.
+
+~> **Note:** only one Peering of each Type can be created per ExpressRoute circuit.
 * `primary_peer_address_prefix` - A `/30` subnet for the primary link.
 * `secondary_peer_address_prefix` - A `/30` subnet for the secondary link.
 * `vlan_id` - A valid VLAN ID to establish this peering on.
@@ -70,5 +70,13 @@ output "service_key" {
 
 `sku` supports the following:
 
-* `tier` - The service tier. Possible values are `Standard` or `Premium`.
+* `tier` - The service tier. Possible values are `Basic`, `Local`, `Standard` or `Premium`.
 * `family` - The billing mode for bandwidth. Possible values are `MeteredData` or `UnlimitedData`.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute circuit.

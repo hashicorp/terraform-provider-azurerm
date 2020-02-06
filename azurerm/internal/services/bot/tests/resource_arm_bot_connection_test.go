@@ -14,7 +14,6 @@ import (
 
 func testAccAzureRMBotConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_connection", "test")
-	config := testAccAzureRMBotConnection_basicConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -22,7 +21,7 @@ func testAccAzureRMBotConnection_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotConnection_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotConnectionExists(data.ResourceName),
 				),
@@ -34,8 +33,6 @@ func testAccAzureRMBotConnection_basic(t *testing.T) {
 
 func testAccAzureRMBotConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_connection", "test")
-	config := testAccAzureRMBotConnection_completeConfig(data)
-	config2 := testAccAzureRMBotConnection_completeUpdateConfig(data)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -43,14 +40,14 @@ func testAccAzureRMBotConnection_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBotConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMBotConnection_completeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotConnectionExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("client_secret", "service_provider_name"),
 			{
-				Config: config2,
+				Config: testAccAzureRMBotConnection_completeUpdateConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBotConnectionExists(data.ResourceName),
 				),
@@ -62,6 +59,9 @@ func testAccAzureRMBotConnection_complete(t *testing.T) {
 
 func testCheckAzureRMBotConnectionExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ConnectionClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -74,9 +74,6 @@ func testCheckAzureRMBotConnectionExists(name string) resource.TestCheckFunc {
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channels Registration: %s", name)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Bot.ConnectionClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, botName, name)
 		if err != nil {

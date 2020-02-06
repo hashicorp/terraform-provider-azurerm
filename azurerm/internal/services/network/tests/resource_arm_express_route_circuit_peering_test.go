@@ -53,10 +53,7 @@ func testAccAzureRMExpressRouteCircuitPeering_requiresImport(t *testing.T) {
 					testCheckAzureRMExpressRouteCircuitPeeringExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMExpressRouteCircuitPeering_requiresImportConfig(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_express_route_circuit_peering"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMExpressRouteCircuitPeering_requiresImportConfig),
 		},
 	})
 }
@@ -113,6 +110,9 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpda
 
 func testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRoutePeeringsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -124,9 +124,6 @@ func testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName string) resou
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit Peering: %s", peeringType)
 		}
-
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ExpressRoutePeeringsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
 		if err != nil {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 func resourceArmLogicAppTriggerRecurrence() *schema.Resource {
@@ -59,6 +60,12 @@ func resourceArmLogicAppTriggerRecurrence() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
+
+			"start_time": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.RFC3339Time,
+			},
 		},
 	}
 }
@@ -70,6 +77,10 @@ func resourceArmLogicAppTriggerRecurrenceCreateUpdate(d *schema.ResourceData, me
 			"interval":  d.Get("interval").(int),
 		},
 		"type": "Recurrence",
+	}
+
+	if v, ok := d.GetOk("start_time"); ok {
+		trigger["recurrence"].(map[string]interface{})["startTime"] = v.(string)
 	}
 
 	logicAppId := d.Get("logic_app_id").(string)
@@ -123,6 +134,10 @@ func resourceArmLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta inter
 
 	if interval := recurrence["interval"]; interval != nil {
 		d.Set("interval", int(interval.(float64)))
+	}
+
+	if startTime := recurrence["startTime"]; startTime != nil {
+		d.Set("start_time", startTime.(string))
 	}
 
 	return nil

@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_relay_hybrid_connection"
-sidebar_current: "docs-azurerm-resource-messaging-relay-hybrid-connection"
 description: |-
   Manages an Azure Relay Hybrid Connection.
 
@@ -59,11 +58,22 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Azure Relay Hybrid Connection ID.
+* `id` - The ID of the Relay Hybrid Connection.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Relay Hybrid Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the Relay Hybrid Connection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Relay Hybrid Connection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Relay Hybrid Connection.
 
 ## Import
 
-Azure Relay Hybrid Connection's can be imported using the `resource id`, e.g.
+Relay Hybrid Connection's can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_relay_hybrid_connection.relay1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/namespaces/relay1/hybridConnections/hconn1
