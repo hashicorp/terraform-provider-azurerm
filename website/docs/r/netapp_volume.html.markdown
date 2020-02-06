@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `service_level` - (Required) The target performance of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
 
-* `protocols` - (Optional) The target volume protocol expressed as a list. Supported single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`. **VERY IMPORTANT**, please do not use this attribute to change the protocol used to create the volume, e.g. from NFSv3 to NFSv4.1 this will cause your current NFSv3 volume to destroyed then redeployed as NFSv4.1. Azure NetApp Files does not support soft deletes, once the volume is deleted there is no way to reverse it so if the plan shows that a volume will be destroyed only apply it if you're sure you can get it deleted.
+* `protocols` - (Optional) The target volume protocol expressed as a list. Supported single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`. Changing this forces a new resource to be created and data will be lost.
 
 * `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new resource to be created.
 
