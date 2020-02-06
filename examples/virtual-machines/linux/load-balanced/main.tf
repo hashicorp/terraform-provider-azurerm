@@ -99,7 +99,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "example" 
   count                   = local.instance_count
   backend_address_pool_id = azurerm_lb_backend_address_pool.example.id
   ip_configuration_name   = "primary"
-  network_interface_id    = azurerm_network_interface.main[count.index].id
+  network_interface_id    = element(azurerm_network_interface.main.*.id, count.index)
 }
 
 resource "azurerm_linux_virtual_machine" "main" {
