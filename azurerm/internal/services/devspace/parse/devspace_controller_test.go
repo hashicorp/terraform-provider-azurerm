@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestDevspaceControllerId(t *testing.T) {
+func TestDevSpaceControllerId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DevspaceControllerId
+		Expected *DevSpaceControllerId
 	}{
 		{
 			Name:     "Empty",
@@ -36,9 +36,9 @@ func TestDevspaceControllerId(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:  "Devspace Controller ID",
+			Name:  "DevSpace Controller ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DevSpaces/controllers/Controller1",
-			Expected: &DevspaceControllerId{
+			Expected: &DevSpaceControllerId{
 				Name:          "Controller1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestDevspaceControllerId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := DevspaceControllerID(v.Input)
+		actual, err := DevSpaceControllerID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

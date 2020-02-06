@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DevspaceControllerId struct {
+type DevSpaceControllerId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func DevspaceControllerID(input string) (*DevspaceControllerId, error) {
+func DevSpaceControllerID(input string) (*DevSpaceControllerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Devspace Controller ID %q: %+v", input, err)
+		return nil, fmt.Errorf("[ERROR] Unable to parse DevSpace Controller ID %q: %+v", input, err)
 	}
 
-	controller := DevspaceControllerId{
+	controller := DevSpaceControllerId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
