@@ -83,6 +83,5 @@ SETTINGS
     }
 SETTINGS
 
-//  depends_on = [null_resource.wait-for-domain-to-provision]
   depends_on = [azurerm_virtual_machine_extension.wait-for-domain-to-provision]
 }
