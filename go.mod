@@ -19,6 +19,7 @@ require (
 	github.com/tombuildsstuff/giovanni v0.7.1
 	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/net v0.0.0-20191009170851-d66e71096ffb
+	golang.org/x/tools v0.0.0-20200206010605-531cc8856e55 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )
 
