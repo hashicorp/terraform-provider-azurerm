@@ -526,14 +526,12 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	auditingClient := meta.(*clients.Client).Sql.ExtendedDatabaseBlobAuditingPoliciesClient
-	if _, ok := d.GetOk("blob_extended_auditing_policy"); ok {
-		auditingParameters := sql.ExtendedDatabaseBlobAuditingPolicy{
-			ExtendedDatabaseBlobAuditingPolicyProperties: expandAzureRmSqlDBBlobAuditingPolicies(d.Get("blob_extended_auditing_policy").([]interface{})),
-		}
-		_, err := auditingClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, auditingParameters)
-		if err != nil {
-			return fmt.Errorf("Error issuing create/update request for SQL Server %q Database %q Blob Auditing Policies(Resource Group %q): %+v", serverName, name, resourceGroup, err)
-		}
+	auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
+		ExtendedDatabaseBlobAuditingPolicyProperties: expandAzureRmSqlDBBlobAuditingPolicies(d.Get("blob_extended_auditing_policy").([]interface{})),
+	}
+	_, err = auditingClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, auditingProps)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for SQL Server %q Database %q Blob Auditing Policies(Resource Group %q): %+v", serverName, name, resourceGroup, err)
 	}
 
 	return resourceArmSqlDatabaseRead(d, meta)
@@ -621,10 +619,6 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 	auditingClient := meta.(*clients.Client).Sql.ExtendedDatabaseBlobAuditingPoliciesClient
 	auditingResp, err := auditingClient.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Server %q Database %q Blob Auditing Policies - removing from state", serverName, name)
-		}
-
 		return fmt.Errorf("Error reading SQL Server %s Database %q: %v Blob Auditing Policies", serverName, name, err)
 	}
 
@@ -797,7 +791,9 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 
 func expandAzureRmSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDatabaseBlobAuditingPolicyProperties {
 	if len(input) == 0 {
-		return nil
+		return &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
+			State: sql.BlobAuditingPolicyStateDisabled,
+		}
 	}
 	dbBlobAuditingPolicies := input[0].(map[string]interface{})
 
