@@ -78,7 +78,7 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			RollInstancesWhenRequired: true,
 		},
 		KeyVault: features.KeyVaultFeatures{
-			PurgeSoftDeleteOnDestroy: false,
+			PurgeSoftDeleteOnDestroy: true,
 		},
 	}
 

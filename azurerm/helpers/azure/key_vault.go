@@ -3,6 +3,7 @@ package azure
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -134,4 +135,31 @@ func KeyVaultCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
 	}
 
 	return nil
+}
+
+func KeyVaultGetSoftDeletedState(ctx context.Context, client *keyvault.VaultsClient, name string, location string) (deleteDate interface{}, purgeDate interface{}, err error) {
+	softDel, err := client.GetDeleted(ctx, name, location)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to get soft delete state information: %+v", err)
+	}
+
+	// the logic is this way because the GetDeleted call will return an existing key vault
+	// that is not soft deleted, but the Deleted Vault properties will be nil
+	if props := softDel.Properties; props != nil {
+		var delDate interface{}
+		var purgeDate interface{}
+
+		if dd := props.DeletionDate; dd != nil {
+			delDate = (*dd).Format(time.RFC3339)
+		}
+		if pg := props.ScheduledPurgeDate; pg != nil {
+			purgeDate = (*pg).Format(time.RFC3339)
+		}
+		if delDate != nil && purgeDate != nil {
+			return delDate, purgeDate, nil
+		}
+	}
+
+	// this means we found an existing key vault that is not soft deleted
+	return nil, nil, nil
 }

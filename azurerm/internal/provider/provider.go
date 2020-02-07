@@ -285,7 +285,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	}
 }
 
-
 const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.
 
 Terraform automatically attempts to register the Resource Providers it supports to

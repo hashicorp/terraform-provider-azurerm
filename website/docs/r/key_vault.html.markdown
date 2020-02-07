@@ -15,6 +15,16 @@ Manages a Key Vault.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  alias = "keyVault"
+
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = true
+    }
+  }
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West US"
@@ -22,10 +32,13 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_key_vault" "example" {
   name                        = "testvault"
+  provider                    = azurerm.keyVault
   location                    = "${azurerm_resource_group.example.location}"
   resource_group_name         = "${azurerm_resource_group.example.name}"
   enabled_for_disk_encryption = true
   tenant_id                   = "d6e396d0-5584-41dc-9fc0-268df99bc610"
+  soft_delete_enabled         = true
+  purge_protection_enabled    = false
 
   sku_name = "standard"
 
@@ -83,15 +96,13 @@ The following arguments are supported:
 
 * `enabled_for_template_deployment` - (Optional) Boolean flag to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault. Defaults to `false`.
 
-* `enabled_for_soft_delete` - (Optional) Should Soft Delete be enabled for items in this Key Vault?
+* `soft_delete_enabled` - (Optional) Should Soft Delete be enabled for this Key Vault?
 
--> **NOTE:** Once enabled you can not disable this setting.
+-> **NOTE:** Once `soft_delete_enabled` has been enabled it is an **irreversible** action. If you want to destroy this key vault before the 90 day purge policy expires you must set the `purge_soft_delete_on_destroy` to **true** in the `key_vault` section of the azure provider `features` block.
 
-* `purge_on_delete` - (Optional) Boolean flag to specify if the KeyVault should be purged on delete. This purges KeyVaults enabled for soft delete on resource deletition.
+* `purge_protection_enabled` - (Optional) Is Purge Protection enabled for this Key Vault?
 
-* `enabled_for_purge_protection` - (Optional) Is Purge Protection enabled for this Key Vault?
-
--> **NOTE:** Once Purge Protection has been Enabled there's currently no way to Disable it - [support for this is being tracked in this Azure API issue](https://github.com/Azure/azure-rest-api-specs/issues/8075)
+-> **NOTE:** Once `purge_protection_enabled` has been enabled it is an **irreversible** action. - [support for this is being tracked in this Azure API issue](https://github.com/Azure/azure-rest-api-specs/issues/8075)
 
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 

@@ -149,9 +149,19 @@ It's possible to customise the behaviour of certain Azure Provider resources usi
 
 The `features` block supports the following:
 
+* `key_vault` - (Optional) A `key_vault` block as defined below.
+
 * `virtual_machine` - (Optional) A `virtual_machine` block as defined below.
 
 * `virtual_machine_scale_set` - (Optional) A `virtual_machine_scale_set` block as defined below.
+
+---
+
+The `key_vault` block supports the following:
+
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
+
+~> **Note:** When purge protection is enabled, a vault or an object in the deleted state cannot be purged until the retention period has passed.
 
 ---
 

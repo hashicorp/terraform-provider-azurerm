@@ -198,6 +198,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	purgeProtectionEnabled := d.Get("purge_protection_enabled").(bool)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -214,15 +215,17 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	// before creating check to see if the key vault exists in the soft delete state
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	softDel, err := client.GetDeleted(ctx, name, location)
-	if err != nil && !utils.ResponseWasNotFound(softDel.Response) {
-		return fmt.Errorf("Error retrieving soft deleted Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+	delDate, purgeDate, err := azure.KeyVaultGetSoftDeletedState(ctx, client, name, location)
+	if err == nil {
+		if delDate != nil || purgeDate != nil {
+			return fmt.Errorf("unable to create Key Vault %q (Resource Group %q) becauese it already exists in the soft delete state. The key vault was soft deleted on %s and is scheduled to be purged on %s, please use the Azure CLI tool to recover this Key Vault", name, resourceGroup, delDate.(string), purgeDate.(string))
+		}
+		return fmt.Errorf("unable to create Key Vault %q (Resource Group %q) becauese it already exists", name, resourceGroup)
 	}
 
-	if props := softDel.Properties; props != nil {
-		delDate := (*props.DeletionDate).Format(time.RFC3339)
-		purgeDate := (*props.ScheduledPurgeDate).Format(time.RFC3339)
-		return fmt.Errorf("unable to create Key Vault %q (Resource Group %q) becauese it already exists in the soft delete state. The key vault was soft deleted on %s and is scheduled to be purged on %s", name, resourceGroup, delDate, purgeDate)
+	// check to see if they enabled purge protection and purge on destroy
+	if purgeProtectionEnabled && meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy {
+		return fmt.Errorf("conflicting properties 'purge_protection_enabled' and 'purge_soft_delete_on_destroy' are both enabled for Key Vault %q (Resource Group %q). Please disable one of these paroperties and re-apply", name, resourceGroup)
 	}
 
 	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
@@ -230,7 +233,6 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
 	softDeleteEnabled := d.Get("soft_delete_enabled").(bool)
-	purgeProtectionEnabled := d.Get("purge_protection_enabled").(bool)
 
 	t := d.Get("tags").(map[string]interface{})
 
@@ -417,6 +419,12 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	// Check to see if purge protection is enabled or not...
+	purgeProtectionEnabled := false
+	if ppe := read.Properties.EnablePurgeProtection; ppe != nil {
+		purgeProtectionEnabled = *ppe
+	}
+
 	// ensure we lock on the latest network names, to ensure we handle Azure's networking layer being limited to one change at a time
 	virtualNetworkNames := make([]string, 0)
 	if props := read.Properties; props != nil {
@@ -452,9 +460,20 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy {
-		log.Printf("[DEBUG] KeyVault %s marked for purge, executing purge", name)
 		location := d.Get("location").(string)
 
+		// check to see if purge protection is enabled or not
+		if purgeProtectionEnabled {
+			delDate, purgeDate, err := azure.KeyVaultGetSoftDeletedState(ctx, client, name, location)
+			if err == nil {
+				if delDate != nil && purgeDate != nil {
+					return fmt.Errorf("unable to purge Key Vault %q (Resource Group %q) because it has purge protection enabled. The key vault was soft deleted on %s and is scheduled to be purged on %s", name, resourceGroup, delDate.(string), purgeDate.(string))
+				}
+				return fmt.Errorf("unable to purge Key Vault %q (Resource Group %q) because it has purge protection enabled", name, resourceGroup)
+			}
+		}
+
+		log.Printf("[DEBUG] KeyVault %s marked for purge, executing purge", name)
 		future, err := client.PurgeDeleted(ctx, name, location)
 		if err != nil {
 			return err
