@@ -24,9 +24,9 @@ data "azurerm_eventgrid_topic" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the EventGrid Topic resource.
+* `name` - The name of the EventGrid Topic resource.
 
-* `resource_group_name` - (Required) The name of the resource group in which the EventGrid Topic exists.
+* `resource_group_name` - The name of the resource group in which the EventGrid Topic exists.
 
 ## Attributes Reference
 

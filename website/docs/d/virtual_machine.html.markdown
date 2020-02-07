@@ -25,8 +25,8 @@ output "virtual_machine_id" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Virtual Machine.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Virtual Machine is located in.
+* `name` - Specifies the name of the Virtual Machine.
+* `resource_group_name` - Specifies the name of the resource group the Virtual Machine is located in.
 
 ## Attributes Reference
 

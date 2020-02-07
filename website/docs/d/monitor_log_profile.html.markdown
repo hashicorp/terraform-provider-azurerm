@@ -24,7 +24,7 @@ output "log_profile_storage_account_id" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the Name of the Log Profile.
+* `name` - Specifies the Name of the Log Profile.
 
 
 ## Attributes Reference

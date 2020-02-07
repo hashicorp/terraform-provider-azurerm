@@ -25,8 +25,8 @@ output "location" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the Name of the Network Security Group.
-* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the Network Security Group exists
+* `name` - Specifies the Name of the Network Security Group.
+* `resource_group_name` - Specifies the Name of the Resource Group within which the Network Security Group exists
 
 
 ## Attributes Reference

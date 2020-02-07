@@ -26,9 +26,9 @@ output "subnet_id" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Subnet.
-* `virtual_network_name` - (Required) Specifies the name of the Virtual Network this Subnet is located within.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Virtual Network is located in.
+* `name` - Specifies the name of the Subnet.
+* `virtual_network_name` - Specifies the name of the Virtual Network this Subnet is located within.
+* `resource_group_name` - Specifies the name of the resource group the Virtual Network is located in.
 
 ## Attributes Reference
 

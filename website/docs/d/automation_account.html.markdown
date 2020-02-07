@@ -24,9 +24,9 @@ output "automation_account_id" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Automation Account.
+* `name` - The name of the Automation Account.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Automation Account exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the Automation Account exists.
 
 ## Attributes Reference
 

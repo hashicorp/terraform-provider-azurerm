@@ -26,11 +26,11 @@ output "notes" {
 
 ## Argument Reference
 
-* `api_management_name` - (Required) The Name of the API Management Service in which this User exists.
+* `api_management_name` - The Name of the API Management Service in which this User exists.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists.
+* `resource_group_name` - The Name of the Resource Group in which the API Management Service exists.
 
-* `user_id` - (Required) The Identifier for the User.
+* `user_id` - The Identifier for the User.
 
 ## Attributes Reference
 

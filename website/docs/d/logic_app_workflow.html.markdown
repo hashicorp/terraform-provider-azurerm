@@ -27,9 +27,9 @@ output "access_endpoint" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Logic App Workflow.
+* `name` - The name of the Logic App Workflow.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Logic App Workflow exists.
+* `resource_group_name` - The name of the Resource Group in which the Logic App Workflow exists.
 
 ## Attributes Reference
 

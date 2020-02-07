@@ -26,11 +26,11 @@ output "rule_id" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the ServiceBus Namespace Authorization Rule.
+* `name` - Specifies the name of the ServiceBus Namespace Authorization Rule.
 
-* `namespace_name` - (Required) Specifies the name of the ServiceBus Namespace.
+* `namespace_name` - Specifies the name of the ServiceBus Namespace.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the ServiceBus Namespace exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the ServiceBus Namespace exists.
 
 ## Attributes Reference
 

@@ -26,8 +26,8 @@ output "network_interface_id" {
 ## Argument Reference
 
 
-* `name` - (Required) Specifies the name of the Network Interface.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Network Interface is located in.
+* `name` - Specifies the name of the Network Interface.
+* `resource_group_name` - Specifies the name of the resource group the Network Interface is located in.
 
 ## Attributes Reference
 

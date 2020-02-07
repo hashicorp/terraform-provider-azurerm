@@ -26,11 +26,11 @@ output "elasticpool_id" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the elastic pool.
+* `name` - The name of the elastic pool.
 
-* `resource_group_name` - (Required) The name of the resource group which contains the elastic pool.
+* `resource_group_name` - The name of the resource group which contains the elastic pool.
 
-* `server_name` - (Required) The name of the SQL Server which contains the elastic pool.
+* `server_name` - The name of the SQL Server which contains the elastic pool.
 
 ## Attributes Reference
 

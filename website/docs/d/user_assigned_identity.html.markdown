@@ -30,8 +30,8 @@ output "uai_principal_id" {
 
 ## Argument Reference
 
-* `name` - (Required)  The name of the User Assigned Identity.
-* `resource_group_name` - (Required) The name of the Resource Group in which the User Assigned Identity exists.
+* `name` -  The name of the User Assigned Identity.
+* `resource_group_name` - The name of the Resource Group in which the User Assigned Identity exists.
 
 ## Attributes Reference
 

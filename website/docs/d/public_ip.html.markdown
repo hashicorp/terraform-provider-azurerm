@@ -97,8 +97,8 @@ output "public_ip_address" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the public IP address.
-* `resource_group_name` - (Required) Specifies the name of the resource group.
+* `name` - Specifies the name of the public IP address.
+* `resource_group_name` - Specifies the name of the resource group.
 
 
 ## Attributes Reference

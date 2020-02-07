@@ -29,7 +29,7 @@ output "image_id" {
 * `name` - (Optional) The name of the Image.
 * `name_regex` - (Optional) Regex pattern of the image to match.
 * `sort_descending` - (Optional) By default when matching by regex, images are sorted by name in ascending order and the first match is chosen, to sort descending, set this flag.
-* `resource_group_name` - (Required) The Name of the Resource Group where this Image exists.
+* `resource_group_name` - The Name of the Resource Group where this Image exists.
 
 ## Attributes Reference
 

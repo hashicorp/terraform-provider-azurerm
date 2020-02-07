@@ -69,19 +69,19 @@ output "sas_url_query_string" {
 
 ## Argument Reference
 
-* `connection_string` - (Required) The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
+* `connection_string` - The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
 
-* `container_name` - (Required) Name of the container.
+* `container_name` - Name of the container.
 
 * `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
 
 * `ip_address` - (Optional) Single ipv4 address or range (connected with a dash) of ipv4 addresses.
 
-* `start` - (Required) The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
+* `start` - The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
 
-* `expiry` - (Required) The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
+* `expiry` - The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
 
-* `permissions` - (Required) A `permissions` block as defined below.
+* `permissions` - A `permissions` block as defined below.
 
 * `cache_control` - (Optional) The `Cache-Control` response header that is sent when this SAS token is used.
 
@@ -98,17 +98,17 @@ output "sas_url_query_string" {
 A `permissions` block contains:
 
 
-* `read` - (Required) Should Read permissions be enabled for this SAS?
+* `read` - Should Read permissions be enabled for this SAS?
 
-* `add` - (Required) Should Add permissions be enabled for this SAS?
+* `add` - Should Add permissions be enabled for this SAS?
 
-* `create` - (Required) Should Create permissions be enabled for this SAS?
+* `create` - Should Create permissions be enabled for this SAS?
 
-* `write` - (Required) Should Write permissions be enabled for this SAS?
+* `write` - Should Write permissions be enabled for this SAS?
 
-* `delete` - (Required) Should Delete permissions be enabled for this SAS?
+* `delete` - Should Delete permissions be enabled for this SAS?
 
-* `list` - (Required) Should List permissions be enabled for this SAS?
+* `list` - Should List permissions be enabled for this SAS?
 
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/en-us/rest/api/storageservices/create-service-sas)
 for additional details on the fields above.

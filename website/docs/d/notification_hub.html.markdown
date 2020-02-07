@@ -26,11 +26,11 @@ output "id" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the Name of the Notification Hub.
+* `name` - Specifies the Name of the Notification Hub.
 
-* `namespace_name` - (Required)  Specifies the Name of the Notification Hub Namespace which contains the Notification Hub.
+* `namespace_name` -  Specifies the Name of the Notification Hub Namespace which contains the Notification Hub.
 
-* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the Notification Hub exists.
+* `resource_group_name` - Specifies the Name of the Resource Group within which the Notification Hub exists.
 
 ## Attributes Reference
 

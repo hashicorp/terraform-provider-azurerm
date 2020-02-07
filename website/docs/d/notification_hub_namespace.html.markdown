@@ -25,9 +25,9 @@ output "servicebus_endpoint" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the Name of the Notification Hub Namespace.
+* `name` - Specifies the Name of the Notification Hub Namespace.
 
-* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the Notification Hub exists.
+* `resource_group_name` - Specifies the Name of the Resource Group within which the Notification Hub exists.
 
 ## Attributes Reference
 
@@ -45,7 +45,7 @@ output "servicebus_endpoint" {
 
 A `sku` block exports the following:
 
-* `name` - (Required) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard.`
+* `name` - The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard.`
 
 ### Timeouts
 

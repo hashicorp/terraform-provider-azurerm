@@ -28,11 +28,11 @@ output "dedicated_host_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Dedicated Host.
+* `name` - Specifies the name of the Dedicated Host.
 
-* `dedicated_host_group_name` - (Required) Specifies the name of the Dedicated Host Group the Dedicated Host is located in.
+* `dedicated_host_group_name` - Specifies the name of the Dedicated Host Group the Dedicated Host is located in.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the Dedicated Host is located in.
+* `resource_group_name` - Specifies the name of the resource group the Dedicated Host is located in.
 
 ## Attributes Reference
 
