@@ -8,6 +8,8 @@ IMPROVEMENTS:
 
 * `azurerm_linux_virtual_machine` - Added SSH Key validation and updated docs on supported SSH Key types [#5610]
 
+* `azurerm_key_vault_key` - support for `not_before_date` and `expiration_date` [GH-5619]
+
 * Data Source Documentation - Removing unneeded labels from data source attributes [GH-5643]
 
 BUGS:
