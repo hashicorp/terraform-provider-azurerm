@@ -417,7 +417,6 @@ resource "azurerm_sql_server" "test" {
     storage_endpoint                = azurerm_storage_account.test.primary_blob_endpoint
     is_storage_secondary_key_in_use = true
     retention_days                  = 6
-
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -459,7 +458,6 @@ resource "azurerm_sql_server" "test" {
     storage_endpoint                = azurerm_storage_account.test2.primary_blob_endpoint
     is_storage_secondary_key_in_use = false
     retention_days                  = 11
-
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

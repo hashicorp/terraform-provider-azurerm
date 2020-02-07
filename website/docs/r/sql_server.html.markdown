@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `blob_extended_auditing_policy` - (Optional) An `blob_extended_auditing_policy` block as defined below.
+* `blob_extended_auditing_policy` - (Optional) A `blob_extended_auditing_policy` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -99,15 +99,15 @@ The following attributes are exported:
 
 ---
 
-An `blob_extended_auditing_policy` block supports the following:
+A `blob_extended_auditing_policy` block supports the following:
 
-* `storage_account_access_key` - (Required)Specifies the identifier key of the auditing storage account.
+* `storage_account_access_key` - (Required) Specifies the identifier key of the auditing storage account.
 
 * `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
 
-* `is_storage_secondary_key_in_use` - Specifies whether storageAccountAccessKey value is the storage's secondary key.
+* `is_storage_secondary_key_in_use` - (Optional) Specifies whether storageAccountAccessKey value is the storage's secondary key.
 
-* `retention_days` - Specifies the number of days to keep in the audit logs in the storage account.
+* `retention_days` - (Optional) Specifies the number of days to keep in the audit logs in the storage account.
 
 ### Timeouts
 
