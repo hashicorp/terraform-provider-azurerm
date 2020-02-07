@@ -29,8 +29,8 @@ output "private_endpoint_status" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the Name of the private endpoint.
-* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the private endpoint exists.
+* `name` - Specifies the Name of the private endpoint.
+* `resource_group_name` - Specifies the Name of the Resource Group within which the private endpoint exists.
 
 ## Attributes Reference
 

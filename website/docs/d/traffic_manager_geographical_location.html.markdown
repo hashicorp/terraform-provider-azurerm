@@ -25,7 +25,7 @@ output "location_code" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Location, for example `World`, `Europe` or `Germany`.
+* `name` - Specifies the name of the Location, for example `World`, `Europe` or `Germany`.
 
 ## Attributes Reference
 

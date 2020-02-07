@@ -24,7 +24,7 @@ output "id" {
 
 ## Argument Reference
 
-* `display_name` - (Required) Specifies the name of the Policy Definition.
+* `display_name` - Specifies the name of the Policy Definition.
 * `management_group_id` - (Optional) Only retrieve Policy Definitions from this Management Group.
 
 

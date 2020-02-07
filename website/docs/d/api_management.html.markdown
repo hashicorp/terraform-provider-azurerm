@@ -25,9 +25,9 @@ output "api_management_id" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the API Management service.
+* `name` - The name of the API Management service.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists.
+* `resource_group_name` - The Name of the Resource Group in which the API Management Service exists.
 
 ## Attributes Reference
 

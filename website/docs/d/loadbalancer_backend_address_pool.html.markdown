@@ -35,9 +35,9 @@ output "backend_ip_configuration_ids" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Backend Address Pool.
+* `name` - Specifies the name of the Backend Address Pool.
 
-* `loadbalancer_id` - (Required) The ID of the Load Balancer in which the Backend Address Pool exists.
+* `loadbalancer_id` - The ID of the Load Balancer in which the Backend Address Pool exists.
 
 ## Attributes Reference
 

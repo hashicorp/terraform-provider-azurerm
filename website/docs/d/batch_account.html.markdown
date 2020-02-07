@@ -26,9 +26,9 @@ output "pool_allocation_mode" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Batch account.
+* `name` - The name of the Batch account.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where this Batch account exists.
+* `resource_group_name` - The Name of the Resource Group where this Batch account exists.
 
 ## Attributes Reference
 

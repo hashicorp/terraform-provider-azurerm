@@ -26,11 +26,11 @@ output "product_terms" {
 
 ## Argument Reference
 
-* `api_management_name` - (Required) The Name of the API Management Service in which this Product exists.
+* `api_management_name` - The Name of the API Management Service in which this Product exists.
 
-* `product_id` - (Required) The Identifier for the API Management Product.
+* `product_id` - The Identifier for the API Management Product.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which the API Management Service exists.
+* `resource_group_name` - The Name of the Resource Group in which the API Management Service exists.
 
 ## Attributes Reference
 

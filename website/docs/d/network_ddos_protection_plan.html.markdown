@@ -28,9 +28,9 @@ output "ddos_protection_plan_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Network DDoS Protection Plan.
+* `name` - The name of the Network DDoS Protection Plan.
 
-* `resource_group_name` - (Required) The name of the resource group where the Network DDoS Protection Plan exists.
+* `resource_group_name` - The name of the resource group where the Network DDoS Protection Plan exists.
 
 ## Attributes Reference
 

@@ -26,7 +26,7 @@ output "display_name" {
 
 The following arguments are supported:
 
-* `group_id` - (Required) Specifies the UUID of this Management Group.
+* `group_id` - Specifies the UUID of this Management Group.
 
 ## Attributes Reference
 

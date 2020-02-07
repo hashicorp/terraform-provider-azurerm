@@ -26,9 +26,9 @@ output "loadbalancer_id" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Load Balancer.
+* `name` - Specifies the name of the Load Balancer.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Load Balancer exists.
+* `resource_group_name` - The name of the Resource Group in which the Load Balancer exists.
 
 ## Attributes Reference
 

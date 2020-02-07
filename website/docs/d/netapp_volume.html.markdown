@@ -29,13 +29,13 @@ output "netapp_volume_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the NetApp Volume.
+* `name` - The name of the NetApp Volume.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the NetApp Volume exists.
+* `resource_group_name` - The Name of the Resource Group where the NetApp Volume exists.
 
-* `account_name` - (Required) The name of the NetApp account where the NetApp pool exists.
+* `account_name` - The name of the NetApp account where the NetApp pool exists.
 
-* `pool_name` - (Required) The name of the NetApp pool where the NetApp volume exists.
+* `pool_name` - The name of the NetApp pool where the NetApp volume exists.
 
 ## Attributes Reference
 

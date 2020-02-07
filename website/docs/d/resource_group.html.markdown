@@ -29,7 +29,7 @@ resource "azurerm_managed_disk" "example" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the resource group.
+* `name` - Specifies the name of the resource group.
 
 ~> **Note:** If the specified location doesn't match the actual resource group location, an error message with the actual location value will be shown.
 

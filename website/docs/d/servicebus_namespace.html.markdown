@@ -25,9 +25,9 @@ output "location" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the ServiceBus Namespace.
+* `name` - Specifies the name of the ServiceBus Namespace.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the ServiceBus Namespace exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the ServiceBus Namespace exists.
 
 ## Attributes Reference
 

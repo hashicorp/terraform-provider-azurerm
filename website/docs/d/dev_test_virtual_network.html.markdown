@@ -26,9 +26,9 @@ output "lab_subnet_name" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Virtual Network.
-* `lab_name` - (Required) Specifies the name of the Dev Test Lab.
-* `resource_group_name` - (Required) Specifies the name of the resource group that contains the Virtual Network.
+* `name` - Specifies the name of the Virtual Network.
+* `lab_name` - Specifies the name of the Dev Test Lab.
+* `resource_group_name` - Specifies the name of the resource group that contains the Virtual Network.
 
 ## Attributes Reference
 

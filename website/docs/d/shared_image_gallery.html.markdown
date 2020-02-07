@@ -24,9 +24,9 @@ data "azurerm_shared_image_gallery" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Shared Image Gallery.
+* `name` - The name of the Shared Image Gallery.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Shared Image Gallery exists.
+* `resource_group_name` - The name of the Resource Group in which the Shared Image Gallery exists.
 
 ## Attributes Reference
 

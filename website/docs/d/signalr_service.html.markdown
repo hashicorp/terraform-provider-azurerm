@@ -23,9 +23,9 @@ data "azurerm_signalr_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the SignalR service.
+* `name` - Specifies the name of the SignalR service.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the SignalR service is located in.
+* `resource_group_name` - Specifies the name of the resource group the SignalR service is located in.
 
 ## Attributes Reference
 

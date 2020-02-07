@@ -23,9 +23,9 @@ data "azurerm_recovery_services_vault" "vault" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Recovery Services Vault.
+* `name` - Specifies the name of the Recovery Services Vault.
 
-* `resource_group_name` - (Required) The name of the resource group in which the Recovery Services Vault resides.
+* `resource_group_name` - The name of the resource group in which the Recovery Services Vault resides.
 
 ## Attributes Reference
 

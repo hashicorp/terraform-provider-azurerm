@@ -26,11 +26,11 @@ output "api_management_api_version_set_id" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the API Version Set.
+* `name` - The name of the API Version Set.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the parent API Management Service exists.
+* `resource_group_name` - The name of the Resource Group in which the parent API Management Service exists.
 
-* `api_management_name` - (Required) The name of the [API Management Service](api_management.html) where the API Version Set exists.
+* `api_management_name` - The name of the [API Management Service](api_management.html) where the API Version Set exists.
 
 ## Attributes Reference
 
