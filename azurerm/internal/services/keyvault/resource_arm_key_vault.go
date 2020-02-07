@@ -217,7 +217,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	delDate, purgeDate, err := azure.KeyVaultGetSoftDeletedState(ctx, client, name, location)
 	if err == nil {
-		if delDate != nil || purgeDate != nil {
+		if delDate != nil && purgeDate != nil {
 			return fmt.Errorf("unable to create Key Vault %q (Resource Group %q) becauese it already exists in the soft delete state. The key vault was soft deleted on %s and is scheduled to be purged on %s, please use the Azure CLI tool to recover this Key Vault", name, resourceGroup, delDate.(string), purgeDate.(string))
 		}
 		return fmt.Errorf("unable to create Key Vault %q (Resource Group %q) becauese it already exists", name, resourceGroup)
