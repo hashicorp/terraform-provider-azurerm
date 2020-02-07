@@ -421,8 +421,12 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 
 	// Check to see if purge protection is enabled or not...
 	purgeProtectionEnabled := false
+	softDeleteEnabled := false
 	if ppe := read.Properties.EnablePurgeProtection; ppe != nil {
 		purgeProtectionEnabled = *ppe
+	}
+	if sde := read.Properties.EnableSoftDelete; sde != nil {
+		softDeleteEnabled = *sde
 	}
 
 	// ensure we lock on the latest network names, to ensure we handle Azure's networking layer being limited to one change at a time
@@ -459,10 +463,10 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy {
+	if meta.(*clients.Client).Features.KeyVault.PurgeSoftDeleteOnDestroy && softDeleteEnabled {
 		location := d.Get("location").(string)
 
-		// check to see if purge protection is enabled or not
+		// raise an error if the key vault is in the soft delete state and purge protection is enabled
 		if purgeProtectionEnabled {
 			delDate, purgeDate, err := azure.KeyVaultGetSoftDeletedState(ctx, client, name, location)
 			if err == nil {
