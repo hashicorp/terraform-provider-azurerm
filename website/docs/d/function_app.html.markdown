@@ -40,22 +40,22 @@ The following attributes are exported:
 
 * `connection_string` - An `connection_string` block as defined below.
 
-* `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
+* `default_hostname` - The default hostname associated with the Function App.
 
 * `enabled` - Is the Function App enabled?
 
 * `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
 
-* `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
+* `outbound_ip_addresses` - A comma separated list of outbound IP addresses.
 
-* `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
+* `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses, not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
 ---
 
 The `connection_string` supports the following:
 
 * `name` - The name of the Connection String.
-* `type` - The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and  `SQLServer`.
+* `type` - The type of the Connection String. 
 * `value` - The value for the Connection String.
 
 ---
