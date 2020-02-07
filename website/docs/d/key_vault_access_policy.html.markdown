@@ -18,7 +18,7 @@ data "azurerm_key_vault_access_policy" "contributor" {
 }
 
 output "access_policy_key_permissions" {
-  value = "${data.azurerm_key_vault_access_policy.key_permissions}"
+  value = "${data.azurerm_key_vault_access_policy.contributor.key_permissions}"
 }
 ```
 
@@ -30,6 +30,8 @@ output "access_policy_key_permissions" {
 
 
 ## Attributes Reference
+
+The following attributes are exported:
 
 * `id` - the ID of the Key Vault Access Policy
 
