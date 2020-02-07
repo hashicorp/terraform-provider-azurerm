@@ -15,8 +15,8 @@ Use this data source to access information about a Function App.
 
 ```hcl
 data "azurerm_function_app" "example" {
-  name                      = "test-azure-functions"
-  resource_group_name       = "${azurerm_resource_group.example.name}"
+  name                = "test-azure-functions"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 ```
 
