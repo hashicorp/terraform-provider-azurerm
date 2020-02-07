@@ -2,11 +2,13 @@
 
 FEATURES:
 
-* **New Data Source:** 'azurerm_function_app' [GH-5642]
+* **New Data Source:** `azurerm_function_app` [GH-5642]
 
 IMPROVEMENTS:
 
 * `azurerm_linux_virtual_machine` - Added SSH Key validation and updated docs on supported SSH Key types [#5610]
+
+* Data Source Documentation - Removing unneeded labels from data source attributes [GH-5643]
 
 BUGS:
 
