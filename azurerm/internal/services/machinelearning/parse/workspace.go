@@ -31,6 +31,8 @@ func WorkspaceID(input string) (*WorkspaceId, error) {
 	return &workspace, nil
 }
 
+// TODO -- use parse function "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers".ParseAccountID
+// when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
 func AccountIDCaseDiffSuppress(input string) (*accountParser.AccountID, error) {
 	accountId, err := accountParser.ParseAccountID(input)
 	if err == nil {

@@ -249,19 +249,19 @@ func testAccAzureRMMachineLearningWorkspace_template(data acceptance.TestData) s
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ml-%d"
-  location = "%s"
+  name     = "acctestRG-ml-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_application_insights" "test" {
-  name                 = "acctestai-%d"
+  name                 = "acctestai-%[1]d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   application_type     = "web"
 }
 
 resource "azurerm_key_vault" "test" {
-  name                 = "acctestvault%d"
+  name                 = "acctestvault%[3]d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   tenant_id            = data.azurerm_client_config.current.tenant_id
@@ -270,11 +270,11 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%d"
+  name                     = "acctestsa%[4]d"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomIntOfLength(12), data.RandomIntOfLength(15))
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12), data.RandomIntOfLength(15))
 }

@@ -91,9 +91,8 @@ func resourceArmMachineLearningWorkspace() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(machinelearningservices.SystemAssigned),
 							}, false),
@@ -293,15 +292,6 @@ func resourceArmAmlWorkspaceUpdate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	// retrieve
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Machine Learning Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-	if existing.WorkspaceProperties == nil {
-		return fmt.Errorf("Error retrieving Machine Learning Workspace %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
-	}
-
 	update := machinelearningservices.WorkspaceUpdateParameters{
 		WorkspacePropertiesUpdateParameters: &machinelearningservices.WorkspacePropertiesUpdateParameters{},
 	}
@@ -333,6 +323,27 @@ func resourceArmAmlWorkspaceUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	return resourceArmAmlWorkspaceRead(d, meta)
+}
+
+func resourceArmAmlWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MachineLearning.WorkspacesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.WorkspaceID(d.Id())
+	if err != nil {
+		return fmt.Errorf("Error parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
+	}
+
+	name := id.Name
+	resourceGroup := id.ResourceGroup
+
+	_, err = client.Delete(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error deleting Machine Learning Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return nil
 }
 
 func validateStorageAccount(ctx context.Context, client *storage.AccountsClient, accountID string) error {
@@ -384,30 +395,9 @@ func validateContainerRegistry(ctx context.Context, client *containerregistry.Re
 	return nil
 }
 
-func resourceArmAmlWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MachineLearning.WorkspacesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.WorkspaceID(d.Id())
-	if err != nil {
-		return fmt.Errorf("Error parsing Machine Learning Workspace ID `%q`: %+v", d.Id(), err)
-	}
-
-	name := id.Name
-	resourceGroup := id.ResourceGroup
-
-	_, err = client.Delete(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error deleting Machine Learning Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	return nil
-}
-
 func flattenMachineLearningWorkspaceIdentity(identity *machinelearningservices.Identity) []interface{} {
 	if identity == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	t := string(identity.Type)
