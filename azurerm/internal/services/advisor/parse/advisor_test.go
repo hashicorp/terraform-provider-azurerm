@@ -43,7 +43,6 @@ func TestAdvisorSubscriptionID(t *testing.T) {
 
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
-
 	}
 }
 
