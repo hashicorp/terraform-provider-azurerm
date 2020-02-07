@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
 
-* `storage_connection_string` - (Required) The connection string of the backend storage account which will be used by this Function App (such as the dashboard, logs).
+* `storage_connection_string` - (Required) The connection string of the backend storage account which will be used by this Function App (such as the dashboard, logs). The access key can be updated, but changing the storage account requires a taint and a recreate to take place.
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 

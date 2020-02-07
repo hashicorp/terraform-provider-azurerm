@@ -78,7 +78,6 @@ func resourceArmFunctionApp() *schema.Resource {
 			"storage_connection_string": {
 				Type:      schema.TypeString,
 				Required:  true,
-				ForceNew:  true,
 				Sensitive: true,
 			},
 
@@ -426,6 +425,16 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	if v, ok := d.GetOk("identity.0.type"); ok {
 		siteEnvelope.Identity = &web.ManagedServiceIdentity{
 			Type: web.ManagedServiceIdentityType(v.(string)),
+		}
+	}
+
+	if d.HasChange("storage_connection_string") {
+		oldValue, newValue := d.GetChange("storage_connection_string")
+		oldAccount := getAccountName(fmt.Sprintf("%s", oldValue))
+		newAccount := getAccountName(fmt.Sprintf("%s", newValue))
+
+		if oldAccount != newAccount {
+			return fmt.Errorf("Error updating storage_connection_string because the AccountName cannot be changed. To change the storage account the resource must be tainted.")
 		}
 	}
 
@@ -868,4 +877,15 @@ func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
 	}
 
 	return append(results, result)
+}
+
+func getAccountName(storageConnectionString string) string {
+	connectionStringArray := strings.SplitN(storageConnectionString, ";", -1)
+	connectionStringMap := make(map[string]string)
+	for _, pair := range connectionStringArray {
+		z := strings.Split(pair, "=")
+		connectionStringMap[z[0]] = z[1]
+	}
+
+	return connectionStringMap["AccountName"]
 }
