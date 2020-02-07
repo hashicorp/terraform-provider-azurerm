@@ -12,8 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// Azure Function App shares the same infrastructure with Azure App Service.
-// So this resource will reuse most of the App Service code, but remove the configurations which are not applicable for Function App.
 func dataSourceArmFunctionApp() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmFunctionAppRead,
