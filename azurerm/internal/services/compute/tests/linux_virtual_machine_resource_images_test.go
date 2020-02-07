@@ -232,7 +232,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   disable_password_authentication = false
   admin_password                  = "Eung6ahthane2ied"
   source_image_id                 = azurerm_image.test.id
-  
+
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -247,6 +247,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     storage_account_type = "Standard_LRS"
   }
 }
+
 `, template, data.RandomInteger)
 }
 
