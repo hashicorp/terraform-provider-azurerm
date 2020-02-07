@@ -5,13 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
 	"github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2017-04-19/advisor"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,9 +23,10 @@ func resourceArmAdvisor() *schema.Resource {
 		Update: resourceArmAdvisorCreateUpdate,
 		Delete: resourceArmAdvisorDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			err := parse.AdvisorSubscriptionID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,25 +36,21 @@ func resourceArmAdvisor() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": {
+			"low_cpu_threshold": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceGroupName,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice([]string{"5", "10", "15", "20"}, true),
 			},
 
-			"exclude": {
-				Type:     schema.TypeBool,
+			"exclude_resource_groups": {
+				Type:     schema.TypeSet,
 				Optional: true,
-				Computed: true,
-			},
-
-			"low_cpu_threshold": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ValidateFunc:  validation.StringInSlice([]string{"5", "10", "15", "20"}, true),
-				ConflictsWith: []string{"resource_group_name"},
+				Set:      schema.HashString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: azure.ValidateResourceGroupName,
+				},
 			},
 		},
 	}
@@ -66,70 +63,54 @@ func resourceArmAdvisorCreateUpdate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] preparing arguments for Azure Advisor creation.")
 
-	p := advisor.ConfigDataProperties{}
-	//resource_group
-	var resourceGroup string
-	if resourceGroupName, ok := d.GetOkExists("resource_group_name"); ok {
-		resourceGroup = resourceGroupName.(string)
-	}
-	//exclude
-	if exclude, ok := d.GetOkExists("exclude"); ok {
-		exclude := exclude.(bool)
-		p.Exclude = &exclude
+	props := advisor.ConfigDataProperties{
+		Exclude: utils.Bool(false),
 	}
 	//low_cpu_threshold
-	if lowCpuThreshold, ok := d.GetOkExists("low_cpu_threshold"); ok {
-		lowCpuThreshold := lowCpuThreshold.(string)
-		p.LowCPUThreshold = &lowCpuThreshold
+	if lowCpuThreshold, ok := d.GetOk("low_cpu_threshold"); ok {
+		props.LowCPUThreshold = utils.String(lowCpuThreshold.(string))
+	}
+	//exclude_resource_groups
+	var excludeResourceGroup []string
+	if v, ok := d.Get("exclude_resource_groups").([]interface{}); ok && len(v) > 0 {
+		excludeResourceGroup = *utils.ExpandStringSlice(v)
 	}
 
 	parameters := advisor.ConfigData{
-		Properties: &p,
+		Properties: &props,
+	}
+	_, err := client.CreateInSubscription(ctx, parameters)
+	if err != nil {
+		return fmt.Errorf("Error creating Advisor: %+v", err)
 	}
 
-	if resourceGroup != "" {
+	respIter, err := client.ListBySubscriptionComplete(ctx)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Advisor: %+v", err)
+	}
+	if !respIter.NotDone() {
+		return fmt.Errorf("Error retrieving Advisor, the response is empty")
+	}
+	resp := respIter.Value()
+
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read Advisor ")
+	}
+
+	// exclude resource groups in this subscription
+	for _, resourceGroup := range excludeResourceGroup {
+		parameters := advisor.ConfigData{
+			Properties: &advisor.ConfigDataProperties{
+				Exclude: utils.Bool(true),
+			},
+		}
 		_, err := client.CreateInResourceGroup(ctx, parameters, resourceGroup)
 		if err != nil {
-			return fmt.Errorf("Error creating Advisor (Resource Group %q): %+v", resourceGroup, err)
+			return fmt.Errorf("Error excluding Advisor (Resource Group %q): %+v", resourceGroup, err)
 		}
-
-		readlist, err := client.ListByResourceGroup(ctx, resourceGroup)
-		if err != nil {
-			return fmt.Errorf("Error retrieving Advisor (Resource Group %q): %+v", resourceGroup, err)
-		}
-		if readlist.IsEmpty() {
-			return fmt.Errorf("Error retrieving Advisor (Resource Group %q)", resourceGroup)
-		}
-		read := (*readlist.Value)[0]
-
-		if read.ID == nil {
-			return fmt.Errorf("Cannot read Advisor (resource group %q) ID", resourceGroup)
-		}
-
-		d.SetId(*read.ID)
-	} else {
-		_, err := client.CreateInSubscription(ctx, parameters)
-		if err != nil {
-			return fmt.Errorf("Error creating Advisor: %+v", err)
-		}
-
-		readlist, err := client.ListBySubscription(ctx)
-		if err != nil {
-			return fmt.Errorf("Error retrieving Advisor: %+v", err)
-		}
-		// here is a sdk problem, which NotDone return false when the response is empty
-		if !readlist.NotDone() {
-			return fmt.Errorf("Error retrieving Advisor, the response page enumeration should be started or is not yet complete")
-		}
-		read := readlist.Values()[0]
-
-		if read.ID == nil {
-			return fmt.Errorf("Cannot read Advisor ")
-		}
-
-		d.SetId(*read.ID)
 	}
 
+	d.SetId(*resp.ID)
 	return resourceArmAdvisorRead(d, meta)
 }
 
@@ -138,59 +119,43 @@ func resourceArmAdvisorRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	err := parse.AdvisorSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	if resourceGroup != "" {
-		resplist, err := client.ListByResourceGroup(ctx, resourceGroup)
-		if err != nil {
-			if utils.ResponseWasNotFound(resplist.Response) || resplist.IsEmpty() {
-				d.SetId("")
-				log.Printf("[DEBUG] Advisor Configuration of Resource Group %q was not found  - removing from state!", resourceGroup)
-				return nil
-			}
-			return fmt.Errorf("Error reading the state of Advisor Configuration: %+v", err)
+	respIter, err := client.ListBySubscriptionComplete(ctx)
+	if err != nil {
+		if !respIter.NotDone() {
+			d.SetId("")
+			log.Printf("[DEBUG] Advisor Configuration was not found  - removing from state!")
+			return nil
 		}
-		resp := (*resplist.Value)[0]
-
-		if resourceGroup != "" {
-			d.Set("resource_group_name", resourceGroup)
-		}
-
-		if exclude := resp.Properties.Exclude; exclude != nil {
-			d.Set("exclude", exclude)
-		}
-
-		if lowCPUThreshold := resp.Properties.LowCPUThreshold; lowCPUThreshold != nil {
-			d.Set("low_cpu_threshold", lowCPUThreshold)
-		}
-
-		return nil
-	} else {
-		resplist, err := client.ListBySubscription(ctx)
-		if err != nil {
-			if !resplist.NotDone() {
-				d.SetId("")
-				log.Printf("[DEBUG] Advisor Configuration was not found  - removing from state!")
-				return nil
-			}
-			return fmt.Errorf("Error reading the state of Advisor Configuration: %+v", err)
-		}
-
-		resp := resplist.Values()[0]
-
-		if exclude := resp.Properties.Exclude; exclude != nil {
-			d.Set("exclude", exclude)
-		}
-
-		if lowCPUThreshold := resp.Properties.LowCPUThreshold; lowCPUThreshold != nil {
-			d.Set("low_cpu_threshold", lowCPUThreshold)
-		}
-
-		return nil
+		return fmt.Errorf("Error reading the state of Advisor Configuration: %+v", err)
 	}
+
+	subscriptionResp := respIter.Value()
+	var lowCPUThreshold string
+	if v := subscriptionResp.Properties.LowCPUThreshold; v != nil {
+		lowCPUThreshold = *v
+	}
+	d.Set("low_cpu_threshold", lowCPUThreshold)
+	var excludeResourceGroup []string
+	for err := respIter.NextWithContext(ctx); respIter.NotDone() && err == nil; err = respIter.NextWithContext(ctx) {
+		resourceGroupResp := respIter.Value()
+		var resGroupId *parse.AdvisorResGroupId
+		if resGroupId, err = parse.AdvisorResGroupID(*resourceGroupResp.ID); err != nil {
+			return err
+		}
+		if *resourceGroupResp.Properties.Exclude {
+			excludeResourceGroup = append(excludeResourceGroup, (*resGroupId).ResourceGroup)
+		}
+	}
+    flattenExcludeResGroups := utils.FlattenStringSlice(&excludeResourceGroup)
+	if err:= d.Set("exclude_resource_groups",flattenExcludeResGroups );err!=nil{
+		return fmt.Errorf("Error setting `exclude_resource_groups`: %+v", err)
+	}
+
+	return nil
 }
 
 func resourceArmAdvisorDelete(d *schema.ResourceData, meta interface{}) error {
@@ -198,36 +163,17 @@ func resourceArmAdvisorDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	//we exclude the whole subscription as deleting
+	parameters := advisor.ConfigData{
+		Properties: &advisor.ConfigDataProperties{
+			Exclude: utils.Bool(true),
+		},
+	}
+
+	_, err := client.CreateInSubscription(ctx, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error deleting Advisor: %+v", err)
 	}
-	resourceGroup := id.ResourceGroup
-	if resourceGroup != "" {
-		parameters := advisor.ConfigData{
-			Properties: &advisor.ConfigDataProperties{
-				Exclude: utils.Bool(true),
-			},
-		}
 
-		_, err := client.CreateInResourceGroup(ctx, parameters, resourceGroup)
-		if err != nil {
-			return fmt.Errorf("Error deleting Advisor (Resource Group %q): %+v", resourceGroup, err)
-		}
-
-		return nil
-	} else {
-		parameters := advisor.ConfigData{
-			Properties: &advisor.ConfigDataProperties{
-				Exclude: utils.Bool(true),
-			},
-		}
-
-		_, err := client.CreateInSubscription(ctx, parameters)
-		if err != nil {
-			return fmt.Errorf("Error deleting Advisor (Resource Group %q): %+v", resourceGroup, err)
-		}
-
-		return nil
-	}
+	return nil
 }
