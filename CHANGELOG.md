@@ -4,6 +4,10 @@ IMPROVEMENTS:
 
 * `azurerm_linux_virtual_machine` - Added SSH Key validation and updated docs on supported SSH Key types [#5610]
 
+BUGS:
+
+* `azurerm_storage_account` - fix hanging destroy caused by multiple network rules [GH-5565]
+
 ## 1.43.0 (February 04, 2020)
 
 NOTES
