@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/parse"
 )
 
 func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
@@ -98,20 +99,19 @@ func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.Test
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		ctrlName := rs.Primary.Attributes["name"]
-		resGroupName, hasReseGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasReseGroup {
-			return fmt.Errorf("Bad: no resource group found in state for DevSpace Controller: %s", ctrlName)
+		id, err := parse.DevSpaceControllerID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		result, err := client.Get(ctx, resGroupName, ctrlName)
+		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err == nil {
 			return nil
 		}
 
 		if result.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DevSpace Controller %q (Resource Group: %q) does not exist", ctrlName, resGroupName)
+			return fmt.Errorf("Bad: DevSpace Controller %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return fmt.Errorf("Bad: Get devSpaceControllerClient: %+v", err)
@@ -129,10 +129,12 @@ func testCheckAzureRMDevSpaceControllerDestroy(s *terraform.State) error {
 
 		log.Printf("[WARN] azurerm_devspace_controller still exists in state file.")
 
-		ctrlName := rs.Primary.Attributes["name"]
-		resGroupName := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.DevSpaceControllerID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		result, err := client.Get(ctx, resGroupName, ctrlName)
+		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err == nil {
 			return fmt.Errorf("DevSpace Controller still exists:\n%#v", result)
