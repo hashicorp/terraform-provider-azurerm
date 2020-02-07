@@ -45,7 +45,7 @@ func TestServiceFabricClusterId(t *testing.T) {
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ServiceFabric/clusters/Cluster1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ServiceFabric/Clusters/Cluster1",
 			Expected: nil,
 		},
 	}
