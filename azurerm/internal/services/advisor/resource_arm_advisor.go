@@ -36,6 +36,7 @@ func resourceArmAdvisor() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			// API will return a default value for low_cpu_threshold if not assigned
 			"low_cpu_threshold": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -72,8 +73,8 @@ func resourceArmAdvisorCreateUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 	//exclude_resource_groups
 	var excludeResourceGroup []string
-	if v, ok := d.Get("exclude_resource_groups").([]interface{}); ok && len(v) > 0 {
-		excludeResourceGroup = *utils.ExpandStringSlice(v)
+	if v, ok := d.GetOk("exclude_resource_groups"); ok {
+		excludeResourceGroup = *utils.ExpandStringSlice(v.(*schema.Set).List())
 	}
 
 	parameters := advisor.ConfigData{
@@ -150,8 +151,8 @@ func resourceArmAdvisorRead(d *schema.ResourceData, meta interface{}) error {
 			excludeResourceGroup = append(excludeResourceGroup, (*resGroupId).ResourceGroup)
 		}
 	}
-    flattenExcludeResGroups := utils.FlattenStringSlice(&excludeResourceGroup)
-	if err:= d.Set("exclude_resource_groups",flattenExcludeResGroups );err!=nil{
+	flattenExcludeResGroups := utils.FlattenStringSlice(&excludeResourceGroup)
+	if err := d.Set("exclude_resource_groups", flattenExcludeResGroups); err != nil {
 		return fmt.Errorf("Error setting `exclude_resource_groups`: %+v", err)
 	}
 

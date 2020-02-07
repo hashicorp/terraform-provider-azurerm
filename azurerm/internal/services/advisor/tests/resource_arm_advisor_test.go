@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMAdvisor_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advisor", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAdvisorDestroy,
@@ -40,7 +40,7 @@ func TestAccAzureRMAdvisor_basic(t *testing.T) {
 func TestAccAzureRMAdvisor_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advisor", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAdvisorDestroy,

@@ -1,41 +1,34 @@
 package parse
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 )
 
 func TestAdvisorSubscriptionID(t *testing.T) {
 	testData := []struct {
-		Name     string
-		Input    string
-		Expected error
+		Name        string
+		Input       string
+		ExpectError bool
 	}{
 		{
-			Name:     "Empty",
-			Input:    "",
-			Expected: nil,
+			Name:        "Empty",
+			Input:       "",
+			ExpectError: true,
 		},
 		{
-			Name:     "No Resource Groups Segment",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000",
-			Expected: nil,
+			Name:        "No Configurations Segment",
+			Input:       "/subscriptions/00000000-0000-0000-0000-000000000000",
+			ExpectError: true,
 		},
 		{
-			Name:     "No Resource Groups Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
-			Expected: nil,
+			Name:        "Have Resource Group ID",
+			Input:       "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
+			ExpectError: true,
 		},
 		{
-			Name:     "Have Resource Group ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
-			Expected: fmt.Errorf("[ERROR] There should be no resource group in Advisor subscription ID"),
-		},
-		{
-			Name:     "Right ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Advisor/configurations/000000000000",
-			Expected: nil,
+			Name:        "Right ID",
+			Input:       "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Advisor/configurations/nameId",
+			ExpectError: false,
 		},
 	}
 
@@ -44,7 +37,7 @@ func TestAdvisorSubscriptionID(t *testing.T) {
 
 		err := AdvisorSubscriptionID(v.Input)
 		if err != nil {
-			if strings.HasPrefix(err.Error(), v.Expected.Error()) {
+			if v.ExpectError {
 				continue
 			}
 
