@@ -13,7 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +26,6 @@ func resourceArmDevSpaceController() *schema.Resource {
 		Read:   resourceArmDevSpaceControllerRead,
 		Update: resourceArmDevSpaceControllerUpdate,
 		Delete: resourceArmDevSpaceControllerDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,6 +33,11 @@ func resourceArmDevSpaceController() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.DevSpaceControllerID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -194,20 +198,21 @@ func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller updating")
 
-	name := d.Get("name").(string)
-	resGroupName := d.Get("resource_group_name").(string)
-
+	id, err := parse.DevSpaceControllerID(d.Id())
+	if err != nil {
+		return err
+	}
 	params := devspaces.ControllerUpdateParameters{
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	result, err := client.Update(ctx, resGroupName, name, params)
+	result, err := client.Update(ctx, id.ResourceGroup, id.Name, params)
 	if err != nil {
-		return fmt.Errorf("Error updating DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error updating DevSpace Controller %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if result.ID == nil {
-		return fmt.Errorf("Cannot read DevSpace Controller %q (Resource Group %q) ID", name, resGroupName)
+		return fmt.Errorf("Cannot read DevSpace Controller %q (Resource Group %q) ID", id.Name, id.ResourceGroup)
 	}
 	d.SetId(*result.ID)
 
@@ -219,26 +224,24 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DevSpaceControllerID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroupName := id.ResourceGroup
-	name := id.Path["controllers"]
 
-	resp, err := client.Get(ctx, resGroupName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] DevSpace Controller %q was not found in Resource Group %q - removing from state!", name, resGroupName)
+			log.Printf("[DEBUG] DevSpace Controller %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error making Read request on DevSpace Controller %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroupName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -265,20 +268,18 @@ func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DevSpaceControllerID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroupName := id.ResourceGroup
-	name := id.Path["controllers"]
 
-	future, err := client.Delete(ctx, resGroupName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error deleting DevSpace Controller %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of DevSpace Controller %q (Resource Group %q): %+v", name, resGroupName, err)
+		return fmt.Errorf("Error waiting for the deletion of DevSpace Controller %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
