@@ -243,11 +243,11 @@ A `blob_account_properties` block supports the following:
 
 A `static_website` block supports the following:
 
-* `enabled` - (Required) Indicates whether static website support is enabled for the given account.
+* `enabled` - (Required) Indicates whether static website support is enabled for the given account. If a blob storage container named $web doesn't already exist in the account, one is created for you. Add the files of your site to this container.
 
 * `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder. For example, index.html. The value is case-sensitive.
 
-* `error_document_404_path` - (Optional) The absolute path to a webpage that Azure Storage serves for requests that do not correspond to an existing file. For example, error/404.html. Only a single custom 404 page is supported in each static website. The value is case-sensitive.
+* `error_document_404_path` - (Optional) The absolute path to a webpage that Azure Storage serves for requests that do not correspond to an existing file. For example, error/404.html. Only a single custom 404 page is supported in each static website. The value is case-sensitive. If the server returns a 404 error, and you have not specified an error document, then a default 404 page is returned to the user.
 
 ## Attributes Reference
 
