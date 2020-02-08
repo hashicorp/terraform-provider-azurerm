@@ -117,6 +117,10 @@ The following arguments are supported:
 
 ~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
 
+* `blob_account_properties` - (Optional) A `blob_account_properties` block as defined below.
+
+~> **NOTE:** `blob_account_properties` can only be set when the `account_kind` is set to `StorageV2`
+
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -228,6 +232,22 @@ A `queue_properties` block supports the following:
 * `minute_metrics` - (Optional) A `minute_metrics` block as defined below.
 
 * `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
+
+---
+
+A `blob_account_properties` block supports the following:
+
+* `static_website` - (Optional) A `static_website` block as defined below.
+
+---
+
+A `static_website` block supports the following:
+
+* `enabled` - (Required) Indicates whether static website support is enabled for the given account.
+
+* `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder. For example, index.html. The value is case-sensitive.
+
+* `error_document_404_path` - (Optional) The absolute path to a webpage that Azure Storage serves for requests that do not correspond to an existing file. For example, error/404.html. Only a single custom 404 page is supported in each static website. The value is case-sensitive.
 
 ## Attributes Reference
 
