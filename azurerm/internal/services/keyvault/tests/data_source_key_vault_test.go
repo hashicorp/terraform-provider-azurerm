@@ -46,7 +46,7 @@ func TestAccDataSourceAzureRMKeyVault_basicClassic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "tenant_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "sku.0.name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "sku_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "access_policy.0.tenant_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "access_policy.0.object_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_policy.0.key_permissions.0", "create"),
@@ -71,7 +71,7 @@ func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "tenant_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "sku.0.name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "sku_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "access_policy.0.tenant_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "access_policy.0.object_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_policy.0.key_permissions.0", "get"),
@@ -97,7 +97,7 @@ func TestAccDataSourceAzureRMKeyVault_networkAcls(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "tenant_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "sku.0.name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "sku_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "access_policy.0.tenant_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "access_policy.0.object_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_policy.0.key_permissions.0", "create"),
