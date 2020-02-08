@@ -37,7 +37,7 @@ func TestCdnEndpointId(t *testing.T) {
 		},
 		{
 			Name:     "CDN Profile ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/Profile1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profName1",
 			Expected: nil,
 		},
 		{
@@ -56,7 +56,7 @@ func TestCdnEndpointId(t *testing.T) {
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profName1/Endpoints/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profName1/Endpoints/Endpoint1",
 			Expected: nil,
 		},
 	}
