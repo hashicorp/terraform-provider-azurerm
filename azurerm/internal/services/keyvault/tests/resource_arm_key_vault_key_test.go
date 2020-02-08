@@ -781,7 +781,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
   sku_name = "premium"
-  
+
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
     object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
