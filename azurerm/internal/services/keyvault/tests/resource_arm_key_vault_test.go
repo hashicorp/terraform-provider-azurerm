@@ -441,10 +441,6 @@ resource "azurerm_key_vault" "test" {
       "set",
     ]
   }
-
-  tags = {
-    environment = "Production"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
