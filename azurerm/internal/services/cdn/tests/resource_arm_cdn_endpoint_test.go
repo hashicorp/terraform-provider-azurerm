@@ -299,7 +299,7 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.CdnProfileID(rs.Primary.ID)
+		id, err := parse.CdnEndpointID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
