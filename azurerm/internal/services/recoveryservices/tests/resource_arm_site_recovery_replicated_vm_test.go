@@ -2,7 +2,9 @@ package tests
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -23,6 +25,7 @@ func TestAccAzureRMSiteRecoveryReplicatedVm_basic(t *testing.T) {
 				Config: testAccAzureRMSiteRecoveryReplicatedVm_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSiteRecoveryReplicatedVmExists(data.ResourceName),
+					testCheckCorrectTargetSubnet(data.ResourceName, fmt.Sprintf("snet-%d_2", data.RandomInteger)),
 				),
 			},
 			data.ImportStep(),
@@ -118,6 +121,26 @@ resource "azurerm_virtual_network" "test2" {
   address_space       = ["192.168.2.0/24"]
   location            = "${azurerm_site_recovery_fabric.test2.location}"
 }
+resource "azurerm_subnet" "test2_1" {
+  name                 = "snet-%d_1"
+  resource_group_name  = "${azurerm_resource_group.test2.name}"
+  virtual_network_name = "${azurerm_virtual_network.test2.name}"
+  address_prefix       = "192.168.2.0/27"
+}
+
+resource "azurerm_subnet" "test2_2" {
+  name                 = "snet-%d_2"
+  resource_group_name  = "${azurerm_resource_group.test2.name}"
+  virtual_network_name = "${azurerm_virtual_network.test2.name}"
+  address_prefix       = "192.168.2.32/27"
+}
+
+resource "azurerm_subnet" "test2_3" {
+  name                 = "snet-%d_3"
+  resource_group_name  = "${azurerm_resource_group.test2.name}"
+  virtual_network_name = "${azurerm_virtual_network.test2.name}"
+  address_prefix       = "192.168.2.64/27"
+}
 
 resource "azurerm_site_recovery_network_mapping" "test" {
   resource_group_name         = "${azurerm_resource_group.test2.name}"
@@ -204,9 +227,15 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_disk_type           = "Premium_LRS"
     target_replica_disk_type   = "Premium_LRS"
   }
+
+  network_interface {
+    source_network_interface_id = azurerm_network_interface.test.id
+    target_subnet_name          = "snet-%d_2"
+  }
+
   depends_on = ["azurerm_site_recovery_protection_container_mapping.test", "azurerm_site_recovery_network_mapping.test"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceName string) resource.TestCheckFunc {
@@ -237,6 +266,29 @@ func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceName string) resourc
 		}
 
 		return nil
+	}
+}
+
+func testCheckCorrectTargetSubnet(resourceName string, expectedTargetSubnet string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		state, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		keyMatcher := regexp.MustCompile("network_interface\\.[0-9]*\\.target_subnet_name")
+
+		for key, value := range state.Primary.Attributes {
+			log.Printf("Testing state key %q", key)
+			if keyMatcher.MatchString(key) {
+				if value == expectedTargetSubnet {
+					return nil
+				} else {
+					return fmt.Errorf("Bad target subnet: %q (expected %q)", value, expectedTargetSubnet)
+				}
+			}
+		}
+		return fmt.Errorf("Target subnet not found in state.")
 	}
 }
 

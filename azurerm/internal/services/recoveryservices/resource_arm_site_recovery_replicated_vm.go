@@ -3,6 +3,8 @@ package recoveryservices
 import (
 	"bytes"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"log"
 	"strings"
 	"time"
 
@@ -24,13 +26,14 @@ func resourceArmSiteRecoveryReplicatedVM() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmSiteRecoveryReplicatedItemCreate,
 		Read:   resourceArmSiteRecoveryReplicatedItemRead,
+		Update: resourceArmSiteRecoveryReplicatedItemUpdate,
 		Delete: resourceArmSiteRecoveryReplicatedItemDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(80 * time.Minute),
+			Create: schema.DefaultTimeout(3 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(80 * time.Minute),
 			Delete: schema.DefaultTimeout(80 * time.Minute),
@@ -101,9 +104,14 @@ func resourceArmSiteRecoveryReplicatedVM() *schema.Resource {
 			"target_availability_set_id": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ForceNew:         true,
 				ValidateFunc:     azure.ValidateResourceID,
 				DiffSuppressFunc: suppress.CaseDifference,
+			},
+			"target_network_id": {
+				Type:         schema.TypeString,
+				Computed:     true,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 			"managed_disk": {
 				Type:       schema.TypeSet,
@@ -161,13 +169,75 @@ func resourceArmSiteRecoveryReplicatedVM() *schema.Resource {
 					},
 				},
 			},
+			"network_interface": {
+				Type:       schema.TypeSet,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Computed:   true,
+				Optional:   true,
+				Elem:       netwrokInterfaceResource(),
+			},
+		},
+	}
+}
+
+func netwrokInterfaceResource() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"source_network_interface_id": {
+				Type:         schema.TypeString,
+				Computed:     true,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+			"target_static_ip": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"target_subnet_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		},
 	}
 }
 
 func resourceArmSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interface{}) error {
-	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	vaultName := d.Get("recovery_vault_name").(string)
+
+	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
+
+	err1 := initialCreation(d, client, meta)
+	if err1 != nil {
+		return err1
+	}
+
+	err2 := updateReplication(d, client, meta)
+	if err2 != nil {
+		return err2
+	}
+
+	return resourceArmSiteRecoveryReplicatedItemRead(d, meta)
+}
+
+func resourceArmSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta interface{}) error {
+	resGroup := d.Get("resource_group_name").(string)
+	vaultName := d.Get("recovery_vault_name").(string)
+
+	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
+
+	err := updateReplication(d, client, meta)
+	if err != nil {
+		return err
+	}
+
+	return resourceArmSiteRecoveryReplicatedItemRead(d, meta)
+}
+
+func initialCreation(d *schema.ResourceData, client siterecovery.ReplicationProtectedItemsClient, meta interface{}) error {
+	name := d.Get("name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("source_recovery_fabric_name").(string)
 	sourceVmId := d.Get("source_vm_id").(string)
@@ -184,7 +254,6 @@ func resourceArmSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta in
 		targetAvailabilitySetID = nil
 	}
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -246,8 +315,110 @@ func resourceArmSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta in
 	}
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
+	return nil
+}
 
-	return resourceArmSiteRecoveryReplicatedItemRead(d, meta)
+func updateReplication(d *schema.ResourceData, client siterecovery.ReplicationProtectedItemsClient, meta interface{}) error {
+	// We are only allowed to update the configuration once the VM is fully protected
+	state, err := waitForReplicationToBeHealthy(d, meta)
+	if err != nil {
+		return err
+	}
+
+	name := d.Get("name").(string)
+	vaultName := d.Get("recovery_vault_name").(string)
+	fabricName := d.Get("source_recovery_fabric_name").(string)
+	sourceProtectionContainerName := d.Get("source_recovery_protection_container_name").(string)
+	targetNetworkId := d.Get("target_network_id").(string)
+
+	var targetAvailabilitySetID *string
+	if id, isSet := d.GetOk("target_availability_set_id"); isSet {
+		tmp := id.(string)
+		targetAvailabilitySetID = &tmp
+	} else {
+		targetAvailabilitySetID = nil
+	}
+
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	vmNics := []siterecovery.VMNicInputDetails{}
+	for _, raw := range d.Get("network_interface").(*schema.Set).List() {
+		vmNicInput := raw.(map[string]interface{})
+		sourceNicId := vmNicInput["source_network_interface_id"].(string)
+		targetStaticIp := vmNicInput["target_static_ip"].(string)
+		targetSubnetName := vmNicInput["target_subnet_name"].(string)
+
+		nicId := findNicId(state, sourceNicId)
+		if nicId == nil {
+			return fmt.Errorf("Error updating replicated vm %s (vault %s): Trying to update NIC that is not known by Azure %s", name, vaultName, sourceNicId)
+		}
+		vmNics = append(vmNics, siterecovery.VMNicInputDetails{
+			NicID:                     nicId,
+			RecoveryVMSubnetName:      &targetSubnetName,
+			ReplicaNicStaticIPAddress: &targetStaticIp,
+		})
+	}
+
+	managedDisks := []siterecovery.A2AVMManagedDiskUpdateDetails{}
+	for _, raw := range d.Get("managed_disk").(*schema.Set).List() {
+		diskInput := raw.(map[string]interface{})
+		diskId := diskInput["disk_id"].(string)
+		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
+		targetDiskType := diskInput["target_disk_type"].(string)
+
+		managedDisks = append(managedDisks, siterecovery.A2AVMManagedDiskUpdateDetails{
+			DiskID:                         &diskId,
+			RecoveryReplicaDiskAccountType: &targetReplicaDiskType,
+			RecoveryTargetDiskAccountType:  &targetDiskType,
+		})
+	}
+
+	if targetNetworkId == "" {
+		// No target network id was specified, so we want to preserve what was selected
+		if a2aDetails, isA2a := state.Properties.ProviderSpecificDetails.AsA2AReplicationDetails(); isA2a {
+			if a2aDetails.SelectedRecoveryAzureNetworkID != nil {
+				targetNetworkId = *a2aDetails.SelectedRecoveryAzureNetworkID
+			} else {
+				return fmt.Errorf("target_network_id must be set when a network_interface is configured")
+			}
+		} else {
+			return fmt.Errorf("target_network_id must be set when a network_interface is configured")
+		}
+	}
+	var parameters = siterecovery.UpdateReplicationProtectedItemInput{
+		Properties: &siterecovery.UpdateReplicationProtectedItemInputProperties{
+			RecoveryAzureVMName:            &name,
+			SelectedRecoveryAzureNetworkID: &targetNetworkId,
+			VMNics:                         &vmNics,
+			RecoveryAvailabilitySetID:      targetAvailabilitySetID,
+			ProviderSpecificDetails: siterecovery.A2AUpdateReplicationProtectedItemInput{
+				ManagedDiskUpdateDetails: &managedDisks,
+			},
+		},
+	}
+	future, err := client.Update(ctx, fabricName, sourceProtectionContainerName, name, parameters)
+	if err != nil {
+		return fmt.Errorf("Error updating replicated vm %s (vault %s): %+v", name, vaultName, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error updating replicated vm %s (vault %s): %+v", name, vaultName, err)
+	}
+
+	return nil
+}
+
+func findNicId(state *siterecovery.ReplicationProtectedItem, sourceNicId string) *string {
+	if a2aDetails, isA2a := state.Properties.ProviderSpecificDetails.AsA2AReplicationDetails(); isA2a {
+		if a2aDetails.VMNics != nil {
+			for _, nic := range *a2aDetails.VMNics {
+				if nic.SourceNicArmID != nil && *nic.SourceNicArmID == sourceNicId {
+					return nic.NicID
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func resourceArmSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta interface{}) error {
@@ -287,6 +458,7 @@ func resourceArmSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta inte
 		d.Set("source_vm_id", a2aDetails.FabricObjectID)
 		d.Set("target_resource_group_id", a2aDetails.RecoveryAzureResourceGroupID)
 		d.Set("target_availability_set_id", a2aDetails.RecoveryAvailabilitySet)
+		d.Set("target_network_id", a2aDetails.SelectedRecoveryAzureNetworkID)
 		if a2aDetails.ProtectedManagedDisks != nil {
 			disksOutput := make([]interface{}, 0)
 			for _, disk := range *a2aDetails.ProtectedManagedDisks {
@@ -300,6 +472,18 @@ func resourceArmSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta inte
 				disksOutput = append(disksOutput, diskOutput)
 			}
 			d.Set("managed_disk", schema.NewSet(resourceArmSiteRecoveryReplicatedVMDiskHash, disksOutput))
+		}
+
+		if a2aDetails.VMNics != nil {
+			nicsOutput := make([]interface{}, 0)
+			for _, nic := range *a2aDetails.VMNics {
+				nicOutput := make(map[string]interface{})
+				nicOutput["source_network_interface_id"] = *nic.SourceNicArmID
+				nicOutput["target_static_ip"] = *nic.ReplicaNicStaticIPAddress
+				nicOutput["target_subnet_name"] = *nic.RecoveryVMSubnetName
+				nicsOutput = append(nicsOutput, nicOutput)
+			}
+			d.Set("network_interface", schema.NewSet(schema.HashResource(netwrokInterfaceResource()), nicsOutput))
 		}
 	}
 
@@ -349,4 +533,63 @@ func resourceArmSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 	}
 
 	return hashcode.String(buf.String())
+}
+
+func waitForReplicationToBeHealthy(d *schema.ResourceData, meta interface{}) (*siterecovery.ReplicationProtectedItem, error) {
+	log.Printf("Waiting for Site Recover to replicate VM.")
+	stateConf := &resource.StateChangeConf{
+		Target:       []string{"Protected"},
+		Refresh:      replicationToBeHealthyRefreshFunc(d, meta),
+		PollInterval: time.Minute,
+	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+	} else {
+		stateConf.Timeout = 4 * time.Hour
+	}
+
+	result, err := stateConf.WaitForState()
+	if err != nil {
+		return nil, fmt.Errorf("Error waiting for site recovery to replicate vm: %+v", err)
+	}
+
+	protectedItem, ok := result.(siterecovery.ReplicationProtectedItem)
+	if ok {
+		return &protectedItem, nil
+	} else {
+		return nil, fmt.Errorf("Error waiting for site recovery return incompatible tyupe")
+	}
+}
+
+func replicationToBeHealthyRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		id, err := azure.ParseAzureResourceID(d.Id())
+		if err != nil {
+			return nil, "", err
+		}
+		resGroup := id.ResourceGroup
+		vaultName := id.Path["vaults"]
+		fabricName := id.Path["replicationFabrics"]
+		protectionContainerName := id.Path["replicationProtectionContainers"]
+		name := id.Path["replicationProtectedItems"]
+
+		client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
+		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+		defer cancel()
+
+		resp, err := client.Get(ctx, fabricName, protectionContainerName, name)
+		if err != nil {
+			return nil, "", fmt.Errorf("Error making Read request on site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
+		}
+
+		// Find first disk that is not fully replicated yet
+		if a2aDetails, isA2a := resp.Properties.ProviderSpecificDetails.AsA2AReplicationDetails(); isA2a {
+			if a2aDetails.MonitoringPercentageCompletion != nil {
+				log.Printf("Waiting for Site Recover to replicate VM, %d%% complete.", *a2aDetails.MonitoringPercentageCompletion)
+			}
+			return resp, *a2aDetails.VMProtectionState, nil
+		}
+		return resp, *resp.Properties.ReplicationHealth, nil
+	}
 }
