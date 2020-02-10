@@ -74,6 +74,25 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageQueue_basicAzureADAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageQueue_basicAzureADAuth(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageQueueExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -209,6 +228,17 @@ resource "azurerm_storage_queue" "test" {
   storage_account_name = "${azurerm_storage_account.test.name}"
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMStorageQueue_basicAzureADAuth(data acceptance.TestData) string {
+	template := testAccAzureRMStorageQueue_basic(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  storage_use_azuread = true
+}
+
+%s
+`, template)
 }
 
 func testAccAzureRMStorageQueue_requiresImport(data acceptance.TestData) string {
