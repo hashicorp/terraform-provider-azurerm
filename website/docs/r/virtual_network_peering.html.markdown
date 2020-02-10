@@ -22,30 +22,30 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_virtual_network" "example-1" {
   name                = "peternetwork1"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.1.0/24"]
   location            = "West US"
 }
 
 resource "azurerm_virtual_network" "example-2" {
   name                = "peternetwork2"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.2.0/24"]
   location            = "West US"
 }
 
 resource "azurerm_virtual_network_peering" "example-1" {
   name                      = "peer1to2"
-  resource_group_name       = "${azurerm_resource_group.example.name}"
-  virtual_network_name      = "${azurerm_virtual_network.example-1.name}"
-  remote_virtual_network_id = "${azurerm_virtual_network.example-2.id}"
+  resource_group_name       = azurerm_resource_group.example.name
+  virtual_network_name      = azurerm_virtual_network.example-1.name
+  remote_virtual_network_id = azurerm_virtual_network.example-2.id
 }
 
 resource "azurerm_virtual_network_peering" "example-2" {
   name                      = "peer2to1"
-  resource_group_name       = "${azurerm_resource_group.example.name}"
-  virtual_network_name      = "${azurerm_virtual_network.example-2.name}"
-  remote_virtual_network_id = "${azurerm_virtual_network.example-1.id}"
+  resource_group_name       = azurerm_resource_group.example.name
+  virtual_network_name      = azurerm_virtual_network.example-2.name
+  remote_virtual_network_id = azurerm_virtual_network.example-1.id
 }
 ```
 
@@ -67,34 +67,49 @@ variable "vnet_address_space" {
 }
 
 resource "azurerm_resource_group" "vnet" {
-  count    = "${length(var.location)}"
+  count    = length(var.location)
   name     = "rg-global-vnet-peering-${count.index}"
-  location = "${element(var.location, count.index)}"
+  location = element(var.location, count.index)
 }
 
 resource "azurerm_virtual_network" "vnet" {
-  count               = "${length(var.location)}"
+  count               = length(var.location)
   name                = "vnet-${count.index}"
-  resource_group_name = "${element(azurerm_resource_group.vnet.*.name, count.index)}"
-  address_space       = ["${element(var.vnet_address_space, count.index)}"]
-  location            = "${element(azurerm_resource_group.vnet.*.location, count.index)}"
+  resource_group_name = element(azurerm_resource_group.vnet.*.name, count.index)
+  # TF-UPGRADE-TODO: In Terraform v0.10 and earlier, it was sometimes necessary to
+  # force an interpolation expression to be interpreted as a list by wrapping it
+  # in an extra set of list brackets. That form was supported for compatibility in
+  # v0.11, but is no longer supported in Terraform v0.12.
+  #
+  # If the expression in the following list itself returns a list, remove the
+  # brackets to avoid interpretation as a list of lists. If the expression
+  # returns a single list item then leave it as-is and remove this TODO comment.
+  address_space = [element(var.vnet_address_space, count.index)]
+  location      = element(azurerm_resource_group.vnet.*.location, count.index)
 }
 
 resource "azurerm_subnet" "nva" {
-  count                = "${length(var.location)}"
+  count                = length(var.location)
   name                 = "nva"
-  resource_group_name  = "${element(azurerm_resource_group.vnet.*.name, count.index)}"
-  virtual_network_name = "${element(azurerm_virtual_network.vnet.*.name, count.index)}"
-  address_prefix       = "${cidrsubnet("${element(azurerm_virtual_network.vnet.*.address_space[count.index], count.index)}", 13, 0)}" # /29
+  resource_group_name  = element(azurerm_resource_group.vnet.*.name, count.index)
+  virtual_network_name = element(azurerm_virtual_network.vnet.*.name, count.index)
+  address_prefix = cidrsubnet(
+    element(
+      azurerm_virtual_network.vnet[count.index].address_space,
+      count.index,
+    ),
+    13,
+    0,
+  ) # /29
 }
 
 # enable global peering between the two virtual network
 resource "azurerm_virtual_network_peering" "peering" {
-  count                        = "${length(var.location)}"
+  count                        = length(var.location)
   name                         = "peering-to-${element(azurerm_virtual_network.vnet.*.name, 1 - count.index)}"
-  resource_group_name          = "${element(azurerm_resource_group.vnet.*.name, count.index)}"
-  virtual_network_name         = "${element(azurerm_virtual_network.vnet.*.name, count.index)}"
-  remote_virtual_network_id    = "${element(azurerm_virtual_network.vnet.*.id, 1 - count.index)}"
+  resource_group_name          = element(azurerm_resource_group.vnet.*.name, count.index)
+  virtual_network_name         = element(azurerm_virtual_network.vnet.*.name, count.index)
+  remote_virtual_network_id    = element(azurerm_virtual_network.vnet.*.id, 1 - count.index)
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
 

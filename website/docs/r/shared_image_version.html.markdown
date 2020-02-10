@@ -27,14 +27,14 @@ data "azurerm_shared_image" "existing" {
 
 resource "azurerm_shared_image_version" "example" {
   name                = "0.0.1"
-  gallery_name        = "${data.azurerm_shared_image.existing.gallery_name}"
-  image_name          = "${data.azurerm_shared_image.existing.name}"
-  resource_group_name = "${data.azurerm_shared_image.existing.resource_group_name}"
-  location            = "${data.azurerm_shared_image.existing.location}"
-  managed_image_id    = "${data.azurerm_image.existing.id}"
+  gallery_name        = data.azurerm_shared_image.existing.gallery_name
+  image_name          = data.azurerm_shared_image.existing.name
+  resource_group_name = data.azurerm_shared_image.existing.resource_group_name
+  location            = data.azurerm_shared_image.existing.location
+  managed_image_id    = data.azurerm_image.existing.id
 
   target_region {
-    name                   = "${data.azurerm_shared_image.existing.location}"
+    name                   = data.azurerm_shared_image.existing.location
     regional_replica_count = "5"
     storage_account_type   = "Standard_LRS"
   }

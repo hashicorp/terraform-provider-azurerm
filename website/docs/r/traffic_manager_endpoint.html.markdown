@@ -27,13 +27,13 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_traffic_manager_profile" "example" {
-  name                = "${random_id.server.hex}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  name                = random_id.server.hex
+  resource_group_name = azurerm_resource_group.example.name
 
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "${random_id.server.hex}"
+    relative_name = random_id.server.hex
     ttl           = 100
   }
 
@@ -52,9 +52,9 @@ resource "azurerm_traffic_manager_profile" "example" {
 }
 
 resource "azurerm_traffic_manager_endpoint" "example" {
-  name                = "${random_id.server.hex}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  profile_name        = "${azurerm_traffic_manager_profile.example.name}"
+  name                = random_id.server.hex
+  resource_group_name = azurerm_resource_group.example.name
+  profile_name        = azurerm_traffic_manager_profile.example.name
   target              = "terraform.io"
   type                = "externalEndpoints"
   weight              = 100

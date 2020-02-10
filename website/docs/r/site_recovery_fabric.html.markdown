@@ -25,16 +25,16 @@ resource "azurerm_resource_group" "secondary" {
 
 resource "azurerm_recovery_services_vault" "vault" {
   name                = "example-recovery-vault"
-  location            = "${azurerm_resource_group.secondary.location}"
-  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  location            = azurerm_resource_group.secondary.location
+  resource_group_name = azurerm_resource_group.secondary.name
   sku                 = "Standard"
 }
 
 resource "azurerm_site_recovery_fabric" "fabric" {
   name                = "primary-fabric"
-  resource_group_name = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
-  location            = "${azurerm_resource_group.primary.location}"
+  resource_group_name = azurerm_resource_group.secondary.name
+  recovery_vault_name = azurerm_recovery_services_vault.vault.name
+  location            = azurerm_resource_group.primary.location
 }
 ```
 

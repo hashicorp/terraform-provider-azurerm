@@ -24,15 +24,16 @@ resource "azurerm_resource_group" "example" {
 # NOTE: the Name used for Redis needs to be globally unique
 resource "azurerm_redis_cache" "example" {
   name                = "example-cache"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   capacity            = 2
   family              = "C"
   sku_name            = "Standard"
   enable_non_ssl_port = false
   minimum_tls_version = "1.2"
 
-  redis_configuration {}
+  redis_configuration {
+  }
 }
 ```
 
@@ -107,6 +108,7 @@ resource "azurerm_redis_cache" "example" {
 * `notify_keyspace_events` - (Optional) Keyspace notifications allows clients to subscribe to Pub/Sub channels in order to receive events affecting the Redis data set in some way. [Reference](https://redis.io/topics/notifications#configuration)
 
 ```hcl
+# TF-UPGRADE-TODO: Block type was not recognized, so this block and its contents were not automatically upgraded.
 redis_configuration {
   maxmemory_reserved = 10
   maxmemory_delta    = 2

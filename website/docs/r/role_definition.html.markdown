@@ -14,11 +14,12 @@ Manages a custom Role Definition, used to assign Roles to Users/Principals. See 
 ## Example Usage
 
 ```hcl
-data "azurerm_subscription" "primary" {}
+data "azurerm_subscription" "primary" {
+}
 
 resource "azurerm_role_definition" "example" {
   name        = "my-custom-role"
-  scope       = "${data.azurerm_subscription.primary.id}"
+  scope       = data.azurerm_subscription.primary.id
   description = "This is a custom role created via Terraform"
 
   permissions {
@@ -27,7 +28,7 @@ resource "azurerm_role_definition" "example" {
   }
 
   assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}", # /subscriptions/00000000-0000-0000-0000-000000000000
+    data.azurerm_subscription.primary.id, # /subscriptions/00000000-0000-0000-0000-000000000000
   ]
 }
 ```
