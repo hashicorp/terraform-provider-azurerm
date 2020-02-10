@@ -19,7 +19,7 @@ data "azurerm_virtual_network_gateway" "example" {
 }
 
 output "virtual_network_gateway_id" {
-  value = "${data.azurerm_virtual_network_gateway.example.id}"
+  value = data.azurerm_virtual_network_gateway.example.id
 }
 ```
 

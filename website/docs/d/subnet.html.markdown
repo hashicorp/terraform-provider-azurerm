@@ -20,7 +20,7 @@ data "azurerm_subnet" "example" {
 }
 
 output "subnet_id" {
-  value = "${data.azurerm_subnet.example.id}"
+  value = data.azurerm_subnet.example.id
 }
 ```
 

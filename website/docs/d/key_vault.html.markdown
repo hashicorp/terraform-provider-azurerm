@@ -19,7 +19,7 @@ data "azurerm_key_vault" "example" {
 }
 
 output "vault_uri" {
-  value = "${data.azurerm_key_vault.example.vault_uri}"
+  value = data.azurerm_key_vault.example.vault_uri
 }
 ```
 

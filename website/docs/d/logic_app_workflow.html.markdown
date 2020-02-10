@@ -19,7 +19,7 @@ data "azurerm_logic_app_workflow" "example" {
 }
 
 output "access_endpoint" {
-  value = "${data.azurerm_logic_app_workflow.example.access_endpoint}"
+  value = data.azurerm_logic_app_workflow.example.access_endpoint
 }
 ```
 

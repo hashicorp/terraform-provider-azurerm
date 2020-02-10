@@ -19,7 +19,7 @@ data "azurerm_log_analytics_workspace" "example" {
 }
 
 output "log_analytics_workspace_id" {
-  value = "${data.azurerm_log_analytics_workspace.example.workspace_id}"
+  value = data.azurerm_log_analytics_workspace.example.workspace_id
 }
 ```
 

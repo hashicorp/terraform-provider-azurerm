@@ -19,7 +19,7 @@ data "azurerm_api_management" "example" {
 }
 
 output "api_management_id" {
-  value = "${data.azurerm_api_management.example.id}"
+  value = data.azurerm_api_management.example.id
 }
 ```
 

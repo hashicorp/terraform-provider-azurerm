@@ -19,8 +19,8 @@ data "azurerm_resource_group" "example" {
 
 resource "azurerm_managed_disk" "example" {
   name                 = "managed_disk_name"
-  location             = "${data.azurerm_resource_group.example.location}"
-  resource_group_name  = "${data.azurerm_resource_group.example.name}"
+  location             = data.azurerm_resource_group.example.location
+  resource_group_name  = data.azurerm_resource_group.example.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"

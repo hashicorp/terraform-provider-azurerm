@@ -21,7 +21,7 @@ data "azurerm_platform_image" "example" {
 }
 
 output "version" {
-  value = "${data.azurerm_platform_image.example.version}"
+  value = data.azurerm_platform_image.example.version
 }
 ```
 

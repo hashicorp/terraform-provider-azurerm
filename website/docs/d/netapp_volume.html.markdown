@@ -21,7 +21,7 @@ data "azurerm_netapp_volume" "example" {
 }
 
 output "netapp_volume_id" {
-  value = "${data.azurerm_netapp_volume.example.id}"
+  value = data.azurerm_netapp_volume.example.id
 }
 ```
 

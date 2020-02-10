@@ -20,7 +20,7 @@ data "azurerm_api_management_product" "example" {
 }
 
 output "product_terms" {
-  value = "${data.azurerm_api_management_product.example.terms}"
+  value = data.azurerm_api_management_product.example.terms
 }
 ```
 

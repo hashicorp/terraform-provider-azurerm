@@ -19,7 +19,7 @@ data "azurerm_netapp_account" "example" {
 }
 
 output "netapp_account_id" {
-  value = "${data.azurerm_netapp_account.example.id}"
+  value = data.azurerm_netapp_account.example.id
 }
 ```
 

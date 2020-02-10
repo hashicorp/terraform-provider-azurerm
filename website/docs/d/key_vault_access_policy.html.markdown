@@ -18,7 +18,7 @@ data "azurerm_key_vault_access_policy" "contributor" {
 }
 
 output "access_policy_key_permissions" {
-  value = "${data.azurerm_key_vault_access_policy.contributor.key_permissions}"
+  value = data.azurerm_key_vault_access_policy.contributor.key_permissions
 }
 ```
 

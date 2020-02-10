@@ -19,7 +19,7 @@ data "azurerm_application_security_group" "example" {
 }
 
 output "application_security_group_id" {
-  value = "${data.azurerm_application_security_group.example.id}"
+  value = data.azurerm_application_security_group.example.id
 }
 ```
 

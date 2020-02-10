@@ -14,16 +14,16 @@ Use this data source to access information about an existing ExpressRoute circui
 
 ```hcl
 data "azurerm_express_route_circuit" "example" {
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  name                = "${azurerm_express_route_circuit.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  name                = azurerm_express_route_circuit.example.name
 }
 
 output "express_route_circuit_id" {
-  value = "${data.azurerm_express_route_circuit.example.id}"
+  value = data.azurerm_express_route_circuit.example.id
 }
 
 output "service_key" {
-  value = "${data.azurerm_express_route_circuit.example.service_key}"
+  value = data.azurerm_express_route_circuit.example.service_key
 }
 ```
 

@@ -20,7 +20,7 @@ data "azurerm_public_ip_prefix" "example" {
 }
 
 output "public_ip_prefix" {
-  value = "${data.azurerm_public_ip_prefix.example.ip_prefix}"
+  value = data.azurerm_public_ip_prefix.example.ip_prefix
 }
 ```
 

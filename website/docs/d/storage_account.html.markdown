@@ -20,7 +20,7 @@ data "azurerm_storage_account" "example" {
 }
 
 output "storage_account_tier" {
-  value = "${data.azurerm_storage_account.example.account_tier}"
+  value = data.azurerm_storage_account.example.account_tier
 }
 ```
 

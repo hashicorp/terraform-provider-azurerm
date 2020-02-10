@@ -20,7 +20,7 @@ data "azurerm_mssql_elasticpool" "example" {
 }
 
 output "elasticpool_id" {
-  value = "${data.azurerm_mssql_elasticpool.example.id}"
+  value = data.azurerm_mssql_elasticpool.example.id
 }
 ```
 

@@ -20,7 +20,7 @@ data "azurerm_api_management_api_version_set" "example" {
 }
 
 output "api_management_api_version_set_id" {
-  value = "${data.azurerm_api_management_api_version_set.example.id}"
+  value = data.azurerm_api_management_api_version_set.example.id
 }
 ```
 

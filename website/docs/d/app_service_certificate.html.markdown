@@ -20,7 +20,7 @@ data "azurerm_app_service_certificate" "example" {
 }
 
 output "app_service_certificate_id" {
-  value = "${data.azurerm_app_service_certificate.example.id}"
+  value = data.azurerm_app_service_certificate.example.id
 }
 ```
 

@@ -20,7 +20,7 @@ data "azurerm_batch_account" "example" {
 }
 
 output "pool_allocation_mode" {
-  value = "${data.azurerm_batch_account.example.pool_allocation_mode}"
+  value = data.azurerm_batch_account.example.pool_allocation_mode
 }
 ```
 

@@ -20,7 +20,7 @@ data "azurerm_api_management_group" "example" {
 }
 
 output "group_type" {
-  value = "${data.azurerm_api_management_group.example.type}"
+  value = data.azurerm_api_management_group.example.type
 }
 ```
 
