@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `policy` - (Optional) A `policy` block as defined below.
 
+* `protocols` - (Optional) A `protocols` block as defined below.
+
 * `security` - (Optional) A `security` block as defined below.
 
 * `sign_in` - (Optional) A `sign_in` block as defined below.
@@ -161,6 +163,12 @@ A `proxy` block supports the following:
 -> **NOTE:** Either `key_vault_id` or `certificate` and `certificate_password` must be specified.
 
 * `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
+
+---
+
+A `protocols` block supports the following:
+
+* `enable_http2` - (Optional) Should HTTP/2 be supported by the API Management Service? Defaults to `false`.
 
 ---
 
